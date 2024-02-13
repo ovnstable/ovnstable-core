@@ -28,9 +28,9 @@ async function main() {
 
     let usdPlusIns = await getContract('InsuranceExchange', 'arbitrum');
 
-    let upgradeToToken = 'addr';
-    let upgradeToExchange = 'addr';
-    let upgradeToInsurance = 'addr';
+    let upgradeToToken = '0x3f2FeD6FB49Ddc76e4C5CE5738C86704567C4D87';
+    let upgradeToExchange = '0x93dD104528B35E82c061BB0D521096dCF11628FA';
+    let upgradeToInsurance = '0xA315dC610fF6610F2667851226b6F7C116e1aaB9';
 
     addresses.push(usdPlus.address);
     values.push(0);
@@ -68,7 +68,6 @@ async function main() {
     addresses.push(usdPlusIns.address);
     values.push(0);
     abis.push(usdPlusIns.interface.encodeFunctionData('upgradeTo', [upgradeToInsurance]));
-
 
     // await testProposal(addresses, values, abis);
     await createProposal(filename, addresses, values, abis);
