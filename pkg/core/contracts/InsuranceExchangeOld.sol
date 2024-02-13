@@ -287,29 +287,19 @@ contract InsuranceExchangeOld is IInsuranceExchange, Initializable, AccessContro
      * @param swapData consist of odos data to make swap
      */
     function premium(SwapData memory swapData, uint256 premiumAmount) external onlyInsured {
-        require(premiumAmount >= swapData.amountIn, 'premiumAmount >= amountIn');
         _swap(swapData);
     }
 
     /**
      * @dev This function is calling when USD+ (or other plus) make payout and there are some loss value.
-     * This method should convert some OVN to outputToken and transfer it to the PortfolioManager contract.
+     * This method should convert some OVN to asset and transfer it to the Exchanger contract.
      * @param swapData consist of odos data to make swap
-     * @param outputAmount needed amount of outputToken (USDC|USDT|DAI) to cover the loss
+     * @param assetAmount needed amount of asset to cover the loss
      * @param to recipient of assets
      */
-    function compensate(SwapData memory swapData, uint256 outputAmount, address to) external onlyInsured {
-        require(swapData.inputTokenAddress == address(asset), 'asset != swapData.inputToken');
-
-        IERC20 outputToken = IERC20(swapData.outputTokenAddress);
-        uint256 expectedAmountOut = assetOracle.convert(address(asset), address(swapData.outputTokenAddress), swapData.amountIn);
-
+    function compensate(SwapData memory swapData, uint256 assetAmount, address to) external onlyInsured {
         _swap(swapData);
-
-        uint256 amountOut = outputToken.balanceOf(address(this));
-        require(amountOut < expectedAmountOut * (10000 + swapSlippage) / 10000, 'swapped too much');
-
-        outputToken.transfer(to, outputAmount);
+        IERC20(swapData.outputTokenAddress).transfer(to, assetAmount);
     }
 
     function _swap(SwapData memory swapData) internal {
@@ -335,11 +325,21 @@ contract InsuranceExchangeOld is IInsuranceExchange, Initializable, AccessContro
         uint256 ovnDecimals = 10**IERC20Metadata(address(asset)).decimals();
         uint256 usdDecimals = 10**IERC20Metadata(address(usdAsset)).decimals();
 
-        uint256 apprAmountOut = address(inputAsset) == address(asset) ?
-            assetOracle.convert(address(outputAsset), address(asset), amountIn) :
-            assetOracle.convert(address(asset), address(outputAsset), amountIn);
-        apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
-        require(amountOut > apprAmountOut, 'Large swap slippage');
+        uint256 price = getTwapPrice(); // 1 ovn = price usd+
+        // price = price * getPlusTwapPrice(address(usdAsset)) / 1e6;
+
+        if (address(inputAsset) == address(asset)) {
+            // ovn --> usdc
+            uint256 apprAmountOut = amountIn * price / ovnDecimals;
+            apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
+            require(amountOut > apprAmountOut, 'Large swap slippage (ovn --> usdc)');
+
+        } else {
+            // usdc --> ovn
+            uint256 apprAmountOut = amountIn * ovnDecimals / price;
+            apprAmountOut = apprAmountOut * (10000 - swapSlippage) / 10000;
+            require(amountOut > apprAmountOut, 'Large swap slippage (usdc --> ovn)');
+        }
     }
 
     function payout() external whenNotPaused oncePerBlock onlyUnit {

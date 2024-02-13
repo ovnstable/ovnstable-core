@@ -33,6 +33,10 @@ async function main() {
         console.log("usdtPlusArbEx", usdtPlusArbEx.address, await getImplementationAddress(ethers.provider, usdtPlusArbEx.address));
         console.log("daiPlusArbEx", daiPlusArbEx.address, await getImplementationAddress(ethers.provider, daiPlusArbEx.address));
         console.log("ethPlusArbEx", ethPlusArbEx.address, await getImplementationAddress(ethers.provider, ethPlusArbEx.address));
+
+        let usdPlusArbIns = await getContract('InsuranceExchange', 'arbitrum');
+        console.log("usdPlusArbIns", usdPlusArbIns.address, await getImplementationAddress(ethers.provider, usdPlusArbIns.address));
+
     }
 
     if (hre.network.name === 'optimism') {
