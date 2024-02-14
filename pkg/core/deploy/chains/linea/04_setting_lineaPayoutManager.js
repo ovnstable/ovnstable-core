@@ -15,14 +15,14 @@ module.exports = async () => {
     items.push(...velocore());
     items.push(...own());
 
-    await (await payoutManager.removeItems()).wait();
     await (await payoutManager.addItems(items)).wait();
 
     console.log('LineaPayoutListener setting done');
 
-    function own(){
+    function own() {
 
         let dex = 'PayoutManager';
+        
         let items = [];
         items.push(createSkim(payoutManager.address, usdtPlus.address, 'USDT+', dex));
         items.push(createSkim(payoutManager.address, usdPlus.address, 'USD+', dex));

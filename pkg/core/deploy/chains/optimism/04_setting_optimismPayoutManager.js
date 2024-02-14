@@ -9,7 +9,7 @@ const { COMMON } = require("@overnight-contracts/common/utils/assets");
 
 module.exports = async () => {
 
-    const pl = await getContract("OptimismPayoutManager", 'optimism');
+    const payoutManager = await getContract("OptimismPayoutManager", 'optimism');
     const usdPlus = await getContract('UsdPlusToken', 'optimism');
     const daiPlus = await getContract('UsdPlusToken', 'optimism_dai');
 
@@ -17,6 +17,9 @@ module.exports = async () => {
 
     items.push(...velodrome());
     items.push(...defiEdge());
+    await (await payoutManager.addItems(items)).wait();
+
+    console.log('OptimismPayoutManager setting done');
 
     function velodrome() {
 

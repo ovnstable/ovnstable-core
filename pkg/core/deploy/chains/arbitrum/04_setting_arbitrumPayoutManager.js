@@ -9,7 +9,7 @@ const { COMMON } = require("@overnight-contracts/common/utils/assets");
 
 module.exports = async () => {
 
-    const pl = await getContract("ArbitrumPayoutManager", 'arbitrum');
+    const payoutManager = await getContract("ArbitrumPayoutManager", 'arbitrum');
     const usdPlus = await getContract('UsdPlusToken', 'arbitrum');
     const usdtPlus = await getContract('UsdPlusToken', 'arbitrum_usdt');
     const ethPlus = await getContract('UsdPlusToken', 'arbitrum_eth');
@@ -17,19 +17,16 @@ module.exports = async () => {
 
     let items = [];
 
-    // items.push(...shekelswap());
-    // items.push(...wombat());
-    // items.push(...chronos());
-    // items.push(...ramses());
-    // items.push(...arbidex());
-    // items.push(...curve());
-    // items.push(...coffeefi());
-    // items.push(...horiza());
+    items.push(...shekelswap());
+    items.push(...wombat());
+    items.push(...chronos());
+    items.push(...ramses());
+    items.push(...arbidex());
+    items.push(...curve());
+    items.push(...coffeefi());
+    items.push(...horiza());
     items.push(...pancakeswap());
-
-    // await (await pl.removeItems()).wait();
-    await (await pl.addItems(items)).wait();
-
+    await (await payoutManager.addItems(items)).wait();
 
     console.log('ArbitrumPayoutManager setting done');
 
@@ -38,19 +35,13 @@ module.exports = async () => {
         let dex = 'PancakeSwap';
 
         let items = [];
-
-        // items.push(createSkim('0xdAA80a051E22A7f7b0cfC33Aa29572fbDE65183E', ethPlus.address, 'WETH/ETH+', dex));
-
-        // items.push(createSkim('0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F', usdPlus.address, 'USD+/USDT+', dex));
-        // items.push(createSkim('0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F', usdtPlus.address, 'USD+/USDT+', dex));
-
-        // items.push(createSkim('0x06c75011479E47280e8B7E72E9e0315C8b3A634d', ethPlus.address, 'USD+/ETH+', dex));
-        // items.push(createSkim('0x06c75011479E47280e8B7E72E9e0315C8b3A634d', usdPlus.address, 'USD+/ETH+', dex));
-
-        // items.push(createSkim('0xd01075f7314a6436e8B74fc18069848229D0c555', usdPlus.address, 'USD+/USDC', dex));
+        items.push(createSkim('0xdAA80a051E22A7f7b0cfC33Aa29572fbDE65183E', ethPlus.address, 'WETH/ETH+', dex));
+        items.push(createSkim('0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F', usdPlus.address, 'USD+/USDT+', dex));
+        items.push(createSkim('0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F', usdtPlus.address, 'USD+/USDT+', dex));
+        items.push(createSkim('0x06c75011479E47280e8B7E72E9e0315C8b3A634d', ethPlus.address, 'USD+/ETH+', dex));
+        items.push(createSkim('0x06c75011479E47280e8B7E72E9e0315C8b3A634d', usdPlus.address, 'USD+/ETH+', dex));
+        items.push(createSkim('0xd01075f7314a6436e8B74fc18069848229D0c555', usdPlus.address, 'USD+/USDC', dex));
         items.push(createSkim('0x714d48cb99b87f274b33a89fbb16ead191b40b6c', usdPlus.address, 'OVN/USD+', dex));
-
-
 
         return items;
     }
@@ -61,10 +52,8 @@ module.exports = async () => {
 
         let items = [];
         items.push(createSkim('0xcc78afeCe206D8432e687294F038B7dea1046B40', usdPlus.address, 'USD+/USDC', dex));
-
         items.push(createSkim('0xC12f901EffFE113252d0Fe2478F62E9F0f87E2d3', usdPlus.address, 'USD+/USDT+', dex));
         items.push(createSkim('0xC12f901EffFE113252d0Fe2478F62E9F0f87E2d3', usdtPlus.address, 'USD+/USDT+', dex));
-
         items.push(createSkim('0x499107966Cfc82f8926aBA4cE71bbfD0Cc766432', usdPlus.address, 'USD+/ETH+', dex));
         items.push(createSkim('0x499107966Cfc82f8926aBA4cE71bbfD0Cc766432', ethPlus.address, 'USD+/ETH+', dex));
 
@@ -92,7 +81,6 @@ module.exports = async () => {
         let items = [];
         items.push(createSkim('0xb34a7d1444a707349Bc7b981B7F2E1f20F81F013', usdPlus.address, 'USD+/FRAX', dex));
         return items;
-
     }
 
     function shekelswap() {
@@ -117,7 +105,6 @@ module.exports = async () => {
         items.push(createSkim('0xBd7568d25338940ba212e3F299D2cCC138fA35F0', usdPlus.address, 'LP-USD+', dex));
 
         return items;
-
     }
 
     function chronos() {
@@ -132,7 +119,6 @@ module.exports = async () => {
         items.push(createSkim('0xB260163158311596Ea88a700C5a30f101D072326', daiPlus.address, 'USD+/DAI+', dex));
 
         return items;
-
     }
 
 
@@ -160,9 +146,6 @@ module.exports = async () => {
 
         return items;
     }
-
-
-
 
 };
 
