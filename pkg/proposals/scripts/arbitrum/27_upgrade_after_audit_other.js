@@ -18,12 +18,10 @@ async function main() {
 
     let usdPlus = await getContract('UsdPlusToken', 'arbitrum');
     let usdtPlus = await getContract('UsdPlusToken', 'arbitrum_usdt');
-    let daiPlus = await getContract('UsdPlusToken', 'arbitrum_dai');
     let ethPlus = await getContract('UsdPlusToken', 'arbitrum_eth');
 
     let usdPlusEx = await getContract('Exchange', 'arbitrum');
     let usdtPlusEx = await getContract('Exchange', 'arbitrum_usdt');
-    let daiPlusEx = await getContract('Exchange', 'arbitrum_dai');
     let ethPlusEx = await getContract('Exchange', 'arbitrum_eth');
 
     let usdPlusIns = await getContract('InsuranceExchange', 'arbitrum');
@@ -40,10 +38,6 @@ async function main() {
     values.push(0);
     abis.push(usdtPlus.interface.encodeFunctionData('upgradeTo', [upgradeToToken]));
 
-    addresses.push(daiPlus.address);
-    values.push(0);
-    abis.push(daiPlus.interface.encodeFunctionData('upgradeTo', [upgradeToToken]));
-
     addresses.push(ethPlus.address);
     values.push(0);
     abis.push(ethPlus.interface.encodeFunctionData('upgradeTo', [upgradeToToken]));
@@ -56,10 +50,6 @@ async function main() {
     addresses.push(usdtPlusEx.address);
     values.push(0);
     abis.push(usdtPlusEx.interface.encodeFunctionData('upgradeTo', [upgradeToExchange]));
-
-    addresses.push(daiPlusEx.address);
-    values.push(0);
-    abis.push(daiPlusEx.interface.encodeFunctionData('upgradeTo', [upgradeToExchange]));
 
     addresses.push(ethPlusEx.address);
     values.push(0);

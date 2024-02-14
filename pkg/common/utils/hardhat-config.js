@@ -297,6 +297,14 @@ function getEtherScan(){
                     apiURL: "https://api.lineascan.build/api",
                     browserURL: "https://lineascan.build"
                 }
+            },
+            {
+                network: "arbitrum_dai",
+                chainId:  42161,
+                urls: {
+                    apiURL: "https://api.arbiscan.io/api",
+                    browserURL: "https://arbiscan.io"
+                }
             }
         ]
 
@@ -314,6 +322,7 @@ function getEtherScan(){
         polygon: process.env[`ETHERSCAN_API_POLYGON`],
         bsc: process.env[`ETHERSCAN_API_BSC`],
         arbitrumOne: process.env[`ETHERSCAN_API_ARBITRUM`],
+        arbitrum_dai: process.env[`ETHERSCAN_API_ARBITRUM`],
     }
 
     return object;
