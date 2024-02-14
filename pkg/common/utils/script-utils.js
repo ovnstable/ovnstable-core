@@ -566,6 +566,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
         let totalUsdPlus = fromUsdPlus(await usdPlus.totalSupply({ blockTag: blocknumber }), stand);
         console.log('Total USD+: ' + totalUsdPlus);
     }
+    console.log('Difference', Number(fromAsset(totalNetAssets.toString(), stand))-Number(totalUsdPlus))
 
 }
 
