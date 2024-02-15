@@ -26,8 +26,8 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         let items = [];
         items.push(createSkim('0x1561D9618dB2Dcfe954f5D51f4381fa99C8E5689', usdPlus.address, 'sAMM-USDT+/USD+', dex));
         items.push(createSkim('0x1561D9618dB2Dcfe954f5D51f4381fa99C8E5689', usdtPlus.address, 'sAMM-USDT+/USD+', dex));
-        items.push(createSkim('0x1F3cA66c98d682fA1BeC31264692daD4f17340BC', usdPlus.address, 'sAMM-HAY/USD+', dex));
-        items.push(createSkim('0x0571e491cBfa2FDb449a329196e01E4fDC9cAF7A', usdtPlus.address, 'vAMM-OVN/USDT+', dex));
+        // items.push(createSkim('0x1F3cA66c98d682fA1BeC31264692daD4f17340BC', usdPlus.address, 'sAMM-HAY/USD+', dex));
+        // items.push(createSkim('0x0571e491cBfa2FDb449a329196e01E4fDC9cAF7A', usdtPlus.address, 'vAMM-OVN/USDT+', dex));
 
         return items;
     }
