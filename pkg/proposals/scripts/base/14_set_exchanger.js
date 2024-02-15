@@ -11,28 +11,13 @@ const {BASE} = require("@overnight-contracts/common/utils/assets");
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
 
-
-let EXCHANGER_ABI =     {
-    "inputs": [
-        {
-            "internalType": "address",
-            "name": "_strategy",
-            "type": "address"
-        }
-    ],
-    "name": "setStrategy",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-}
-
 async function main() {
 
     let addresses = [];
     let values = [];
     let abis = [];
 
-    let epsilon = await getContract('StrategyEpsilonBase', 'base');
+    let epsilon = await getContract('StrategyEtsEpsilon', 'base');
 
     let epsilonParams =  {
         asset: BASE.usdbc,
@@ -49,7 +34,7 @@ async function main() {
     // await testProposal(addresses, values, abis);
     // await showM2M();
     //
-    // await testStrategy(filename,epsilon, 'base');
+    // await testStrategy(filename, epsilon, 'base');
     // await testUsdbPlus(filename, 'base');
     //
     await createProposal(filename, addresses, values, abis);
