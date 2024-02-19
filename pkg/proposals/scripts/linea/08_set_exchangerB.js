@@ -7,7 +7,7 @@ const path = require('path');
 const {prepareEnvironment} = require("@overnight-contracts/common/utils/tests");
 const {strategySiloUsdc} = require("@overnight-contracts/strategies-arbitrum/deploy/38_strategy_silo_usdc");
 const {ethers} = require("hardhat");
-const {BASE} = require("@overnight-contracts/common/utils/assets");
+const {LINEA} = require("@overnight-contracts/common/utils/assets");
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
 
@@ -16,28 +16,27 @@ async function main() {
     let addresses = [];
     let values = [];
     let abis = [];
+ 
+    let strategy = await getContract('strategyBetaLinea', 'linea');
 
-    let epsilon = await getContract('StrategyEtsEpsilon', 'base');
-
-    let epsilonParams =  {
-        asset: BASE.usdbc,
-        rebaseToken: '0xa42DFcE3518B730624F055AF8A95222F02CF5AFA',
-        hedgeExchanger: '0x33c1327834BcedD2206335ED62E09ce65617d346',
+    let strategyParams =  {
+        asset: LINEA.usdt,
+        rebaseToken: '0x2253BdD62eA63F7CBbf92785EEdcCAc7521FB6A1',
+        hedgeExchanger: '0x40ae104C59af1B9d23Dcd9c5715780E2132631f1',
     }
 
-    addresses.push(epsilon.address);
+    addresses.push(strategy.address);
     values.push(0);
-    abis.push(epsilon.interface.encodeFunctionData('setParams', [epsilonParams]));
+    abis.push(strategy.interface.encodeFunctionData('setParams', [strategyParams]));
   
     //
     // await showM2M();
     // await testProposal(addresses, values, abis);
     // await showM2M();
-    //
-    // await testStrategy(filename, epsilon, 'base');
-    // await testUsdPlus(filename, 'base');
-    //
-    await createProposal(filename, addresses, values, abis);
+    // 
+    await testStrategy(filename, strategy, 'linea');
+    // await testUsdPlus(filename, 'linea');
+    // await createProposal(filename, addresses, values, abis); 
 }
 
 main()
