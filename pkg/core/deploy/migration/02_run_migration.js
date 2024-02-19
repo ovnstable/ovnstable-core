@@ -19,7 +19,7 @@ module.exports = async () => {
     let exchange = await getContract('Exchange');
     let wrapped = await getContract('WrappedUsdPlusToken');
 
-    let usdPlusMigrationAddress = '0x388eF6587473FCEe972ba5aca5abC8A79137e6Cf';
+    let usdPlusMigrationAddress = '0xd8BD1Af9955A77A40Cfa58099622Bc176b5A862A';
     let usdPlusPureAddress = '0xb55838c7Ce38bbF899cb9BCcC0C1B706e18e0294';
     let wrappedPureAddress = '0x46B0Bc31238195fBdc7258f91fE848FFFDe5d123';
     let exchangeAddress = '0xff750f3870D6D98082FC60Fb5273Aee1477dFA39';
@@ -30,43 +30,14 @@ module.exports = async () => {
     let payoutManagerAddress = (await getContract('OptimismPayoutManager')).address;
     let decimals = await usdPlus.decimals();
 
-    if (isLocalTest) {
-
-        await execTimelock(async (timelock) => {
-            console.log("timelock", timelock.address);
-            let roleManager = await getContract('RoleManager');
-            await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
-            await usdPlus.connect(timelock).grantRole(Roles.UPGRADER_ROLE, timelock.address);
-            await wrapped.connect(timelock).grantRole(Roles.UPGRADER_ROLE, timelock.address);
-            await exchange.connect(timelock).pause();
-        })
-
-        // For redeploy migration contract
-
-        // let factory = await ethers.getContractFactory('UsdPlusTokenMigration');
-        //
-        // let impl = await sampleModule.deployProxyImpl(hre, factory, {
-        //     kind: 'uups',
-        //     unsafeSkipStorageCheck: true,
-        //     unsafeAllowRenames: true
-        // }, usdPlus.address);
-        //
-        // usdPlusMigrationAddress = impl.impl;
-    }
+    await execTimelock(async (timelock) => {
+        console.log("timelock", timelock.address);
+        await usdPlus.connect(timelock).grantRole(Roles.UPGRADER_ROLE, timelock.address);
+        await wrapped.connect(timelock).grantRole(Roles.UPGRADER_ROLE, timelock.address);
+    });
 
     let factory = await ethers.getContractFactory('UsdPlusTokenMigration');
     usdPlus = await ethers.getContractAt(factory.interface, usdPlus.address, await initWallet());
-
-    let exchangePaused = await exchange.paused();
-
-    console.log('Pause status');
-
-    console.log(`Exchange.paused: ${exchangePaused}`);
-
-    if (!exchangePaused) {
-        throw new Error('Exchange or Wrapped not pause!');
-    }
-
 
     console.log('====[Exchange Upgrade]====');
 
@@ -83,7 +54,6 @@ module.exports = async () => {
     })
     console.log(`exchange.payoutListener: ${await exchange.payoutManager()}`);
     console.log(`exchange.usdPlus:        ${await exchange.usdPlus()}`);
-    console.log(`exchange.pause:          ${await exchange.paused()}`);
 
     console.log('====[Exchange Upgrade done]====\n\n\n');
 
@@ -98,7 +68,9 @@ module.exports = async () => {
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
 
     console.log('2. MigrationInit');
-    await (await usdPlus.migrationInit(exchange.address, decimals, payoutManagerAddress)).wait();
+    await execTimelock(async (timelock) => {
+        await usdPlus.connect(timelock).migrationInit(exchange.address, decimals, payoutManagerAddress);
+    })
     console.log(`usdPlus.decimals:       ${await usdPlus.decimals()}`);
     console.log(`usdPlus.payoutManager:  ${await usdPlus.payoutManager()}`);
 
@@ -121,21 +93,19 @@ module.exports = async () => {
     })
     console.log(`usdPlus.roleManager:    ${await usdPlus.roleManager()}`);
 
-    console.log('3. SetPause')
-    await (await usdPlus.pause()).wait();
-
-
     console.log('====[UsdPlus Pure done]====\n\n\n');
 
     console.log('====[Wrapped Pure]====');
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, wrapped.address)}`);
     await execTimelock(async (timelock) => {
         await wrapped.connect(timelock).upgradeTo(wrappedPureAddress);
+        await wrapped.connect(timelock).setRoleManager(roleManagerAddress);
     })
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, wrapped.address)}`);
 
     expect(roleManagerAddress).to.equal(await usdPlus.roleManager());
     expect(roleManagerAddress).to.equal(await exchange.roleManager());
+    expect(roleManagerAddress).to.equal(await wrapped.roleManager());
     expect(payoutManagerAddress).to.equal(await usdPlus.payoutManager());
     expect(payoutManagerAddress).to.equal(await exchange.payoutManager());
     expect(decimals).to.equal(await usdPlus.decimals());

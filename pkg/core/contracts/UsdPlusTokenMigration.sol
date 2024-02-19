@@ -101,7 +101,8 @@ contract UsdPlusTokenMigration is Initializable, ContextUpgradeable, IERC20Upgra
 
     function migrationInit(address _exchange, uint8 decimals, address _payoutManager) public {
         address devAddress = 0x05129E3CE8C566dE564203B0fd85111bBD84C424;
-        require(devAddress == msg.sender, "Caller is not the Dev");
+        address timelock = 0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011;
+        require(msg.sender == devAddress || msg.sender == timelock, "Caller is not the Dev or Timelock");
         require(nonRebasingSupply != 0, "already migrationInit");
 
         uint256 liquidityIndex = DELETED_1;
