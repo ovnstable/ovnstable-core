@@ -2,6 +2,28 @@
   "address": "0x73cb180bf0521828d8849bc8CF2B920918e23032",
   "abi": [
     {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_exchange",
+          "type": "address"
+        },
+        {
+          "name": "decimals",
+          "type": "uint8"
+        },
+        {
+          "name": "_payoutManager",
+          "type": "address"
+        }
+      ],
+      "name": "migrationInit",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"

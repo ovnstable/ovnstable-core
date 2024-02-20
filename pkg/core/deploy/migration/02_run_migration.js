@@ -11,6 +11,8 @@ const {expect} = require("chai");
 const sampleModule = require("@openzeppelin/hardhat-upgrades/dist/utils/deploy-impl");
 const {fromAsset, fromUsdPlus} = require("@overnight-contracts/common/utils/decimals");
 
+const isInsurance = true;
+
 module.exports = async () => {
 
     let isLocalTest = hre.network.name === 'localhost';
@@ -18,12 +20,13 @@ module.exports = async () => {
     let usdPlus = await getContract('UsdPlusToken');
     let exchange = await getContract('Exchange');
     let wrapped = await getContract('WrappedUsdPlusToken');
+    let insurance = isInsurance ? await getContract('InsuranceExchange') : null;
 
     let usdPlusMigrationAddress = '0xd8BD1Af9955A77A40Cfa58099622Bc176b5A862A';
     let usdPlusPureAddress = '0xb55838c7Ce38bbF899cb9BCcC0C1B706e18e0294';
     let wrappedPureAddress = '0x46B0Bc31238195fBdc7258f91fE848FFFDe5d123';
     let exchangeAddress = '0xff750f3870D6D98082FC60Fb5273Aee1477dFA39';
-    // let ins = '0x21dC33cDc6E68484aAd323DAD1B65BA88e2dee1f';
+    let insuranceAddress = isInsurance ? '0x21dC33cDc6E68484aAd323DAD1B65BA88e2dee1f': '';
     let startBlock = await ethers.provider.getBlockNumber();
 
     let roleManagerAddress = (await getContract('RoleManager')).address;
@@ -40,59 +43,48 @@ module.exports = async () => {
     usdPlus = await ethers.getContractAt(factory.interface, usdPlus.address, await initWallet());
 
     console.log('====[Exchange Upgrade]====');
-
     console.log('1. upgradeTo');
     console.log(`Exchange implementation address: ${await getImplementationAddress(ethers.provider, exchange.address)}`);
     await execTimelock(async (timelock) => {
         await exchange.connect(timelock).upgradeTo(exchangeAddress);
     })
     console.log(`Exchange implementation address: ${await getImplementationAddress(ethers.provider, exchange.address)}`);
-
     console.log('2. Set PayoutManager');
     await execTimelock(async (timelock) => {
         await exchange.connect(timelock).setPayoutManager(payoutManagerAddress);
     })
     console.log(`exchange.payoutListener: ${await exchange.payoutManager()}`);
     console.log(`exchange.usdPlus:        ${await exchange.usdPlus()}`);
-
     console.log('====[Exchange Upgrade done]====\n\n\n');
 
-
     console.log('====[UsdPlus Migration]====');
-
     console.log('1. upgradeTo(migration)');
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
     await execTimelock(async (timelock) => {
         await usdPlus.connect(timelock).upgradeTo(usdPlusMigrationAddress);
     })
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
-
     console.log('2. MigrationInit');
     await execTimelock(async (timelock) => {
         await usdPlus.connect(timelock).migrationInit(exchange.address, decimals, payoutManagerAddress);
     })
     console.log(`usdPlus.decimals:       ${await usdPlus.decimals()}`);
     console.log(`usdPlus.payoutManager:  ${await usdPlus.payoutManager()}`);
-
     console.log('====[UsdPlus Migration done]====\n\n\n');
 
-
     console.log('====[UsdPlus Pure]====');
-
     console.log('1. upgradeTo(pure)');
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
     await execTimelock(async (timelock) => {
         await usdPlus.connect(timelock).upgradeTo(usdPlusPureAddress);
     })
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
-
     usdPlus = await getContract('UsdPlusToken');
     console.log('2. SetRoleManager');
     await execTimelock(async (timelock) => {
         await usdPlus.connect(timelock).setRoleManager(roleManagerAddress);
     })
     console.log(`usdPlus.roleManager:    ${await usdPlus.roleManager()}`);
-
     console.log('====[UsdPlus Pure done]====\n\n\n');
 
     console.log('====[Wrapped Pure]====');
@@ -102,6 +94,17 @@ module.exports = async () => {
         await wrapped.connect(timelock).setRoleManager(roleManagerAddress);
     })
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, wrapped.address)}`);
+    console.log('====[Wrapped Pure done]====\n\n\n');
+
+    if (isInsurance) {
+        console.log('====[Insurance]====');
+        console.log(`insurance implementation address: ${await getImplementationAddress(ethers.provider, insurance.address)}`);
+        await execTimelock(async (timelock) => {
+            await insurance.connect(timelock).upgradeTo(insuranceAddress);
+        })
+        console.log(`insurance implementation address: ${await getImplementationAddress(ethers.provider, insurance.address)}`);
+        console.log('====[Insurance done]====');
+    }
 
     expect(roleManagerAddress).to.equal(await usdPlus.roleManager());
     expect(roleManagerAddress).to.equal(await exchange.roleManager());

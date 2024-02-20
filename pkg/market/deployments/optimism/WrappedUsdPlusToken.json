@@ -3,6 +3,32 @@
   "abi": [
     {
       "inputs": [],
+      "name": "roleManager",
+      "outputs": [
+        {
+          "internalType": "contract IRoleManager",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_roleManager",
+          "type": "address"
+        }
+      ],
+      "name": "setRoleManager",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
