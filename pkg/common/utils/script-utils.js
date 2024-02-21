@@ -112,7 +112,7 @@ async function settingSection(id, exec) {
 
             if (hre.ovn.gov) {
                 let timelock = await getContract('AgentTimelock');
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545');
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
                 await hre.network.provider.request({
                     method: "hardhat_impersonateAccount",
                     params: [timelock.address],
@@ -604,7 +604,7 @@ async function getPrice() {
 
 async function impersonateAccount(address) {
 
-    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [address],
@@ -636,7 +636,7 @@ async function execTimelock(exec) {
 
 
     if (hre.network.name === 'localhost') {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     }
 
     await sleep(1000);
@@ -700,7 +700,7 @@ async function changeWeightsAndBalance(weights) {
     await showM2M();
 
 
-    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [timelock.address],
@@ -785,7 +785,7 @@ async function getDevWallet() {
 async function transferETH(amount, to) {
 
     if (isZkSync()) {
-        let provider = new Provider("http://127.0.0.1:8011");
+        let provider = new Provider("http://localhost:8011");
         let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
         console.log(`Balance [${fromE18(await hre.ethers.provider.getBalance(wallet.address))}]:`);
 
@@ -939,7 +939,7 @@ async function transferAsset(assetAddress, to, amount) {
     let asset = await getERC20ByAddress(assetAddress);
 
     if (hre.network.name === 'localhost') {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     }
 
     await hre.network.provider.request({

@@ -57,11 +57,11 @@ async function main() {
     // await testProposal(addresses, values, abis);
     // await showM2M();
     //
-    await testStrategy(filename, strategyA, "linea");
-    await testStrategy(filename, strategyB, "linea");
-    await testUsdPlus(filename, "linea");
-    await testUsdPlus(filename, "linea_usdt");
-    // await createProposal(filename, addresses, values, abis);
+    // await testStrategy(filename, strategyA, "linea");
+    // await testStrategy(filename, strategyB, "linea");
+    // await testUsdPlus(filename, "linea");
+    // await testUsdPlus(filename, "linea_usdt");
+    await createProposal(filename, addresses, values, abis);
 }
 
 main()
