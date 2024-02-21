@@ -4,8 +4,6 @@ const {createProposal, testProposal, testUsdPlus, testStrategy} = require("@over
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 const path = require('path');
-const {prepareEnvironment} = require("@overnight-contracts/common/utils/tests");
-const {strategyASiloUsdc} = require("@overnight-contracts/strategies-arbitrum/deploy/38_strategyA_silo_usdc");
 const {ethers} = require("hardhat");
 const {LINEA} = require("@overnight-contracts/common/utils/assets");
 let filename = path.basename(__filename);
@@ -30,7 +28,7 @@ async function main() {
     abis.push(strategyA.interface.encodeFunctionData('setParams', [strategyAParams]));
 
 
-    let strategyB = await getContract('StrategyBBetaLinea', 'linea');
+    let strategyB = await getContract('StrategyBetaLinea', 'linea');
 
     let strategyBParams =  {
         asset: LINEA.usdt,
