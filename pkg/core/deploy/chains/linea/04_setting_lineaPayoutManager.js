@@ -12,9 +12,9 @@ module.exports = async () => {
     const usdtPlus = await getContract('UsdPlusToken', 'linea_usdt');
 
     let items = [];
-    // items.push(...velocore());
-    // items.push(...own());
-    items.push(...lynex())
+    items.push(...own());
+    items.push(...lynex());
+    items.push(...velocore());
 
     await (await payoutManager.addItems(items)).wait();
 
