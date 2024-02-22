@@ -34,9 +34,14 @@ module.exports = async () => {
     function lynex() {
         let dex = 'Lynex';
         return [
+            // USDC/USD+
+            createSkim('0x58aacbccaec30938cb2bb11653cad726e5c4194a', usdPlus.address, 'USDC/USD+', dex),
+            // USDT+/USD+
             createSkim('0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91', usdPlus.address, 'USDT+/USD+', dex),
-            createSkim('0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91', usdtPlus.address, 'USDT+/USD+', dex)
-            // я добавил оба токена 
+            createSkim('0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91', usdtPlus.address, 'USDT+/USD+', dex),
+            // USDT+/USDT  - третий ?
+            createSkim('0xbE23da11fbF9dA0F7C13eA73A4bB511b9Bc00177', usdPlus.address, 'USDT+/USDT', dex), 
+            
         ]
 
     }
