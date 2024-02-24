@@ -402,6 +402,7 @@ async function getCoreAsset(stand = process.env.STAND) {
 
     } else if (stand === 'base_usdc') {
         return await getERC20('usdc');
+
     } else {
         return await getERC20('usdc');
     }
@@ -566,7 +567,6 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
         let totalUsdPlus = fromUsdPlus(await usdPlus.totalSupply({ blockTag: blocknumber }), stand);
         console.log('Total USD+: ' + totalUsdPlus);
     }
-    console.log('Difference', Number(fromAsset(totalNetAssets.toString(), stand))-Number(totalUsdPlus))
 
 }
 
@@ -858,7 +858,7 @@ async function transferAsset(assetAddress, to, amount) {
         case "BASE":
             switch (assetAddress) {
                 case BASE.usdbc:
-                    from = '0xef6ca7d0ea5d711a393c8626698a804a9ee885c4';
+                    from = '0x806b9e17306cb97e93bb6c64ee9c9c318e5a0327';
                     break;
                 case BASE.usdc:
                     from = '0x20fe51a9229eef2cf8ad9e89d91cab9312cf3b7a';
@@ -891,7 +891,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x555ce236c0220695b68341bc48c68d52210cc35b';
                     break;
                 case LINEA.usdt:
-                    from = '0x6c3b07b432ac154a29cd4c74b4d09d12d4a8fbda';
+                    from = '0xd7aa9ba6caac7b0436c91396f22ca5a7f31664fc';
                     break;
                 default:
                     throw new Error('Unknown asset address');
