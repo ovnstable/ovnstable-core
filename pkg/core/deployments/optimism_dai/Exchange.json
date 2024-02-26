@@ -3,6 +3,32 @@
   "abi": [
     {
       "inputs": [],
+      "name": "payoutManager",
+      "outputs": [
+        {
+          "internalType": "contract IPayoutManager",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_payoutManager",
+          "type": "address"
+        }
+      ],
+      "name": "setPayoutManager",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },

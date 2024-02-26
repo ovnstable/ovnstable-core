@@ -34,15 +34,15 @@ module.exports = async ({deployments}) => {
         kind: 'uups'
     }, usdPlus.address);
 
-    console.log("usdPlus.address", usdPlus.address);
+    // console.log("usdPlus.address", usdPlus.address);
 
     console.log(`New implementation: ${usdpImpl.impl}`);
 
-    await execTimelock(async (timelock) => {
-        await usdPlus.connect(timelock).upgradeTo(usdpImpl.impl);
-    });
+    // await execTimelock(async (timelock) => {
+    //     await usdPlus.connect(timelock).upgradeTo(usdpImpl.impl);
+    // });
 
-    console.log(`New implementation: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
+    // console.log(`New implementation: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
 
 
 
@@ -61,15 +61,15 @@ module.exports = async ({deployments}) => {
         kind: 'uups'
     }, exchange.address);
 
-    console.log("exch.address", exchange.address);
+    // console.log("exch.address", exchange.address);
 
     console.log(`New implementation: ${exchImpl.impl}`);
 
-    await execTimelock(async (timelock) => {
-        await exchange.connect(timelock).upgradeTo(exchImpl.impl);
-    });
+    // await execTimelock(async (timelock) => {
+    //     await exchange.connect(timelock).upgradeTo(exchImpl.impl);
+    // });
 
-    console.log(`New implementation: ${await getImplementationAddress(ethers.provider, exchange.address)}`);
+    // console.log(`New implementation: ${await getImplementationAddress(ethers.provider, exchange.address)}`);
 
 
 

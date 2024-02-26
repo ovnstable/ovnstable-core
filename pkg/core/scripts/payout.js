@@ -126,6 +126,8 @@ async function getOdosParams(exchange) {
     if (swapAmount > 0) {
         let currentTokenAmount = await asset.balanceOf(insurance.address);
         currentTokenAmount = Number.parseInt(currentTokenAmount.toString());
+        // todo fix it later
+        currentTokenAmount = 0;
         let neededAmount = swapAmount + currentTokenAmount;
         // -5% slippage
         neededAmount = (neededAmount * 95 / 100).toFixed(0);

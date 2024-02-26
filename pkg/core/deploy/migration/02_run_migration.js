@@ -11,6 +11,8 @@ const {expect} = require("chai");
 const sampleModule = require("@openzeppelin/hardhat-upgrades/dist/utils/deploy-impl");
 const {fromAsset, fromUsdPlus} = require("@overnight-contracts/common/utils/decimals");
 
+const isInsurance = true;
+
 module.exports = async () => {
 
     let isLocalTest = hre.network.name === 'localhost';
@@ -18,112 +20,95 @@ module.exports = async () => {
     let usdPlus = await getContract('UsdPlusToken');
     let exchange = await getContract('Exchange');
     let wrapped = await getContract('WrappedUsdPlusToken');
+    let insurance = isInsurance ? await getContract('InsuranceExchange') : null;
 
-    let usdPlusMigrationAddress = '0x02ceEE3481341dBa79C574B1292e074b48587B87';
-    let usdPlusPureAddress = '0xdFF59a37eD7187Bf5C6a730C6C201DC00E58f0CC';
-    let wrappedPureAddress = '0xbF4864B29a4588244988b7b40EFbE7a77bB04417';
-    let exchangeAddress = '0xd486A151E63C344866BF084AD401cF30D3372B71';
+    let usdPlusMigrationAddress = '0xd8BD1Af9955A77A40Cfa58099622Bc176b5A862A';
+    let usdPlusPureAddress = '0xb55838c7Ce38bbF899cb9BCcC0C1B706e18e0294';
+    let wrappedPureAddress = '0x46B0Bc31238195fBdc7258f91fE848FFFDe5d123';
+    let exchangeAddress = '0xff750f3870D6D98082FC60Fb5273Aee1477dFA39';
+    let insuranceAddress = isInsurance ? '0x21dC33cDc6E68484aAd323DAD1B65BA88e2dee1f': '';
     let startBlock = await ethers.provider.getBlockNumber();
 
     let roleManagerAddress = (await getContract('RoleManager')).address;
-    let payoutManagerAddress = (await getContract('TestPayoutManager', 'test')).address;
+    let payoutManagerAddress = (await getContract('OptimismPayoutManager')).address;
     let decimals = await usdPlus.decimals();
 
-    if (isLocalTest) {
-
-        console.log('[LocalTest] SetPause');
-        await execTimelock(async (timelock) => {
-            let roleManager = await getContract('RoleManager');
-            await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
-            await exchange.connect(timelock).pause();
-            await wrapped.connect(timelock).pause();
-        })
-
-        // For redeploy migration contract
-
-        // let factory = await ethers.getContractFactory('UsdPlusTokenMigration');
-        //
-        // let impl = await sampleModule.deployProxyImpl(hre, factory, {
-        //     kind: 'uups',
-        //     unsafeSkipStorageCheck: true,
-        //     unsafeAllowRenames: true
-        // }, usdPlus.address);
-        //
-        // usdPlusMigrationAddress = impl.impl;
-    }
+    await execTimelock(async (timelock) => {
+        console.log("timelock", timelock.address);
+        await usdPlus.connect(timelock).grantRole(Roles.UPGRADER_ROLE, timelock.address);
+        await wrapped.connect(timelock).grantRole(Roles.UPGRADER_ROLE, timelock.address);
+    });
 
     let factory = await ethers.getContractFactory('UsdPlusTokenMigration');
     usdPlus = await ethers.getContractAt(factory.interface, usdPlus.address, await initWallet());
 
-    let exchangePaused = await exchange.paused();
-    let wrappedPaused = await wrapped.paused();
-
-    console.log('Pause status');
-
-    console.log(`Exchange.paused: ${exchangePaused}`);
-    console.log(`Wrapped.paused:  ${wrappedPaused}`);
-
-    if (!exchangePaused || !wrappedPaused) {
-        throw new Error('Exchange or Wrapped not pause!');
-    }
-
-
     console.log('====[Exchange Upgrade]====');
-
     console.log('1. upgradeTo');
     console.log(`Exchange implementation address: ${await getImplementationAddress(ethers.provider, exchange.address)}`);
-    await (await exchange.upgradeTo(exchangeAddress)).wait();
+    await execTimelock(async (timelock) => {
+        await exchange.connect(timelock).upgradeTo(exchangeAddress);
+    })
     console.log(`Exchange implementation address: ${await getImplementationAddress(ethers.provider, exchange.address)}`);
-
     console.log('2. Set PayoutManager');
-    await (await exchange.setPayoutManager(payoutManagerAddress)).wait();
+    await execTimelock(async (timelock) => {
+        await exchange.connect(timelock).setPayoutManager(payoutManagerAddress);
+    })
     console.log(`exchange.payoutListener: ${await exchange.payoutManager()}`);
     console.log(`exchange.usdPlus:        ${await exchange.usdPlus()}`);
-    console.log(`exchange.pause:          ${await exchange.paused()}`);
-
     console.log('====[Exchange Upgrade done]====\n\n\n');
 
-
     console.log('====[UsdPlus Migration]====');
-
     console.log('1. upgradeTo(migration)');
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
-    await (await usdPlus.upgradeTo(usdPlusMigrationAddress)).wait();
+    await execTimelock(async (timelock) => {
+        await usdPlus.connect(timelock).upgradeTo(usdPlusMigrationAddress);
+    })
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
-
     console.log('2. MigrationInit');
-    await (await usdPlus.migrationInit(exchange.address, decimals, payoutManagerAddress)).wait();
+    await execTimelock(async (timelock) => {
+        await usdPlus.connect(timelock).migrationInit(exchange.address, decimals, payoutManagerAddress);
+    })
     console.log(`usdPlus.decimals:       ${await usdPlus.decimals()}`);
     console.log(`usdPlus.payoutManager:  ${await usdPlus.payoutManager()}`);
-
     console.log('====[UsdPlus Migration done]====\n\n\n');
 
-
     console.log('====[UsdPlus Pure]====');
-
     console.log('1. upgradeTo(pure)');
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
-    await (await usdPlus.upgradeTo(usdPlusPureAddress)).wait();
+    await execTimelock(async (timelock) => {
+        await usdPlus.connect(timelock).upgradeTo(usdPlusPureAddress);
+    })
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
-
     usdPlus = await getContract('UsdPlusToken');
     console.log('2. SetRoleManager');
-    await (await usdPlus.setRoleManager(roleManagerAddress)).wait();
+    await execTimelock(async (timelock) => {
+        await usdPlus.connect(timelock).setRoleManager(roleManagerAddress);
+    })
     console.log(`usdPlus.roleManager:    ${await usdPlus.roleManager()}`);
-
-    console.log('3. SetPause')
-    await (await usdPlus.pause()).wait();
-
-
     console.log('====[UsdPlus Pure done]====\n\n\n');
 
     console.log('====[Wrapped Pure]====');
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, wrapped.address)}`);
-    await (await wrapped.upgradeTo(wrappedPureAddress)).wait();
+    await execTimelock(async (timelock) => {
+        await wrapped.connect(timelock).upgradeTo(wrappedPureAddress);
+        await wrapped.connect(timelock).setRoleManager(roleManagerAddress);
+    })
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, wrapped.address)}`);
+    console.log('====[Wrapped Pure done]====\n\n\n');
+
+    if (isInsurance) {
+        console.log('====[Insurance]====');
+        console.log(`insurance implementation address: ${await getImplementationAddress(ethers.provider, insurance.address)}`);
+        await execTimelock(async (timelock) => {
+            await insurance.connect(timelock).upgradeTo(insuranceAddress);
+        })
+        console.log(`insurance implementation address: ${await getImplementationAddress(ethers.provider, insurance.address)}`);
+        console.log('====[Insurance done]====');
+    }
 
     expect(roleManagerAddress).to.equal(await usdPlus.roleManager());
     expect(roleManagerAddress).to.equal(await exchange.roleManager());
+    expect(roleManagerAddress).to.equal(await wrapped.roleManager());
     expect(payoutManagerAddress).to.equal(await usdPlus.payoutManager());
     expect(payoutManagerAddress).to.equal(await exchange.payoutManager());
     expect(decimals).to.equal(await usdPlus.decimals());
@@ -178,7 +163,7 @@ async function checksum(usdPlus, exchange, wrapped, startBlock) {
         {
             name: 'totalSupplyOwners',
             old: '-',
-            new: (await usdPlus.totalSupplyOwners()).toString()
+            new: 'many'//(await usdPlus.totalSupplyOwners()).toString()
         },
         {
             name: 'exchange',

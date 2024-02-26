@@ -1,6 +1,6 @@
 const {deployProxy, deployProxyMulti} = require("@overnight-contracts/common/utils/deployProxy");
 const {ethers, deployments, getNamedAccounts} = require("hardhat");
-const {OPTIMISM, ARBITRUM} = require("@overnight-contracts/common/utils/assets");
+const {OPTIMISM} = require("@overnight-contracts/common/utils/assets");
 const {toE18, toE8} = require("@overnight-contracts/common/utils/decimals");
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
 
@@ -12,11 +12,11 @@ module.exports = async ({deployments, getNamedAccounts}) => {
 
     let oracle = await ethers.getContract('OvnOracleOffChain');
 
-    let roleManager = await getContract('RoleManager', 'arbitrum');
+    let roleManager = await getContract('RoleManager', 'optimism');
 
     let params = {
         roleManager: roleManager.address,
-        asset: ARBITRUM.ovn,
+        asset: OPTIMISM.ovn,
         minPriceUsd: toE8(10),
         maxPriceUsd: toE8(50),
         duration: 24 * 60 * 60,
@@ -26,17 +26,17 @@ module.exports = async ({deployments, getNamedAccounts}) => {
     console.log('SetParams done');
 
 
-    let itemUsdtPlus = {
-        assetAddress: ARBITRUM.usdt,
-        oracle: ARBITRUM.oracleUsdt,
+    let itemDaiPlus = {
+        assetAddress: OPTIMISM.dai,
+        oracle: OPTIMISM.oracleDai,
         dm: 0
     }
 
-    await (await oracle.setUnderlyingItem(itemUsdtPlus)).wait();
+    await (await oracle.setUnderlyingItem(itemDaiPlus)).wait();
 
     let itemUsdPlus = {
-        assetAddress: ARBITRUM.usdc,
-        oracle: ARBITRUM.oracleUsdc,
+        assetAddress: OPTIMISM.usdc,
+        oracle: OPTIMISM.oracleUsdc,
         dm: 0
     }
 
@@ -45,9 +45,9 @@ module.exports = async ({deployments, getNamedAccounts}) => {
     itemUsdPlus = (await oracle.underlyingItems(itemUsdPlus.assetAddress));
     console.log(`DM  ${itemUsdPlus.dm.toString()}`);
 
-    await (await oracle.updatePriceAssetUsd(toE8(17.8))).wait();
+    await (await oracle.updatePriceAssetUsd(toE8(21.8))).wait();
 
     console.log(`Add underlying item: ${JSON.stringify(itemUsdPlus)} done`);
 };
 
-module.exports.tags = ['ArbitrumOvnOracleOffChain'];
+module.exports.tags = ['OptimismOvnOracleOffChain'];
