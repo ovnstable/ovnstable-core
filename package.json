@@ -4,7 +4,8 @@
   "description": "overnight superstable coin & dApp",
   "scripts": {
     "build": "yarn workspaces run build",
-    "test": "yarn workspaces run test"
+    "test": "yarn workspaces run test",
+    "local": "cd pkg/core && npx hardhat node --last"
   },
   "keywords": [],
   "author": {

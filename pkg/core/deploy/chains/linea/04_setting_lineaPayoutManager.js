@@ -12,8 +12,9 @@ module.exports = async () => {
     const usdtPlus = await getContract('UsdPlusToken', 'linea_usdt');
 
     let items = [];
-    items.push(...velocore());
     items.push(...own());
+    items.push(...lynex());
+    items.push(...velocore());
 
     await (await payoutManager.addItems(items)).wait();
 
@@ -26,6 +27,19 @@ module.exports = async () => {
         let items = [];
         items.push(createSkim(payoutManager.address, usdtPlus.address, 'USDT+', dex));
         items.push(createSkim(payoutManager.address, usdPlus.address, 'USD+', dex));
+
+        return items;
+    }
+
+    function lynex() {
+
+        let dex = 'Lynex';
+
+        let items = [];
+        items.push(createSkim('0x58aacbccaec30938cb2bb11653cad726e5c4194a', usdPlus.address, 'USDC/USD+', dex));
+        items.push(createSkim('0xbE23da11fbF9dA0F7C13eA73A4bB511b9Bc00177', usdtPlus.address, 'USDT+/USDT', dex));
+        items.push(createSkim('0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91', usdPlus.address, 'USDT+/USD+', dex));
+        items.push(createSkim('0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91', usdtPlus.address, 'USDT+/USD+', dex));
 
         return items;
     }

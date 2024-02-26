@@ -19,7 +19,7 @@ async function main() {
         network = process.env.STAND;
     }
 
-    let name = '12_update_pika'
+    let name = '07_set_exchanger'
     let batch = JSON.parse(await fs.readFileSync(`./batches/${network}/${name}.json`));
 
     let addresses = [];
