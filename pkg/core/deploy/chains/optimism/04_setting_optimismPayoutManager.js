@@ -15,8 +15,9 @@ module.exports = async () => {
 
     let items = [];
 
-    items.push(...velodrome());
-    items.push(...defiEdge());
+    // items.push(...velodrome());
+    // items.push(...defiEdge());
+    items.push(...velodromeNext());
     await (await payoutManager.addItems(items)).wait();
 
     console.log('OptimismPayoutManager setting done');
@@ -53,6 +54,14 @@ module.exports = async () => {
         items.push(createCustom('0x014b7eedbb373866f2fafd76643fdf143ef39960', daiPlus.address, 'DAI+', dex));
 
         return items;
+    }
+    function velodromeNext() {
+
+        let dex = 'Velodrome';
+
+        return [
+            createSkim('0x46e1B51e07851301f025ffeA506b140dB80a214A', usdPlus.address, 'USDC/USD+', dex)
+        ];
     }
 };
 
