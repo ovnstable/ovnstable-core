@@ -42,9 +42,9 @@ async function main() {
     abis.push(usdtPlusEx.interface.encodeFunctionData('upgradeTo', [upgradeToExchange]));
 
     // await testProposal(addresses, values, abis);
-    await testUsdPlus(filename, 'bsc');
+    // await testUsdPlus(filename, 'bsc');
     // await testUsdPlus(filename, 'bsc_usdt');
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
 }
 
