@@ -40,11 +40,11 @@ function getNetworks() {
     if (zkSync){
         localhost = {
             // Use local node zkSync for testing
-            url: 'http://localhost:8011',
+            url: 'http://127.0.0.1:8011',
             timeout: timeout,
             accounts: accountsNetwork,
             zksync: true,
-            ethNetwork: "http://localhost:8545",
+            ethNetwork: "http://127.0.0.1:8545",
         }
     }else {
         localhost = {

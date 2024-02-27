@@ -15,7 +15,11 @@ function node_url(networkName) {
     }
     if (!uri || uri === '') {
         if (networkName === 'localhost') {
-            return 'http://localhost:8545';
+            if (isZkSync()) {
+               return 'http://127.0.0.1:8011'
+            } else {
+                return 'http://127.0.0.1:8545'
+            }
         }
         return '';
     }

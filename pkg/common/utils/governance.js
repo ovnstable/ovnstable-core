@@ -226,9 +226,8 @@ async function testCase(test, id) {
 
 async function testStrategy(id, strategy, stand = process.env.STAND) {
     let asset = await getCoreAsset();
-    let walletAddress = await getWalletAddress();
-        await transferETH(10, walletAddress);
-        console.log(4)
+    let walletAddress = await getWalletAddress(); 
+    await transferETH(10, walletAddress);
     let roleManager = await getContract('RoleManager', stand);
 
 
@@ -261,9 +260,13 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     await execTimelock(async (timelock)=>{
 
         if (isNewStrategy){
-            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address);
+            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, {
+                gasPrice:2500000000000
+            });
         }else {
-            await strategy.connect(timelock).setPortfolioManager(timelock.address);
+            await strategy.connect(timelock).setPortfolioManager(timelock.address, {
+                gasPrice:2500000000000
+            });
         }
 
     })
