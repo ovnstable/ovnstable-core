@@ -2,6 +2,41 @@
   "address": "0x65a2508C429a6078a7BC2f7dF81aB575BD9D9275",
   "abi": [
     {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_roleManager",
+          "type": "address"
+        }
+      ],
+      "name": "setRoleManager",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_exchange",
+          "type": "address"
+        },
+        {
+          "name": "decimals",
+          "type": "uint8"
+        },
+        {
+          "name": "_payoutManager",
+          "type": "address"
+        }
+      ],
+      "name": "migrationInit",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
