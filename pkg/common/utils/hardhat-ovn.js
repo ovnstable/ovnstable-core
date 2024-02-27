@@ -90,7 +90,7 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
                 console.error(e)
         });
 
-        const destDir = `deployments/localhost`;
+        const destDir = `deployments/127.0.0.1`;
 
         await fse.removeSync(destDir);
 
@@ -99,7 +99,7 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
                 console.error(err);
         });
 
-        await fs.writeFile('deployments/localhost/.chainId', '31337', function (err) {
+        await fs.writeFile('deployments/127.0.0.1/.chainId', '31337', function (err) {
             if (err) return console.log(err);
         });
 
@@ -179,9 +179,9 @@ task(TASK_RUN, 'Run task')
         if (hre.network.name === 'localhost') {
 
             if (hre.ovn.stand === 'zksync'){
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8011')
             }else {
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
             }
         }
 
@@ -227,7 +227,11 @@ task(TASK_TEST, 'test')
         }
 
         if (hre.network.name === 'localhost') {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
+            if (hre.ovn.stand === 'zksync'){
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8011')
+            }else {
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+            }
         }
 
         settingNetwork(hre);
@@ -259,7 +263,11 @@ task('simulate', 'Simulate transaction on local node')
         let transaction = await provider.getTransaction(hash);
 
 
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        if (hre.ovn.stand === 'zksync'){
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8011')
+        }else {
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+        }
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
             params: [receipt.from],
@@ -297,7 +305,11 @@ task('simulateByData', 'Simulate transaction on local node')
 
         await evmCheckpoint('simulate', hre.network.provider);
 
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        if (hre.ovn.stand === 'zksync'){
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8011')
+        }else {
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+        }
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
             params: [from],
@@ -326,19 +338,31 @@ function sleep(ms) {
 }
 
 
-async function transferETH(amount, to, hre) {
+async function transferETH(amount, to) {
 
-    let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
-    let walletWithProvider = new hre.ethers.Wallet(privateKey, hre.ethers.provider);
+    if (isZkSync()) {
+        let provider = new Provider("http://127.0.0.1:8011");
+        let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
+        console.log(`Balance [${fromE18(await hre.ethers.provider.getBalance(wallet.address))}]:`);
 
-    await walletWithProvider.sendTransaction({
-        to: to,
-        value: hre.ethers.utils.parseEther(amount + "")
-    });
+        await wallet.transfer({
+            to: to,
+            token: '0x0000000000000000000000000000000000000000',
+            amount: ethers.utils.parseEther(amount + ""),
+        });
+    } else {
+        let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
+        let walletWithProvider = new ethers.Wallet(privateKey, hre.ethers.provider);
 
-    console.log('Balance ETH: ' + await hre.ethers.provider.getBalance(to));
+        // вернул как было. у меня не работала почему-то твоя версия
+        await walletWithProvider.sendTransaction({
+            to: to,
+            value: ethers.utils.parseEther(amount + "")
+        });
+    }
+
+    console.log(`[Node] Transfer ETH [${fromE18(await hre.ethers.provider.getBalance(to))}] to [${to}]`);
 }
-
 function settingId(hre){
 
     if (hre.ovn.id){

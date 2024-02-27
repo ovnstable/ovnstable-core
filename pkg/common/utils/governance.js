@@ -225,12 +225,10 @@ async function testCase(test, id) {
 }
 
 async function testStrategy(id, strategy, stand = process.env.STAND) {
-
     let asset = await getCoreAsset();
-
     let walletAddress = await getWalletAddress();
-    await transferETH(10, walletAddress);
-
+        await transferETH(10, walletAddress);
+        console.log(4)
     let roleManager = await getContract('RoleManager', stand);
 
 

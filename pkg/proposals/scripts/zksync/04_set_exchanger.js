@@ -13,11 +13,11 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let strategy = await getContract("StrategyAlphaZk", "zksync"); 
+    let strategy = await getContract("StrategyEtsAlpha", "zksync"); 
 
     let strategyParams = {
         asset: ZKSYNC.usdc,
-        rebaseToken: "0x8E86e46278518EFc1C5CEd245cBA2C7e3ef11557",
+        rebaseToken: "0x41c9d632c79aD3B7765D5b6BCff1525A8400e89c",
         hedgeExchanger: "0x44A0C5dD9BbC32714b1B24E39BDd02739361e643"
     };
  
@@ -32,7 +32,7 @@ async function main() {
     // await testProposal(addresses, values, abis);
     // await showM2M();
     //
-    await testStrategy(filename, strategyA, "zksync"); 
+    await testStrategy(filename, strategy, "zksync"); 
     await testUsdPlus(filename, "zksync"); 
     // await createProposal(filename, addresses, values, abis);
 }
