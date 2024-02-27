@@ -2,12 +2,10 @@ const hre = require("hardhat");
 const {getContract, showM2M, execTimelock} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal, testProposal, testUsdPlus, testStrategy} = require("@overnight-contracts/common/utils/governance");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
-
-const path = require('path');
 const {prepareEnvironment} = require("@overnight-contracts/common/utils/tests");
 const {strategySiloUsdc} = require("@overnight-contracts/strategies-arbitrum/deploy/38_strategy_silo_usdc");
 const {ethers} = require("hardhat");
-const {fromAsset, fromUsdPlus} = require("@overnight-contracts/common/utils/decimals");
+const path = require('path');
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
 
@@ -16,8 +14,6 @@ async function main() {
     let addresses = [];
     let values = [];
     let abis = [];
-
-    let startBlock = await ethers.provider.getBlockNumber();
 
     let usdPlus = await getContract('UsdPlusToken', 'base');
     let exchange = await getContract('Exchange', 'base');
