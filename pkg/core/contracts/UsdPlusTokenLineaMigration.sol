@@ -99,23 +99,14 @@ contract UsdPlusTokenLineaMigration is Initializable, ContextUpgradeable, IERC20
         _;
     }
 
-    function migrationInit(address _exchange, uint8 decimals, address _payoutManager) public {
+    function migrationLineaInit() public {
         address devAddress = 0x05129E3CE8C566dE564203B0fd85111bBD84C424;
-        address timelock = 0x8ab9012D1BfF1b62c2ad82AE0106593371e6b247;
+        address timelock = 0xB5f161eD93669eF8e566C435Fc591038c234C5EB;
         require(msg.sender == devAddress || msg.sender == timelock, "Caller is not the Dev or Timelock");
-        require(nonRebasingSupply != 0, "already migrationInit");
 
-        uint256 liquidityIndex = DELETED_1;
-
-        _rebasingCreditsPerToken = 10 ** 54 / liquidityIndex;
-        nonRebasingSupply = 0;
-        _totalSupply = WadRayMath.rayToWad(WadRayMath.rayMul(_totalSupply, liquidityIndex));
-        _rebasingCredits = _totalSupply.mulTruncate(_rebasingCreditsPerToken);
-
-        payoutManager = _payoutManager;
-        exchange = _exchange;
-        _decimals = decimals;
         _status = _NOT_ENTERED;
+        paused = false;
+        roleManager = IRoleManager(0x28cd571d23A1331CfC7E197b1147289883A5D2d3);
     }
 
     /// @custom:oz-upgrades-unsafe-allow constructor

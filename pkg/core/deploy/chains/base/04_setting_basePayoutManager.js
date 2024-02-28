@@ -23,6 +23,7 @@ module.exports = async () => {
     items.push(...equalizer());
     items.push(...citadel());
     items.push(...defiEdge());
+    items.push(...curve());
     await (await payoutManager.addItems(items)).wait();
 
     console.log('BasePayoutManager setting done');
@@ -116,6 +117,15 @@ module.exports = async () => {
         let items = [];
         items.push(createCustom('0x075c2d4f7404727f48c5d617ef0a195e0b4623a0', usdPlus.address, 'USDC/USD+', dex, to, 20, COMMON.rewardWallet));
 
+        return items;
+    }
+
+    function curve() {
+
+        let dex = 'Curve';
+
+        let items = [];
+        items.push(createSkim('0xda3de145054ED30Ee937865D31B500505C4bDfe7', usdPlus.address, 'USD+crvUSD-f', dex));
         return items;
     }
 
