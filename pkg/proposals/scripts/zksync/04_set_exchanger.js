@@ -32,9 +32,9 @@ async function main() {
     // await testProposal(addresses, values, abis);
     // await showM2M();
     //
-    // await testStrategy(filename, strategy, "zksync"); 
-    // await testUsdPlus(filename, "zksync"); 
-    await createProposal(filename, addresses, values, abis);
+    await testStrategy(filename, strategy, "zksync"); 
+    await testUsdPlus(filename, "zksync"); 
+    // await createProposal(filename, addresses, values, abis);
 }
 
 main()

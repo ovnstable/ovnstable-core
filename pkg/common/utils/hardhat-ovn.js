@@ -67,7 +67,7 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
         }
 
         const srcDir = `deployments/` + process.env.STAND;
-        process.env.ETH_NETWORK = getChainFromNetwork(process.env.STAND);
+        if (!process.env.ETH_NETWORK)  process.env.ETH_NETWORK = getChainFromNetwork(process.env.STAND);
 
         console.log(`[Node] STAND: ${process.env.STAND}`);
         console.log(`[Node] ETH_NETWORK: ${process.env.ETH_NETWORK}`);
@@ -375,7 +375,7 @@ function settingNetwork(hre) {
 
     if (hre.network.name !== 'localhost' && hre.network.name !== 'hardhat') {
         process.env.STAND = hre.network.name;
-        process.env.ETH_NETWORK = getChainFromNetwork(hre.network.name);
+        if (!process.env.ETH_NETWORK) process.env.ETH_NETWORK = getChainFromNetwork(hre.network.name);
 
     } else {
 
@@ -387,7 +387,7 @@ function settingNetwork(hre) {
             // Use STAND from process.env.STAND
         }
 
-        process.env.ETH_NETWORK = getChainFromNetwork(process.env.STAND);
+        if (!process.env.ETH_NETWORK) process.env.ETH_NETWORK = getChainFromNetwork(process.env.STAND);
     }
 
     console.log(`[Node] STAND: ${process.env.STAND}`);
