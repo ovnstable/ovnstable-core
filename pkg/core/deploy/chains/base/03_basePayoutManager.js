@@ -18,7 +18,11 @@ module.exports = async ({deployments}) => {
         await (await payoutManager.setRewardWallet(COMMON.rewardWallet)).wait();
         console.log('setRoleManager done()');
 
+        let exchangeUsdPlus = await getContract('Exchange', 'base');
+        let exchangeDaiPlus = await getContract('Exchange', 'base_dai');
         let exchangeUsdcPlus = await getContract('Exchange', 'base_usdc');
+        await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeUsdPlus.address)).wait();
+        await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeDaiPlus.address)).wait();
         await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeUsdcPlus.address)).wait();
         console.log('EXCHANGER role done()');
     }
