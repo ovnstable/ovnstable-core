@@ -194,12 +194,11 @@ async function testUsdPlus(id, stand = process.env.STAND){
     }, 'm2m.totalLiquidationAssets'));
 
     tables.push(await testCase(async ()=>{
-
         await execTimelock(async (timelock)=>{
             await (await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address, await getPrice())).wait();
             await (await roleManager.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address, await getPrice())).wait();
             await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, await getPrice())).wait();
-            await (await exchange.connect(timelock).payout(false, await getEmptyOdosData(), await getPrice())).wait();
+            await (await exchange.connect(timelock).payout(false, await getEmptyOdosData())).wait();
         });
 
     }, 'exchange.payout'));
