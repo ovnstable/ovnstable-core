@@ -125,7 +125,8 @@ module.exports = async () => {
         let dex = 'Curve';
 
         let items = [];
-        items.push(createSkim('0xda3de145054ED30Ee937865D31B500505C4bDfe7', usdPlus.address, 'USD+crvUSD-f', dex));
+        // todo this method deleted, maybe should be reverted
+        // items.push(createSkim('0xda3de145054ED30Ee937865D31B500505C4bDfe7', usdPlus.address, 'USD+crvUSD-f', dex));
         return items;
     }
 
