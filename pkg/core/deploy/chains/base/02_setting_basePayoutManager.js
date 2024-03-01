@@ -115,7 +115,8 @@ module.exports = async () => {
         let to = '0xAF1823bACd8EDDA3b815180a61F8741fA4aBc6Dd';
 
         let items = [];
-        items.push(createCustom('0x075c2d4f7404727f48c5d617ef0a195e0b4623a0', usdPlus.address, 'USDC/USD+', dex, to, 20, COMMON.rewardWallet));
+        // todo this method deleted, maybe should be reverted
+        // items.push(createCustom('0x075c2d4f7404727f48c5d617ef0a195e0b4623a0', usdPlus.address, 'USDC/USD+', dex, to, 20, COMMON.rewardWallet));
 
         return items;
     }
@@ -125,8 +126,7 @@ module.exports = async () => {
         let dex = 'Curve';
 
         let items = [];
-        // todo this method deleted, maybe should be reverted
-        // items.push(createSkim('0xda3de145054ED30Ee937865D31B500505C4bDfe7', usdPlus.address, 'USD+crvUSD-f', dex));
+        items.push(createSkim('0xda3de145054ED30Ee937865D31B500505C4bDfe7', usdPlus.address, 'USD+crvUSD-f', dex));
         return items;
     }
 
