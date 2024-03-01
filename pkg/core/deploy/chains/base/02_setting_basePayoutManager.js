@@ -22,7 +22,6 @@ module.exports = async () => {
     items.push(...aerodrome());
     items.push(...equalizer());
     items.push(...citadel());
-    items.push(...defiEdge());
     items.push(...curve());
     await (await payoutManager.addItems(items)).wait();
 
@@ -105,18 +104,6 @@ module.exports = async () => {
         let items = [];
         items.push(createSkimToWithFee('0x3F50De34Cf2E72d173a018A18eDF935bC03D43c7', daiPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0x3F50De34Cf2E72d173a018A18eDF935bC03D43c7', usdPlus.address, 'USD+/USDbC', dex, to, 20, COMMON.rewardWallet));
-
-        return items;
-    }
-
-    function defiEdge() {
-
-        let dex = 'DefiEdge';
-        let to = '0xAF1823bACd8EDDA3b815180a61F8741fA4aBc6Dd';
-
-        let items = [];
-        // todo this method deleted, maybe should be reverted
-        // items.push(createCustom('0x075c2d4f7404727f48c5d617ef0a195e0b4623a0', usdPlus.address, 'USDC/USD+', dex, to, 20, COMMON.rewardWallet));
 
         return items;
     }
