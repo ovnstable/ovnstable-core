@@ -11,9 +11,9 @@ async function main() {
 
     let ownerAddress = "0x451f0c631Bb812421F8Ee31ef55Ee198e2467B19";
     if (isZkSync()) {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8011')
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
     } else {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     }
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",

@@ -239,9 +239,9 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
 
         await sleep(1000);
         if (isZkSync()) {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8011')
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
         }
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
