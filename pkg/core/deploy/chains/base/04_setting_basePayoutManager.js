@@ -15,8 +15,8 @@ module.exports = async () => {
     const usdcPlus = await getContract('UsdPlusToken', 'base_usdc');
 
     let items = [];
-
-/*     items.push(...shekelswap());
+ 
+    items.push(...shekelswap());
     items.push(...wombat());
     items.push(...chronos());
     items.push(...ramses());
@@ -26,7 +26,7 @@ module.exports = async () => {
     items.push(...horiza());
     items.push(...pancakeswap());
     items.push(...defiEdge());
-    items.push(...aerodrome()); */
+    items.push(...aerodrome());  
     items.push(...extraFi());
     await (await payoutManager.addItems(items)).wait();
 
