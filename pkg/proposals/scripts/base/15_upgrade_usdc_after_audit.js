@@ -16,8 +16,8 @@ async function main() {
     let values = [];
     let abis = [];
     
-    let usdcPlus = await getContract('UsdPlusToken', 'arbitrum_usdc');
-    let usdcPlusEx = await getContract('Exchange', 'arbitrum_usdc');
+    let usdcPlus = await getContract('UsdPlusToken', 'base_usdc');
+    let usdcPlusEx = await getContract('Exchange', 'base_usdc');
     
     let upgradeToToken = '0x8De5410692C0bc722695F17CA4DD55C9506052c6';
     let upgradeToExchange = '0x6e1Bf9Ac635CdE72484A1F51359140F936d0b283';
@@ -31,6 +31,7 @@ async function main() {
     abis.push(usdcPlusEx.interface.encodeFunctionData('upgradeTo', [upgradeToExchange]));
 
     // await testProposal(addresses, values, abis);
+    // await testUsdPlus(filename, 'base_usdc');
     await createProposal(filename, addresses, values, abis);
 
 }
