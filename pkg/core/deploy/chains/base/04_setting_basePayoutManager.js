@@ -174,7 +174,7 @@ module.exports = async () => {
         let to = '0x89F0885DA2553232aeEf201692F8C97E24715c83';
         let own = 20;
         return [
-            createSkimToWithFee('0x3F50De34Cf2E72d173a018A18eDF935bC03D43c7', usdPlus.address, 'USD+/OVN', dex, to, own, COMMON.rewardWallet)
+            createSkimToWithFee('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, to, own, COMMON.rewardWallet)
         ];
     }
 
