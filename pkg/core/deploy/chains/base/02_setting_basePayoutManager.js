@@ -23,6 +23,7 @@ module.exports = async () => {
     items.push(...equalizer());
     items.push(...citadel());
     items.push(...curve());
+    items.push(...extraFi());
     await (await payoutManager.addItems(items)).wait();
 
     console.log('BasePayoutManager setting done');
@@ -115,6 +116,15 @@ module.exports = async () => {
         let items = [];
         items.push(createSkim('0xda3de145054ED30Ee937865D31B500505C4bDfe7', usdPlus.address, 'USD+crvUSD-f', dex));
         return items;
+    }
+
+    function extraFi () {
+        let dex = 'Extra.fi';
+        let to = '0x89F0885DA2553232aeEf201692F8C97E24715c83';
+        let own = 20;
+        return [
+            createSkimToWithFee('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, to, own, COMMON.rewardWallet)
+        ];
     }
 
 };
