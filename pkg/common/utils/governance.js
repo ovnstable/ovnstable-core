@@ -198,7 +198,24 @@ async function testUsdPlus(id, stand = process.env.STAND){
             await (await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address, await getPrice())).wait();
             await (await roleManager.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address, await getPrice())).wait();
             await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, await getPrice())).wait();
-            await (await exchange.connect(timelock).payout(false, await getEmptyOdosData())).wait();
+            
+          /*   await hre.network.provider.request({
+                method: "hardhat_impersonateAccount",
+                params: [exchange.address],
+            }); */
+            // console.log('claim balance', (await pm.connect(exchange.address).claimAndBalance()).wait());
+            const strategies = await pm.connect(timelock).getAllStrategyWeights();
+            strategies.forEach(async item => {
+                console.log('strategy',item.strategy, item.enabledReward);
+                if (item.enabledReward) {
+                    let strategy = await getContractByAddress("StrategyEtsAlpha",item.strategy, "zksync"); 
+                    await strategy.connect(timelock).claimRewards(pm.address);
+                }
+            })
+            console.log('strategies passed');
+            
+
+            await (await exchange.connect(timelock).payout(false, await getEmptyOdosData()), { gasPrice: 100000000000, gasLimit: 20000000000 }).wait();
         });
 
     }, 'exchange.payout'));
@@ -328,11 +345,11 @@ async function testProposal(addresses, values, abis){
                 to: address,
                 value: 0,
                 data: abi,
-                gasLimit: 15000000
+                ...(await getPrice())
             }
 
             console.log(`Transaction: index: [${i}] address: [${address}]`)
-            await (await timelock.sendTransaction(tx, await getPrice())).wait();
+            await (await timelock.sendTransaction(tx)).wait();
 
         }
     })
