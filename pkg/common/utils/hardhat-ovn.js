@@ -67,7 +67,7 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
         }
 
         const srcDir = `deployments/` + process.env.STAND;
-        process.env.ETH_NETWORK = getChainFromNetwork(process.env.STAND);
+        if (!process.env.ETH_NETWORK)  process.env.ETH_NETWORK = getChainFromNetwork(process.env.STAND);
 
         console.log(`[Node] STAND: ${process.env.STAND}`);
         console.log(`[Node] ETH_NETWORK: ${process.env.ETH_NETWORK}`);
@@ -90,7 +90,7 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
                 console.error(e)
         });
 
-        const destDir = `deployments/127.0.0.1`;
+        const destDir = `deployments/localhost`;
 
         await fse.removeSync(destDir);
 
@@ -99,7 +99,7 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
                 console.error(err);
         });
 
-        await fs.writeFile('deployments/127.0.0.1/.chainId', '31337', function (err) {
+        await fs.writeFile('deployments/localhost/.chainId', '31337', function (err) {
             if (err) return console.log(err);
         });
 
@@ -179,9 +179,9 @@ task(TASK_RUN, 'Run task')
         if (hre.network.name === 'localhost') {
 
             if (hre.ovn.stand === 'zksync'){
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8011')
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
             }else {
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
             }
         }
 
@@ -228,9 +228,9 @@ task(TASK_TEST, 'test')
 
         if (hre.network.name === 'localhost') {
             if (hre.ovn.stand === 'zksync'){
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8011')
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
             }else {
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
             }
         }
 
@@ -264,9 +264,9 @@ task('simulate', 'Simulate transaction on local node')
 
 
         if (hre.ovn.stand === 'zksync'){
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8011')
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         }else {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
         }
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -306,9 +306,9 @@ task('simulateByData', 'Simulate transaction on local node')
         await evmCheckpoint('simulate', hre.network.provider);
 
         if (hre.ovn.stand === 'zksync'){
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8011')
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         }else {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
         }
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
@@ -341,7 +341,7 @@ function sleep(ms) {
 async function transferETH(amount, to) {
 
     if (isZkSync()) {
-        let provider = new Provider("http://127.0.0.1:8011");
+        let provider = new Provider("http://localhost:8011");
         let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
         console.log(`Balance [${fromE18(await hre.ethers.provider.getBalance(wallet.address))}]:`);
 
@@ -375,7 +375,7 @@ function settingNetwork(hre) {
 
     if (hre.network.name !== 'localhost' && hre.network.name !== 'hardhat') {
         process.env.STAND = hre.network.name;
-        process.env.ETH_NETWORK = getChainFromNetwork(hre.network.name);
+        if (!process.env.ETH_NETWORK) process.env.ETH_NETWORK = getChainFromNetwork(hre.network.name);
 
     } else {
 
@@ -387,7 +387,7 @@ function settingNetwork(hre) {
             // Use STAND from process.env.STAND
         }
 
-        process.env.ETH_NETWORK = getChainFromNetwork(process.env.STAND);
+        if (!process.env.ETH_NETWORK) process.env.ETH_NETWORK = getChainFromNetwork(process.env.STAND);
     }
 
     console.log(`[Node] STAND: ${process.env.STAND}`);
