@@ -130,8 +130,7 @@ async function testUsdPlus(id, stand = process.env.STAND){
     let asset = await getCoreAsset(stand);
 
 
-    let walletAddress = await getWalletAddress();
-    await transferETH(10, walletAddress);
+    let walletAddress = await getWalletAddress(); 
     await transferAsset(await exchange.usdc(), walletAddress);
 
     let tables = [];
@@ -198,24 +197,7 @@ async function testUsdPlus(id, stand = process.env.STAND){
             await (await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address, await getPrice())).wait();
             await (await roleManager.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address, await getPrice())).wait();
             await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, await getPrice())).wait();
-            
-          /*   await hre.network.provider.request({
-                method: "hardhat_impersonateAccount",
-                params: [exchange.address],
-            }); */
-            // console.log('claim balance', (await pm.connect(exchange.address).claimAndBalance()).wait());
-            const strategies = await pm.connect(timelock).getAllStrategyWeights();
-            strategies.forEach(async item => {
-                console.log('strategy',item.strategy, item.enabledReward);
-                if (item.enabledReward) {
-                    let strategy = await getContractByAddress("StrategyEtsAlpha",item.strategy, "zksync"); 
-                    await strategy.connect(timelock).claimRewards(pm.address);
-                }
-            })
-            console.log('strategies passed');
-            
-
-            await (await exchange.connect(timelock).payout(false, await getEmptyOdosData()), { gasPrice: 100000000000, gasLimit: 20000000000 }).wait();
+            await (await exchange.payout(false, await getEmptyOdosData()), { gasPrice: 100000000000, gasLimit: 20000000000 }  ).wait();
         });
 
     }, 'exchange.payout'));
