@@ -3,7 +3,7 @@ const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
     fs = require('fs');
-const { ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA, getDefault, getAsset, COMMON} = require("./assets");
+const { ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA, getDefault, getAsset, COMMON, BLAST} = require("./assets");
 const { evmCheckpoint, evmRestore } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const { fromAsset, toAsset, fromUsdPlus } = require("./decimals");
@@ -30,7 +30,7 @@ async function initWallet() {
     let provider = ethers.provider;
 
     if (process.env.STAND === 'zksync') {
-        provider = new Provider("http://127.0.0.1:8011");
+        provider = new Provider("http://localhost:8011");
         wallet = new Wallet(process.env['PK']);
         wallet = (new Deployer(hre, wallet)).zkWallet;
     } else {
@@ -113,7 +113,7 @@ async function settingSection(id, exec) {
 
             if (hre.ovn.gov) {
                 let timelock = await getContract('AgentTimelock');
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545');
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
                 await hre.network.provider.request({
                     method: "hardhat_impersonateAccount",
                     params: [timelock.address],
@@ -404,6 +404,12 @@ async function getCoreAsset(stand = process.env.STAND) {
     } else if (stand === 'base_usdc') {
         return await getERC20('usdc');
 
+    } else if (stand === 'blast') {
+        return await getERC20('usdb');
+
+    } else if (stand === 'blast_usdc') {
+        return await getERC20('usdb');
+
     } else {
         return await getERC20('usdc');
     }
@@ -488,6 +494,12 @@ async function getStrategyMapping() {
             break;
         case "linea_usdt":
             url = "https://api.overnight.fi/linea/usdt+/dict/strategies";
+            break;
+        case "blast":
+            url = "https://api.overnight.fi/blast/usd+/dict/strategies";
+            break;
+        case "blast_usdc":
+            url = "https://api.overnight.fi/blast/usdc+/dict/strategies";
             break;
         default:
             console.error('Unknown STAND: ' + process.env.STAND);
@@ -586,6 +598,8 @@ async function getPrice() {
         params = { gasPrice: "3000000000", gasLimit: 15000000 }; // gasPrice always 3 GWEI
     } else if (process.env.ETH_NETWORK === "OPTIMISM") {
         params = { gasPrice: "1000000000", gasLimit: 10000000 }; // gasPrice always 0.001 GWEI
+    } else if (process.env.ETH_NETWORK === 'BLAST') {
+        params = { gasLimit: 25000000 }; // todo
     } else if (process.env.ETH_NETWORK === 'ZKSYNC') {
         // provider.getGasprice + 5%
         let gasPrice = await ethers.provider.getGasPrice();
@@ -605,7 +619,7 @@ async function getPrice() {
 
 async function impersonateAccount(address) {
 
-    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [address],
@@ -638,9 +652,9 @@ async function execTimelock(exec) {
 
     if (hre.network.name === 'localhost') {
         if (isZkSync()) {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8011')
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
         }
     }
 
@@ -705,7 +719,7 @@ async function changeWeightsAndBalance(weights) {
     await showM2M();
 
 
-    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [timelock.address],
@@ -774,6 +788,8 @@ async function getChainId() {
             return 324;
         case "LINEA":
             return 59144;
+        case "BLAST":
+            return 81457;
         default:
             throw new Error("Unknown chain");
     }
@@ -790,8 +806,8 @@ async function getDevWallet() {
 async function transferETH(amount, to) {
     if (isZkSync()) {
         console.log(2)
-        let provider = new Provider("http://127.0.0.1:8011");
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8011')
+        let provider = new Provider("http://localhost:8011");
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         console.log(3, hre.ethers.providerr)
         let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
         console.log(`Balance [${fromE18(await hre.ethers.provider.getBalance(wallet.address))}]:`);
@@ -937,6 +953,15 @@ async function transferAsset(assetAddress, to, amount) {
                     throw new Error('Unknown asset address');
             }
             break;
+        case "BLAST":
+            switch (assetAddress) {
+                case BLAST.usdb:
+                    from = '0x15c59df002950e3b7e287de9c0c91aa63e8d9937';
+                    break;
+                default:
+                    throw new Error('Unknown asset address');
+            }
+            break;
         default:
             throw new Error('Unknown mapping ETH_NETWORK');
     }
@@ -946,7 +971,7 @@ async function transferAsset(assetAddress, to, amount) {
     let asset = await getERC20ByAddress(assetAddress);
 
     if (hre.network.name === 'localhost') {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://127.0.0.1:8545')
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     }
 
     await hre.network.provider.request({
@@ -1007,7 +1032,7 @@ async function showPoolOperationsFromPayout(receipt){
     let stand = process.env.STAND;
     let prefix;
 
-    let chains = ['arbitrum', 'base', 'optimism', 'linea', 'zksync', 'polygon', 'bsc'];
+    let chains = ['arbitrum', 'base', 'optimism', 'linea', 'zksync', 'polygon', 'bsc', 'blast'];
 
     for (const chain of chains) {
         if (stand.includes(chain)){
