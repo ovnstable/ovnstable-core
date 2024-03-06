@@ -7,9 +7,9 @@ const hre = require("hardhat");
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
-    // await deployProxy('BlastPayoutManager', deployments, save);
+    await deployProxy('BlastPayoutManager', deployments, save);
 
-    // if (hre.ovn && hre.ovn.setting){
+    if (hre.ovn && hre.ovn.setting){
 
         let roleManager = await ethers.getContract('RoleManager');
         let payoutManager = await ethers.getContract('BlastPayoutManager');
@@ -19,10 +19,12 @@ module.exports = async ({deployments}) => {
         await (await payoutManager.setRewardWallet(COMMON.rewardWallet)).wait();
         console.log('setRoleManager done()');
 
-        let exchangeUsdbPlus = await getContract('Exchange', 'blast');
-        await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeUsdbPlus.address)).wait();
+        let exchangeUsdPlus = await getContract('Exchange', 'blast');
+        let exchangeUsdcPlus = await getContract('Exchange', 'blast_usdc');
+        await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeUsdPlus.address)).wait();
+        await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeUsdcPlus.address)).wait();
         console.log('EXCHANGER role done()');
-    // }
+    }
 
 };
 
