@@ -18,7 +18,7 @@ async function main() {
     let strategyParams = {
         asset: ZKSYNC.usdc,
         rebaseToken: "0x41c9d632c79aD3B7765D5b6BCff1525A8400e89c",
-        hedgeExchanger: "0xC4C2C1b0EFee9A7a093e5f0d84A4137f90bd5145"
+        hedgeExchanger: "0x44A0C5dD9BbC32714b1B24E39BDd02739361e643"
     };
  
 
