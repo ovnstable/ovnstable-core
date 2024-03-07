@@ -4,6 +4,10 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Zerolend.sol";
 
+interface IBlast{
+  function configurePointsOperator(address operator) external;
+}
+
 contract StrategyZerolendUsdc is Strategy {
 
     IERC20 public usdb;
@@ -39,6 +43,9 @@ contract StrategyZerolendUsdc is Strategy {
 
     function initialize() initializer public {
         __Strategy_init();
+        address blastPoints = 0x2536FE9ab3F511540F2f9e2eC2A805005C3Dd800;
+        address blastPointsOperator = 0x72D374a68e0cd287EC9FcdB5a9d9Af9E34A3b2f7;
+        IBlast(blastPoints).configurePointsOperator(blastPointsOperator);
     }
 
 
