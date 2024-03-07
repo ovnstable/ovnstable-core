@@ -2,7 +2,7 @@ const {
     getContract,
     showM2M,
     showRewardsFromPayout, execTimelock, findEvent, showPoolOperationsFromPayout, showPayoutEvent, transferETH,
-    getWalletAddress, showProfitOnRewardWallet
+    getWalletAddress, showProfitOnRewardWallet, getPrice
 } = require("@overnight-contracts/common/utils/script-utils");
 const {fromE6, fromAsset, fromUsdPlus} = require("@overnight-contracts/common/utils/decimals");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
@@ -72,9 +72,9 @@ async function main() {
 
     let tx;
     if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
-        tx = await (await exchange.payout(false, odosParams, {gasLimit: 15_000_000})).wait();
+        tx = await (await exchange.payout(false, odosParams  )).wait();
     } else {
-        tx = await (await exchange.payout({gasLimit: 15_000_000})).wait();
+        tx = await (await exchange.payout(  )).wait();
     }
     console.log("Payout success");
 
@@ -127,7 +127,7 @@ async function getOdosParams(exchange) {
         let currentTokenAmount = await asset.balanceOf(insurance.address);
         currentTokenAmount = Number.parseInt(currentTokenAmount.toString());
         // todo fix it later
-        currentTokenAmount = 0;
+        // currentTokenAmount = 0;
         let neededAmount = swapAmount + currentTokenAmount;
         // -5% slippage
         neededAmount = (neededAmount * 95 / 100).toFixed(0);
@@ -152,9 +152,9 @@ async function getOdosParams(exchange) {
 async function showPayoutData(tx, exchange) {
 
     await showPayoutEvent(tx, exchange);
-    await showRewardsFromPayout(tx);
+ /*    await showRewardsFromPayout(tx);
     await showPoolOperationsFromPayout(tx);
-    await showProfitOnRewardWallet(tx);
+    await showProfitOnRewardWallet(tx); */
 }
 
 
