@@ -1,6 +1,7 @@
 const {task, extendEnvironment} = require("hardhat/config");
 const fs = require('fs');
-const fse = require('fs-extra');
+const fse = require('fs-extra'); 
+const log = require("./initLog.js")
 
 const {
     TASK_NODE,
@@ -9,9 +10,11 @@ const {
     TASK_TEST,
 } = require('hardhat/builtin-tasks/task-names');
 const {evmCheckpoint, evmRestore} = require("./sharedBeforeEach");
-const {getNodeUrl, getBlockNumber, node_url} = require("./network");
+const {getNodeUrl, getBlockNumber, node_url, isZkSync} = require("./network");
 const {EthersProviderWrapper} = require("@nomiclabs/hardhat-ethers/internal/ethers-provider-wrapper");
 const {getChainFromNetwork} = require("./hardhat-config");
+const { fromE18 } = require("./decimals");
+const { Provider, Wallet } = require("zksync-web3");
 
 task('deploy', 'deploy')
     .addFlag('noDeploy', 'Deploy contract|Upgrade proxy')
@@ -125,20 +128,21 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
             const provider = new hre.ethers.providers.JsonRpcProvider(nodeUrl);
             let block = await provider.getBlockNumber() - 31;
 
-            console.log('Set last block: ' + block);
-
-            await hre.network.provider.request({
+            console.log('Set last block: ' + block);   
+             await hre.network.provider.request({
                 method: "hardhat_reset",
                 params: [
                     {
                         forking: {
                             jsonRpcUrl: nodeUrl,
+                            url: nodeUrl,
                             blockNumber: block,
+                            ignoreUnknownTxType: true,
                         },
                     },
                 ],
-            })
-        }
+            }) 
+          }
 
         if (args.deploy)
             args.noDeploy = false;
@@ -247,23 +251,26 @@ task(TASK_TEST, 'test')
 
 task('simulate', 'Simulate transaction on local node')
     .addParam('hash', 'Hash transaction')
+    .addOptionalParam('stand', 'Stand') 
     .setAction(async (args, hre, runSuper) => {
 
 
         let hash = args.hash;
 
-        console.log(`Simulate transaction by hash: [${hash}]`);
+        if (args.stand) {
+            process.env.STAND = args.stand;
+        }
 
-        await evmCheckpoint('simulate', hre.network.provider);
-
-        let nodeUrl = getNodeUrl();
+        console.log(`Simulate transaction by hash: [${hash}]`); 
+        await evmCheckpoint('simulate', hre.network.provider); 
+        let nodeUrl =/*  hre.network.name == 'localhost' ? node_url('localhost'): */ getNodeUrl();
         const provider = new hre.ethers.providers.JsonRpcProvider(nodeUrl);
 
         let receipt = await provider.getTransactionReceipt(hash);
         let transaction = await provider.getTransaction(hash);
 
 
-        if (hre.ovn.stand === 'zksync'){
+        if (args.stand === 'zksync'){
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         }else {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')

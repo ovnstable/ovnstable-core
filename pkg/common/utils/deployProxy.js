@@ -6,7 +6,6 @@ const {getContract, checkTimeLockBalance, initWallet, sleep, getPrice} = require
 const {Deployer} = require("@matterlabs/hardhat-zksync-deploy");
 const {isZkSync} = require("./network");
 
-
 async function deployProxy(contractName, deployments, save, params) {
 
     if (isZkSync()) {
@@ -236,8 +235,6 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
     if (hre.ovn.gov){
 
         let timelock = await getContract('AgentTimelock');
-
-        await sleep(1000);
         if (isZkSync()) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {

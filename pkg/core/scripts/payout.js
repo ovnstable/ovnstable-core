@@ -40,13 +40,12 @@ async function main() {
 
     if (hre.network.name === 'localhost'){
         await transferETH(1, await getWalletAddress());
-    }
-
+    } 
 
     await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
 
     await showM2M();
-
+ 
     let odosParams;
 
     if (typePayout === TypePayout.INSURANCE) {
@@ -74,13 +73,13 @@ async function main() {
     if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
         tx = await (await exchange.payout(false, odosParams  )).wait();
     } else {
-        tx = await (await exchange.payout(  )).wait();
+        tx = await (await exchange.payout(await getPrice())).wait();
     }
     console.log("Payout success");
 
     await showPayoutData(tx, exchange);
 
-    await showM2M();
+    await showM2M();  
 
 }
 
@@ -127,7 +126,7 @@ async function getOdosParams(exchange) {
         let currentTokenAmount = await asset.balanceOf(insurance.address);
         currentTokenAmount = Number.parseInt(currentTokenAmount.toString());
         // todo fix it later
-        // currentTokenAmount = 0;
+        currentTokenAmount = 0;
         let neededAmount = swapAmount + currentTokenAmount;
         // -5% slippage
         neededAmount = (neededAmount * 95 / 100).toFixed(0);

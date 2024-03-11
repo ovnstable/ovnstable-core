@@ -470,7 +470,7 @@ async function getStrategyMapping() {
             fromAsset = fromE18;
             break;
         case "polygon":
-            url = "https://app.overnight.fi/api/dict/strategies";
+            url = "https://api.overnight.fi/polygon/usd+/dict/strategies";
             break;
         case "optimism":
             url = "https://api.overnight.fi/optimism/usd+/dict/strategies";
@@ -947,14 +947,14 @@ async function transferAsset(assetAddress, to, amount) {
             }
             break;
         case "ZKSYNC": 
-        switch (assetAddress) {
-            case ZKSYNC.usdc:
-                from = "0x621425a1Ef6abE91058E9712575dcc4258F8d091";
-                break;
-            case ZKSYNC.weth:
-                from = "0xE0B015E54d54fc84a6cB9B666099c46adE9335FF";
-                break;
-        }
+            switch (assetAddress) {
+                case ZKSYNC.usdc:
+                    from = "0x6b6314f4f07c974600d872182dcDE092C480e57b";
+                    break;
+                case ZKSYNC.weth:
+                    from = "0x6b6314f4f07c974600d872182dcDE092C480e57b";
+                    break;
+            }
         break;
         default:
             throw new Error('Unknown mapping ETH_NETWORK');
