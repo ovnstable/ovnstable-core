@@ -8,7 +8,7 @@ if (process.env.DSN)
     dsn: process.env.DSN,
     attachStacktrace: true,
     integrations: [
-      new CaptureConsole({
+      new Sentry.Integrations.CaptureConsole({
         levels: ["error",  'debug', 'assert'],
       }),
     ],
