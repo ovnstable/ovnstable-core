@@ -14,8 +14,6 @@ if (process.env.DSN) {
                 levels: ["error", "debug", "assert"],
             }),
         ],
-        release: "1.0.0",
-        environment: "prod",
         maxBreadcrumbs: 50,
     });
 }
