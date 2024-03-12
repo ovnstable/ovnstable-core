@@ -34,7 +34,7 @@ contract BasePayoutManager is PayoutManager {
             );
         }
         if (amountToken > 0) {
-            require(token.transfer(item.bribe, amountToken), bribe);
+            require(token.transfer(item.bribe, amountToken), "Cannot transfer bribe");
             emit PoolOperation(
                 item.dexName,
                 "Bribe",
