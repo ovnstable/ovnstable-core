@@ -123,10 +123,11 @@ module.exports = async () => {
         let to = '0x89F0885DA2553232aeEf201692F8C97E24715c83';
         let own = 20;
         return [
-            createSkimToWithFee('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, to, own, COMMON.rewardWallet)
+            createSkimToWithFee('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, to, own, COMMON.rewardWallet),
+            createCustom('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, '0x3510db57b98866b40dd5d913a73a0117fb6014f0', own, COMMON.rewardWallet),
+            createCustom('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, '0x2546fe1f2ca9a31ebed04035eba7c4544bff2745', own, COMMON.rewardWallet)
         ];
     }
-
 };
 
 module.exports.tags = ['SettingBasePayoutManager'];
