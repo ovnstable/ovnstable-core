@@ -19,24 +19,22 @@ contract BasePayoutManager is PayoutManager {
     function _customExtraFi(NonRebaseInfo memory info, Item memory item) internal {
         IERC20 token = IERC20(item.token);
         uint256 amountToken = info.amount;
+        if (amountToken > 0 && item.feePercent > 0) {
+            uint256 feeAmount = (amountToken * item.feePercent) / 100;
+            amountToken -= feeAmount;
+            require(token.transfer(item.feeReceiver, feeAmount), 'Cannot transfer fee');
+            emit PoolOperation(
+                item.dexName,
+                "Reward",
+                item.poolName,
+                item.pool,
+                item.token,
+                feeAmount,
+                item.feeReceiver
+            );
+        }
         if (amountToken > 0) {
-            if (item.feePercent > 0) {
-                uint256 feeAmount = (amountToken * item.feePercent) / 100;
-                amountToken -= feeAmount;
-                if (feeAmount > 0) {
-                    token.transfer(item.feeReceiver, feeAmount);
-                    emit PoolOperation(
-                        item.dexName,
-                        "Reward",
-                        item.poolName,
-                        item.pool,
-                        item.token,
-                        feeAmount,
-                        item.feeReceiver
-                    );
-                }
-            }
-            token.transfer(item.bribe, amountToken);
+            require(token.transfer(item.bribe, amountToken), bribe);
             emit PoolOperation(
                 item.dexName,
                 "Bribe",
