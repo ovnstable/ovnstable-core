@@ -15,12 +15,11 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let manager = await getContract('BasePayoutManager', 'base');
-
-    const timelockAddress = '0x8ab9012D1BfF1b62c2ad82AE0106593371e6b247';
+    let manager = await getContract('BasePayoutManager', 'base'); 
     const managerAddress = '0x202B006c10Ae9138de78CdD0f9BAbAb559EEC86e'; 
-
-    addProposalItem(manager, "grantRole", [Roles.UPGRADER_ROLE, timelockAddress]);
+    const timelockAddress = '0x8ab9012d1bff1b62c2ad82ae0106593371e6b247'
+ 
+    addProposalItem(manager, "grantRole", [Roles.DEFAULT_ADMIN_ROLE, timelockAddress]);
     addProposalItem(manager, "upgradeTo", [managerAddress]);
 
     await testProposal(addresses, values, abis);
