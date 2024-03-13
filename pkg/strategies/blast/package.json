@@ -1,0 +1,13 @@
+{
+  "name": "@overnight-contracts/strategies-blast",
+  "version": "0.0.1",
+  "description": "Strategies BLAST contracts",
+  "main": "hardhat.config",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test"
+  }
+}
