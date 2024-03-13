@@ -18,7 +18,7 @@ module.exports = async ({ deployments }) => {
 
 async function getParams() {
     return {
-        sper: '0x97cb73863a4a649Fc3c25c5263d5092c8a1E818C',
+        sper: '0x701494b77959b0399F2112db1B423C8f5f8f847C',
         asset: ARBITRUM.usdt
     };
 }
