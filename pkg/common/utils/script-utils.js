@@ -3,7 +3,7 @@ const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
     fs = require('fs');
-const { ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA, getDefault, getAsset, COMMON, BLAST} = require("./assets");
+const { ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA, ZKSYNC, BLAST, getDefault, getAsset, COMMON } = require("./assets");
 const { evmCheckpoint, evmRestore } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const { fromAsset, toAsset, fromUsdPlus } = require("./decimals");
@@ -113,7 +113,12 @@ async function settingSection(id, exec) {
 
             if (hre.ovn.gov) {
                 let timelock = await getContract('AgentTimelock');
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
+
+                if (isZkSync()) {
+                    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+                } else {
+                    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+                }
                 await hre.network.provider.request({
                     method: "hardhat_impersonateAccount",
                     params: [timelock.address],
@@ -601,9 +606,9 @@ async function getPrice() {
     } else if (process.env.ETH_NETWORK === 'BLAST') {
         params = { gasLimit: 25000000 }; // todo
     } else if (process.env.ETH_NETWORK === 'ZKSYNC') {
-        // provider.getGasprice + 5%
+        // provider.getGasprice + 15%
         let gasPrice = await ethers.provider.getGasPrice();
-        let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
+        let percentage = gasPrice.mul(BigNumber.from('15')).div(100);
         gasPrice = gasPrice.add(percentage);
         return { gasPrice: gasPrice, gasLimit: 20000000 }
     } else if (process.env.ETH_NETWORK === 'BASE') {
@@ -619,7 +624,12 @@ async function getPrice() {
 
 async function impersonateAccount(address) {
 
-    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    if (isZkSync()) {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+    } else {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    }
+
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [address],
@@ -718,8 +728,12 @@ async function changeWeightsAndBalance(weights) {
     console.log('M2M before:')
     await showM2M();
 
+    if (isZkSync()) {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+    } else {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    }
 
-    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [timelock.address],
@@ -805,12 +819,9 @@ async function getDevWallet() {
 
 async function transferETH(amount, to) {
     if (isZkSync()) {
-        console.log(2)
         let provider = new Provider("http://localhost:8011");
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-        console.log(3, hre.ethers.providerr)
         let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
-        console.log(`Balance [${fromE18(await hre.ethers.provider.getBalance(wallet.address))}]:`);
+        console.log(`Balance [${fromE18(await provider.getBalance(wallet.address))}]:`);
 
         await wallet.transfer({
             to: to,
@@ -953,6 +964,16 @@ async function transferAsset(assetAddress, to, amount) {
                     throw new Error('Unknown asset address');
             }
             break;
+        case "ZKSYNC": 
+            switch (assetAddress) {
+                case ZKSYNC.usdc:
+                    from = "0x621425a1Ef6abE91058E9712575dcc4258F8d091";
+                    break;
+                case ZKSYNC.weth:
+                    from = "0xE0B015E54d54fc84a6cB9B666099c46adE9335FF";
+                    break;
+            }
+            break;
         case "BLAST":
             switch (assetAddress) {
                 case BLAST.usdb:
@@ -971,7 +992,11 @@ async function transferAsset(assetAddress, to, amount) {
     let asset = await getERC20ByAddress(assetAddress);
 
     if (hre.network.name === 'localhost') {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        if (isZkSync()) {
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+        } else {
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        }
     }
 
     await hre.network.provider.request({
@@ -984,7 +1009,7 @@ async function transferAsset(assetAddress, to, amount) {
     if (!amount) {
         amount = await asset.balanceOf(from);
     }
-    await asset.connect(account).transfer(to, amount);
+    await asset.connect(account).transfer(to, amount, await getPrice());
     await hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
         params: [from],

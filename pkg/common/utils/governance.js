@@ -130,8 +130,7 @@ async function testUsdPlus(id, stand = process.env.STAND){
     let asset = await getCoreAsset(stand);
 
 
-    let walletAddress = await getWalletAddress();
-    await transferETH(10, walletAddress);
+    let walletAddress = await getWalletAddress(); 
     await transferAsset(await exchange.usdc(), walletAddress);
 
     let tables = [];
@@ -159,24 +158,24 @@ async function testUsdPlus(id, stand = process.env.STAND){
     tables.push(await testCase(async ()=>{
 
         let amountAsset = await asset.balanceOf(walletAddress);
-        await (await asset.approve(exchange.address, amountAsset)).wait();
-        await (await exchange.buy(asset.address, amountAsset)).wait();
+        await (await asset.approve(exchange.address, amountAsset, await getPrice())).wait();
+        await (await exchange.buy(asset.address, amountAsset, await getPrice())).wait();
 
     }, 'exchange.mint'));
 
     tables.push(await testCase(async ()=>{
 
         let amountUsdPlus = await usdPlusToken.balanceOf(walletAddress);
-        await (await usdPlusToken.approve(exchange.address, amountUsdPlus)).wait();
-        await (await exchange.redeem(asset.address, amountUsdPlus)).wait();
+        await (await usdPlusToken.approve(exchange.address, amountUsdPlus, await getPrice())).wait();
+        await (await exchange.redeem(asset.address, amountUsdPlus, await getPrice())).wait();
 
     }, 'exchange.redeem'));
 
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=>{
-            await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
-            await pm.connect(timelock).balance();
+            await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address, await getPrice());
+            await pm.connect(timelock).balance( await getPrice());
         });
 
     }, 'pm.balance'));
@@ -194,12 +193,11 @@ async function testUsdPlus(id, stand = process.env.STAND){
     }, 'm2m.totalLiquidationAssets'));
 
     tables.push(await testCase(async ()=>{
-
         await execTimelock(async (timelock)=>{
-            await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address);
-            await roleManager.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address);
-            await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
-            await (await exchange.connect(timelock).payout(false, await getEmptyOdosData())).wait();
+            await (await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address, await getPrice())).wait();
+            await (await roleManager.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address, await getPrice())).wait();
+            await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, await getPrice())).wait();
+            await (await exchange.payout(false, await getEmptyOdosData()), { gasPrice: 100000000000, gasLimit: 20000000000 }  ).wait();
         });
 
     }, 'exchange.payout'));
@@ -226,9 +224,8 @@ async function testCase(test, id) {
 
 async function testStrategy(id, strategy, stand = process.env.STAND) {
     let asset = await getCoreAsset();
-    let walletAddress = await getWalletAddress();
-        await transferETH(10, walletAddress);
-        console.log(4)
+    let walletAddress = await getWalletAddress(); 
+    await transferETH(10, walletAddress, await getPrice());
     let roleManager = await getContract('RoleManager', stand);
 
 
@@ -261,9 +258,9 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     await execTimelock(async (timelock)=>{
 
         if (isNewStrategy){
-            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address);
+            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, await getPrice());
         }else {
-            await strategy.connect(timelock).setPortfolioManager(timelock.address);
+            await strategy.connect(timelock).setPortfolioManager(timelock.address, await getPrice());
         }
 
     })
@@ -283,8 +280,8 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
 
             await getTestAssets(walletAddress);
             let amount = toAsset(10_000);
-            await asset.transfer(strategy.address, amount);
-            await strategy.connect(timelock).stake(asset.address, amount);
+            await asset.transfer(strategy.address, amount, await getPrice());
+            await strategy.connect(timelock).stake(asset.address, amount, await getPrice());
         });
     }, 'strategy.stake'));
 
@@ -292,7 +289,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
 
         await execTimelock(async (timelock)=> {
             let amount = toAsset(10_000);
-            await strategy.connect(timelock).unstake(asset.address, amount, walletAddress, false);
+            await strategy.connect(timelock).unstake(asset.address, amount, walletAddress, false, await getPrice());
         });
     }, 'strategy.unstake'));
 
@@ -300,14 +297,14 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
 
         await execTimelock(async (timelock)=> {
             let amount = toAsset(10_000);
-            await strategy.connect(timelock).claimRewards(timelock.address);
+            await strategy.connect(timelock).claimRewards(timelock.address, await getPrice());
         });
     }, 'strategy.claimRewards'));
 
     tables.push(await testCase(async ()=>{
 
         await execTimelock(async (timelock)=> {
-            await strategy.connect(timelock).unstake(asset.address, 0, walletAddress, true);
+            await strategy.connect(timelock).unstake(asset.address, 0, walletAddress, true, await getPrice());
         });
     }, 'strategy.unstakeFull'));
 
@@ -330,7 +327,7 @@ async function testProposal(addresses, values, abis){
                 to: address,
                 value: 0,
                 data: abi,
-                gasLimit: 15000000
+                ...(await getPrice())
             }
 
             console.log(`Transaction: index: [${i}] address: [${address}]`)
