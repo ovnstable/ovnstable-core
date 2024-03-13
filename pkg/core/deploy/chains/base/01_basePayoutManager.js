@@ -32,8 +32,6 @@ module.exports = async ({deployments}) => {
         await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeUsdPlus.address)).wait();
         await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeDaiPlus.address)).wait();
         await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeUsdcPlus.address)).wait();
-        await (await payoutManager.grantRole(Roles.DEFAULT_ADMIN_ROLE, "0x05129E3CE8C566dE564203B0fd85111bBD84C424")).wait()
-        await (await payoutManager.revokeRole(Roles.DEFAULT_ADMIN_ROLE, payoutManager.address)).wait()
         console.log('EXCHANGER role done()');
     } 
 
