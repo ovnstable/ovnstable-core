@@ -1,5 +1,5 @@
 const { ethers } = require("hardhat");
-const { getContract, getPrice } = require("@overnight-contracts/common/utils/script-utils");
+const { getContract, getPrice, transferETH, getWalletAddress } = require("@overnight-contracts/common/utils/script-utils");
 const { createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee, createSync, createCustomBribe,
     createCustom
 } = require("@overnight-contracts/common/utils/payoutListener");
@@ -7,8 +7,7 @@ const { Roles } = require("@overnight-contracts/common/utils/roles");
 const { COMMON } = require("@overnight-contracts/common/utils/assets");
 
 
-module.exports = async () => {
-
+module.exports = async () => { 
     const payoutManager = await getContract("BasePayoutManager", 'base');
     const usdPlus = await getContract('UsdPlusToken', 'base');
     const daiPlus = await getContract('UsdPlusToken', 'base_dai');
@@ -22,8 +21,9 @@ module.exports = async () => {
     items.push(...aerodrome());
     items.push(...equalizer());
     items.push(...citadel());
-    items.push(...curve());
+    items.push(...curve());  
     items.push(...extraFi());
+    console.log('ITEMS', items)
     await (await payoutManager.addItems(items)).wait();
 
     console.log('BasePayoutManager setting done');
@@ -122,11 +122,13 @@ module.exports = async () => {
         let dex = 'Extra.fi';
         let to = '0x89F0885DA2553232aeEf201692F8C97E24715c83';
         let own = 20;
+        console.log('ExtrFi')
         return [
-            createSkimToWithFee('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, to, own, COMMON.rewardWallet)
+            createSkimToWithFee('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, to, own, COMMON.rewardWallet),
+            createCustom('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, '0x3510db57b98866b40dd5d913a73a0117fb6014f0', own, COMMON.rewardWallet),
+            createCustom('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, '0x2546fe1f2ca9a31ebed04035eba7c4544bff2745', own, COMMON.rewardWallet)
         ];
     }
-
 };
 
 module.exports.tags = ['SettingBasePayoutManager'];
