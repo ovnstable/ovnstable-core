@@ -5,7 +5,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/core/contracts/interfaces/ISperStrategy.sol";
 
 
-contract StrategyEts is Strategy {
+contract StrategySper is Strategy {
 
     // --- params
 
