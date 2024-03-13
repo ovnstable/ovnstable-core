@@ -7,15 +7,7 @@ const hre = require("hardhat");
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
-    const newAdmin =  "0x05129E3CE8C566dE564203B0fd85111bBD84C424";
     await deployProxy('BasePayoutManager', deployments, save);
-    let payoutManager = await ethers.getContract('BasePayoutManager');
-    const currentWallet =  await getWalletAddress();
-    if (currentWallet !==newAdmin) {
-        await (await payoutManager.grantRole(Roles.DEFAULT_ADMIN_ROLE, newAdmin)).wait()
-        await (await payoutManager.revokeRole(Roles.DEFAULT_ADMIN_ROLE, currentWallet)).wait()
-    }
-
 
     if (hre.ovn && hre.ovn.setting){
 
