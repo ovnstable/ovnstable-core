@@ -380,6 +380,11 @@
       "address": "0xe0C4d19f9778e7D8770FBCb01694Ca4B622BFeEe",
       "txHash": "0x7ee86a5c75afe0bacceb51512645e94103889fc591ca2c9a94fd092a01da1fd1",
       "kind": "uups"
+    },
+    {
+      "address": "0xD025E837F94847fa657Db5a9812078A3B28A494c",
+      "txHash": "0x83da42aed81e53b4e08fa551336656f8a06403000abe8f68fd0831caf70b48ca",
+      "kind": "uups"
     }
   ],
   "impls": {
