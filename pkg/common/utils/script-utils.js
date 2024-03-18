@@ -3,7 +3,7 @@ const axios = require('axios');
 const hre = require("hardhat");
 const path = require('path'),
     fs = require('fs');
-const { ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA, getDefault, getAsset, COMMON, ZKSYNC} = require("./assets");
+const { ARBITRUM, BASE, BSC, OPTIMISM, POLYGON, LINEA, ZKSYNC, BLAST, getDefault, getAsset, COMMON } = require("./assets");
 const { evmCheckpoint, evmRestore } = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const BN = require('bn.js');
 const { fromAsset, toAsset, fromUsdPlus } = require("./decimals");
@@ -16,7 +16,7 @@ const { updateFeeData } = require("./hardhat-ovn");
 let ethers = require('hardhat').ethers;
 
 const DIAMOND_STRATEGY = require('./abi/DiamondStrategy.json');
-const {Roles} = require("./roles");
+const { Roles } = require("./roles");
 
 let wallet = undefined;
 async function initWallet() {
@@ -113,6 +113,7 @@ async function settingSection(id, exec) {
 
             if (hre.ovn.gov) {
                 let timelock = await getContract('AgentTimelock');
+
                 if (isZkSync()) {
                     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
                 } else {
@@ -151,42 +152,42 @@ async function settingSection(id, exec) {
 }
 
 
-async function setDepositor(strategyName, strategy){
+async function setDepositor(strategyName, strategy) {
 
-    if (strategyName.includes('Smm') || strategyName.includes('Ets')){
+    if (strategyName.includes('Smm') || strategyName.includes('Ets')) {
         console.log('Try to setDepositor');
         let wallet = await initWallet();
         let diamondStrategy = await ethers.getContractAt(DIAMOND_STRATEGY, await strategy.strategy(), wallet);
 
-        if (await diamondStrategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address)){
+        if (await diamondStrategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address)) {
             await (await diamondStrategy.setDepositor(strategy.address));
             console.log(`diamondStrategy.setDepository(${strategy.address})`);
-        }else {
+        } else {
             console.warn(`Cannot setDepositor -> wallet: ${wallet.address} not has ADMIN role on DiamondStrategy: ${diamondStrategy.address}`);
         }
     }
 }
 
-async function addStrategyToApi(strategy, id){
+async function addStrategyToApi(strategy, id) {
     console.log(`Try to add strategy [${id}] to API`);
 
-    if (hre.network.name === 'localhost' || hre.network.name === 'hardhat'){
+    if (hre.network.name === 'localhost' || hre.network.name === 'hardhat') {
         console.log('Ignore add strategy to API for localhost network');
         return;
     }
 
 
     let explorerAddress;
-    if (strategy.strategy){
+    if (strategy.strategy) {
         explorerAddress = await strategy.strategy();
     }
 
     let type;
     if (id.includes('Smm') || id.includes('Ets')) {
         type = 'ETS';
-    }else if (id.includes('Sper')){
+    } else if (id.includes('Sper')) {
         type = 'SPER';
-    }else {
+    } else {
         type = 'CORE';
     }
 
@@ -223,24 +224,24 @@ async function addStrategyToApi(strategy, id){
 }
 
 
-function getDevApiUrl(){
+function getDevApiUrl() {
 
     let devApiUrl = process.env.DEV_API_URL;
 
-    if (devApiUrl){
+    if (devApiUrl) {
         return devApiUrl;
-    }else {
+    } else {
         throw new Error('DEV_API_URL is not defined');
     }
 }
 
-function getDevAuthApiKey(){
+function getDevAuthApiKey() {
 
     let devApiKey = process.env.DEV_AUTH_API_KEY;
 
-    if (devApiKey){
+    if (devApiKey) {
         return devApiKey;
-    }else {
+    } else {
         throw new Error('DEV_AUTH_API_KEY is not defined');
     }
 }
@@ -408,6 +409,12 @@ async function getCoreAsset(stand = process.env.STAND) {
     } else if (stand === 'base_usdc') {
         return await getERC20('usdc');
 
+    } else if (stand === 'blast') {
+        return await getERC20('usdb');
+
+    } else if (stand === 'blast_usdc') {
+        return await getERC20('usdb');
+
     } else {
         return await getERC20('usdc');
     }
@@ -492,6 +499,12 @@ async function getStrategyMapping() {
             break;
         case "linea_usdt":
             url = "https://api.overnight.fi/linea/usdt+/dict/strategies";
+            break;
+        case "blast":
+            url = "https://api.overnight.fi/blast/usd+/dict/strategies";
+            break;
+        case "blast_usdc":
+            url = "https://api.overnight.fi/blast/usdc+/dict/strategies";
             break;
         default:
             console.error('Unknown STAND: ' + process.env.STAND);
@@ -590,12 +603,14 @@ async function getPrice() {
         params = { gasPrice: "3000000000", gasLimit: 15000000 }; // gasPrice always 3 GWEI
     } else if (process.env.ETH_NETWORK === "OPTIMISM") {
         params = { gasPrice: "1000000000", gasLimit: 10000000 }; // gasPrice always 0.001 GWEI
+    } else if (process.env.ETH_NETWORK === 'BLAST') {
+        params = { gasLimit: 25000000 }; // todo
     } else if (process.env.ETH_NETWORK === 'ZKSYNC') {
         let {
             maxFeePerGas, maxPriorityFeePerGas
-           } = await ethers.provider.getFeeData();
+        } = await ethers.provider.getFeeData();
 
-       return {maxFeePerGas, maxPriorityFeePerGas,  gasLimit: 200000000 }
+        return { maxFeePerGas, maxPriorityFeePerGas, gasLimit: 200000000 }
     } else if (process.env.ETH_NETWORK === 'BASE') {
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
@@ -614,6 +629,7 @@ async function impersonateAccount(address) {
     } else {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     }
+
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [address],
@@ -625,13 +641,13 @@ async function impersonateAccount(address) {
 }
 
 
-async function grantRoleInRoleManager(role, to){
+async function grantRoleInRoleManager(role, to) {
 
-    if (!to){
+    if (!to) {
         to = await getWalletAddress();
     }
 
-    await execTimelock(async (timelock)=>{
+    await execTimelock(async (timelock) => {
         let roleManager = await getContract('RoleManager');
         console.log(`[Scripts] GrantRole: ${role} to ${to} on RoleManager`);
         await roleManager.connect(timelock).grantRole(role, to);
@@ -712,12 +728,12 @@ async function changeWeightsAndBalance(weights) {
     console.log('M2M before:')
     await showM2M();
 
-
     if (isZkSync()) {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
     } else {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
     }
+
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [timelock.address],
@@ -786,6 +802,8 @@ async function getChainId() {
             return 324;
         case "LINEA":
             return 59144;
+        case "BLAST":
+            return 81457;
         default:
             throw new Error("Unknown chain");
     }
@@ -946,7 +964,7 @@ async function transferAsset(assetAddress, to, amount) {
                     throw new Error('Unknown asset address');
             }
             break;
-        case "ZKSYNC": 
+        case "ZKSYNC":
             switch (assetAddress) {
                 case ZKSYNC.usdc:
                     from = "0x6b6314f4f07c974600d872182dcDE092C480e57b";
@@ -955,7 +973,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = "0x6b6314f4f07c974600d872182dcDE092C480e57b";
                     break;
             }
-        break;
+            break;
         default:
             throw new Error('Unknown mapping ETH_NETWORK');
     }
@@ -995,14 +1013,14 @@ async function transferAsset(assetAddress, to, amount) {
     console.log(`[Node] Transfer asset: [${symbol}] balance: [${fromAsset(balance)}] from: [${from}] to: [${to}]`);
 }
 
-async function showProfitOnRewardWallet(receipt){
+async function showProfitOnRewardWallet(receipt) {
 
     let usdPlus = await getContract('UsdPlusToken');
 
     const items = [];
 
-    let balanceBefore = await usdPlus.balanceOf(COMMON.rewardWallet, {blockTag: receipt.blockNumber - 1});
-    let balanceAfter = await usdPlus.balanceOf(COMMON.rewardWallet, {blockTag: receipt.blockNumber});
+    let balanceBefore = await usdPlus.balanceOf(COMMON.rewardWallet, { blockTag: receipt.blockNumber - 1 });
+    let balanceAfter = await usdPlus.balanceOf(COMMON.rewardWallet, { blockTag: receipt.blockNumber });
 
     let profit = balanceAfter.sub(balanceBefore);
 
@@ -1024,16 +1042,16 @@ async function showProfitOnRewardWallet(receipt){
     console.table(items);
 }
 
-async function showPoolOperationsFromPayout(receipt){
+async function showPoolOperationsFromPayout(receipt) {
 
 
     let stand = process.env.STAND;
     let prefix;
 
-    let chains = ['arbitrum', 'base', 'optimism', 'linea', 'zksync', 'polygon', 'bsc'];
+    let chains = ['arbitrum', 'base', 'optimism', 'linea', 'zksync', 'polygon', 'bsc', 'blast'];
 
     for (const chain of chains) {
-        if (stand.includes(chain)){
+        if (stand.includes(chain)) {
             prefix = chain.charAt(0).toUpperCase() + chain.slice(1);
         }
     }
@@ -1063,15 +1081,15 @@ async function showPoolOperationsFromPayout(receipt){
 }
 
 
-async function showPayoutEvent(receipt, exchange){
+async function showPayoutEvent(receipt, exchange) {
 
-    if (!exchange){
+    if (!exchange) {
         exchange = await getContract('Exchange');
     }
 
     let event = await findEvent(receipt, exchange, 'PayoutEvent');
 
-    if (event){
+    if (event) {
         console.log('Profit:       ' + fromUsdPlus(await event.args[0].toString()));
         console.log('ExcessProfit: ' + fromUsdPlus(await event.args[2].toString()));
         console.log('Premium:      ' + fromUsdPlus(await event.args[3].toString()));
