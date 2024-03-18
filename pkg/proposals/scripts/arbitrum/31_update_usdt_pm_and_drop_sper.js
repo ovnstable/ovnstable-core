@@ -25,8 +25,13 @@ async function main() {
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('removeStrategy', ['0xEAF3Bc644bDa5aEc842fC1d3937A533EF67887B6']));
 
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    addresses.push(pm.address);
+    values.push(0);
+    abis.push(pm.interface.encodeFunctionData('upgradeTo', ['0xa78BE2fD2A7357961D950A235fF52Ce0b8f31201']));
+
+    // await testProposal(addresses, values, abis);
+    // await testUsdPlus(filename, 'arbitrum_usdt');
+    await createProposal(filename, addresses, values, abis);
 }
 
 main()
