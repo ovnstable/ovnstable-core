@@ -448,7 +448,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
         require(weight.strategy == _strategy, 'Address strategy not equals');
         require(weight.targetWeight == 0, 'Target weight must be 0');
-        // require(IStrategy(weight.strategy).netAssetValue() == 0, 'Strategy nav must be 0');
+        require(IStrategy(weight.strategy).netAssetValue() == 0, 'Strategy nav must be 0');
 
 
         // Remove gap from array
