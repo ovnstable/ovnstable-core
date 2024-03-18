@@ -283,15 +283,30 @@ task('simulate', 'Simulate transaction on local node')
         const fromSigner = await hre.ethers.getSigner(receipt.from);
         await transferETH(100, receipt.from, hre);
 
-        const tx = {
-            from: receipt.from,
-            to: receipt.to,
+        if( isZkSync()) {
+            let {
+                maxFeePerGas, maxPriorityFeePerGas
+            } = await hre.ethers.provider.getFeeData();
+            tx = {
+                from: from,
+                to: to,
+                value: 0,
+                nonce: await hre.ethers.provider.getTransactionCount(from, "latest"),
+                gasLimit: 15000000,
+                maxFeePerGas,
+                maxPriorityFeePerGas, 
+                data: data
+            }
+
+        } else {tx = {
+            from: from,
+            to: to,
             value: 0,
-            nonce: await hre.ethers.provider.getTransactionCount(receipt.from, "latest"),
+            nonce: await hre.ethers.provider.getTransactionCount(from, "latest"),
             gasLimit: 15000000,
             gasPrice: 150000000000, // 150 GWEI
-            data: transaction.data
-        }
+            data: data
+        }}
         await fromSigner.sendTransaction(tx);
 
         await evmRestore('simulate', hre.network.provider);
@@ -312,7 +327,7 @@ task('simulateByData', 'Simulate transaction on local node')
 
         await evmCheckpoint('simulate', hre.network.provider);
 
-        if (hre.ovn.stand === 'zksync'){
+        if (isZkSync()){
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         }else {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -325,7 +340,23 @@ task('simulateByData', 'Simulate transaction on local node')
         const fromSigner = await hre.ethers.getSigner(from);
         await transferETH(100, from, hre);
 
-        const tx = {
+        let tx
+        if( isZkSync()) {
+            let {
+                maxFeePerGas, maxPriorityFeePerGas
+            } = await hre.ethers.provider.getFeeData();
+            tx = {
+                from: from,
+                to: to,
+                value: 0,
+                nonce: await hre.ethers.provider.getTransactionCount(from, "latest"),
+                gasLimit: 15000000,
+                maxFeePerGas,
+                maxPriorityFeePerGas, 
+                data: data
+            }
+
+        } else {tx = {
             from: from,
             to: to,
             value: 0,
@@ -333,7 +364,7 @@ task('simulateByData', 'Simulate transaction on local node')
             gasLimit: 15000000,
             gasPrice: 150000000000, // 150 GWEI
             data: data
-        }
+        }}
         await fromSigner.sendTransaction(tx);
 
         await evmRestore('simulate', hre.network.provider);
@@ -409,11 +440,19 @@ function updateFeedData(hre) {
         let provider = new hre.ethers.providers.StaticJsonRpcProvider(url);
 
         let getFeeData = async function () {
+            if(hre.network.name == "zksync"){
+                let {
+                    maxFeePerGas, maxPriorityFeePerGas
+                } = await ethers.provider.getFeeData();
+        
+                return { maxFeePerGas, maxPriorityFeePerGas }
+
+            }else {
             let gasPrice = await provider.getGasPrice();
             console.log(`Get gasPrice: ${gasPrice.toString()}`);
             return {
                 gasPrice: gasPrice
-            }
+            }}
         };
 
 
