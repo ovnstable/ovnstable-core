@@ -964,16 +964,25 @@ async function transferAsset(assetAddress, to, amount) {
                     throw new Error('Unknown asset address');
             }
             break;
-        case "ZKSYNC":
+        case "ZKSYNC": 
             switch (assetAddress) {
                 case ZKSYNC.usdc:
-                    from = "0x6b6314f4f07c974600d872182dcDE092C480e57b";
+                    from = "0x621425a1Ef6abE91058E9712575dcc4258F8d091";
                     break;
                 case ZKSYNC.weth:
-                    from = "0x6b6314f4f07c974600d872182dcDE092C480e57b";
+                    from = "0xE0B015E54d54fc84a6cB9B666099c46adE9335FF";
                     break;
             }
             break;
+        case "BLAST":
+            switch (assetAddress) {
+                case BLAST.usdb:
+                    from = '0x15c59df002950e3b7e287de9c0c91aa63e8d9937';
+                    break;
+                default:
+                    throw new Error('Unknown asset address');
+            }
+            break; 
         default:
             throw new Error('Unknown mapping ETH_NETWORK');
     }
