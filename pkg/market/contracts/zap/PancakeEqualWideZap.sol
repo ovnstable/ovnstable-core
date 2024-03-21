@@ -107,19 +107,20 @@ contract PancakeEqualWideZap is OdosZap {
         asset0.approve(address(npm), tokensAmount0);
         asset1.approve(address(npm), tokensAmount1);
 
-        (,int24 tick,,,,,) = pair.slot0();
-        int24 tickSpacing = pair.tickSpacing();
-        int24 lowerTick = tick / tickSpacing * tickSpacing;
-        int24 upperTick = lowerTick + tickSpacing;
-
         ResultOfLiquidity memory result;
         result.amountAsset0Before = asset0.balanceOf(address(this));
         result.amountAsset1Before = asset1.balanceOf(address(this));
-        MintParams memory params = 
-            MintParams(tokensOut[0], tokensOut[1], pair.fee(),
-                lowerTick, upperTick, tokensAmount0, tokensAmount1, 0, 0, msg.sender, block.timestamp);
+        {
+            
+            (,int24 tick,,,,,) = pair.slot0();
+            int24 tickSpacing = pair.tickSpacing();
+            int24 lowerTick = tick / tickSpacing * tickSpacing;
+            MintParams memory params = 
+                MintParams(tokensOut[0], tokensOut[1], pair.fee(),
+                    lowerTick, lowerTick + tickSpacing, tokensAmount0, tokensAmount1, 0, 0, msg.sender, block.timestamp);
 
-        npm.mint(params);
+            npm.mint(params);
+        }
 
         result.amountAsset0After = asset0.balanceOf(address(this));
         result.amountAsset1After = asset1.balanceOf(address(this));

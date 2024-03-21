@@ -16,7 +16,7 @@ const { updateFeeData } = require("./hardhat-ovn");
 let ethers = require('hardhat').ethers;
 
 const DIAMOND_STRATEGY = require('./abi/DiamondStrategy.json');
-const {Roles} = require("./roles");
+const { Roles } = require("./roles");
 
 let wallet = undefined;
 async function initWallet() {
@@ -152,42 +152,42 @@ async function settingSection(id, exec) {
 }
 
 
-async function setDepositor(strategyName, strategy){
+async function setDepositor(strategyName, strategy) {
 
-    if (strategyName.includes('Smm') || strategyName.includes('Ets')){
+    if (strategyName.includes('Smm') || strategyName.includes('Ets')) {
         console.log('Try to setDepositor');
         let wallet = await initWallet();
         let diamondStrategy = await ethers.getContractAt(DIAMOND_STRATEGY, await strategy.strategy(), wallet);
 
-        if (await diamondStrategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address)){
+        if (await diamondStrategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address)) {
             await (await diamondStrategy.setDepositor(strategy.address));
             console.log(`diamondStrategy.setDepository(${strategy.address})`);
-        }else {
+        } else {
             console.warn(`Cannot setDepositor -> wallet: ${wallet.address} not has ADMIN role on DiamondStrategy: ${diamondStrategy.address}`);
         }
     }
 }
 
-async function addStrategyToApi(strategy, id){
+async function addStrategyToApi(strategy, id) {
     console.log(`Try to add strategy [${id}] to API`);
 
-    if (hre.network.name === 'localhost' || hre.network.name === 'hardhat'){
+    if (hre.network.name === 'localhost' || hre.network.name === 'hardhat') {
         console.log('Ignore add strategy to API for localhost network');
         return;
     }
 
 
     let explorerAddress;
-    if (strategy.strategy){
+    if (strategy.strategy) {
         explorerAddress = await strategy.strategy();
     }
 
     let type;
     if (id.includes('Smm') || id.includes('Ets')) {
         type = 'ETS';
-    }else if (id.includes('Sper')){
+    } else if (id.includes('Sper')) {
         type = 'SPER';
-    }else {
+    } else {
         type = 'CORE';
     }
 
@@ -224,24 +224,24 @@ async function addStrategyToApi(strategy, id){
 }
 
 
-function getDevApiUrl(){
+function getDevApiUrl() {
 
     let devApiUrl = process.env.DEV_API_URL;
 
-    if (devApiUrl){
+    if (devApiUrl) {
         return devApiUrl;
-    }else {
+    } else {
         throw new Error('DEV_API_URL is not defined');
     }
 }
 
-function getDevAuthApiKey(){
+function getDevAuthApiKey() {
 
     let devApiKey = process.env.DEV_AUTH_API_KEY;
 
-    if (devApiKey){
+    if (devApiKey) {
         return devApiKey;
-    }else {
+    } else {
         throw new Error('DEV_AUTH_API_KEY is not defined');
     }
 }
@@ -478,7 +478,7 @@ async function getStrategyMapping() {
             fromAsset = fromE18;
             break;
         case "polygon":
-            url = "https://app.overnight.fi/api/dict/strategies";
+            url = "https://api.overnight.fi/polygon/usd+/dict/strategies";
             break;
         case "optimism":
             url = "https://api.overnight.fi/optimism/usd+/dict/strategies";
@@ -607,10 +607,6 @@ async function getPrice() {
     } else if (process.env.ETH_NETWORK === 'BLAST') {
         params = { gasLimit: 25000000 }; // todo
     } else if (process.env.ETH_NETWORK === 'ZKSYNC') {
-        // provider.getGasprice + 15%
-        let gasPrice = await ethers.provider.getGasPrice();
-        let percentage = gasPrice.mul(BigNumber.from('15')).div(100);
-        gasPrice = gasPrice.add(percentage);
         let {
             maxFeePerGas, maxPriorityFeePerGas
         } = await ethers.provider.getFeeData();
@@ -645,13 +641,13 @@ async function impersonateAccount(address) {
 }
 
 
-async function grantRoleInRoleManager(role, to){
+async function grantRoleInRoleManager(role, to) {
 
-    if (!to){
+    if (!to) {
         to = await getWalletAddress();
     }
 
-    await execTimelock(async (timelock)=>{
+    await execTimelock(async (timelock) => {
         let roleManager = await getContract('RoleManager');
         console.log(`[Scripts] GrantRole: ${role} to ${to} on RoleManager`);
         await roleManager.connect(timelock).grantRole(role, to);
@@ -986,7 +982,7 @@ async function transferAsset(assetAddress, to, amount) {
                 default:
                     throw new Error('Unknown asset address');
             }
-            break;
+            break; 
         default:
             throw new Error('Unknown mapping ETH_NETWORK');
     }
@@ -1026,14 +1022,14 @@ async function transferAsset(assetAddress, to, amount) {
     console.log(`[Node] Transfer asset: [${symbol}] balance: [${fromAsset(balance)}] from: [${from}] to: [${to}]`);
 }
 
-async function showProfitOnRewardWallet(receipt){
+async function showProfitOnRewardWallet(receipt) {
 
     let usdPlus = await getContract('UsdPlusToken');
 
     const items = [];
 
-    let balanceBefore = await usdPlus.balanceOf(COMMON.rewardWallet, {blockTag: receipt.blockNumber - 1});
-    let balanceAfter = await usdPlus.balanceOf(COMMON.rewardWallet, {blockTag: receipt.blockNumber});
+    let balanceBefore = await usdPlus.balanceOf(COMMON.rewardWallet, { blockTag: receipt.blockNumber - 1 });
+    let balanceAfter = await usdPlus.balanceOf(COMMON.rewardWallet, { blockTag: receipt.blockNumber });
 
     let profit = balanceAfter.sub(balanceBefore);
 
@@ -1055,7 +1051,7 @@ async function showProfitOnRewardWallet(receipt){
     console.table(items);
 }
 
-async function showPoolOperationsFromPayout(receipt){
+async function showPoolOperationsFromPayout(receipt) {
 
 
     let stand = process.env.STAND;
@@ -1064,7 +1060,7 @@ async function showPoolOperationsFromPayout(receipt){
     let chains = ['arbitrum', 'base', 'optimism', 'linea', 'zksync', 'polygon', 'bsc', 'blast'];
 
     for (const chain of chains) {
-        if (stand.includes(chain)){
+        if (stand.includes(chain)) {
             prefix = chain.charAt(0).toUpperCase() + chain.slice(1);
         }
     }
@@ -1094,15 +1090,15 @@ async function showPoolOperationsFromPayout(receipt){
 }
 
 
-async function showPayoutEvent(receipt, exchange){
+async function showPayoutEvent(receipt, exchange) {
 
-    if (!exchange){
+    if (!exchange) {
         exchange = await getContract('Exchange');
     }
 
     let event = await findEvent(receipt, exchange, 'PayoutEvent');
 
-    if (event){
+    if (event) {
         console.log('Profit:       ' + fromUsdPlus(await event.args[0].toString()));
         console.log('ExcessProfit: ' + fromUsdPlus(await event.args[2].toString()));
         console.log('Premium:      ' + fromUsdPlus(await event.args[3].toString()));
