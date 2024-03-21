@@ -95,6 +95,7 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
                 rout.data
             );
         }
+        routePathsMap[tokenIn][tokenOut].isUsed = true;
 
     }
 
@@ -107,7 +108,7 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     // path
     // pools for univ3
     // isUniv3 for difference between univ3swap and inchswap
-    // isNew for neediness for update (used route)
+    // isUsed for neediness for update (used route)
     function updatePath(UpdateParams memory params, bytes memory path) external onlyUnit {
         require(params.tokenIn != params.tokenOut && params.tokenIn != address(0) && params.tokenOut != address(0), "wrong tokens");
 
@@ -125,7 +126,8 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
             srcReceiver: params.srcReceiver,
             data: path,
             isUniV3: params.isUniV3,
-            pools: params.pools
+            pools: params.pools,
+            isUsed: false
         });
     }
 
