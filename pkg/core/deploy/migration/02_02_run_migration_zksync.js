@@ -22,7 +22,7 @@ module.exports = async () => {
 
     if (isLocalTest) await transferETH(10, await getWalletAddress());
 
-    let usdPlus = await getContract('UsdPlusToken');
+    let usdPlus = await getContract('UsdPlusToken', 'zksync');
     let exchange = await getContract('Exchange');
 
     let usdPlusMigrationAddress = '0x7F7D9c7861761b9F056b163034125060839F6B7b';
@@ -32,7 +32,7 @@ module.exports = async () => {
 
     let roleManagerAddress = (await getContract('RoleManager')).address;
     let payoutManagerAddress = '0x9Ee1CB5Fa5C89ba56F98282B01175b987F3E5339';/* (await getContract('ZkSyncPayoutManager')).address; */
-    let decimals = 6;///await usdPlus.decimals();
+    let decimals = await usdPlus.decimals();
     const deployer = await getWalletAddress();
     // console.log('dev has role superadmin', await usdPlus.hasRole(Roles.DEFAULT_ADMIN_ROLE, dev))
     // console.log('old dev has role superadmin', await usdPlus.hasRole(Roles.DEFAULT_ADMIN_ROLE, oldDev))
@@ -75,14 +75,27 @@ module.exports = async () => {
         ],
         "stateMutability": "view",
         "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "roleManager",
+        "outputs": [
+          {
+            "internalType": "contract IRoleManager",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
       },];
-    let contract = new ethers.Contract( exchange.address, methodsAbi, ethers.provider.getSigner(time));
+    let exContract = new ethers.Contract( exchange.address, methodsAbi, ethers.provider.getSigner(time));
 
     await execTimelock(async (timelock) => {
         console.log("timelock", timelock.address);
-        await (await contract.connect(timelock).setPayoutManager(payoutManagerAddress, await getPrice())).wait();
+        await (await exContract.connect(timelock).setPayoutManager(payoutManagerAddress, await getPrice())).wait();
     })
-    console.log(`exchange.payoutListener: ${await contract.payoutManager()}`);
+    console.log(`exchange.payoutListener: ${await exContract.payoutManager()}`);
     console.log(`exchange.usdPlus:        ${await exchange.usdPlus()}`);
     console.log('====[Exchange Upgrade done]====\n\n\n');
 
@@ -105,23 +118,68 @@ module.exports = async () => {
     console.log('1. upgradeTo(pure)');
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
     await execTimelock(async (timelock) => {
-        await (await usdPlus.upgradeTo(usdPlusPureAddress, await getPrice())).wait();
+        await (await usdPlus.connect(timelock).upgradeTo(usdPlusPureAddress, {gasPrice:"1000000000000000000"})).wait();
     })
     console.log(`usdPlus implementation address: ${await getImplementationAddress(ethers.provider, usdPlus.address)}`);
     usdPlus = await getContract('UsdPlusToken');
     console.log('2. SetRoleManager');
+    let upMethodsAbi =[ {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "_roleManager",
+            "type": "address"
+          },
+        ],
+        "name": "setRoleManager",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }, {
+        "inputs": [],
+        "name": "roleManager",
+        "outputs": [
+          {
+            "internalType": "contract IRoleManager",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },{
+        "inputs": [],
+        "name": "payoutManager",
+        "outputs": [
+          {
+            "internalType": "contract IPayoutManager",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }];
+    let upContract = new ethers.Contract( usdPlus.address, upMethodsAbi, ethers.provider.getSigner(time));
     await execTimelock(async (timelock) => {
-        await (await usdPlus.setRoleManager(roleManagerAddress, await getPrice())).wait();
+         // await (await usdPlus.connect(timelock).setRoleManager(roleManagerAddress, await getPrice())).wait();
+        await (await upContract.connect(timelock).setRoleManager(roleManagerAddress, await getPrice())).wait();
     })
-    console.log(`usdPlus.roleManager:    ${await usdPlus.roleManager()}`);
+    console.log(`usdPlus.roleManager:    ${await upContract.roleManager()}`);
     console.log('====[UsdPlus Pure done]====\n\n\n');
-
-    expect(roleManagerAddress).to.equal(await usdPlus.roleManager());
-    expect(roleManagerAddress).to.equal(await exchange.roleManager());
-    expect(payoutManagerAddress).to.equal(await usdPlus.payoutManager());
+    console.log('Validate RoleManager address in UsdPlusToken')
+    expect(roleManagerAddress).to.equal(await upContract.roleManager());
+    console.log('Validate RoleManager address in Exchange')
+    expect(roleManagerAddress).to.equal(await exContract.roleManager());
+    console.log('Validate PayoutManager address in UsdPlusToken')
+    expect(payoutManagerAddress).to.equal(await upContract.payoutManager());
+    console.log('Validate PayoutManager address in Exchange')
     expect(payoutManagerAddress).to.equal(await exchange.payoutManager());
+    console.log('Validate decimals')
     expect(decimals).to.equal(await usdPlus.decimals());
+    console.log('Validate pure token implementation address')
     expect(usdPlusPureAddress).to.equal(await getImplementationAddress(ethers.provider, usdPlus.address));
+    console.log('Validate exchange address') 
     expect(exchangeAddress).to.equal(await getImplementationAddress(ethers.provider, exchange.address));
 
     await checksum(usdPlus, exchange,  startBlock); 
