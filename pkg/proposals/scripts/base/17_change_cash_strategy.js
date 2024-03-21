@@ -1,10 +1,10 @@
 const hre = require("hardhat");
-const {getContract, showM2M, execTimelock} = require("@overnight-contracts/common/utils/script-utils");
-const {createProposal, testProposal, testUsdPlus, testStrategy} = require("@overnight-contracts/common/utils/governance");
-const {Roles} = require("@overnight-contracts/common/utils/roles");
-const {prepareEnvironment} = require("@overnight-contracts/common/utils/tests");
-const {strategySiloUsdc} = require("@overnight-contracts/strategies-arbitrum/deploy/38_strategy_silo_usdc");
-const {ethers} = require("hardhat");
+const { getContract, showM2M, execTimelock } = require("@overnight-contracts/common/utils/script-utils");
+const { createProposal, testProposal, testUsdPlus, testStrategy } = require("@overnight-contracts/common/utils/governance");
+const { Roles } = require("@overnight-contracts/common/utils/roles");
+const { prepareEnvironment } = require("@overnight-contracts/common/utils/tests");
+const { strategySiloUsdc } = require("@overnight-contracts/strategies-arbitrum/deploy/38_strategy_silo_usdc");
+const { ethers } = require("hardhat");
 const path = require('path');
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
@@ -22,8 +22,8 @@ async function main() {
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('setCashStrategy', [strategy.address]));
 
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 }
 
 main()
