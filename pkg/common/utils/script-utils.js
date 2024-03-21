@@ -271,6 +271,7 @@ async function getContract(name, network) {
 
     try {
         let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
+        if (!searchPath)  searchPath = fromDir(require('app-root-path').path, path.join('localhost', name + ".json"));
         let contractJson = JSON.parse(fs.readFileSync(searchPath));
         return await ethers.getContractAt(contractJson.abi, contractJson.address, wallet);
     } catch (e) {
@@ -610,7 +611,10 @@ async function getPrice() {
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('15')).div(100);
         gasPrice = gasPrice.add(percentage);
-        return { gasPrice: gasPrice, gasLimit: 20000000 }
+        let {
+            maxFeePerGas, maxPriorityFeePerGas
+        } = await ethers.provider.getFeeData();
+        return { maxFeePerGas, maxPriorityFeePerGas, gasLimit: 20000000 }
     } else if (process.env.ETH_NETWORK === 'BASE') {
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
