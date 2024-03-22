@@ -52,6 +52,8 @@ module.exports = async () => {
 
         let items = [];
         items.push(createSkim('0xb34a7d1444a707349Bc7b981B7F2E1f20F81F013', usdPlus.address, 'USD+/FRAX', dex));
+        items.push(createSkim('0x1446999B0b0E4f7aDA6Ee73f2Ae12a2cfdc5D9E7', usdPlus.address, 'USD+/USDT+', dex));
+        items.push(createSkim('0x1446999B0b0E4f7aDA6Ee73f2Ae12a2cfdc5D9E7', usdtPlus.address, 'USD+/USDT+', dex));
         return items;
     }
 
