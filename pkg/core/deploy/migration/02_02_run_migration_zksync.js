@@ -23,7 +23,7 @@ module.exports = async () => {
     if (isLocalTest) await transferETH(10, await getWalletAddress());
 
     let usdPlus = await getContract('UsdPlusToken', 'zksync');
-    let exchange = await getContract('Exchange');
+    let exchange = await getContract('Exchange', 'zksync');
 
     let usdPlusMigrationAddress = '0x7F7D9c7861761b9F056b163034125060839F6B7b';
     let usdPlusPureAddress = '0x01617c1FB5B5Dae0CDF315c46c9D9edFac8475fF';
@@ -31,7 +31,7 @@ module.exports = async () => {
     let startBlock = await ethers.provider.getBlockNumber();
 
     let roleManagerAddress = (await getContract('RoleManager')).address;
-    let payoutManagerAddress = '0x9Ee1CB5Fa5C89ba56F98282B01175b987F3E5339';/* (await getContract('ZkSyncPayoutManager')).address; */
+    let payoutManagerAddress = '0x6DDED147A751CB3C78AA77D9012536df22337B43';/* (await getContract('ZkSyncPayoutManager')).address; */
     let decimals = await usdPlus.decimals();
     const deployer = await getWalletAddress();
     // console.log('dev has role superadmin', await usdPlus.hasRole(Roles.DEFAULT_ADMIN_ROLE, dev))

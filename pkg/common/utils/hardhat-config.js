@@ -45,7 +45,7 @@ function getNetworks() {
             timeout: timeout,
             accounts: accountsNetwork,
             zksync: true,
-            ethNetwork: "http://localhost:8545",
+            ethNetwork: "localhost",
         }
     }else {
         localhost = {
