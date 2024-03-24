@@ -1,5 +1,4 @@
 const {ethers} = require("hardhat");
-
 let {BSC, COMMON} = require('@overnight-contracts/common/utils/assets');
 const {getContract} = require("@overnight-contracts/common/utils/script-utils");
 const {createSkim, createBribe, createSkimTo, createCustom, createSkimToWithFee, createCustomBribe} = require("@overnight-contracts/common/utils/payoutListener");
@@ -8,48 +7,23 @@ const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 module.exports = async ({getNamedAccounts, deployments}) => {
 
-    const pl = await getContract("ZksyncPayoutListener");
+    const payoutListener = await getContract("ZksyncPayoutListener");
     let usdPlus = await getContract('UsdPlusToken', 'zksync');
-
-//    await (await pl.grantRole(Roles.EXCHANGER, (await getContract('Exchange', 'zksync')).address)).wait();
-
-//    let plItems = await pl.getItems();
-//    console.log('plItems before:');
-//    console.log(plItems);
 
     let items = [];
 
-//    items.push(...velocore());
-//    items.push(...syncSwap());
-//    items.push(...vesync());
-//    items.push(...mute());
-//    items.push(...ezkalibur());
-//    items.push(...kyberswap());
-//     items.push(...velocoreV2());
-    items.push(...defiEdge());
-
-    await (await pl.addItems(items)).wait();
+    items.push(...velocore());
+    items.push(...syncSwap());
+    items.push(...vesync());
+    items.push(...mute());
+    items.push(...ezkalibur());
+    items.push(...kyberswap());
+    items.push(...velocoreV2());
+    await (await payoutListener.addItems(items)).wait();
 
     console.log('ZksyncPayoutListener setting done');
 
-//    plItems = await pl.getItems();
-//    console.log('plItems after:');
-//    console.log(plItems);
-
-
-    function defiEdge() {
-
-        let dex = 'DefiEdge';
-        let to = '0xf1B6dB18f263F341697D8b7F26b7C63012E2C10d';
-
-        let items = [];
-        items.push(createCustom('0x0772a1119bbd71532baf45a611825d27b0869fd3', usdPlus.address, 'USD+/USDC', dex, to, 20, COMMON.rewardWallet));
-
-        return items;
-    }
-
-
-    function kyberswap(){
+    function kyberswap() {
 
         let dex = 'Kyberswap';
 
@@ -59,7 +33,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         return items;
     }
 
-    function vesync(){
+    function vesync() {
 
         let dex = 'VeSync';
 
@@ -79,7 +53,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         return items;
     }
 
-    function velocore(){
+    function velocore() {
 
         let dex = 'Velocore';
 
@@ -89,7 +63,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         return items;
     }
 
-    function velocoreV2(){
+    function velocoreV2() {
 
         let dex = 'VelocoreV2';
 
@@ -99,7 +73,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
         return items;
     }
 
-    function syncSwap(){
+    function syncSwap() {
 
         let dex = 'SyncSwap';
 
