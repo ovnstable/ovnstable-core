@@ -974,6 +974,15 @@ async function transferAsset(assetAddress, to, amount) {
                     break;
             }
             break;
+        case "BLAST":
+            switch (assetAddress) {
+                case BLAST.usdb:
+                    from = '0x15c59df002950e3b7e287de9c0c91aa63e8d9937';
+                    break;
+                default:
+                    throw new Error('Unknown asset address');
+            }
+            break;
         default:
             throw new Error('Unknown mapping ETH_NETWORK');
     }
