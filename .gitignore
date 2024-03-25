@@ -35,9 +35,10 @@ impls*.json
 
 package-lock.json
 unknown-31337.json
-yarn-error.log
+*.log
 
 localhost
 
 artifacts-zk/
 cache-zk/
+yarn.lock
