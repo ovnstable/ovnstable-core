@@ -19,10 +19,11 @@ class Chain {
     static get BSC() { return 'BSC'; }
     static get ZKSYNC() { return 'ZKSYNC'; }
     static get LINEA() { return 'LINEA'; }
+    static get BLAST() { return 'BLAST'; }
 
 
     static get list() {
-        return ['ARBITRUM', 'BASE', 'POLYGON', 'OPTIMISM', 'BSC', 'ZKSYNC', 'LINEA']
+        return ['ARBITRUM', 'BASE', 'POLYGON', 'OPTIMISM', 'BSC', 'ZKSYNC', 'LINEA', 'BLAST']
     }
 }
 
@@ -179,6 +180,21 @@ function getNetworks() {
             zksync: false,
         },
 
+        blast: {
+            url: node_url('blast'),
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: "auto",
+            zksync: false,
+        },
+
+        blast_usdc: {
+            url: node_url('blast'),
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: "auto",
+            zksync: false,
+        },
 
         localhost: localhost,
 
@@ -253,7 +269,7 @@ let solidity = {
 }
 
 let mocha = require("./mocha-report-setting")
-const {ARBITRUM, BASE, POLYGON, OPTIMISM} = require("./assets");
+const {ARBITRUM, BASE, POLYGON, OPTIMISM, BLAST} = require("./assets");
 const {Wallets} = require("./wallets");
 
 let gasReport = {
@@ -307,6 +323,22 @@ function getEtherScan(){
                     apiURL: "https://api.arbiscan.io/api",
                     browserURL: "https://arbiscan.io"
                 }
+            },
+            {
+                network: "blast",
+                chainId:  81457,
+                urls: {
+                    apiURL: "https://api.blastscan.io/api",
+                    browserURL: "https://blastscan.io/"
+                }
+            },
+            {
+                network: "blast_usdc",
+                chainId:  81457,
+                urls: {
+                    apiURL: "https://api.blastscan.io/api",
+                    browserURL: "https://blastscan.io/"
+                }
             }
         ]
 
@@ -325,6 +357,8 @@ function getEtherScan(){
         bsc: process.env[`ETHERSCAN_API_BSC`],
         arbitrumOne: process.env[`ETHERSCAN_API_ARBITRUM`],
         arbitrum_dai: process.env[`ETHERSCAN_API_ARBITRUM`],
+        blast: process.env[`ETHERSCAN_API_BLAST`],
+        blast_usdc: process.env[`ETHERSCAN_API_BLAST`],
     }
 
     return object;

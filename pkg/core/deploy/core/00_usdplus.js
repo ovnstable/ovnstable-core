@@ -23,6 +23,10 @@ module.exports = async ({deployments}) => {
         params = {args: ["USDT+", "USDT+", 6]}
     } else if (hre.network.name === 'base_usdc') {
         params = {args: ["USDC+", "USDC+", 6]};
+    } else if (hre.network.name === 'blast') {
+        params = {args: ["USD+", "USD+", 18]};
+    } else if (hre.network.name === 'blast_usdc') {
+        params = {args: ["USDC+", "USDC+", 18]};
     } else {
         params = {args: ["USD+", "USD+", 6]};
     }

@@ -7,8 +7,8 @@ async function main() {
 
     await showM2M();
 
-    let pm = await getContract('PortfolioManager', 'arbitrum_usdt');
-    let strategy = await getContract('StrategyDForceUsdt', 'arbitrum_usdt');
+    let pm = await getContract('PortfolioManager', 'blast_usdc');
+    let strategy = await getContract('StrategyZerolendUsdc', 'blast_usdc');
 
     await (await pm.addStrategy(strategy.address)).wait();
     console.log("Strategy added");

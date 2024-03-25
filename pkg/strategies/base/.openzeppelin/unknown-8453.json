@@ -185,6 +185,16 @@
       "address": "0xe849ab3A24Ff0c4A87108DE699594336a5363301",
       "txHash": "0x8c7f2ff23532ccbe950c7c83e149a32b2b2677ce13d477ca05554081ce3e01c4",
       "kind": "uups"
+    },
+    {
+      "address": "0xB12F994F0F78f4b183a36c3EDCa7fbA617C62028",
+      "txHash": "0xf338d96f81396f2cc924bcb0e49720627b48d53ca6e17b52071edeb89017fa2a",
+      "kind": "uups"
+    },
+    {
+      "address": "0x78fA92E54C36586BCb0CB3a2dC37DF157Fd64708",
+      "txHash": "0xf5200260905669d913116fe8501e7316f5d6524d39244ee073171f91e5fd07c8",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -8341,7 +8351,7 @@
             "label": "roleManager",
             "offset": 0,
             "slot": "255",
-            "type": "t_contract(IRoleManager)3245",
+            "type": "t_contract(IRoleManager)16780",
             "contract": "Strategy",
             "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
           },
@@ -8373,7 +8383,7 @@
             "label": "hedgeExchanger",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IHedgeExchanger)3233",
+            "type": "t_contract(IHedgeExchanger)16702",
             "contract": "StrategyEts",
             "src": "contracts/StrategyEts.sol:13"
           }
@@ -8407,11 +8417,11 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IHedgeExchanger)3233": {
+          "t_contract(IHedgeExchanger)16702": {
             "label": "contract IHedgeExchanger",
             "numberOfBytes": "20"
           },
-          "t_contract(IRoleManager)3245": {
+          "t_contract(IRoleManager)16780": {
             "label": "contract IRoleManager",
             "numberOfBytes": "20"
           },

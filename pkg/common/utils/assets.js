@@ -380,6 +380,16 @@ let POLYGON = {
     oracleChainlinkMatic: "0xab594600376ec9fd91f8e885dadf0ce036862de0",
 }
 
+let BLAST = {
+    usdPlus: "0x4fEE793d435c6D2c10C135983BB9d6D4fC7B9BBd",
+    usdb: "0x4300000000000000000000000000000000000003",
+    weth: "0x4300000000000000000000000000000000000004",
+    z0USDB: "0x23A58cbe25E36e26639bdD969B0531d3aD5F9c34",
+    zerolendPoolUsdb: "0xa70B0F3C2470AbBE104BdB3F3aaa9C7C54BEA7A8",
+    zerolandRewardsController: "0x0000000000000000000000000000000000000000",
+    earlyZERO: "0x0000000000000000000000000000000000000000",
+    zBLAST: "0x0000000000000000000000000000000000000000"
+}
 
 function getAsset(name) {
     let assets = getAssets(process.env.ETH_NETWORK);
@@ -410,6 +420,9 @@ function getAssets(network) {
         case "BASE":
             assets = BASE;
             break
+        case "BLAST":
+            assets = BLAST;
+            break
         default:
             throw new Error('Unknown network');
     }
@@ -426,6 +439,7 @@ module.exports = {
     BASE: BASE,
     LINEA: LINEA,
     OPTIMISM: OPTIMISM,
+    BLAST: BLAST,
     COMMON: COMMON,
     getAsset: getAsset,
 }
