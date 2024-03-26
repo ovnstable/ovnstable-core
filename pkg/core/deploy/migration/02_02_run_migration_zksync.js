@@ -38,19 +38,6 @@ module.exports = async () => {
         .address;
     let decimals = await usdPlus.decimals();
     const deployer = await getWalletAddress();
-    /*     console.log('Validate usdPlus roles')
-    const oldDev = '0x5CB01385d3097b6a189d1ac8BA3364D900666445'
-    const veryOldDev = '0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD'
-    const dev = '0x05129e3ce8c566de564203b0fd85111bbd84c424'
-    const time = '0xD09ea5E276a84Fa73AE14Ae794524558d43F7fdC'
-    console.log('Admin Dev 1', await usdPlus.hasRole(Roles.DEFAULT_ADMIN_ROLE, veryOldDev))
-    console.log('Admin Dev 2', await usdPlus.hasRole(Roles.DEFAULT_ADMIN_ROLE, oldDev))
-    console.log('Admin Dev 3', await usdPlus.hasRole(Roles.DEFAULT_ADMIN_ROLE, dev))
-    console.log('Admin Timelock', await usdPlus.hasRole(Roles.DEFAULT_ADMIN_ROLE, time))
-    console.log('Upgrader Dev 1', await usdPlus.hasRole(Roles.UPGRADER_ROLE, veryOldDev))
-    console.log('Upgrader Dev 2', await usdPlus.hasRole(Roles.UPGRADER_ROLE, oldDev))
-    console.log('Upgrader Dev 3', await usdPlus.hasRole(Roles.UPGRADER_ROLE, dev))
-    console.log('Upgrader Timelock', await usdPlus.hasRole(Roles.UPGRADER_ROLE, time)) */
     console.log("====[Grant role to the timelock]====");
     if (await usdPlus.hasRole(Roles.DEFAULT_ADMIN_ROLE, deployer))
         if (!(await usdPlus.hasRole(Roles.DEFAULT_ADMIN_ROLE, time))) {
@@ -124,7 +111,7 @@ module.exports = async () => {
     );
 
     console.log(
-        `exchange.payoutListener was: ${await exContract.payoutManager()}`,
+        `exchange.payoutManager was: ${await exContract.payoutManager()}`,
     );
     await execTimelock(async (timelock) => {
         await (
@@ -134,7 +121,7 @@ module.exports = async () => {
         ).wait();
     });
     console.log(
-        `exchange.payoutListener now: ${await exContract.payoutManager()}`,
+        `exchange.payoutManager now: ${await exContract.payoutManager()}`,
     );
     console.log(`exchange.usdPlus:        ${await exchange.usdPlus()}`);
     console.log("====[Exchange Upgrade done]====\n\n\n");
