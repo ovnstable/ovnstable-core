@@ -11,6 +11,7 @@ interface IInchSwapper {
         bytes data; // data for swap
         uint256[] pools; // pools for univ3swap
         bool isUniV3; // delimiter for uni or inch
+        bool isUsed; // route needs to be updated or not
     }
 
     struct UpdateParams {
