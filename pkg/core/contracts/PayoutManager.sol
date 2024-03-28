@@ -8,8 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./interfaces/IUsdPlusToken.sol";
-
-import "hardhat/console.sol";
+ 
 
 abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
@@ -75,11 +74,6 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     }
 
     modifier onlyExchanger() {
-         console.log(
-        "PayoutManager onlyExchanger called from %s, role is %s",
-        msg.sender ,
-        hasRole(EXCHANGER, msg.sender)
-    );
         require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
         _;
     }

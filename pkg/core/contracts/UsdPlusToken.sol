@@ -10,8 +10,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "./libraries/StableMath.sol";
-
-import "hardhat/console.sol";
+ 
 
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
@@ -123,12 +122,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * @dev Verifies that the caller is the Exchanger contract
      */
     modifier onlyExchanger() {
-         console.log(
-        "UsdPlusToken onlyExchanger called from %s, role is %s",
-        msg.sender ,
-        (exchange == msg.sender)
-    );
-        require(exchange == _msgSender(), "Caller is not the EXCHANGER");
+         require(exchange == _msgSender(), "Caller is not the EXCHANGER");
         _;
     }
 
