@@ -1,5 +1,13 @@
 import "../PayoutManager.sol";
 
+import { ISyncSwapVault } from "@overnight-contracts/connectors/contracts/stuff/Syncswap.sol";
+import {
+    IRebaseWrapper,
+    VelocoreV2Library,
+    ILinearBribeFactory,
+    OperationType,
+    AmountType
+} from "@overnight-contracts/connectors/contracts/stuff/VelocoreV2.sol";
 
 contract ZkSyncPayoutManager is PayoutManager {
 
@@ -15,120 +23,15 @@ contract ZkSyncPayoutManager is PayoutManager {
 
     }
 
-    function _custom(Item memory item) internal override {
+    function _custom(NonRebaseInfo memory info, Item memory item) internal override {
         bytes32 dexName = keccak256(bytes(item.dexName));
         if (dexName == keccak256(bytes('SyncSwap'))) {
             _customSyncSwap(item);
         } else if (dexName == keccak256(bytes('VelocoreV2'))) {
             _customVelocoreV2(item);
-        } else if(dexName == keccak256(bytes('DefiEdge'))){
-            _customDefiEdge(item);
         }
     }
-
-    function _customUndone(Item memory item) internal override {
-        bytes32 dexName = keccak256(bytes(item.dexName));
-         if(dexName == keccak256(bytes('DefiEdge'))){
-            _customUndoneDefiEdge(item);
-        }
-    }
-
-    function positionKey(int24 tickLower, int24 tickUpper) external view returns (bytes32){
-
-        IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(0x0772a1119Bbd71532BAf45a611825d27B0869fd3);
-
-        return PositionKey.compute(address(strategy), tickLower, tickUpper);
-    }
-
-    function liquidityData(int24 tickLower, int24 tickUpper) external view returns (uint128){
-
-        IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(0x0772a1119Bbd71532BAf45a611825d27B0869fd3);
-        IUniswapV3Pool pool = IUniswapV3Pool(strategy.pool());
-
-        (uint128 liquidity,,,,) = pool.positions(PositionKey.compute(address(strategy), tickLower, tickUpper));
-        return liquidity;
-    }
-
-    function amounts(int24 tickLower, int24 tickUpper) external view returns(uint256, uint256){
-
-        IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(0x0772a1119Bbd71532BAf45a611825d27B0869fd3);
-        IUniswapV3Pool pool = IUniswapV3Pool(strategy.pool());
-
-        (uint128 liquidity,,,,) = pool.positions(PositionKey.compute(address(strategy), tickLower, tickUpper));
-        (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
-        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtRatioX96,
-            TickMath.getSqrtRatioAtTick(tickLower),
-            TickMath.getSqrtRatioAtTick(tickUpper),
-            liquidity
-        );
-
-        return (amount0, amount1);
-    }
-
-    function _customUndoneDefiEdge(Item memory item) internal {
-
-        IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(item.pool);
-        IUniswapV3Pool pool = IUniswapV3Pool(strategy.pool());
-
-        // save current ticks
-        delete defiEdgeTicks;
-        IDefiEdgeTwapStrategy.Tick[] memory ticks = strategy.getTicks();
-        for (uint8 i = 0; i < ticks.length; i++) {
-            int24 tickLower = ticks[i].tickLower;
-            int24 tickUpper = ticks[i].tickUpper;
-            (uint128 liquidity,,,,) = pool.positions(PositionKey.compute(address(strategy), tickLower, tickUpper));
-            (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
-            (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
-                sqrtRatioX96,
-                TickMath.getSqrtRatioAtTick(tickLower),
-                TickMath.getSqrtRatioAtTick(tickUpper),
-                liquidity
-            );
-
-            IDefiEdgeTwapStrategy.NewTick memory newTick = IDefiEdgeTwapStrategy.NewTick({
-            tickLower: tickLower,
-            tickUpper: tickUpper,
-            amount0: amount0,
-            amount1: amount1
-            });
-
-            defiEdgeTicks.push(newTick);
-        }
-
-        // remove liquidity
-        IDefiEdgeTwapStrategy.PartialTick[] memory existingTicks;
-        IDefiEdgeTwapStrategy.NewTick[] memory newTicks;
-        strategy.rebalance(false, 0, false, "", existingTicks, newTicks, true);
-    }
-
-    function _customDefiEdge(Item memory item) internal {
-
-        // skim
-        IERC20 token = IERC20(item.token);
-        uint256 tokenBalanceBeforeSkim = token.balanceOf(address(this));
-        IPool(item.pool).skim(address(this));
-        uint256 amountToken = token.balanceOf(address(this)) - tokenBalanceBeforeSkim;
-        if (amountToken > 0) {
-            if (item.feePercent > 0) {
-                uint256 feeAmount = amountToken * item.feePercent / 100;
-                amountToken -= feeAmount;
-                if (feeAmount > 0) {
-                    token.transfer(item.feeReceiver, feeAmount);
-                    emit PoolOperation(item.dexName, 'Skim', item.poolName, item.pool, item.token, feeAmount, item.feeReceiver);
-                }
-            }
-            if (amountToken > 0) {
-                token.transfer(item.to, amountToken);
-                emit PoolOperation(item.dexName, 'Skim', item.poolName, item.pool, item.token, amountToken, item.to);
-            }
-        }
-
-        // add liquidity
-        IDefiEdgeTwapStrategy strategy = IDefiEdgeTwapStrategy(item.pool);
-        IDefiEdgeTwapStrategy.PartialTick[] memory existingTicks;
-        strategy.rebalance(false, 0, false, "", existingTicks, defiEdgeTicks, false);
-    }
+  
 
     function _customSyncSwap(Item memory item) internal {
         uint256 amount = ISyncSwapVault(0x621425a1Ef6abE91058E9712575dcc4258F8d091).deposit(item.token, item.to);
