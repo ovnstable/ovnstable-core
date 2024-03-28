@@ -18,7 +18,7 @@ module.exports = async ({ deployments }) => {
 
 async function getParams() {
     return {
-        sper: 'todo', // todo
+        sper: '0xBDa5075095a08dDf749A2B7e0935f1F4E116b5D1',
         asset: BLAST.usdb,
     };
 }

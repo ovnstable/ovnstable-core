@@ -42,7 +42,7 @@ async function main() {
         await transferETH(1, await getWalletAddress());
     } 
 
-    await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
+    // await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
 
     await showM2M();
  
