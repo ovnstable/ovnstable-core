@@ -85,13 +85,12 @@ function wrapWithTitle(title, str) {
     return title === undefined ? str : `${title} at step "${str}"`;
 }
 
-async function evmCheckpoint(label, provider) {
+async function evmCheckpoint(label, provider) { 
     if (isZkSync()) {
         return;
-    }
-
+    } 
     if (!provider)
-        provider = await getProvider();
+        provider = await getProvider(); 
 
     let prevSnapshot = SNAPSHOTS_BY_LABELS[label];
 

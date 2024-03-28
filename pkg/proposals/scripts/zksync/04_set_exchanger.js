@@ -1,5 +1,5 @@
 const hre = require("hardhat");
-const { getContract, showM2M, execTimelock, initWallet } = require("@overnight-contracts/common/utils/script-utils");
+const { getContract, showM2M, execTimelock, initWallet, transferETH, getWalletAddress } = require("@overnight-contracts/common/utils/script-utils");
 const { createProposal, testProposal, testUsdPlus, testStrategy } = require("@overnight-contracts/common/utils/governance");
 const { Roles } = require("@overnight-contracts/common/utils/roles");
 const path = require("path");
@@ -12,9 +12,10 @@ async function main() {
     let addresses = [];
     let values = [];
     let abis = [];
+    await transferETH(10, await getWalletAddress())
 
-    let strategy = await getContract("StrategyEtsAlpha", "zksync"); 
-
+  let strategy = await getContract("StrategyEtsAlpha", "zksync"); 
+  /* 
     let strategyParams = {
         asset: ZKSYNC.usdc,
         rebaseToken: "0x41c9d632c79aD3B7765D5b6BCff1525A8400e89c",
@@ -25,16 +26,16 @@ async function main() {
     addresses.push(strategy.address);
     values.push(0);
     abis.push(strategy.interface.encodeFunctionData("setParams", [strategyParams]));
- 
+  */
 
     //
     // await showM2M();
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
     // await showM2M();
     //
     // await testStrategy(filename, strategy, "zksync"); 
-    // await testUsdPlus(filename, "zksync"); 
-    await createProposal(filename, addresses, values, abis);
+    await testUsdPlus(filename, "zksync"); 
+    // await createProposal(filename, addresses, values, abis);
 }
 
 main()
