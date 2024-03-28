@@ -6646,9 +6646,9 @@
         }
       }
     },
-    "5fb0be29e9589d2541bbd7e587b372e6a0baf662be03d08101a330c0d201e41c": {
-      "address": "0xdEaC2eA0B90A15d220780e028E656056f00521Aa",
-      "txHash": "0x2e5724487d2131015cf9e6524e89a7bf5e778f5884ea6d3d1c363c62d37ac847",
+    "26b3945d5914aeab7dee020a8564423c4559daff12d6f8c58fb403dee37959ed": {
+      "address": "0x1d14EF06BE96f2C08840af19733E5666b3e3C33c",
+      "txHash": "0x0d8010906eb3336dc7a34092f4edf7ddbd4fc3ccfd0fece7fcba7376e9add87b",
       "layout": {
         "solcVersion": "0.8.17",
         "storage": [
@@ -6658,7 +6658,7 @@
             "slot": "0",
             "type": "t_uint8",
             "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
             "retypedFrom": "bool"
           },
           {
@@ -6667,7 +6667,7 @@
             "slot": "0",
             "type": "t_bool",
             "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
           },
           {
             "label": "__gap",
@@ -6675,7 +6675,7 @@
             "slot": "1",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ContextUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:40"
           },
           {
             "label": "__gap",
@@ -6689,9 +6689,9 @@
             "label": "_roles",
             "offset": 0,
             "slot": "101",
-            "type": "t_mapping(t_bytes32,t_struct(RoleData)179_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)23_storage)",
             "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:57"
           },
           {
             "label": "__gap",
@@ -6699,7 +6699,7 @@
             "slot": "102",
             "type": "t_array(t_uint256)49_storage",
             "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:259"
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:260"
           },
           {
             "label": "__gap",
@@ -6707,7 +6707,7 @@
             "slot": "151",
             "type": "t_array(t_uint256)50_storage",
             "contract": "ERC1967UpgradeUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:211"
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:169"
           },
           {
             "label": "__gap",
@@ -6715,45 +6715,61 @@
             "slot": "201",
             "type": "t_array(t_uint256)50_storage",
             "contract": "UUPSUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:107"
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:111"
           },
           {
-            "label": "inchRouter",
+            "label": "items",
             "offset": 0,
             "slot": "251",
-            "type": "t_contract(IInchRouter)8585",
-            "contract": "InchSwapper",
-            "src": "contracts/InchSwapper.sol:17"
+            "type": "t_array(t_struct(Item)3701_storage)dyn_storage",
+            "contract": "PayoutManager",
+            "src": "contracts/PayoutManager.sol:39"
           },
           {
-            "label": "blockGetter",
+            "label": "disabled",
             "offset": 0,
             "slot": "252",
-            "type": "t_address",
-            "contract": "InchSwapper",
-            "src": "contracts/InchSwapper.sol:18"
-          },
-          {
-            "label": "routePathsMap",
-            "offset": 0,
-            "slot": "253",
-            "type": "t_mapping(t_address,t_mapping(t_address,t_struct(Route)33445_storage))",
-            "contract": "InchSwapper",
-            "src": "contracts/InchSwapper.sol:19"
+            "type": "t_bool",
+            "contract": "PayoutManager",
+            "src": "contracts/PayoutManager.sol:41"
           },
           {
             "label": "roleManager",
+            "offset": 1,
+            "slot": "252",
+            "type": "t_contract(IRoleManager)4737",
+            "contract": "PayoutManager",
+            "src": "contracts/PayoutManager.sol:42"
+          },
+          {
+            "label": "rewardWallet",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_address",
+            "contract": "PayoutManager",
+            "src": "contracts/PayoutManager.sol:43"
+          },
+          {
+            "label": "__gap",
             "offset": 0,
             "slot": "254",
-            "type": "t_contract(IRoleManager)33852",
-            "contract": "InchSwapper",
-            "src": "contracts/InchSwapper.sol:20"
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PayoutManager",
+            "src": "contracts/PayoutManager.sol:318"
           }
         ],
         "types": {
           "t_address": {
             "label": "address",
             "numberOfBytes": "20"
+          },
+          "t_array(t_struct(Item)3701_storage)dyn_storage": {
+            "label": "struct PayoutManager.Item[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)10_storage": {
+            "label": "uint256[10]",
+            "numberOfBytes": "320"
           },
           "t_array(t_uint256)49_storage": {
             "label": "uint256[49]",
@@ -6763,10 +6779,6 @@
             "label": "uint256[50]",
             "numberOfBytes": "1600"
           },
-          "t_array(t_uint256)dyn_storage": {
-            "label": "uint256[]",
-            "numberOfBytes": "32"
-          },
           "t_bool": {
             "label": "bool",
             "numberOfBytes": "1"
@@ -6775,35 +6787,99 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_bytes_storage": {
-            "label": "bytes",
-            "numberOfBytes": "32"
-          },
-          "t_contract(IInchRouter)8585": {
-            "label": "contract IInchRouter",
-            "numberOfBytes": "20"
-          },
-          "t_contract(IRoleManager)33852": {
+          "t_contract(IRoleManager)4737": {
             "label": "contract IRoleManager",
             "numberOfBytes": "20"
+          },
+          "t_enum(Operation)3706": {
+            "label": "enum PayoutManager.Operation",
+            "members": [
+              "SKIM",
+              "SYNC",
+              "BRIBE",
+              "CUSTOM"
+            ],
+            "numberOfBytes": "1"
           },
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_address,t_mapping(t_address,t_struct(Route)33445_storage))": {
-            "label": "mapping(address => mapping(address => struct IInchSwapper.Route))",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_address,t_struct(Route)33445_storage)": {
-            "label": "mapping(address => struct IInchSwapper.Route)",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_bytes32,t_struct(RoleData)179_storage)": {
+          "t_mapping(t_bytes32,t_struct(RoleData)23_storage)": {
             "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
             "numberOfBytes": "32"
           },
-          "t_struct(RoleData)179_storage": {
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Item)3701_storage": {
+            "label": "struct PayoutManager.Item",
+            "members": [
+              {
+                "label": "pool",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "token",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "poolName",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "bribe",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "operation",
+                "type": "t_enum(Operation)3706",
+                "offset": 20,
+                "slot": "3"
+              },
+              {
+                "label": "to",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "dexName",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "feePercent",
+                "type": "t_uint24",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "feeReceiver",
+                "type": "t_address",
+                "offset": 3,
+                "slot": "6"
+              },
+              {
+                "label": "__gap",
+                "type": "t_array(t_uint256)10_storage",
+                "offset": 0,
+                "slot": "7"
+              }
+            ],
+            "numberOfBytes": "544"
+          },
+          "t_struct(RoleData)23_storage": {
             "label": "struct AccessControlUpgradeable.RoleData",
             "members": [
               {
@@ -6821,59 +6897,9 @@
             ],
             "numberOfBytes": "64"
           },
-          "t_struct(Route)33445_storage": {
-            "label": "struct IInchSwapper.Route",
-            "members": [
-              {
-                "label": "updateBlock",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "0"
-              },
-              {
-                "label": "amount",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "1"
-              },
-              {
-                "label": "flags",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "2"
-              },
-              {
-                "label": "srcReceiver",
-                "type": "t_address",
-                "offset": 0,
-                "slot": "3"
-              },
-              {
-                "label": "data",
-                "type": "t_bytes_storage",
-                "offset": 0,
-                "slot": "4"
-              },
-              {
-                "label": "pools",
-                "type": "t_array(t_uint256)dyn_storage",
-                "offset": 0,
-                "slot": "5"
-              },
-              {
-                "label": "isUniV3",
-                "type": "t_bool",
-                "offset": 0,
-                "slot": "6"
-              },
-              {
-                "label": "isUsed",
-                "type": "t_bool",
-                "offset": 1,
-                "slot": "6"
-              }
-            ],
-            "numberOfBytes": "224"
+          "t_uint24": {
+            "label": "uint24",
+            "numberOfBytes": "3"
           },
           "t_uint256": {
             "label": "uint256",
@@ -6883,7 +6909,8 @@
             "label": "uint8",
             "numberOfBytes": "1"
           }
-        }
+        },
+        "namespaces": {}
       }
     }
   }

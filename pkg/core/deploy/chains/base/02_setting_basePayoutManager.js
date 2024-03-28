@@ -1,8 +1,6 @@
 const { ethers } = require("hardhat");
 const { getContract, getPrice, transferETH, getWalletAddress } = require("@overnight-contracts/common/utils/script-utils");
-const { createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee, createSync, createCustomBribe,
-    createCustom
-} = require("@overnight-contracts/common/utils/payoutListener");
+const { createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee, createSync, createCustomBribe, createCustom } = require("@overnight-contracts/common/utils/payoutListener");
 const { Roles } = require("@overnight-contracts/common/utils/roles");
 const { COMMON } = require("@overnight-contracts/common/utils/assets");
 
@@ -21,9 +19,8 @@ module.exports = async () => {
     items.push(...aerodrome());
     items.push(...equalizer());
     items.push(...citadel());
-    items.push(...curve());  
+    items.push(...curve());
     items.push(...extraFi());
-    console.log('ITEMS', items)
     await (await payoutManager.addItems(items)).wait();
 
     console.log('BasePayoutManager setting done');
@@ -79,13 +76,13 @@ module.exports = async () => {
         items.push(createSkim('0x418457Ca08fA5EC77f811B105F2c585cd051Ac10', usdPlus.address, 'sAMM-USD+/USDC', dex));
         items.push(createBribeWithFee('0x607363389331f4B2D1b955d009506A67c565D75E', usdPlus.address, 'vAMM-USD+/stERN', dex, '0x6CEd86715f74ff109ea7f908eAc78AF4ab2f41ea', 20, COMMON.rewardWallet));
         items.push(createBribeWithFee('0xc3B5ac236fb5AbE245310FeCa2526F89667D4CAe', usdPlus.address, 'vAMM-YFX/USD+', dex, '0x9a0efa1968837474e23c73b60f29d705d2eb8789', 20, COMMON.rewardWallet));
-
-        // items.push(createBribe('0x61366A4e6b1DB1b85DD701f2f4BFa275EF271197', usdPlus.address, 'vAMM-OVN/USD+', dex, '0xD8847438AaEA2dD395bF2652a526B1CDd1F4E44D'));
         items.push(createSkim('0x61366A4e6b1DB1b85DD701f2f4BFa275EF271197', usdPlus.address, 'vAMM-OVN/USD+', dex));
-
         items.push(createSkim('0xE96c788E66a97Cf455f46C5b27786191fD3bC50B', usdPlus.address, 'USDC+/USD+', dex));
         items.push(createSkim('0xE96c788E66a97Cf455f46C5b27786191fD3bC50B', usdcPlus.address, 'USDC+/USD+', dex));
         items.push(createSkim('0x08B935148AB10d3699Cb8d944519e8213abE6f1D', usdPlus.address, 'WETH/USD+', dex));
+        items.push(createSkim('0x952388d73EA3E940eD6824DBd75ed6aD58e6B436', usdPlus.address, 'DOLA/USD+', dex));
+        items.push(createSkim('0x267d950110D9ED57999c3451b89C35a9D278C074', usdPlus.address, 'AERO/USD+', dex));
+        
         return items;
     }
 
@@ -120,16 +117,17 @@ module.exports = async () => {
         return items;
     }
 
-    function extraFi () {
+    function extraFi() {
+
         let dex = 'Extra.fi';
         let to = '0x89F0885DA2553232aeEf201692F8C97E24715c83';
-        let own = 20;
-        console.log('ExtrFi')
-        return [
-            createSkimToWithFee('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, to, own, COMMON.rewardWallet),
-            createCustom('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, '0x3510db57b98866b40dd5d913a73a0117fb6014f0', own, COMMON.rewardWallet),
-            createCustom('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, '0x2546fe1f2ca9a31ebed04035eba7c4544bff2745', own, COMMON.rewardWallet)
-        ];
+        let fee = 20;
+
+        let items = [];
+        items.push(createSkimToWithFee('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, to, fee, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x3510db57b98866b40dd5d913a73a0117fb6014f0', usdPlus.address, 'USD+ lendpool 1', dex, to, fee, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x2546fe1f2ca9a31ebed04035eba7c4544bff2745', usdPlus.address, 'USD+ lendpool 1', dex, to, fee, COMMON.rewardWallet));
+        return items;
     }
 };
 
