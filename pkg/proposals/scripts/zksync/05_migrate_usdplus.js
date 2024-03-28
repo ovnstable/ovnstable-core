@@ -122,7 +122,6 @@ async function main() {
     ]);
     addProposalItem(usdPlus, "upgradeTo", [usdPlusPureAddress]);
     addProposalItem(migContract, "setRoleManager", [roleManagerAddress]);
-    addProposalItem(migContract, "setPayoutManager", [payoutManagerAddress]);
 
     // await testStrategy(filename, strategy, "zksync");
     await testUsdPlus(filename, "zksync");
