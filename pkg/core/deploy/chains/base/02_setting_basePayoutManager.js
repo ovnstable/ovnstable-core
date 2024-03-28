@@ -19,7 +19,7 @@ module.exports = async () => {
     items.push(...aerodrome());
     items.push(...equalizer());
     items.push(...citadel());
-    items.push(...curve());  
+    items.push(...curve());
     items.push(...extraFi());
     await (await payoutManager.addItems(items)).wait();
 
@@ -117,7 +117,7 @@ module.exports = async () => {
         return items;
     }
 
-    function extraFi () {
+    function extraFi() {
 
         let dex = 'Extra.fi';
         let to = '0x89F0885DA2553232aeEf201692F8C97E24715c83';
@@ -125,6 +125,8 @@ module.exports = async () => {
 
         let items = [];
         items.push(createSkimToWithFee('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, to, fee, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x3510db57b98866b40dd5d913a73a0117fb6014f0', usdPlus.address, 'USD+ lendpool 1', dex, to, fee, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x2546fe1f2ca9a31ebed04035eba7c4544bff2745', usdPlus.address, 'USD+ lendpool 1', dex, to, fee, COMMON.rewardWallet));
         return items;
     }
 };
