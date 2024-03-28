@@ -75,6 +75,11 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     }
 
     modifier onlyExchanger() {
+         console.log(
+        "PayoutManager onlyExchanger called from %s, role is %s",
+        msg.sender ,
+        hasRole(EXCHANGER, msg.sender)
+    );
         require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
         _;
     }

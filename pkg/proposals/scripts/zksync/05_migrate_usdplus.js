@@ -125,8 +125,8 @@ async function main() {
     addProposalItem(migContract, "setPayoutManager", [payoutManagerAddress]);
 
     // await testStrategy(filename, strategy, "zksync");
-    // await testUsdPlus(filename, "zksync");
-    await createProposal(filename, addresses, values, abis);
+    await testUsdPlus(filename, "zksync");
+    // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);

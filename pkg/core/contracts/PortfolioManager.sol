@@ -10,6 +10,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
+import "hardhat/console.sol";
+
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IStrategy.sol";
@@ -65,6 +67,11 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     }
 
     modifier onlyExchanger() {
+         console.log(
+        "PortfolioManager onlyExchanger called from %s, role is %s",
+        msg.sender ,
+        hasRole(EXCHANGER, msg.sender)
+    );
         require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
         _;
     }

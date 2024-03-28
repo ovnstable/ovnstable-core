@@ -47,9 +47,9 @@ module.exports = async ({deployments}) => {
     if (hre.ovn && hre.ovn.setting){
 
         let roleManager = await ethers.getContract('RoleManager');
-        let payoutManager = await ethers.getContract('BasePayoutManager');
+        let payoutManager = await ethers.getContract('ZkSyncPayoutManager');
 
-        await (await payoutManager.connect.setRoleManager(roleManager.address)).wait();
+        await (await payoutManager.setRoleManager(roleManager.address)).wait();
         await (await payoutManager.setRewardWallet(COMMON.rewardWallet)).wait();
         console.log('setRoleManager done()');
 
