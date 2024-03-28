@@ -62,7 +62,7 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
 
         Route memory rout = routePathsMap[tokenIn][tokenOut];
 
-        require(rout.amount >= amountIn, "amount is more than saved");
+        // require(rout.amount >= amountIn, "amount is more than saved");
 
         IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
         IERC20(tokenIn).approve(address(inchRouter), amountIn);
