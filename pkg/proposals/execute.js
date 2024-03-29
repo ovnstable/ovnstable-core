@@ -1,26 +1,40 @@
 const hre = require("hardhat");
-const {getContract, showM2M, execTimelock, initWallet, convertWeights, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const {createProposal, testProposal, testUsdPlus, testStrategy} = require("@overnight-contracts/common/utils/governance");
-let {BSC} = require('@overnight-contracts/common/utils/assets');
-const {Roles} = require("@overnight-contracts/common/utils/roles");
-const {fromE6} = require("@overnight-contracts/common/utils/decimals");
+const {
+    getContract,
+    showM2M,
+    execTimelock,
+    initWallet,
+    convertWeights,
+    getPrice,
+} = require("@overnight-contracts/common/utils/script-utils");
+const {
+    createProposal,
+    testProposal,
+    testUsdPlus,
+    testStrategy,
+} = require("@overnight-contracts/common/utils/governance");
+let { BSC } = require("@overnight-contracts/common/utils/assets");
+const { Roles } = require("@overnight-contracts/common/utils/roles");
+const { fromE6 } = require("@overnight-contracts/common/utils/decimals");
 const fs = require("fs");
-const {ethers} = require("hardhat");
+const { ethers } = require("hardhat");
 const AGENT_TIMELOCK_ABI = require("@overnight-contracts/governance-new/scripts/abi/AGENT_TIMELOCK_ABI.json");
 
-const PREDECESSOR = "0x0000000000000000000000000000000000000000000000000000000000000000";
+const PREDECESSOR =
+    "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 async function main() {
-
-    let timelock = await getContract('AgentTimelock');
+    let timelock = await getContract("AgentTimelock");
 
     let network = hre.network.name;
-    if (network === 'localhost'){
+    if (network === "localhost") {
         network = process.env.STAND;
     }
 
-    let name = '05_migrate_usdplus'
-    let batch = JSON.parse(await fs.readFileSync(`./batches/${network}/${name}.json`));
+    let name = "05_migrate_usdplus";
+    let batch = JSON.parse(
+        await fs.readFileSync(`./batches/${network}/${name}.json`),
+    );
 
     let addresses = [];
     let values = [];
@@ -32,24 +46,47 @@ async function main() {
         values.push(Number.parseInt(transaction.contractInputsValues.value));
         datas.push(transaction.contractInputsValues.data);
         salt.push(transaction.contractInputsValues.salt);
-        console.log(transaction)
+        console.log(transaction);
     }
 
-    timelock = await ethers.getContractAt(AGENT_TIMELOCK_ABI, timelock.address, await initWallet());
+    timelock = await ethers.getContractAt(
+        AGENT_TIMELOCK_ABI,
+        timelock.address,
+        await initWallet(),
+    );
 
     for (let i = 0; i < addresses.length; i++) {
-        let hash = await timelock.hashOperation(addresses[i], values[i], datas[i], PREDECESSOR, salt[i]);
-        console.log('HashOperation: ' + hash);
+        let hash = await timelock.hashOperation(
+            addresses[i],
+            values[i],
+            datas[i],
+            PREDECESSOR,
+            salt[i],
+        );
+        console.log("HashOperation: " + hash);
 
         let timestamp = await timelock.getTimestamp(hash);
-        console.log(`Timestamp: ${timestamp}`)
+        console.log(`Timestamp: ${timestamp}`);
+        if (timestamp == 0) {
+            console.error("Proposal not exists");
+        }
+        if (timestamp == 1) {
+            console.error("Proposal already executed");
+        }
 
-        if (timestamp > 1){
-            await (await timelock.execute(addresses[i], values[i], datas[i], PREDECESSOR, salt[i])).wait();
+        if (timestamp > 1) {
+            await (
+                await timelock.execute(
+                    addresses[i],
+                    values[i],
+                    datas[i],
+                    PREDECESSOR,
+                    salt[i],
+                )
+            ).wait();
         }
     }
 }
-
 
 main()
     .then(() => process.exit(0))
@@ -57,4 +94,3 @@ main()
         console.error(error);
         process.exit(1);
     });
-
