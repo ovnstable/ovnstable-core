@@ -37,12 +37,8 @@ async function main() {
 
     timelock = await ethers.getContractAt(AGENT_TIMELOCK_ABI, timelock.address, await initWallet());
 
-let list = []
-
     for (let i = 0; i < addresses.length; i++) {
         let hash = await timelock.hashOperation(addresses[i], values[i], datas[i], PREDECESSOR, salt[i]);
-        list.push({hash, address:addresses[i], v:values[i], d:datas[i]})
-
         console.log('HashOperation: ' + hash);
 
         let timestamp = await timelock.getTimestamp(hash);
@@ -52,7 +48,6 @@ let list = []
             await (await timelock.execute(addresses[i], values[i], datas[i], PREDECESSOR, salt[i])).wait();
         }
     }
-console.log(salt)
 }
 
 
