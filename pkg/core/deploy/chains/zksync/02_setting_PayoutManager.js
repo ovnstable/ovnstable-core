@@ -21,15 +21,16 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     let items = [];
 
-    items.push(...velocore());
-    items.push(...syncSwap());
-    items.push(...vesync());
-    items.push(...mute());
-    items.push(...ezkalibur());
-    items.push(...kyberswap());
-    items.push(...velocoreV2());
-    items.push(...pancakeSwap());
-    await (await payoutManager.addItems(items)).wait();
+    // items.push(...velocore());
+    // items.push(...syncSwap());
+   /*  items.push(...vesync());
+    items.push(...mute()); */
+/*     items.push(...ezkalibur());
+    items.push(...kyberswap()); */
+/*     items.push(...velocoreV2()); */
+    items.push(...pancakeSwap()); 
+    console.log('PayoutManager', payoutManager.address)
+    await (await payoutManager.addItems(items), {gasLimit: 500000000, gasFee: 1000000000}).wait();
 
     console.log("ZksyncPayoutManager setting done");
 

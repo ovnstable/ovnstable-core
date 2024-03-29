@@ -19,7 +19,7 @@ async function main() {
         network = process.env.STAND;
     }
 
-    let name = '04_set_exchanger'
+    let name = '05_migrate_usdplus'
     let batch = JSON.parse(await fs.readFileSync(`./batches/${network}/${name}.json`));
 
     let addresses = [];
@@ -37,8 +37,12 @@ async function main() {
 
     timelock = await ethers.getContractAt(AGENT_TIMELOCK_ABI, timelock.address, await initWallet());
 
+let list = []
+
     for (let i = 0; i < addresses.length; i++) {
         let hash = await timelock.hashOperation(addresses[i], values[i], datas[i], PREDECESSOR, salt[i]);
+        list.push({hash, address:addresses[i], v:values[i], d:datas[i]})
+
         console.log('HashOperation: ' + hash);
 
         let timestamp = await timelock.getTimestamp(hash);
@@ -48,7 +52,7 @@ async function main() {
             await (await timelock.execute(addresses[i], values[i], datas[i], PREDECESSOR, salt[i])).wait();
         }
     }
-
+console.log(salt)
 }
 
 
