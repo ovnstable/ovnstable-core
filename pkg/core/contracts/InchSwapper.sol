@@ -108,7 +108,7 @@ contract InchSwapper is IInchSwapper, Initializable, AccessControlUpgradeable, U
     // path
     // pools for univ3
     // isUniv3 for difference between univ3swap and inchswap
-    // isUsed for neediness for update (used route)
+    // isNew for neediness for update (used route)
     function updatePath(UpdateParams memory params, bytes memory path) external onlyUnit {
         require(params.tokenIn != params.tokenOut && params.tokenIn != address(0) && params.tokenOut != address(0), "wrong tokens");
 

@@ -9,7 +9,6 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
- 
 
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IMark2Market.sol";
@@ -66,7 +65,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     }
 
     modifier onlyExchanger() {
-         require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
+        require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
         _;
     }
 
