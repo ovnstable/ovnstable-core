@@ -27,7 +27,7 @@ module.exports = async () => {
     let usdPlus = await getContract("UsdPlusToken", "zksync");
     let exchange = await getContract("Exchange", "zksync");
 
-    let usdPlusMigrationAddress = "0x7F7D9c7861761b9F056b163034125060839F6B7b";
+    let usdPlusMigrationAddress = "0xF42C374b76480D05907a60Abd3174F66789D609F";
     let usdPlusPureAddress = "0x01617c1FB5B5Dae0CDF315c46c9D9edFac8475fF";
     let exchangeAddress = "0x326A9D77a0e03678C0d8a6DeB6D5109246F25009";
     let startBlock = await ethers.provider.getBlockNumber();
