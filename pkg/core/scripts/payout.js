@@ -2,10 +2,10 @@ const {
     getContract,
     showM2M,
     showRewardsFromPayout, execTimelock, findEvent, showPoolOperationsFromPayout, showPayoutEvent, transferETH,
-    getWalletAddress, showProfitOnRewardWallet, getPrice, getERC20ByAddress
+    getWalletAddress, showProfitOnRewardWallet, getPrice
 } = require("@overnight-contracts/common/utils/script-utils");
 const {fromE6, fromAsset, fromUsdPlus} = require("@overnight-contracts/common/utils/decimals");
-const {COMMON, ZKSYNC} = require("@overnight-contracts/common/utils/assets"); 
+const {COMMON} = require("@overnight-contracts/common/utils/assets");
 const {ethers} = require("hardhat");
 const {getOdosSwapData, getOdosAmountOut, getEmptyOdosData} = require("@overnight-contracts/common/utils/odos-helper");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
@@ -35,17 +35,12 @@ class TypePayout {
 
 async function main() {
 
-    const asset = await getContract("UsdPlusToken")
-
     let exchange = await getContract('Exchange');
     let typePayout = getTypePayout();
 
     if (hre.network.name === 'localhost'){
         await transferETH(1, await getWalletAddress());
     } 
-
-    
-    console.table(await asset.balanceOf('0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46') )
 
     // await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
 
@@ -85,7 +80,7 @@ async function main() {
     await showPayoutData(tx, exchange);
 
     await showM2M();  
-    console.table( await asset.balanceOf('0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46') )
+
 }
 
 
