@@ -22,4 +22,4 @@ module.exports = async ({ deployments }) => {
     console.log("PancakeEqualZap setParams done()");
 };
 
-module.exports.tags = ["PancakeEqualZap"];
+module.exports.tags = ["PancakeEqualZapZk"];

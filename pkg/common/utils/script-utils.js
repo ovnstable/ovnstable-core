@@ -30,7 +30,7 @@ async function initWallet() {
     let provider = ethers.provider;
 
     if (process.env.STAND === 'zksync') {
-        provider = new Provider("http://localhost:8011");
+        // provider = new Provider("http://localhost:8011");
         wallet = new Wallet(process.env['PK']);
         wallet = (new Deployer(hre, wallet)).zkWallet;
     } else {
