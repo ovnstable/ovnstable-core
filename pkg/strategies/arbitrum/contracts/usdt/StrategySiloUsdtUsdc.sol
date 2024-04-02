@@ -3,13 +3,11 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Silo.sol";
-import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Camelot.sol";
 import "@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 
-
 contract StrategySiloUsdtUsdc is Strategy {
-
     // --- params
 
     IERC20 public usdt;
@@ -20,7 +18,7 @@ contract StrategySiloUsdtUsdc is Strategy {
 
     IERC20 public siloToken;
     IERC20 public wethToken;
-    ISwapRouter public uniswapV3Router;
+    ICamelotRouter public camelotRouter;
 
     IPriceFeed public oracleUsdt;
     IPriceFeed public oracleUsdc;
@@ -34,7 +32,6 @@ contract StrategySiloUsdtUsdc is Strategy {
 
     event StrategyUpdatedParams();
 
-
     // --- structs
 
     struct StrategyParams {
@@ -45,22 +42,20 @@ contract StrategySiloUsdtUsdc is Strategy {
         address siloTower;
         address siloToken;
         address wethToken;
-        address uniswapV3Router;
+        address camelotRouter;
         address inchSwapper;
         address oracleUsdt;
         address oracleUsdc;
     }
-
 
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize() initializer public {
+    function initialize() public initializer {
         __Strategy_init();
     }
-
 
     // --- Setters
 
@@ -73,7 +68,7 @@ contract StrategySiloUsdtUsdc is Strategy {
         siloTower = params.siloTower;
         siloToken = IERC20(params.siloToken);
         wethToken = IERC20(params.wethToken);
-        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
+        camelotRouter = ICamelotRouter(params.camelotRouter);
         oracleUsdt = IPriceFeed(params.oracleUsdt);
         oracleUsdc = IPriceFeed(params.oracleUsdc);
 
@@ -81,38 +76,20 @@ contract StrategySiloUsdtUsdc is Strategy {
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
     }
 
-
     // --- logic
 
-    function _stake(
-        address _asset,
-        uint256 _amount
-    ) internal override {
-
+    function _stake(address _asset, uint256 _amount) internal override {
         usdt.approve(address(inchSwapper), _amount);
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUsdtToUsdc(_amount), swapSlippageBP);
         inchSwapper.swap(address(this), address(usdt), address(usdc), _amount, amountOutMin);
 
         uint256 amount = usdc.balanceOf(address(this));
         usdc.approve(address(silo), amount);
-        silo.deposit(
-            address(usdc),
-            amount,
-            false
-        );
+        silo.deposit(address(usdc), amount, false);
     }
 
-    function _unstake(
-        address _asset,
-        uint256 _amount,
-        address _beneficiary
-    ) internal override returns (uint256) {
-
-        silo.withdraw(
-            address(usdc),
-            _amount,
-            false
-        );
+    function _unstake(address _asset, uint256 _amount, address _beneficiary) internal override returns (uint256) {
+        silo.withdraw(address(usdc), _amount, false);
 
         uint256 usdcBalance = usdc.balanceOf(address(this));
         usdc.approve(address(inchSwapper), usdcBalance);
@@ -122,32 +99,19 @@ contract StrategySiloUsdtUsdc is Strategy {
         return usdt.balanceOf(address(this));
     }
 
-    function _unstakeFull(
-        address _asset,
-        address _beneficiary
-    ) internal override returns (uint256) {
-
-        if(this.netAssetValue() == 0){
+    function _unstakeFull(address _asset, address _beneficiary) internal override returns (uint256) {
+        if (this.netAssetValue() == 0) {
             return 0;
         }
 
         // Need to update internal cumulative rate for recalculating full nav.
         // If you don’t do this, you’ll have pennies in nav (0.000001 for example ) left after unstakeFull
-        silo.withdraw(
-            address(usdc),
-            1,
-            false
-        );
+        silo.withdraw(address(usdc), 1, false);
 
-        ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
+        ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates("SiloLens"));
         uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(usdc), address(this));
 
-        silo.withdraw(
-            address(usdc),
-            balanceInCollateral,
-            false
-        );
-
+        silo.withdraw(address(usdc), balanceInCollateral, false);
 
         uint256 usdcBalance = usdc.balanceOf(address(this));
         usdc.approve(address(inchSwapper), usdcBalance);
@@ -162,16 +126,16 @@ contract StrategySiloUsdtUsdc is Strategy {
     }
 
     function _totalValue(bool nav) internal view returns (uint256) {
-        ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
+        ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates("SiloLens"));
         uint256 balanceInCollateralUsdc = siloLens.collateralBalanceOfUnderlying(silo, address(usdc), address(this));
         uint256 balanceInCashUsdc = usdc.balanceOf(address(this));
 
         uint256 totalUsdc = balanceInCollateralUsdc + balanceInCashUsdc;
         uint256 totalUsdt = usdt.balanceOf(address(this));
 
-        if(nav){
+        if (nav) {
             return _oracleUsdcToUsdt(totalUsdc) + totalUsdt;
-        }else{
+        } else {
             return OvnMath.subBasisPoints(_oracleUsdcToUsdt(totalUsdc), swapSlippageBP) + totalUsdt;
         }
     }
@@ -180,37 +144,37 @@ contract StrategySiloUsdtUsdc is Strategy {
         return _totalValue(false);
     }
 
-
     function _claimRewards(address _to) internal override returns (uint256) {
+        uint256 baseBalanceBefore = usdt.balanceOf(address(this));
 
         IShareToken collateralToken = silo.assetStorage(address(usdc)).collateralToken;
         address[] memory assets = new address[](1);
         assets[0] = address(collateralToken);
-        siloIncentivesController.claimRewards(
-            assets,
-            type(uint256).max,
-            address(this)
+        siloIncentivesController.claimRewards(assets, type(uint256).max, address(this));
+
+        uint256 siloBalance = siloToken.balanceOf(address(this));
+
+        uint256 siloAmount = CamelotLibrary.getAmountsOut(
+            camelotRouter,
+            address(siloToken),
+            address(wethToken),
+            address(usdt),
+            siloBalance
         );
 
-
-        uint256 totalUsdt;
-
-        IERC20 arbToken = IERC20(address(0x912CE59144191C1204E64559FE8253a0e49E6548));
-        uint256 arbBalance = arbToken.balanceOf(address(this));
-
-        if (arbBalance > 0) {
-
-            totalUsdt = UniswapV3Library.singleSwap(
-                uniswapV3Router,
-                address(arbToken),
+        if (siloBalance > 0) {
+            CamelotLibrary.multiSwap(
+                camelotRouter,
+                address(siloToken),
+                address(wethToken),
                 address(usdt),
-                500,
-                address(this),
-                arbBalance,
-                0
+                siloBalance,
+                (siloAmount * 99) / 100,
+                address(this)
             );
         }
 
+        uint256 totalUsdt = usdt.balanceOf(address(this)) - baseBalanceBefore;
 
         if (totalUsdt > 0) {
             usdt.transfer(_to, totalUsdt);
@@ -230,5 +194,4 @@ contract StrategySiloUsdtUsdc is Strategy {
         uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
         return ChainlinkLibrary.convertTokenToToken(usdcAmount, usdcDm, usdtDm, priceUsdc, priceUsdt);
     }
-
 }

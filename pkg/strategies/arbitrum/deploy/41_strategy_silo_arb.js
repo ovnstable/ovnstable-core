@@ -20,7 +20,7 @@ async function getParams(){
     return {
         usdc: ARBITRUM.usdc,
         silo: "0x0696E6808EE11a5750733a3d821F9bB847E584FB", // ARB/ETH/USDC.e
-        siloIncentivesController: "0xd592F705bDC8C1B439Bd4D665Ed99C4FaAd5A680",
+        siloIncentivesController: "0x7e5BFBb25b33f335e34fa0d78b878092931F8D20",
         siloTower: "0x4182ad1513446861Be314c30DB27C67473541457",
         siloToken: ARBITRUM.silo,
         wethToken: ARBITRUM.weth,
