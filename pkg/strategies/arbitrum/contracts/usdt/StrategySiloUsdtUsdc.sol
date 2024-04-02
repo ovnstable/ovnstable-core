@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@overnight-contracts/core/contracts/Strategy.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Silo.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Camelot.sol";
-import "@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import '@overnight-contracts/core/contracts/Strategy.sol';
+import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
+import '@overnight-contracts/connectors/contracts/stuff/Camelot.sol';
+import '@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol';
+import '@overnight-contracts/connectors/contracts/stuff/Chainlink.sol';
 
 contract StrategySiloUsdtUsdc is Strategy {
     // --- params
@@ -108,7 +108,7 @@ contract StrategySiloUsdtUsdc is Strategy {
         // If you don’t do this, you’ll have pennies in nav (0.000001 for example ) left after unstakeFull
         silo.withdraw(address(usdc), 1, false);
 
-        ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates("SiloLens"));
+        ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
         uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(usdc), address(this));
 
         silo.withdraw(address(usdc), balanceInCollateral, false);
@@ -126,7 +126,7 @@ contract StrategySiloUsdtUsdc is Strategy {
     }
 
     function _totalValue(bool nav) internal view returns (uint256) {
-        ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates("SiloLens"));
+        ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
         uint256 balanceInCollateralUsdc = siloLens.collateralBalanceOfUnderlying(silo, address(usdc), address(this));
         uint256 balanceInCashUsdc = usdc.balanceOf(address(this));
 
@@ -154,24 +154,25 @@ contract StrategySiloUsdtUsdc is Strategy {
 
         uint256 siloBalance = siloToken.balanceOf(address(this));
 
-        uint256 siloAmount = CamelotLibrary.getAmountsOut(
-            camelotRouter,
-            address(siloToken),
-            address(wethToken),
-            address(usdt),
-            siloBalance
-        );
-
         if (siloBalance > 0) {
-            CamelotLibrary.multiSwap(
+            uint256 siloAmount = CamelotLibrary.getAmountsOut(
                 camelotRouter,
                 address(siloToken),
                 address(wethToken),
                 address(usdt),
-                siloBalance,
-                (siloAmount * 99) / 100,
-                address(this)
+                siloBalance
             );
+            if (siloAmount > 0) {
+                CamelotLibrary.multiSwap(
+                    camelotRouter,
+                    address(siloToken),
+                    address(wethToken),
+                    address(usdt),
+                    siloBalance,
+                    (siloAmount * 99) / 100,
+                    address(this)
+                );
+            }
         }
 
         uint256 totalUsdt = usdt.balanceOf(address(this)) - baseBalanceBefore;
