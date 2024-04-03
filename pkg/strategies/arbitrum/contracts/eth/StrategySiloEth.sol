@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@overnight-contracts/core/contracts/Strategy.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Silo.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Camelot.sol";
+import '@overnight-contracts/core/contracts/Strategy.sol';
+import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
+import '@overnight-contracts/connectors/contracts/stuff/Camelot.sol';
 
 contract StrategySiloEth is Strategy {
     // --- params
@@ -14,7 +14,10 @@ contract StrategySiloEth is Strategy {
     address public siloTower;
 
     IERC20 public siloToken;
+    IERC20 public arbToken;
     ICamelotRouter public camelotRouter;
+
+    address public rewardWallet;
 
     // --- events
 
@@ -28,6 +31,7 @@ contract StrategySiloEth is Strategy {
         address siloIncentivesController;
         address siloTower;
         address siloToken;
+        address arbToken;
         address camelotRouter;
     }
 
@@ -48,6 +52,7 @@ contract StrategySiloEth is Strategy {
         siloIncentivesController = ISiloIncentivesController(params.siloIncentivesController);
         siloTower = params.siloTower;
         siloToken = IERC20(params.siloToken);
+        arbToken = IERC20(params.arbToken);
         camelotRouter = ICamelotRouter(params.camelotRouter);
     }
 
@@ -74,7 +79,7 @@ contract StrategySiloEth is Strategy {
         // If you don’t do this, you’ll have pennies in nav (0.000001 for example ) left after unstakeFull
         silo.withdraw(address(eth), 1, false);
 
-        ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates("SiloLens"));
+        ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
         uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(eth), address(this));
 
         silo.withdraw(address(eth), balanceInCollateral, false);
@@ -83,7 +88,7 @@ contract StrategySiloEth is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
-        ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates("SiloLens"));
+        ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
         uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(eth), address(this));
         uint256 balanceInCash = eth.balanceOf(address(this));
 
@@ -103,6 +108,11 @@ contract StrategySiloEth is Strategy {
         siloIncentivesController.claimRewards(assets, type(uint256).max, address(this));
 
         uint256 siloBalance = siloToken.balanceOf(address(this));
+        uint256 arbBalance = arbToken.balanceOf(address(this));
+
+        if (arbBalance > 0) {
+            arbToken.transfer(rewardWallet, arbBalance);
+        }
 
         if (siloBalance > 0) {
             uint256 siloAmount = CamelotLibrary.getAmountsOut(

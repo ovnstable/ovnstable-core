@@ -17,6 +17,7 @@ contract StrategySiloUsdtUsdc is Strategy {
     address public siloTower;
 
     IERC20 public siloToken;
+    IERC20 public arbToken;
     IERC20 public wethToken;
     ICamelotRouter public camelotRouter;
 
@@ -27,6 +28,8 @@ contract StrategySiloUsdtUsdc is Strategy {
 
     uint256 public usdtDm;
     uint256 public usdcDm;
+
+    address public rewardWallet;
 
     // --- events
 
@@ -41,6 +44,8 @@ contract StrategySiloUsdtUsdc is Strategy {
         address siloIncentivesController;
         address siloTower;
         address siloToken;
+        address arbToken;
+        address rewardWallet;
         address wethToken;
         address camelotRouter;
         address inchSwapper;
@@ -67,6 +72,7 @@ contract StrategySiloUsdtUsdc is Strategy {
         siloIncentivesController = ISiloIncentivesController(params.siloIncentivesController);
         siloTower = params.siloTower;
         siloToken = IERC20(params.siloToken);
+        arbToken = IERC20(params.arbToken);
         wethToken = IERC20(params.wethToken);
         camelotRouter = ICamelotRouter(params.camelotRouter);
         oracleUsdt = IPriceFeed(params.oracleUsdt);
@@ -74,6 +80,8 @@ contract StrategySiloUsdtUsdc is Strategy {
 
         usdtDm = 10 ** IERC20Metadata(params.usdt).decimals();
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
+
+        rewardWallet = params.rewardWallet;
     }
 
     // --- logic
@@ -153,6 +161,11 @@ contract StrategySiloUsdtUsdc is Strategy {
         siloIncentivesController.claimRewards(assets, type(uint256).max, address(this));
 
         uint256 siloBalance = siloToken.balanceOf(address(this));
+        uint256 arbBalance = arbToken.balanceOf(address(this));
+
+        if (arbBalance > 0) {
+            arbToken.transfer(rewardWallet, arbBalance);
+        }
 
         if (siloBalance > 0) {
             uint256 siloAmount = CamelotLibrary.getAmountsOut(
