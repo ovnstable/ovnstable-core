@@ -10,7 +10,7 @@ module.exports = async ({deployments}) => {
         await deployProxy(name, deployments, save);
     });
 
-    await settingSection(async (strategy) => {
+    await settingSection('Silo USDC', async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
     });
 };
