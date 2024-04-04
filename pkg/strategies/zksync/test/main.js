@@ -27,6 +27,6 @@ describe("ZKSYNC", function () {
             strategyTest(params, 'ZKSYNC', 'usdb', runStrategyLogic);
             break;
         default:
-            break;
+            break;  
     }
 });
