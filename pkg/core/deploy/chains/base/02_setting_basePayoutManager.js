@@ -13,14 +13,14 @@ module.exports = async () => {
 
     let items = [];
 
-    // items.push(...baseSwap());
-    // items.push(...swapBased());
-    // items.push(...alienBase());
+    items.push(...baseSwap());
+    items.push(...swapBased());
+    items.push(...alienBase());
     items.push(...aerodrome());
-    // items.push(...equalizer());
-    // items.push(...citadel());
-    // items.push(...curve());
-    // items.push(...extraFi());
+    items.push(...equalizer());
+    items.push(...citadel());
+    items.push(...curve());
+    items.push(...extraFi());
     await (await payoutManager.addItems(items)).wait();
 
     console.log('BasePayoutManager setting done');
