@@ -36,7 +36,9 @@ contract StrategyZerolend is Strategy {
         address rewardsWallet;
     }
 
-    function initialize() public initializer {}
+    function initialize() public initializer {
+         __Strategy_init();
+    }
 
     // --- Setters
 

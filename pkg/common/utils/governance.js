@@ -331,7 +331,7 @@ async function testProposal(addresses, values, abis){
             }
 
             console.log(`Transaction: index: [${i}] address: [${address}]`)
-            await (await timelock.sendTransaction(tx)).wait();
+            await (await timelock.sendTransaction(tx, await getPrice())).wait();
 
         }
     })

@@ -1,5 +1,5 @@
 const {getContract, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const {createProposal, testProposal} = require("@overnight-contracts/common/utils/governance");
+const {createProposal, testProposal, testUsdPlus} = require("@overnight-contracts/common/utils/governance");
 const path = require('path');
 
 let filename = path.basename(__filename);
