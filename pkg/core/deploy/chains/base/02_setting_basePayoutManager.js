@@ -83,7 +83,7 @@ module.exports = async () => {
         items.push(createSkim('0x952388d73EA3E940eD6824DBd75ed6aD58e6B436', usdPlus.address, 'vAMM-DOLA/USD+ ', dex));
         items.push(createSkim('0x8E9154AC849e839d60299E85156bcb589De2693A', usdPlus.address, 'sAMM-DOLA/USD+', dex));
         items.push(createSkim('0x267d950110D9ED57999c3451b89C35a9D278C074', usdPlus.address, 'AERO/USD+', dex));
-        items.push(createBribeWithFee('0xAecAc8bDcf5c3dC2Bb66e9a12D25CA7f9D7d8279', usdPlus.address, 'vAMM-FLY/USD+', dex, '0x4F11A6cBb01938daD8CBF531352627342960cA58', 80, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0xAecAc8bDcf5c3dC2Bb66e9a12D25CA7f9D7d8279', usdPlus.address, 'vAMM-FLY/USD+', dex, '0x4F11A6cBb01938daD8CBF531352627342960cA58', 20, COMMON.rewardWallet));
         
         return items;
     }
