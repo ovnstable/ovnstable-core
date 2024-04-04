@@ -23,7 +23,7 @@ describe("ZKSYNC", function () {
 
 
     switch (process.env.STAND) {
-        case 'blast':
+        case 'zksync':
             strategyTest(params, 'ZKSYNC', 'usdb', runStrategyLogic);
             break;
         default:
