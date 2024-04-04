@@ -1,4 +1,4 @@
-const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
+const {deployProxy, deployProxyMulti} = require("@overnight-contracts/common/utils/deployProxy");
 const hre = require("hardhat");
 const {ethers} = require("hardhat");
 
@@ -6,31 +6,36 @@ module.exports = async ({deployments}) => {
     const {save} = deployments;
 
     let params;
-
-    if (hre.network.name === "optimism_dai") {
+    const stand = hre.ovn.stand || hre.network.name;
+    if (stand === "optimism_dai") {
         params = {args: ["DAI+", "DAI+", 18]}
-    } else if (hre.network.name === "arbitrum_dai") {
+    } else if (stand === "arbitrum_dai") {
         params = {args: ["DAI+", "DAI+", 18]}
-    } else if (hre.network.name === "arbitrum_eth") {
+    } else if (stand === "arbitrum_eth") {
         params = {args: ["ETH+", "ETH+", 18]}
-    } else if (hre.network.name === "bsc_usdt") {
+    } else if (stand === "bsc_usdt") {
         params = {args: ["USDT+", "USDT+", 18]}
-    } else if (hre.network.name === 'base_dai') {
+    } else if (stand === 'base_dai') {
         params = {args: ["DAI+", "DAI+", 18]}
-    } else if (hre.network.name === 'linea_usdt') {
+    } else if (stand === 'linea_usdt') {
         params = {args: ["USDT+", "USDT+", 6]}
-    } else if (hre.network.name === 'arbitrum_usdt') {
+    } else if (stand === 'arbitrum_usdt') {
         params = {args: ["USDT+", "USDT+", 6]}
-    } else if (hre.network.name === 'base_usdc') {
+    } else if (stand === 'base_usdc') {
         params = {args: ["USDC+", "USDC+", 6]};
-    } else if (hre.network.name === 'blast') {
+    } else if (stand === 'blast') {
         params = {args: ["USD+", "USD+", 18]};
-    } else if (hre.network.name === 'blast_usdc') {
+    } else if (stand === 'blast_usdc') {
         params = {args: ["USDC+", "USDC+", 18]};
+    } else if (stand === 'zksync_usdt') {
+        params = {args: ["USDT+", "USDT+", 6]}
     } else {
         params = {args: ["USD+", "USD+", 6]};
     }
-    await deployProxy('UsdPlusToken', deployments, save, params);
+    // await deployProxy('UsdPlusToken', deployments, save, params);
+    deployProxyMulti("UsdPlusToken", "UsdPlusToken", deployments, deployments.save, {
+        args: params,
+    })
 
     let usdPlus = await ethers.getContract('UsdPlusToken');
 

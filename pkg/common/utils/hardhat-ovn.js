@@ -182,7 +182,7 @@ task(TASK_RUN, 'Run task')
 
         if (hre.network.name === 'localhost') {
 
-            if (hre.ovn.stand === 'zksync') {
+            if (hre.ovn.stand.startsWith('zksync')) {
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
             } else {
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -231,7 +231,7 @@ task(TASK_TEST, 'test')
         }
 
         if (hre.network.name === 'localhost') {
-            if (hre.ovn.stand === 'zksync') {
+            if (hre.ovn.stand.startsWith('zksync')) {
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
             } else {
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -270,7 +270,7 @@ task('simulate', 'Simulate transaction on local node')
         let transaction = await provider.getTransaction(hash);
 
 
-        if (args.stand === 'zksync') {
+        if (args.stand.startsWith('zksync')) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
