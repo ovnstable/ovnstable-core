@@ -7,7 +7,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 
     if ((strategyName.indexOf('StrategyEts') !== -1) || (strategyName.indexOf('StrategySmm') !== -1)) {
         let hedgeExchangerAddress = "0x84d05333f1F5Bf1358c3f63A113B1953C427925D";
-        let ownerAddress = Wallets.DEV;  
+        let ownerAddress = '0x05129E3CE8C566dE564203B0fd85111bBD84C424';
         await impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, strategyAddress);
     }
 }
@@ -23,8 +23,8 @@ describe("ZKSYNC", function () {
 
 
     switch (process.env.STAND) {
-        case 'zksync':
-            strategyTest(params, 'ZKSYNC', 'usdc', runStrategyLogic);
+        case 'blast':
+            strategyTest(params, 'ZKSYNC', 'usdb', runStrategyLogic);
             break;
         default:
             break;

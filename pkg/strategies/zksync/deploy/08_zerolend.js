@@ -17,6 +17,7 @@ module.exports = async ({ deployments }) => {
                 usdc: ZKSYNC.usdc,
                 z0USDC: ZKSYNC.z0USDC,
                 pool: ZKSYNC.zerolendPoolUsdc,
+                rewardsController: ZKSYNC.zerolendPoolUsdc,
                 earlyZERO: ZKSYNC.earlyZERO,
             })
         ).wait();
