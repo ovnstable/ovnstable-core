@@ -5,6 +5,8 @@ const { deploySection, settingSection, transferETH, getWalletAddress } = require
 module.exports = async ({ deployments }) => {
     const { save } = deployments;
 
+    const rewardsWallet = '0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46';
+
     if ( hre.network.name === 'localhost') await transferETH(1, await getWalletAddress());
 
     await deploySection(async (name) => {
@@ -19,6 +21,7 @@ module.exports = async ({ deployments }) => {
                 pool: ZKSYNC.zerolendPoolUsdc,
                 rewardsController: ZKSYNC.zerolendPoolUsdc,
                 earlyZERO: ZKSYNC.earlyZERO,
+                rewardsWallet
             })
         ).wait();
     });

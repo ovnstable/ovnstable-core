@@ -14,11 +14,13 @@ error TokensNotCompatible(address from, address to);
 error NotEnoughTokens(address asset, uint256 amount);
 
 contract StrategyZerolend is Strategy {
+    address immutable ZERO_ADDRESS = 0x0000000000000000000000000000000000000000;
     IERC20 public usdc;
     IERC20 public z0USDC;
     IPool public pool;
     IRewardsController public rewardsController;
     IERC20 public earlyZERO;
+    address public rewardsWallet;
 
     // --- events
     event StrategyUpdatedParams();
@@ -31,6 +33,7 @@ contract StrategyZerolend is Strategy {
         address pool;
         address rewardsController;
         address earlyZERO;
+        address rewardsWallet;
     }
 
     function initialize() public initializer {}
@@ -43,6 +46,7 @@ contract StrategyZerolend is Strategy {
         pool = IPool(params.pool);
         rewardsController = IRewardsController(params.rewardsController);
         earlyZERO = IERC20(params.earlyZERO);
+        rewardsWallet = params.rewardsWallet;
 
         emit StrategyUpdatedParams();
     }
@@ -84,7 +88,6 @@ contract StrategyZerolend is Strategy {
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        address ZERO_ADDRESS = 0x0000000000000000000000000000000000000000;
         if (address(pool) == ZERO_ADDRESS) {
             return 0;
         }
@@ -103,7 +106,8 @@ contract StrategyZerolend is Strategy {
             address(this),
             address(earlyZERO)
         );
-        if (claimedBalance > 0) earlyZERO.transfer(_beneficiary, claimedBalance);
+        uint256 rewardsBalance = earlyZERO.balanceOf(address(this));
+        if (rewardsWallet != ZERO_ADDRESS && rewardsBalance > 0) earlyZERO.transfer(rewardsWallet, rewardsBalance);
         return 0;
     }
 }
