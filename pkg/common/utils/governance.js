@@ -280,7 +280,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
 
             await getTestAssets(walletAddress);
             let amount = toAsset(10_000);
-            await asset.transfer(strategy.address, amount, await getPrice());
+            await asset.transfer(strategy.address, amount);
             await strategy.connect(timelock).stake(asset.address, amount, await getPrice());
         });
     }, 'strategy.stake'));

@@ -7,9 +7,9 @@ module.exports = async ({ deployments }) => {
 
     if ( hre.network.name === 'localhost') await transferETH(1, await getWalletAddress());
      
-  /*   await deploySection(async (name) => {
+    await deploySection(async (name) => {
         await deployProxy(name, deployments, save);
-    });   */
+    });  
 
     await settingSection("Zerolend", async (strategy) => {
         await (
