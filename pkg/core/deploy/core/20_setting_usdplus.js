@@ -9,22 +9,22 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     const wallet = await initWallet();
 
-    const usdPlus = await ethers.getContract("UsdPlusToken", wallet);
+    const token = await ethers.getContract("UsdtPlusToken", wallet);
     const exchange = await ethers.getContract("Exchange", wallet);
-    const roleManager = await getContract("RoleManager");
-    const payoutManager = await getContract("BlastPayoutManager");  // change for needed payout manager
+    const roleManager = await getContract("RoleManager", 'localhost');
+    const payoutManager = await getContract("ZkSyncPayoutManager", 'localhost');  // change for needed payout manager
 
     console.log('usdPlus.setExchanger: ' + exchange.address)
-    await (await usdPlus.setExchanger(exchange.address)).wait();
+    await (await token.setExchanger(exchange.address)).wait();
     console.log("usdPlus.setExchanger done");
 
     console.log(`usdPlus.setPayoutManager: ${payoutManager.address}`);
-    await (await usdPlus.setPayoutManager(payoutManager.address)).wait();
+    await (await token.setPayoutManager(payoutManager.address)).wait();
     console.log('usdPlus.setPayoutManager done');
 
     console.log(`usdPlus.setRoleManager: ${roleManager.address}`);
-    await (await usdPlus.setRoleManager(roleManager.address)).wait();
+    await (await token.setRoleManager(roleManager.address)).wait();
     console.log('usdPlus.setRoleManager done');
 };
 
-module.exports.tags = ['setting','SettingUsdPlusToken'];
+module.exports.tags = ['setting','SettingToken'];

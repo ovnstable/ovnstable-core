@@ -78,6 +78,11 @@ async function main() {
         console.log("Zksync");
         console.log("usdPlusZksync", usdPlusZksync.address, await getImplementationAddress(ethers.provider, usdPlusZksync.address));
     }
+    if (hre.network.name === 'zksync_usdt') {
+        let usdtPlusZksync = await getContract('UsdtPlusToken', 'zksync');
+        console.log("Zksync");
+        console.log("usdtPlusZksync", usdtPlusZksync.address, await getImplementationAddress(ethers.provider, usdtPlusZksync.address));
+    }
 
     if (hre.network.name === 'polygon') {
         let usdPlusPolygon = await getContract('UsdPlusToken', 'polygon');

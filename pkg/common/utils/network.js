@@ -51,7 +51,7 @@ function accounts(networkName) {
 }
 
 function isZkSync(){
-    return process.env.STAND.toLowerCase() === 'zksync';
+    return process.env.STAND.toLowerCase().startsWith('zksync');
 }
 
 function getGasPrice() {
