@@ -290,7 +290,7 @@ async function getContractByAddress(name, address, network) {
 
     try {
         let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
-        let contractJson = JSON.parse(fs.readFileSync(searchPath));
+         let contractJson = JSON.parse(fs.readFileSync(searchPath));
         return await ethers.getContractAt(contractJson.abi, address, wallet);
     } catch (e) {
         console.error(`Error: Could not find a contract named [${name}] in network: [${network}]`);
@@ -982,7 +982,7 @@ async function transferAsset(assetAddress, to, amount) {
                 default:
                     throw new Error('Unknown asset address');
             }
-            break;
+            break; 
         default:
             throw new Error('Unknown mapping ETH_NETWORK');
     }

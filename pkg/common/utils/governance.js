@@ -158,16 +158,16 @@ async function testUsdPlus(id, stand = process.env.STAND){
     tables.push(await testCase(async ()=>{
 
         let amountAsset = await asset.balanceOf(walletAddress);
-        await (await asset.approve(exchange.address, amountAsset, await getPrice())).wait();
-        await (await exchange.buy(asset.address, amountAsset, await getPrice())).wait();
+        await (await asset.approve(exchange.address, amountAsset, {gasLimit:10_000_000} )).wait();
+        await (await exchange.buy(asset.address, amountAsset, {gasLimit:10_000_000})).wait();
 
     }, 'exchange.mint'));
 
     tables.push(await testCase(async ()=>{
 
         let amountUsdPlus = await usdPlusToken.balanceOf(walletAddress);
-        await (await usdPlusToken.approve(exchange.address, amountUsdPlus, await getPrice())).wait();
-        await (await exchange.redeem(asset.address, amountUsdPlus, await getPrice())).wait();
+        await (await usdPlusToken.approve(exchange.address, amountUsdPlus, {gasLimit:10_000_000})).wait();
+        await (await exchange.redeem(asset.address, amountUsdPlus, {gasLimit:10_000_000})).wait();
 
     }, 'exchange.redeem'));
 
@@ -197,7 +197,7 @@ async function testUsdPlus(id, stand = process.env.STAND){
             await (await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address, await getPrice())).wait();
             await (await roleManager.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address, await getPrice())).wait();
             await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, await getPrice())).wait();
-            await (await exchange.payout(false, await getEmptyOdosData(), await getPrice()) ).wait();
+            await (await exchange.connect(timelock).payout(false, await getEmptyOdosData(), await getPrice()) ).wait();
         });
 
     }, 'exchange.payout'));
@@ -280,7 +280,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
 
             await getTestAssets(walletAddress);
             let amount = toAsset(10_000);
-            await asset.transfer(strategy.address, amount, await getPrice());
+            await asset.transfer(strategy.address, amount);
             await strategy.connect(timelock).stake(asset.address, amount, await getPrice());
         });
     }, 'strategy.stake'));
@@ -331,7 +331,7 @@ async function testProposal(addresses, values, abis){
             }
 
             console.log(`Transaction: index: [${i}] address: [${address}]`)
-            await (await timelock.sendTransaction(tx)).wait();
+            await (await timelock.sendTransaction(tx, await getPrice())).wait();
 
         }
     })

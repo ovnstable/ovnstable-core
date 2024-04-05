@@ -1,4 +1,6 @@
 {
   "tabWidth": 4,
-  "useTabs": false
+  "useTabs": false,
+  "editor.wordWrapColumn": 120,
+  "printWidth": 120
 }
