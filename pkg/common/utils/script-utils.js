@@ -591,12 +591,9 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
 
 
 async function getPrice() {
-    let value = process.env.GAS_PRICE.toString() + "000000000";
-
-    let params = { maxFeePerGas: value, maxPriorityFeePerGas: value };
-
+    
     if (process.env.ETH_NETWORK === 'POLYGON') {
-        params.gasLimit = 15000000;
+        params = { gasPrice: "60000000000", gasLimit: 15000000 };
     } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
         params = { gasLimit: 25000000 }; // gasPrice always 0.1 GWEI
     } else if (process.env.ETH_NETWORK === 'BSC') {
@@ -606,10 +603,7 @@ async function getPrice() {
     } else if (process.env.ETH_NETWORK === 'BLAST') {
         params = { gasLimit: 25000000 }; // todo
     } else if (process.env.ETH_NETWORK === 'ZKSYNC') {
-        let {
-            maxFeePerGas, maxPriorityFeePerGas
-        } = await ethers.provider.getFeeData();
-
+        let { maxFeePerGas, maxPriorityFeePerGas } = await ethers.provider.getFeeData();
         return { maxFeePerGas, maxPriorityFeePerGas, gasLimit: 200000000 }
     } else if (process.env.ETH_NETWORK === 'BASE') {
         let gasPrice = await ethers.provider.getGasPrice();
