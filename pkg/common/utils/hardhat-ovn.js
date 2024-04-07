@@ -182,7 +182,7 @@ task(TASK_RUN, 'Run task')
 
         if (hre.network.name === 'localhost') {
 
-            if (hre.ovn.stand.startsWith('zksync')) {
+            if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
             } else {
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -270,7 +270,7 @@ task('simulate', 'Simulate transaction on local node')
         let transaction = await provider.getTransaction(hash);
 
 
-        if (args.stand.startsWith('zksync')) {
+        if ((args.stand || process.env.STAND).startsWith('zksync')) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -288,7 +288,7 @@ task('simulate', 'Simulate transaction on local node')
                 maxFeePerGas, maxPriorityFeePerGas
             } = await hre.ethers.provider.getFeeData();
             tx = {
-                from: from,
+                from: fromSigner,
                 to: to,
                 value: 0,
                 nonce: await hre.ethers.provider.getTransactionCount(from, "latest"),
