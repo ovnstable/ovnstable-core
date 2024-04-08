@@ -13,7 +13,7 @@ interface IZkSync {
 error TokensNotCompatible(address from, address to);
 error NotEnoughTokens(address asset, uint256 amount);
 
-contract StrategyZerolend is Strategy {
+contract StrategyZerolendUsdt is Strategy {
     address immutable ZERO_ADDRESS = 0x0000000000000000000000000000000000000000;
     IERC20 public usdt;
     IERC20 public z0USDT;

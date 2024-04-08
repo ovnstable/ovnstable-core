@@ -11,13 +11,13 @@ module.exports = async ({ deployments }) => {
         await deployProxy(name, deployments, save);
     });  
 
-    await settingSection("Zerolend", async (strategy) => {
+    await settingSection("ZerolendUsdt", async (strategy) => {
         await (
             await strategy.setParams({
                 usdt: ZKSYNC.usdt,
                 z0USDT: ZKSYNC.z0USDT,
                 pool: ZKSYNC.zerolendPoolUsdt,
-                rewardsController: ZKSYNC.zerolendPoolUsdt,
+                rewardsController: ZKSYNC.zerolendRewardsController,
                 earlyZERO: ZKSYNC.earlyZERO,
                 rewardsWallet: COMMON.rewardWallet
             })
@@ -25,4 +25,4 @@ module.exports = async ({ deployments }) => {
     });
 };
 
-module.exports.tags = ["StrategyZerolend"];
+module.exports.tags = ["StrategyZerolendUsdt"];

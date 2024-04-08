@@ -396,6 +396,7 @@ async function getCoreAsset(stand = process.env.STAND) {
     } else if (stand === 'arbitrum_usdt'
         || stand === 'bsc_usdt'
         || stand === 'linea_usdt'
+        || stand === 'zksync_usdt'
     ) {
         return await getERC20('usdt');
 
@@ -967,6 +968,9 @@ async function transferAsset(assetAddress, to, amount) {
             switch (assetAddress) {
                 case ZKSYNC.usdc:
                     from = "0x6b6314f4f07c974600d872182dcDE092C480e57b";
+                    break;
+                case ZKSYNC.usdt:
+                    from = "0x7FcBd9d429932A11884Cb5CE9c61055b369F56F7";
                     break;
                 case ZKSYNC.weth:
                     from = "0x6b6314f4f07c974600d872182dcDE092C480e57b";
