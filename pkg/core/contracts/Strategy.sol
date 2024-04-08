@@ -1,19 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import '@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import '@overnight-contracts/common/contracts/libraries/OvnMath.sol';
 
-import "./interfaces/IStrategy.sol";
-import "./interfaces/IRoleManager.sol";
-
+import './interfaces/IStrategy.sol';
+import './interfaces/IRoleManager.sol';
 
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
-    bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
-    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
+    bytes32 public constant PORTFOLIO_MANAGER = keccak256('PORTFOLIO_MANAGER');
+    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256('PORTFOLIO_AGENT_ROLE');
 
     address public portfolioManager;
     uint256 public swapSlippageBP;
@@ -32,35 +31,30 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         stakeSlippageBP = 4;
     }
 
-    function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyRole(DEFAULT_ADMIN_ROLE)
-    override
-    {}
-
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
     // ---  modifiers
 
     modifier onlyPortfolioManager() {
-        require(portfolioManager == msg.sender, "Restricted to PORTFOLIO_MANAGER");
+        require(portfolioManager == msg.sender, 'Restricted to PORTFOLIO_MANAGER');
         _;
     }
 
     modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'Restricted to admins');
         _;
     }
 
     modifier onlyPortfolioAgent() {
-        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
+        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), 'Restricted to Portfolio Agent');
         _;
     }
 
     // --- setters
 
     function setStrategyParams(address _portfolioManager, address _roleManager) public onlyAdmin {
-        require(_portfolioManager != address(0), "Zero address not allowed");
-        require(_roleManager != address(0), "Zero address not allowed");
+        require(_portfolioManager != address(0), 'Zero address not allowed');
+        require(_roleManager != address(0), 'Zero address not allowed');
         portfolioManager = _portfolioManager;
         roleManager = IRoleManager(_roleManager);
     }
@@ -76,19 +70,14 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         emit SlippagesUpdated(_swapSlippageBP, _navSlippageBP, _stakeSlippageBP);
     }
 
-
     // --- logic
 
-    function stake(
-        address _asset,
-        uint256 _amount
-    ) external override onlyPortfolioManager {
-
+    function stake(address _asset, uint256 _amount) external override onlyPortfolioManager {
         uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
 
         _stake(_asset, IERC20(_asset).balanceOf(address(this)));
 
-        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+        require(this.netAssetValue() >= minNavExpected, 'Strategy NAV less than expected');
 
         emit Stake(_amount);
     }
@@ -99,7 +88,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         address _beneficiary,
         bool _targetIsZero
     ) external override onlyPortfolioManager returns (uint256) {
-
         uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
 
         uint256 withdrawAmount;
@@ -112,7 +100,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
             require(withdrawAmount >= _amount, 'Returned value less than requested amount');
         }
 
-        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+        require(this.netAssetValue() >= minNavExpected, 'Strategy NAV less than expected');
 
         IERC20(_asset).transfer(_beneficiary, withdrawAmount);
 
@@ -132,32 +120,21 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         return rewardAmount;
     }
 
-    function _stake(
-        address _asset,
-        uint256 _amount
-    ) internal virtual {
-        revert("Not implemented");
+    function _stake(address _asset, uint256 _amount) internal virtual {
+        revert('Not implemented');
     }
 
-    function _unstake(
-        address _asset,
-        uint256 _amount,
-        address _beneficiary
-    ) internal virtual returns (uint256) {
-        revert("Not implemented");
+    function _unstake(address _asset, uint256 _amount, address _beneficiary) internal virtual returns (uint256) {
+        revert('Not implemented');
     }
 
-    function _unstakeFull(
-        address _asset,
-        address _beneficiary
-    ) internal virtual returns (uint256) {
-        revert("Not implemented");
+    function _unstakeFull(address _asset, address _beneficiary) internal virtual returns (uint256) {
+        revert('Not implemented');
     }
 
     function _claimRewards(address _to) internal virtual returns (uint256) {
-        revert("Not implemented");
+        revert('Not implemented');
     }
-
 
     uint256[45] private __gap;
 }

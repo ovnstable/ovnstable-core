@@ -1,5 +1,7 @@
 const { default: axios } = require("axios");
 const { ethers } = require("hardhat");
+const {execTimelock} = require("./script-utils");
+const {Roles} = require("./roles");
 const { getContract, getWalletAddress, getChainId, sleep } = require("./script-utils");
 const INCH_ROUTER_V5 = require("@overnight-contracts/core/test/abi/InchRouterV5.json");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
@@ -7,6 +9,9 @@ const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 async function inchSwapperUpdatePath(token0, token1, amountToken0, stand = process.env.STAND) {
 
     let inchSwapper = await getContract('InchSwapper', stand);
+    let roleManager = await getContract('RoleManager', stand);
+
+    console.log(roleManager.address)
 
     let inchDataForSwapResponse0 = await getDataForSwap(
         await getChainId(),
@@ -18,18 +23,25 @@ async function inchSwapperUpdatePath(token0, token1, amountToken0, stand = proce
         ""
     );
 
-    await (await inchSwapper.updatePath(
-        {
-            tokenIn: token0,
-            tokenOut: token1,
-            amount: amountToken0,
-            flags: inchDataForSwapResponse0.flags,
-            pools: inchDataForSwapResponse0.pools,
-            srcReceiver: inchDataForSwapResponse0.srcReceiver,
-            isUniV3: inchDataForSwapResponse0.isUniV3
-        },
-        inchDataForSwapResponse0.data
-    )).wait();
+    await execTimelock(async (timelock)=>{
+        await (await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address)).wait();
+        await (await roleManager.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address)).wait();
+        await (await inchSwapper.connect(timelock).updatePath(
+            {
+                tokenIn: token0,
+                tokenOut: token1,
+                amount: amountToken0,
+                flags: inchDataForSwapResponse0.flags,
+                pools: inchDataForSwapResponse0.pools,
+                srcReceiver: inchDataForSwapResponse0.srcReceiver,
+                isUniV3: inchDataForSwapResponse0.isUniV3
+            },
+            inchDataForSwapResponse0.data
+        )).wait();
+        console.log('updatePath')
+    });
+
+    
 
     console.log(`Update path from ${token0} to ${token1} with ${amountToken0}`)
 }

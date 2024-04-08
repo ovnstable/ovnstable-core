@@ -17,7 +17,6 @@ contract StrategySiloUsdtUsdc is Strategy {
     address public siloTower;
 
     IERC20 public siloToken;
-    IERC20 public arbToken;
     IERC20 public wethToken;
     ICamelotRouter public camelotRouter;
 
@@ -29,6 +28,7 @@ contract StrategySiloUsdtUsdc is Strategy {
     uint256 public usdtDm;
     uint256 public usdcDm;
 
+    IERC20 public arbToken;
     address public rewardWallet;
 
     // --- events

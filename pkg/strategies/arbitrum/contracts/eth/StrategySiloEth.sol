@@ -14,9 +14,9 @@ contract StrategySiloEth is Strategy {
     address public siloTower;
 
     IERC20 public siloToken;
-    IERC20 public arbToken;
     ICamelotRouter public camelotRouter;
 
+    IERC20 public arbToken;
     address public rewardWallet;
 
     // --- events
@@ -32,6 +32,7 @@ contract StrategySiloEth is Strategy {
         address siloTower;
         address siloToken;
         address arbToken;
+        address rewardWallet;
         address camelotRouter;
     }
 
@@ -53,6 +54,7 @@ contract StrategySiloEth is Strategy {
         siloTower = params.siloTower;
         siloToken = IERC20(params.siloToken);
         arbToken = IERC20(params.arbToken);
+        rewardWallet = params.rewardWallet;
         camelotRouter = ICamelotRouter(params.camelotRouter);
     }
 

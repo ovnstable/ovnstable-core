@@ -1,6 +1,6 @@
 const {deployProxy, deployProxyMulti} = require("@overnight-contracts/common/utils/deployProxy");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
-const {ZKSYNC, BASE, ARBITRUM} = require("@overnight-contracts/common/utils/assets");
+const {ZKSYNC, BASE, ARBITRUM, COMMON} = require("@overnight-contracts/common/utils/assets");
 
 
 module.exports = async ({deployments}) => {
@@ -26,7 +26,9 @@ async function getParams(){
         siloTower: "0x4182ad1513446861Be314c30DB27C67473541457",
         siloToken: ARBITRUM.silo,
         wethToken: ARBITRUM.weth,
-        uniswapV3Router: ARBITRUM.uniswapV3Router,
+        arbToken: ARBITRUM.arb,
+        rewardWallet: COMMON.rewardWallet,
+        camelotRouter: ARBITRUM.camelotRouter,
         oracleUsdc: ARBITRUM.oracleUsdc,
         oracleUsdt: ARBITRUM.oracleUsdt,
     }
@@ -34,4 +36,4 @@ async function getParams(){
 }
 
 module.exports.tags = ['StrategySiloUsdtWbtc'];
-module.exports.StrategySiloUsdtWbtc = getParams
+module.exports.strategySiloUsdtWbtc = getParams

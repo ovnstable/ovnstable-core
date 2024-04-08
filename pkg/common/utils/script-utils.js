@@ -270,7 +270,9 @@ async function getContract(name, network) {
     let wallet = await initWallet();
 
     try {
+        console.log(require('app-root-path').path)
         let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
+        console.log(searchPath)
         let contractJson = JSON.parse(fs.readFileSync(searchPath));
         return await ethers.getContractAt(contractJson.abi, contractJson.address, wallet);
     } catch (e) {
@@ -658,7 +660,6 @@ async function execTimelock(exec) {
 
 
     let timelock = await getContract('AgentTimelock');
-
 
     if (hre.network.name === 'localhost') {
         if (isZkSync()) {
