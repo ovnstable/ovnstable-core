@@ -28,7 +28,7 @@ async function initWallet() {
 
     let provider = ethers.provider;
 
-    if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+    if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
         // provider = new Provider("http://localhost:8011");
         wallet = new Wallet(process.env['PK']);
         wallet = (new Deployer(hre, wallet)).zkWallet;
@@ -106,14 +106,14 @@ async function settingSection(id, exec) {
             // Ethers by default connect default wallet
             // For ZkSync we should use special zkSync wallet object
             // ZkWallet by default return from initWallet()
-            if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+            if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
                 strategy = strategy.connect(await initWallet())
             }
 
             if (hre.ovn.gov) {
                 let timelock = await getContract('AgentTimelock');
 
-                if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+                if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
                     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
                 } else {
                     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -623,7 +623,7 @@ async function getPrice() {
 
 async function impersonateAccount(address) {
 
-    if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+    if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
     } else {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -660,7 +660,7 @@ async function execTimelock(exec) {
 
 
     if (hre.network.name === 'localhost') {
-        if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+        if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -727,7 +727,7 @@ async function changeWeightsAndBalance(weights) {
     console.log('M2M before:')
     await showM2M();
 
-    if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+    if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
     } else {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -817,7 +817,7 @@ async function getDevWallet() {
 
 
 async function transferETH(amount, to) {
-    if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+    if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
         let provider = new Provider("http://localhost:8011");
         let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
         console.log(`Balance [${fromE18(await provider.getBalance(wallet.address))}]:`);
@@ -991,7 +991,7 @@ async function transferAsset(assetAddress, to, amount) {
     let asset = await getERC20ByAddress(assetAddress);
 
     if (hre.network.name === 'localhost') {
-        if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+        if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
