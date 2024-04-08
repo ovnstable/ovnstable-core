@@ -119,6 +119,8 @@ let ZKSYNC = {
     maverickRouter: '0x39E098A153Ad69834a9Dac32f0FCa92066aD03f4',
     syncswapRouter: '0x2da10A1e27bF85cEdD8FFb1AbBe97e53391C0295',
     velocoreVault: '0xf5E67261CB357eDb6C7719fEFAFaaB280cB5E2A6',
+    odosRouterV2: '0x4bBa932E9792A2b917D47830C93a9BC79320E4f7',
+    pancakeNpm: '0xa815e2eD7f7d5B0c49fda367F249232a1B9D2883',
     // oracles
     pythOracleUsdc: '0x419E1428b4A6F22b860825e0B374607415636495',
     pythOracleUsdt: '0xC25cbAe9FCC39bFd46B81F2eB4c3cfb0dac4Cbe9',

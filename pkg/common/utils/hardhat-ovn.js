@@ -10,7 +10,7 @@ const {
     TASK_TEST,
 } = require('hardhat/builtin-tasks/task-names');
 const { evmCheckpoint, evmRestore } = require("./sharedBeforeEach");
-const { getNodeUrl, getBlockNumber, node_url, isZkSync } = require("./network");
+const { getNodeUrl, getBlockNumber, node_url } = require("./network");
 const { EthersProviderWrapper } = require("@nomiclabs/hardhat-ethers/internal/ethers-provider-wrapper");
 const { getChainFromNetwork } = require("./hardhat-config");
 const { fromE18 } = require("./decimals");
@@ -231,7 +231,7 @@ task(TASK_TEST, 'test')
         }
 
         if (hre.network.name === 'localhost') {
-            if (hre.ovn.stand.startsWith('zksync')) {
+            if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
             } else {
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -270,7 +270,7 @@ task('simulate', 'Simulate transaction on local node')
         let transaction = await provider.getTransaction(hash);
 
 
-        if ((args.stand || process.env.STAND).startsWith('zksync')) {
+        if ((args.stand || hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -283,12 +283,12 @@ task('simulate', 'Simulate transaction on local node')
         const fromSigner = await hre.ethers.getSigner(receipt.from);
         await transferETH(100, receipt.from, hre);
 
-        if (isZkSync()) {
+        if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
             let {
                 maxFeePerGas, maxPriorityFeePerGas
             } = await hre.ethers.provider.getFeeData();
             tx = {
-                from: fromSigner,
+                from: from,
                 to: to,
                 value: 0,
                 nonce: await hre.ethers.provider.getTransactionCount(from, "latest"),
@@ -329,7 +329,7 @@ task('simulateByData', 'Simulate transaction on local node')
 
         await evmCheckpoint('simulate', hre.network.provider);
 
-        if (isZkSync()) {
+        if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -343,7 +343,7 @@ task('simulateByData', 'Simulate transaction on local node')
         await transferETH(100, from, hre);
 
         let tx
-        if (isZkSync()) {
+        if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
             let {
                 maxFeePerGas, maxPriorityFeePerGas
             } = await hre.ethers.provider.getFeeData();
@@ -382,7 +382,7 @@ function sleep(ms) {
 
 async function transferETH(amount, to) {
 
-    if (isZkSync()) {
+    if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
         let provider = new Provider("http://localhost:8011");
         let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
         console.log(`Balance [${fromE18(await hre.ethers.provider.getBalance(wallet.address))}]:`);

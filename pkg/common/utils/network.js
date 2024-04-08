@@ -1,6 +1,7 @@
 const dotenv = require('dotenv');
 dotenv.config({path:__dirname+ '/../../../.env'});
 
+
 function node_url(networkName) {
     if (networkName) {
         const uri = process.env['ETH_NODE_URI_' + networkName.toUpperCase()];

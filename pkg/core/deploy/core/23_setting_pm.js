@@ -9,7 +9,7 @@ module.exports = async () => {
     const pm = await ethers.getContract("PortfolioManager", wallet);
     const exchange = await ethers.getContract("Exchange", wallet);
     const m2m = await ethers.getContract("Mark2Market", wallet);
-    const roleManager = await getContract("RoleManager");
+    const roleManager = await getContract("RoleManager", hre.network.name);
 
     let asset = await getCoreAsset();
 
