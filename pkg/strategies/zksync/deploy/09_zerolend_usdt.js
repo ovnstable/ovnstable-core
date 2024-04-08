@@ -16,8 +16,8 @@ module.exports = async ({ deployments }) => {
             await strategy.setParams({
                 usdt: ZKSYNC.usdt,
                 z0USDT: ZKSYNC.z0USDT,
-                pool: ZKSYNC.zerolendPoolUsdc,
-                rewardsController: ZKSYNC.zerolendPoolUsdc,
+                pool: ZKSYNC.zerolendPoolUsdt,
+                rewardsController: ZKSYNC.zerolendPoolUsdt,
                 earlyZERO: ZKSYNC.earlyZERO,
                 rewardsWallet: COMMON.rewardWallet
             })
