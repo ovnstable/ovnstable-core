@@ -30,68 +30,44 @@ async function main() {
     let StrategySiloEth = await getContract('StrategySiloEth', 'arbitrum_eth');
 
     // StrategySiloUsdc
-
-    addresses.push(StrategySiloUsdc.address);
-    values.push(0);
-    abis.push(StrategySiloUsdc.interface.encodeFunctionData('upgradeTo', ['0xFc5b6a041Fd35A6E25fe43DEDd2cc14a80D1D0c5']));
-
-    addresses.push(StrategySiloUsdc.address);
-    values.push(0);
-    abis.push(StrategySiloUsdc.interface.encodeFunctionData('setParams', [await strategySiloUsdc()]));
-
-    
-    addresses.push(StrategySiloUsdcArb.address);
-    values.push(0);
-    abis.push(StrategySiloUsdcArb.interface.encodeFunctionData('upgradeTo', ['0xFc5b6a041Fd35A6E25fe43DEDd2cc14a80D1D0c5']));
-
-    addresses.push(StrategySiloUsdcArb.address);
-    values.push(0);
-    abis.push(StrategySiloUsdcArb.interface.encodeFunctionData('setParams', [await strategySiloUsdcArb()]));
-
-
-    addresses.push(StrategySiloUsdcWbtc.address);
-    values.push(0);
-    abis.push(StrategySiloUsdcWbtc.interface.encodeFunctionData('upgradeTo', ['0xFc5b6a041Fd35A6E25fe43DEDd2cc14a80D1D0c5']));
-
-    addresses.push(StrategySiloUsdcWbtc.address);
-    values.push(0);
-    abis.push(StrategySiloUsdcWbtc.interface.encodeFunctionData('setParams', [await strategySiloUsdcWbtc()]));
+    addProposalItem(StrategySiloUsdc, "upgradeTo", ['0xFc5b6a041Fd35A6E25fe43DEDd2cc14a80D1D0c5']);
+    addProposalItem(StrategySiloUsdc, "setParams", [await strategySiloUsdc()]);
+    addProposalItem(StrategySiloUsdcArb, "upgradeTo", ['0xFc5b6a041Fd35A6E25fe43DEDd2cc14a80D1D0c5']);
+    addProposalItem(StrategySiloUsdcArb, "setParams", [await strategySiloUsdcArb()]);
+    addProposalItem(StrategySiloUsdcWbtc, "upgradeTo", ['0xFc5b6a041Fd35A6E25fe43DEDd2cc14a80D1D0c5']);
+    addProposalItem(StrategySiloUsdcWbtc, "setParams", [await strategySiloUsdcWbtc()]);
 
     // StrategySiloUsdtUsdc
-
-    addresses.push(StrategySiloUsdtArb.address);
-    values.push(0);
-    abis.push(StrategySiloUsdtArb.interface.encodeFunctionData('upgradeTo', ['0x5Ef6E22E2F058983896B5912DE004Bb1F20132f3']));
-
-    addresses.push(StrategySiloUsdtArb.address);
-    values.push(0);
-    abis.push(StrategySiloUsdtArb.interface.encodeFunctionData('setParams', [await strategySiloUsdtArb()]));
-
-
-    addresses.push(StrategySiloUsdtWbtc.address);
-    values.push(0);
-    abis.push(StrategySiloUsdtWbtc.interface.encodeFunctionData('upgradeTo', ['0x5Ef6E22E2F058983896B5912DE004Bb1F20132f3']));
-
-    addresses.push(StrategySiloUsdtWbtc.address);
-    values.push(0);
-    abis.push(StrategySiloUsdtWbtc.interface.encodeFunctionData('setParams', [await strategySiloUsdtWbtc()]));
+    addProposalItem(StrategySiloUsdtArb, "upgradeTo", ['0x5Ef6E22E2F058983896B5912DE004Bb1F20132f3']);
+    addProposalItem(StrategySiloUsdtArb, "setParams", [await strategySiloUsdtArb()]);
+    addProposalItem(StrategySiloUsdtWbtc, "upgradeTo", ['0x5Ef6E22E2F058983896B5912DE004Bb1F20132f3']);
+    addProposalItem(StrategySiloUsdtWbtc, "setParams", [await strategySiloUsdtWbtc()]);
 
     // StrategySiloEth
-
-    addresses.push(StrategySiloEth.address);
-    values.push(0);
-    abis.push(StrategySiloEth.interface.encodeFunctionData('upgradeTo', ['0x9A3C24027986582A1c3126070FeEedE1d9Bfe08B']));
-
-    addresses.push(StrategySiloEth.address);
-    values.push(0);
-    abis.push(StrategySiloEth.interface.encodeFunctionData('setParams', [await strategySiloEth()]));
+    addProposalItem(StrategySiloEth, "upgradeTo", ['0x9A3C24027986582A1c3126070FeEedE1d9Bfe08B']);
+    addProposalItem(StrategySiloEth, "setParams", [await strategySiloEth()]);
 
 
     await testProposal(addresses, values, abis);
-    // await testStrategy(filename, strategy, 'arbitrum');
+
+    // await testStrategy(filename, StrategySiloUsdc, 'arbitrum');
+    // await testStrategy(filename, StrategySiloUsdcArb, 'arbitrum');
+    // await testStrategy(filename, StrategySiloUsdcWbtc, 'arbitrum');
+    // await testStrategy(filename, StrategySiloUsdtArb, 'arbitrum_usdt');
+    // await testStrategy(filename, StrategySiloUsdtWbtc, 'arbitrum_usdt');
+    // await testStrategy(filename, StrategySiloEth, 'arbitrum_eth');
+    
+    // await testUsdPlus(filename, 'arbitrum');
+    // await testUsdPlus(filename, 'arbitrum_usdt');
     // await testUsdPlus(filename, 'arbitrum_eth');
 
     // await createProposal(filename, addresses, values, abis);
+
+    function addProposalItem(contract, methodName, params) {
+        addresses.push(contract.address);
+        values.push(0);
+        abis.push(contract.interface.encodeFunctionData(methodName, params));
+    }
 }
 
 main()

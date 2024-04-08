@@ -658,27 +658,21 @@ async function execTimelock(exec) {
 
 
     let timelock = await getContract('AgentTimelock');
-    console.log(hre.network.name)
     if (hre.network.name === 'localhost') {
         if (isZkSync()) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
-            console.log(123)
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
         }
     }
-    console.log(1)
 
     await sleep(1000);
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [timelock.address],
     });
-    console.log(2)
 
-
-    await checkTimeLockBalance();
-    console.log(3)
+    await checkTimeLockBalance(); 
 
     const timelockAccount = await hre.ethers.getSigner(timelock.address);
 
@@ -783,8 +777,6 @@ async function checkTimeLockBalance() {
     console.log(timelock.address)
 
     const balance = await hre.ethers.provider.getBalance(timelock.address);
-
-    console.log('balance ', balance)
 
     if (new BN(balance.toString()).lt(new BN("10000000000000000000"))) {
         await transferETH(10, timelock.address);
