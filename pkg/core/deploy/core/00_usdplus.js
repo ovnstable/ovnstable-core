@@ -9,23 +9,19 @@ module.exports = async ({ deployments }) => {
     let params;
     switch (hre.ovn.stand || process.env.STAND) {
         case "optimism_dai":
+        case "arbitrum_dai":
+        case "base_dai":
             params = { args: ["DAI+", "DAI+", 18] };
             break;
-        case "arbitrum_dai":
-            params = { args: ["DAI+", "DAI+", 18] };
         case "arbitrum_eth":
             params = { args: ["ETH+", "ETH+", 18] };
             break;
         case "bsc_usdt":
             params = { args: ["USDT+", "USDT+", 18] };
             break;
-        case "base_dai":
-            params = { args: ["DAI+", "DAI+", 18] };
-            break;
         case "linea_usdt":
-            params = { args: ["USDT+", "USDT+", 6] };
-            break;
         case "arbitrum_usdt":
+        case "zksync_usdt":
             params = { args: ["USDT+", "USDT+", 6] };
             break;
         case "base_usdc":
@@ -36,9 +32,6 @@ module.exports = async ({ deployments }) => {
             break;
         case "blast_usdc":
             params = { args: ["USDC+", "USDC+", 18] };
-            break;
-        case "zksync_usdt":
-            params = { args: ["USDT+", "USDT+", 6] };
             break;
         default:
             params = { args: ["USD+", "USD+", 6] };
