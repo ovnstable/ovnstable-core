@@ -140,6 +140,15 @@ function getNetworks() {
             zksync: true,
         },
 
+        zksync_usdt: {
+            url: node_url('zksync'),
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: "auto",
+            ethNetwork: "mainnet",
+            zksync: true,
+        },
+
         optimism: {
             url: node_url('optimism'),
             accounts: accountsNetwork,
