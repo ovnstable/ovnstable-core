@@ -57,6 +57,7 @@ contract StrategySiloUsdc is Strategy {
         siloToken = IERC20(params.siloToken);
         arbToken = IERC20(params.arbToken);
         wethToken = IERC20(params.wethToken);
+        rewardWallet = params.rewardWallet;
         camelotRouter = ICamelotRouter(params.camelotRouter);
     }
 
