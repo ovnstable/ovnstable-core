@@ -19,9 +19,9 @@ async function main() {
     addProposal(pm.address, 0, pm.interface.encodeFunctionData('addStrategy', [strategy.address]));
 
     addProposal(pm.address, 0, pm.interface.encodeFunctionData('setCashStrategy', [strategy.address]));
-    // await testProposal(addresses, values, abis);
+    await testProposal(addresses, values, abis);
     await testUsdPlus(filename, "zksync_usdt");
-    // await testStrategy(filename, strategy, 'zksync');
+    await testStrategy(filename, strategy, 'zksync');
     // await createProposal(filename, addresses, values, abis);
 
     function addProposal(address, value, abi) {
