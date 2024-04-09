@@ -55,7 +55,7 @@ async function main() {
   addProposalItem(StrategySiloEth, 'upgradeTo', ['0xf6152518eCfaAE08D2034fa7F57cA8290Df5449d'])
   addProposalItem(StrategySiloEth, 'setParams', [await strategySiloEth()])
 
-  await testProposal(addresses, values, abis)
+  //   await testProposal(addresses, values, abis)
 
   //   await testStrategy(filename, StrategySiloUsdc, 'arbitrum')
   //   await testStrategy(filename, StrategySiloUsdcArb, 'arbitrum')
@@ -69,7 +69,7 @@ async function main() {
   // await testUsdPlus(filename, 'arbitrum_usdt');
   // await testUsdPlus(filename, 'arbitrum_eth');
 
-  // await createProposal(filename, addresses, values, abis);
+  await createProposal(filename, addresses, values, abis)
 
   function addProposalItem(contract, methodName, params) {
     addresses.push(contract.address)
