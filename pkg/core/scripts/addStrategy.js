@@ -7,13 +7,13 @@ async function main() {
 
     // await showM2M();
 
-    let pm = await getContract('PortfolioManager', 'zksync');
-    let strategy = await getContract('StrategyZerolend', 'localhost');
+    let pm = await getContract('PortfolioManager');
+    let strategy = await getContract('StrategyZerolendUsdt');
 
     await (await pm.addStrategy(strategy.address, {gasPrice: 100_000_000, gasLimit: 50_000_000})).wait();
     console.log("Strategy added");
     
-    await (await pm.setCashStrategy(strategy.address, await getPrice())).wait();
+    await (await pm.setCashStrategy(strategy.address, {gasPrice: 100_000_000, gasLimit: 50_000_000})).wait();
     console.log("Cash strategy set");
 
 

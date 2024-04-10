@@ -24,7 +24,9 @@ module.exports = async ({deployments}) => {
         console.log('setRoleManager done()');
 
         let exchangeUsdPlus = await getContract('Exchange', 'zksync');
+        let exchangeUsdtPlus = await getContract('Exchange', 'zksync_usdt');
         await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeUsdPlus.address)).wait();
+        await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeUsdtPlus.address)).wait();
         console.log('EXCHANGER role done()');
     } 
 

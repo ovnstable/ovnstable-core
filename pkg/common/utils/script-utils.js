@@ -9,8 +9,7 @@ const BN = require('bn.js');
 const { fromAsset, toAsset, fromUsdPlus } = require("./decimals");
 const { Wallet, Provider } = require("zksync-web3");
 const { Deployer } = require("@matterlabs/hardhat-zksync-deploy");
-const { BigNumber } = require("ethers");
-const { isZkSync } = require("./network");
+const { BigNumber } = require("ethers"); 
 const { updateFeeData } = require("./hardhat-ovn");
 
 let ethers = require('hardhat').ethers;
@@ -29,7 +28,7 @@ async function initWallet() {
 
     let provider = ethers.provider;
 
-    if (process.env.STAND === 'zksync') {
+    if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
         // provider = new Provider("http://localhost:8011");
         wallet = new Wallet(process.env['PK']);
         wallet = (new Deployer(hre, wallet)).zkWallet;
@@ -107,14 +106,14 @@ async function settingSection(id, exec) {
             // Ethers by default connect default wallet
             // For ZkSync we should use special zkSync wallet object
             // ZkWallet by default return from initWallet()
-            if (isZkSync()) {
+            if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
                 strategy = strategy.connect(await initWallet())
             }
 
             if (hre.ovn.gov) {
                 let timelock = await getContract('AgentTimelock');
 
-                if (isZkSync()) {
+                if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
                     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
                 } else {
                     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -397,6 +396,7 @@ async function getCoreAsset(stand = process.env.STAND) {
     } else if (stand === 'arbitrum_usdt'
         || stand === 'bsc_usdt'
         || stand === 'linea_usdt'
+        || stand === 'zksync_usdt'
     ) {
         return await getERC20('usdt');
 
@@ -618,7 +618,7 @@ async function getPrice() {
 
 async function impersonateAccount(address) {
 
-    if (isZkSync()) {
+    if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
     } else {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -655,7 +655,7 @@ async function execTimelock(exec) {
 
 
     if (hre.network.name === 'localhost') {
-        if (isZkSync()) {
+        if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -722,7 +722,7 @@ async function changeWeightsAndBalance(weights) {
     console.log('M2M before:')
     await showM2M();
 
-    if (isZkSync()) {
+    if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
     } else {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -812,7 +812,7 @@ async function getDevWallet() {
 
 
 async function transferETH(amount, to) {
-    if (isZkSync()) {
+    if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
         let provider = new Provider("http://localhost:8011");
         let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
         console.log(`Balance [${fromE18(await provider.getBalance(wallet.address))}]:`);
@@ -963,6 +963,9 @@ async function transferAsset(assetAddress, to, amount) {
                 case ZKSYNC.usdc:
                     from = "0x6b6314f4f07c974600d872182dcDE092C480e57b";
                     break;
+                case ZKSYNC.usdt:
+                    from = "0x7FcBd9d429932A11884Cb5CE9c61055b369F56F7";
+                    break;
                 case ZKSYNC.weth:
                     from = "0x6b6314f4f07c974600d872182dcDE092C480e57b";
                     break;
@@ -986,7 +989,7 @@ async function transferAsset(assetAddress, to, amount) {
     let asset = await getERC20ByAddress(assetAddress);
 
     if (hre.network.name === 'localhost') {
-        if (isZkSync()) {
+        if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')

@@ -73,10 +73,12 @@ async function main() {
         console.log("usdtPlusBsc", usdtPlusBsc.address, await getImplementationAddress(ethers.provider, usdtPlusBsc.address));
     }
 
-    if (hre.network.name === 'zksync') {
+    if ((hre.network.name || process.env.STAND).startsWith('zksync')) {
         let usdPlusZksync = await getContract('UsdPlusToken', 'zksync');
+        let usdtPlusZksync = await getContract('UsdPlusToken', 'localhost');
         console.log("Zksync");
         console.log("usdPlusZksync", usdPlusZksync.address, await getImplementationAddress(ethers.provider, usdPlusZksync.address));
+        console.log("usdtPlusZksync", usdtPlusZksync.address, await getImplementationAddress(ethers.provider, usdPlusZksync.address));
     }
 
     if (hre.network.name === 'polygon') {
