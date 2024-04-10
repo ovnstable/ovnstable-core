@@ -1,5 +1,5 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const {BLAST} = require('@overnight-contracts/common/utils/assets');
+const {BLAST, COMMON} = require('@overnight-contracts/common/utils/assets');
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 
 
@@ -18,7 +18,8 @@ module.exports = async ({deployments}) => {
                 pool: BLAST.zerolendPoolUsdb,
                 rewardsController: BLAST.zerolandRewardsController,
                 earlyZERO: BLAST.earlyZERO,
-                zBLAST: BLAST.zBLAST
+                zBLAST: BLAST.zBLAST,
+                rewardsWallet: COMMON.rewardWallet
             }
         )).wait();
     });
