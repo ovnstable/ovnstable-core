@@ -7,7 +7,7 @@ const {
     showM2M
 } = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
-const {POLYGON} = require("@overnight-contracts/common/utils/assets");
+const {ZKSYNC} = require("@overnight-contracts/common/utils/assets");
 
 async function main() {
 

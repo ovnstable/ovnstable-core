@@ -13,9 +13,6 @@ async function main() {
     let values = [];
     let abis = [];
 
-    console.log('Cash strategy', await pm.cashStrategy())
-    console.log('PM', await strategy.portfolioManager())
-
     addProposal(pm.address, 0, pm.interface.encodeFunctionData('addStrategy', [strategy.address]));
 
     addProposal(pm.address, 0, pm.interface.encodeFunctionData('setCashStrategy', [strategy.address]));
