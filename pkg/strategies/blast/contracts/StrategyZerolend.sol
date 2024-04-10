@@ -63,6 +63,7 @@ contract StrategyZerolend is Strategy {
         earlyZERO = IERC20(params.earlyZERO);
         zBLAST = IERC20(params.zBLAST);
         rewardsWallet = params.rewardsWallet;
+
         emit StrategyUpdatedParams();
     }
 

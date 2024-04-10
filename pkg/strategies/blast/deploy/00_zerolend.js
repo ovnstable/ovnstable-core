@@ -1,10 +1,11 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {BLAST, COMMON} = require('@overnight-contracts/common/utils/assets');
-const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
+const {deploySection, settingSection, transferETH, getWalletAddress, getPrice} = require("@overnight-contracts/common/utils/script-utils");
 
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
+
 
     await deploySection(async (name) => {
         await deployProxy(name, deployments, save);
@@ -20,7 +21,7 @@ module.exports = async ({deployments}) => {
                 earlyZERO: BLAST.earlyZERO,
                 zBLAST: BLAST.zBLAST,
                 rewardsWallet: COMMON.rewardWallet
-            }
+            } 
         )).wait();
     });
 
