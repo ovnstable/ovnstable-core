@@ -35,9 +35,9 @@ async function main() {
 
 
     let names = [
-        'StrategyZerolendUsdt',/* 
+        'StrategyZerolend',
         'StrategyMendiUsdc',
-        'StrategyUsdc' */
+        'StrategyUsdc'
     ]
 
     await showRules(names);
