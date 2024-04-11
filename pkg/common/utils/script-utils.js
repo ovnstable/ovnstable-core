@@ -773,8 +773,7 @@ async function changeWeightsAndBalance(weights) {
 
 async function checkTimeLockBalance() {
 
-    let timelock = await getContract('AgentTimelock');
-    console.log(timelock.address)
+    let timelock = await getContract('AgentTimelock');  
 
     const balance = await hre.ethers.provider.getBalance(timelock.address);
 

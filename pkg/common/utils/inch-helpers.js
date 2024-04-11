@@ -11,8 +11,6 @@ async function inchSwapperUpdatePath(token0, token1, amountToken0, stand = proce
     let inchSwapper = await getContract('InchSwapper', stand);
     let roleManager = await getContract('RoleManager', stand);
 
-    console.log(roleManager.address)
-
     let inchDataForSwapResponse0 = await getDataForSwap(
         await getChainId(),
         await getWalletAddress(),
