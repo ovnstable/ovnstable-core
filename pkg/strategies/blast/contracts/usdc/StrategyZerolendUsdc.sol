@@ -34,7 +34,6 @@ contract StrategyZerolendUsdc is Strategy {
         address pool;
         address rewardsController;
         address earlyZERO;
-        address zBLAST;
         address rewardsWallet;
     }
 
@@ -60,7 +59,6 @@ contract StrategyZerolendUsdc is Strategy {
         pool = IPool(params.pool);
         rewardsController = IRewardsController(params.rewardsController);
         earlyZERO = IERC20(params.earlyZERO);
-        zBLAST = IERC20(params.zBLAST);
         rewardsWallet = params.rewardsWallet;
         emit StrategyUpdatedParams();
     }

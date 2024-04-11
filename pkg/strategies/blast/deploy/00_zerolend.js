@@ -19,7 +19,6 @@ module.exports = async ({deployments}) => {
                 pool: BLAST.zerolendPoolUsdb,
                 rewardsController: BLAST.zerolandRewardsController,
                 earlyZERO: BLAST.earlyZERO,
-                zBLAST: BLAST.zBLAST,
                 rewardsWallet: COMMON.rewardWallet
             } 
         )).wait();
