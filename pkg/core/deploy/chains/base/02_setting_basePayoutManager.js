@@ -47,8 +47,8 @@ module.exports = async () => {
         items.push(createSkimToWithFee('0x164Bc404c64FA426882D98dBcE9B10d5df656EeD', usdPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0x164Bc404c64FA426882D98dBcE9B10d5df656EeD', daiPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0x282f9231E5294E7354744df36461c21e0E68061C', usdPlus.address, 'USD+/USDbC', dex, to, 20, COMMON.rewardWallet));
-        items.push(createSkimToWithFee('0xaaa3b1F1bd7BCc97fD1917c18ADE665C5D31F066', usdPlus.address, 'USDC+/USD+', dex, to, 20, COMMON.rewardWallet));
-        items.push(createSkimToWithFee('0xaaa3b1F1bd7BCc97fD1917c18ADE665C5D31F066', usdcPlus.address, 'USDC+/USD+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0xc3cb7E40b78427078E2cb0c5dA0BF7A0650F89f8', usdPlus.address, 'USDC+/USD+', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0xc3cb7E40b78427078E2cb0c5dA0BF7A0650F89f8', usdcPlus.address, 'USDC+/USD+', dex, to, 20, COMMON.rewardWallet));
         return items;
     }
 
