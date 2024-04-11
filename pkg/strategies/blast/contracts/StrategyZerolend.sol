@@ -19,6 +19,9 @@ contract StrategyZerolend is Strategy {
 
     IERC20 public earlyZERO;
     IERC20 public zBLAST;
+ 
+    address public rewardsWallet;
+
 
     // --- events
     event StrategyUpdatedParams();
@@ -32,7 +35,7 @@ contract StrategyZerolend is Strategy {
         address pool;
         address rewardsController;
         address earlyZERO;
-        address zBLAST;
+        address rewardsWallet;
     }
 
 
@@ -57,7 +60,7 @@ contract StrategyZerolend is Strategy {
         pool = IPool(params.pool);
         rewardsController = IRewardsController(params.rewardsController);
         earlyZERO = IERC20(params.earlyZERO);
-        zBLAST = IERC20(params.zBLAST);
+        rewardsWallet = params.rewardsWallet;
 
         emit StrategyUpdatedParams();
     }
@@ -129,7 +132,8 @@ contract StrategyZerolend is Strategy {
         address[] memory assets = new address[](1);
         assets[0] = address(z0USDB);
         uint256 claimedBalance = rewardsController.claimRewards(assets, type(uint256).max, address(this), address(earlyZERO));
-
+        uint256 rewardsBalance = earlyZERO.balanceOf(address(this));
+        if (rewardsWallet != ZERO_ADDRESS && rewardsBalance > 0) earlyZERO.transfer(rewardsWallet, rewardsBalance);
         return 0;
     }
 

@@ -45,7 +45,7 @@ function getNetworks() {
             timeout: timeout,
             accounts: accountsNetwork,
             zksync: true,
-            ethNetwork: "http://localhost:8545",
+            ethNetwork: "localhost",
         }
     }else {
         localhost = {
@@ -132,6 +132,15 @@ function getNetworks() {
         },
 
         zksync: {
+            url: node_url('zksync'),
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: "auto",
+            ethNetwork: "mainnet",
+            zksync: true,
+        },
+
+        zksync_usdt: {
             url: node_url('zksync'),
             accounts: accountsNetwork,
             timeout: timeout,

@@ -35,7 +35,7 @@ async function main() {
 
 
     let names = [
-        'StrategyEtsAlpha',
+        'StrategyZerolend',
         'StrategyMendiUsdc',
         'StrategyUsdc'
     ]

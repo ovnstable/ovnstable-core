@@ -206,7 +206,7 @@ async function testUsdPlus(id, stand = process.env.STAND) {
                 await (await roleManager.connect(timelock).grantRole(Roles.PORTFOLIO_AGENT_ROLE, timelock.address, await getPrice())).wait();
                 await (await roleManager.connect(timelock).grantRole(Roles.UNIT_ROLE, timelock.address, await getPrice())).wait();
                 await (await exchange.connect(timelock).setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60, await getPrice())).wait();
-                await (await exchange.payout(false, await getEmptyOdosData(), await getPrice())).wait();
+                await (await exchange.connect(timelock).payout(false, await getEmptyOdosData(), await getPrice())).wait();
             });
         }, 'exchange.payout'),
     );
@@ -290,7 +290,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
             await execTimelock(async timelock => {
                 await getTestAssets(walletAddress, stand);
                 let amount = toAsset(10_0, stand);
-                await asset.transfer(strategy.address, amount, await getPrice());
+                await asset.transfer(strategy.address, amount);
                 await strategy.connect(timelock).stake(asset.address, amount, await getPrice());
             });
         }, 'strategy.stake'),
@@ -343,7 +343,7 @@ async function testProposal(addresses, values, abis) {
             };
 
             console.log(`Transaction: index: [${i}] address: [${address}]`);
-            await (await timelock.sendTransaction(tx)).wait();
+            await (await timelock.sendTransaction(tx, await getPrice())).wait();
         }
     });
 }
