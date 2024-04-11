@@ -1,0 +1,88 @@
+{
+  "address": "0x6d46725D9ac2499DCD336Fd9E38B8c94A89fA6b2",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "contract IWrappedUsdPlusToken",
+          "name": "_wUsdPlus",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "getRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "wUsdPlus",
+      "outputs": [
+        {
+          "internalType": "contract IWrappedUsdPlusToken",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xd40a268fae46bd1d9500213bd21729be0badc3945cd836869107a4a41aa02c1d",
+  "receipt": {
+    "to": null,
+    "from": "0x05129E3CE8C566dE564203B0fd85111bBD84C424",
+    "contractAddress": "0x6d46725D9ac2499DCD336Fd9E38B8c94A89fA6b2",
+    "transactionIndex": 7,
+    "gasUsed": "136936",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x4d4207b651985aea3735bdaab56cb333e18c041ad07d6fe90b762f0349b317f3",
+    "transactionHash": "0xd40a268fae46bd1d9500213bd21729be0badc3945cd836869107a4a41aa02c1d",
+    "logs": [],
+    "blockNumber": 3601328,
+    "cumulativeGasUsed": "1282172",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x65D97BdFD4c1076cD1F95Cbe3B56954277d0956F"
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "b8c39e3ba5b553ecabe93d25d54e068b",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"contract IWrappedUsdPlusToken\",\"name\":\"_wUsdPlus\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"getRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"wUsdPlus\",\"outputs\":[{\"internalType\":\"contract IWrappedUsdPlusToken\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"getRate()\":{\"returns\":{\"_0\":\"the value of wUSD+ in terms of USD+\"}}},\"title\":\"Wrapped wUSD+ Rate Provider\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"notice\":\"Returns the value of wUSD+ in terms of USD+\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/WrappedUsdPlusRateProvider.sol\":\"WrappedUsdPlusRateProvider\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v4.9.0) (token/ERC20/IERC20.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20Upgradeable {\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `to`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address to, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `from` to `to` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(address from, address to, uint256 amount) external returns (bool);\\n}\\n\",\"keccak256\":\"0x0e1f0f5f62f67a881cd1a9597acbc0a5e4071f3c2c10449a183b922ae7272e3f\",\"license\":\"MIT\"},\"contracts/WrappedUsdPlusRateProvider.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.0;\\n\\nimport \\\"./interfaces/IRateProvider.sol\\\";\\nimport \\\"./interfaces/IWrappedUsdPlusToken.sol\\\";\\n\\n/**\\n * @title Wrapped wUSD+ Rate Provider\\n * @notice Returns the value of wUSD+ in terms of USD+\\n */\\n\\ncontract WrappedUsdPlusRateProvider is IRateProvider{\\n\\n    IWrappedUsdPlusToken public immutable wUsdPlus;\\n\\n    constructor(IWrappedUsdPlusToken _wUsdPlus) {\\n        wUsdPlus = _wUsdPlus;\\n    }\\n\\n    /**\\n     * @return the value of wUSD+ in terms of USD+\\n     */\\n\\n    function getRate() external view override returns (uint256) {\\n        return wUsdPlus.convertToAssets(1e18);\\n    }\\n}\\n\",\"keccak256\":\"0xc4147d50ee2fb7a3de6126f4248f628d525ca0698f0a081266f9f20206267d04\",\"license\":\"UNLICENSED\"},\"contracts/interfaces/IERC4626.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.5.0 <0.9.0;\\n\\ninterface IERC4626 {\\n\\n    /**\\n     * @dev `caller` has exchanged `assets` for `shares`, and transferred those `shares` to `owner`.\\n     */\\n    event Deposit(\\n        address indexed caller,\\n        address indexed owner,\\n        uint256 assets,\\n        uint256 shares\\n    );\\n\\n    /**\\n     * @dev `caller` has exchanged `shares`, owned by `owner`, for `assets`, and transferred those `assets` to\\n     * `receiver`.\\n     */\\n    event Withdraw(\\n        address indexed caller,\\n        address indexed receiver,\\n        address indexed owner,\\n        uint256 assets,\\n        uint256 shares\\n    );\\n\\n    /**\\n     * @dev Total amount of the underlying asset that is \\u201cmanaged\\u201d by Vault\\n     **/\\n    function totalAssets() external view returns (uint256);\\n\\n    /**\\n     * @dev The amount of shares that the Vault would exchange for the amount of assets provided,\\n     * in an ideal scenario where all the conditions are met.\\n     */\\n    function convertToShares(uint256 assets) external view returns (uint256);\\n\\n    /**\\n     * @dev The amount of assets that the Vault would exchange for the amount of shares provided,\\n     * in an ideal scenario where all the conditions are met.\\n     */\\n    function convertToAssets(uint256 shares) external view returns (uint256);\\n\\n    /**\\n     * @dev Maximum amount of the underlying asset that can be deposited into the Vault for the receiver,\\n     * through a deposit call.\\n     */\\n    function maxDeposit(address receiver) external view returns (uint256);\\n\\n    /**\\n     * @dev Allows an on-chain or off-chain user to simulate the effects of their deposit at the current block,\\n     * given current on-chain conditions.\\n     */\\n    function previewDeposit(uint256 assets) external view returns (uint256);\\n\\n    /**\\n     * @dev Mints `shares` Vault shares to `receiver` by depositing exactly `amount` of underlying tokens.\\n     */\\n    function deposit(uint256 assets, address receiver) external returns (uint256);\\n\\n    /**\\n     * @dev Maximum amount of shares that can be minted from the Vault for the receiver, through a mint call.\\n     */\\n    function maxMint(address receiver) external view returns (uint256);\\n\\n    /**\\n     * @dev Allows an on-chain or off-chain user to simulate the effects of their mint at the current block,\\n     * given current on-chain conditions.\\n     */\\n    function previewMint(uint256 shares) external view returns (uint256);\\n\\n    /**\\n     * @dev Mints exactly shares Vault shares to receiver by depositing amount of underlying tokens.\\n     */\\n    function mint(uint256 shares, address receiver) external returns (uint256);\\n\\n    /**\\n     * @dev Maximum amount of the underlying asset that can be withdrawn from the owner balance in the Vault,\\n     * through a withdraw call.\\n     */\\n    function maxWithdraw(address owner) external view returns (uint256);\\n\\n    /**\\n     * @dev Allows an on-chain or off-chain user to simulate the effects of their withdrawal at the current block,\\n     * given current on-chain conditions.\\n     */\\n    function previewWithdraw(uint256 assets) external view returns (uint256);\\n\\n    /**\\n     * @dev Burns shares from owner and sends exactly assets of underlying tokens to receiver.\\n     */\\n    function withdraw(uint256 assets, address receiver, address owner) external returns (uint256);\\n\\n    /**\\n     * @dev Maximum amount of Vault shares that can be redeemed from the owner balance in the Vault,\\n     * through a redeem call.\\n     */\\n    function maxRedeem(address owner) external view returns (uint256);\\n\\n    /**\\n     * @dev Allows an on-chain or off-chain user to simulate the effects of their redeemption at the current block,\\n     * given current on-chain conditions.\\n     */\\n    function previewRedeem(uint256 shares) external view returns (uint256);\\n\\n    /**\\n     * @dev Burns exactly shares from owner and sends assets of underlying tokens to receiver.\\n     */\\n    function redeem(uint256 shares, address receiver, address owner) external returns (uint256);\\n\\n}\\n\",\"keccak256\":\"0xed40e1788c375c007b47893dca3badcafdb0492209bfc087e250e14c3e17d459\",\"license\":\"MIT\"},\"contracts/interfaces/IRateProvider.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.0;\\n\\ninterface IRateProvider {\\n    function getRate() external view returns (uint256);\\n}\\n\",\"keccak256\":\"0x5a6893d6b0a752d38dfbd3a9bd3e39c599ee0619358a8e5a243f495fddb7913b\",\"license\":\"UNLICENSED\"},\"contracts/interfaces/IWrappedUsdPlusToken.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.5.0 <0.9.0;\\n\\nimport \\\"@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol\\\";\\nimport \\\"./IERC4626.sol\\\";\\n\\ninterface IWrappedUsdPlusToken is IERC20Upgradeable, IERC4626 {\\n\\n    /**\\n     * @dev Returns UsdPlusToken liquidity index in e27 (ray)\\n     * @return rate Rate between WrappedUsdPlusToken and UsdPlusToken in e27 (ray)\\n     **/\\n    function rate() external view returns (uint256);\\n\\n    function asset() external view returns(address);\\n}\\n\",\"keccak256\":\"0x7c98c493be88639f53970934831297e9b18b35cdbb78f9bb41ec38b2d0e2972e\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60a060405234801561001057600080fd5b5060405161020c38038061020c83398101604081905261002f91610040565b6001600160a01b0316608052610070565b60006020828403121561005257600080fd5b81516001600160a01b038116811461006957600080fd5b9392505050565b60805161017c61009060003960008181605b015260b5015261017c6000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c8063679aefce1461003b578063ad3be62c14610056575b600080fd5b610043610095565b6040519081526020015b60405180910390f35b61007d7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b03909116815260200161004d565b6040516303d1689d60e11b8152670de0b6b3a764000060048201526000907f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316906307a2d13a90602401602060405180830381865afa158015610104573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610128919061012d565b905090565b60006020828403121561013f57600080fd5b505191905056fea26469706673582212209cbd555f549f61af0ab95b85da0903ed29bd6733732d91a2a3f63e5b82de8ec764736f6c63430008110033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100365760003560e01c8063679aefce1461003b578063ad3be62c14610056575b600080fd5b610043610095565b6040519081526020015b60405180910390f35b61007d7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b03909116815260200161004d565b6040516303d1689d60e11b8152670de0b6b3a764000060048201526000907f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316906307a2d13a90602401602060405180830381865afa158015610104573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610128919061012d565b905090565b60006020828403121561013f57600080fd5b505191905056fea26469706673582212209cbd555f549f61af0ab95b85da0903ed29bd6733732d91a2a3f63e5b82de8ec764736f6c63430008110033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "getRate()": {
+        "returns": {
+          "_0": "the value of wUSD+ in terms of USD+"
+        }
+      }
+    },
+    "title": "Wrapped wUSD+ Rate Provider",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "notice": "Returns the value of wUSD+ in terms of USD+",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}

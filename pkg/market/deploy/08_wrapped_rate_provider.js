@@ -8,7 +8,7 @@ module.exports = async ({deployments, getNamedAccounts}) => {
     const {deployer} = await getNamedAccounts();
     const {deploy} = deployments;
 
-    let wrappedUsdPus = await getContract('WrappedUsdPlusToken', 'localhost');
+    let wrappedUsdPus = await getContract('WrappedUsdPlusToken');
 
     let rateProvider = await deploy('WrappedUsdPlusRateProvider', {
         from: deployer,

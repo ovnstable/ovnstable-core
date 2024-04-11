@@ -3,10 +3,10 @@ const { ethers } = require("hardhat");
 
 module.exports = async ({getNamedAccounts, deployments}) => {
 
-    const market = await getContract("Market", 'localhost');
+    const market = await getContract("Market");
     const exchange = await getContract("Exchange");
-    const usdPlusToken = await getContract("UsdPlusToken", 'localhost');
-    const wrappedUsdPlusToken = await getContract("WrappedUsdPlusToken", 'localhost'); 
+    const usdPlusToken = await getContract("UsdPlusToken");
+    const wrappedUsdPlusToken = await getContract("WrappedUsdPlusToken"); 
 
      let asset = await exchange.usdc();
     await (await market.setTokens(asset, usdPlusToken.address, wrappedUsdPlusToken.address)).wait();
