@@ -653,8 +653,6 @@ async function execTimelock(exec) {
 
 
     let timelock = await getContract('AgentTimelock');
-
-
     if (hre.network.name === 'localhost') {
         if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
@@ -669,7 +667,7 @@ async function execTimelock(exec) {
         params: [timelock.address],
     });
 
-    await checkTimeLockBalance();
+    await checkTimeLockBalance(); 
 
     const timelockAccount = await hre.ethers.getSigner(timelock.address);
 
@@ -770,7 +768,7 @@ async function changeWeightsAndBalance(weights) {
 
 async function checkTimeLockBalance() {
 
-    let timelock = await getContract('AgentTimelock');
+    let timelock = await getContract('AgentTimelock');  
 
     const balance = await hre.ethers.provider.getBalance(timelock.address);
 
