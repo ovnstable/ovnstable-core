@@ -37,6 +37,13 @@ module.exports = async ({deployments}) => {
         console.log(`wrapped.setRoleManager(${roleManager.address}) done()`);
     }
 
+    if (hre.ovn.verify){
+        await hre.run("verify:verify", {
+            address: wrappedUsdPlusToken.address,
+            constructorArguments: params.args,
+        });
+    }
+
     console.log('WrappedUsdPlusToken deploy done()');
     console.log('Symbol:      ' + await wrappedUsdPlusToken.symbol());
     console.log('Name:        ' + await wrappedUsdPlusToken.name());

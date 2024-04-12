@@ -56,24 +56,24 @@ async function main() {
         odosParams = getEmptyOdosData();
     }
 
-
+    let gasLimit 
     try {
         if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
-            await exchange.estimateGas.payout(false, odosParams);
+            gasLimit = await exchange.estimateGas.payout(false, odosParams);
         } else {
-            await exchange.estimateGas.payout();
+            gasLimit = await exchange.estimateGas.payout();
         }
         console.log("Test success");
     } catch (e) {
         console.log(e)
         return;
     }
-
+    gasLimit = gasLimit.mul(120).div(100)
     let tx;
     if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
-        tx = await (await exchange.payout(false, odosParams  )).wait();
+        tx = await (await exchange.payout(false, odosParams, {gasLimit}  )).wait();
     } else {
-        tx = await (await exchange.payout(await getPrice())).wait();
+        tx = await (await exchange.payout({...(await getPrice(), gasLimit)})).wait();
     }
     console.log("Payout success");
 
