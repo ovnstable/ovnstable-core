@@ -315,7 +315,11 @@ function getEtherScan(){
                 urls: {
                     apiURL: "https://api.lineascan.build/api",
                     browserURL: "https://lineascan.build"
-                }
+                },
+                hardfork: "dencun",
+                hardforkHistory: { 
+                    "dencun": 3010846
+                  },
             },
             {
                 network: "linea_usdt",
