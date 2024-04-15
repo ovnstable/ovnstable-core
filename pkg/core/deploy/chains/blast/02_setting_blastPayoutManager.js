@@ -8,11 +8,12 @@ module.exports = async () => {
     const payoutManager = await getContract("BlastPayoutManager", "blast");
     const usdPlus = await getContract("UsdPlusToken", "blast");
     const usdcPlus = await getContract("UsdPlusToken", "blast_usdc");
-
+ 
     let items = [];
 
     items.push(...swapBlast());
-    items.push(...thruster());
+    items.push(...thruster());  
+    items.push(...ambient());
     await (await payoutManager.addItems(items)).wait();
 
     console.log("BlastPayoutManager setting done");
@@ -41,6 +42,18 @@ module.exports = async () => {
         return items;
                 
     }
+
+    function ambient() {
+
+        let dex = "Ambient";
+        let to = "0xc73C8C60ea7d7f4338F9A8542927F4F1471e36ed";
+        let fee = 20;
+        items.push(createSkimToWithFee('0xaAaaaAAAFfe404EE9433EEf0094b6382D81fb958', usdPlus.address, 'USD+', dex, to, fee, COMMON.rewardWallet));
+        return items;
+                
+    }
+ 
+    
 };
 
 module.exports.tags = ["SettingBlastPayoutManager"];
