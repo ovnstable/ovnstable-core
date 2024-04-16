@@ -13,7 +13,8 @@ module.exports = async () => {
 
     items.push(...swapBlast());
     items.push(...thruster());  
-    items.push(...ambient());
+    items.push(...ambient());  
+    items.push(...bladeswap());
     await (await payoutManager.addItems(items)).wait();
 
     console.log("BlastPayoutManager setting done");
@@ -49,6 +50,15 @@ module.exports = async () => {
         let to = "0xc73C8C60ea7d7f4338F9A8542927F4F1471e36ed";
         let fee = 20;
         items.push(createSkimToWithFee('0xaAaaaAAAFfe404EE9433EEf0094b6382D81fb958', usdPlus.address, 'USD+', dex, to, fee, COMMON.rewardWallet));
+        return items;
+                
+    }
+
+    function bladeswap() {
+
+        let dex = "BladeSwap";
+        items.push(createSkim('0x0beEdE4DD53e281d110020185f1EB59D2F5Ce3f4', usdPlus.address, 'ETH/USD+', dex));
+        items.push(createSkim('0xCF4A1d04b19855484e5Ab28740905db277E96953', usdPlus.address, 'USDB/USD+', dex));
         return items;
                 
     }
