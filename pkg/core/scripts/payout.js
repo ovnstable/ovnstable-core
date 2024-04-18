@@ -68,12 +68,12 @@ async function main() {
         console.log(e)
         return;
     }
-    gasLimit = gasLimit.mul(120).div(100)
+    gasLimit = gasLimit.mul(150).div(100)
     let tx;
     if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
-        tx = await (await exchange.payout(false, odosParams, {gasLimit}  )).wait();
+        tx = await (await exchange.payout(false, odosParams, {...(await getPrice()), gasLimit}  )).wait();
     } else {
-        tx = await (await exchange.payout({...(await getPrice(), gasLimit)})).wait();
+        tx = await (await exchange.payout({...(await getPrice()), gasLimit})).wait();
     }
     console.log("Payout success");
 
