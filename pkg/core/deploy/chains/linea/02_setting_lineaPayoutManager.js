@@ -40,7 +40,8 @@ module.exports = async () => {
         items.push(createBribe('0x58aacbccaec30938cb2bb11653cad726e5c4194a', usdPlus.address, 'USDC/USD+', dex, '0x2198BbF8A4f1A52161ab3411897CC4fb4E2CD5ca'));
         items.push(createBribe('0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91', usdPlus.address, 'USDT+/USD+', dex, '0xcC56DD87294fDA597F71ABADE8e233cF3A84fE43'));
         items.push(createBribe('0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91', usdtPlus.address, 'USDT+/USD+', dex, "0xcC56DD87294fDA597F71ABADE8e233cF3A84fE43"));
-
+        items.push(createSkim('0x93b6d53d8a33c92003D0c41065cb2842934C2619', usdtPlus.address, 'USDT+/USDT', dex));
+        
         return items;
     }
 
