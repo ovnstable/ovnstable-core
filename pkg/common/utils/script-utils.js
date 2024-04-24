@@ -593,7 +593,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
 
 
 async function getPrice() {
-    let params = { gasPrice: "1000000000", gasLimit: "1000000000" };
+    let params = { gasPrice: "1000000000", gasLimit: "30000000" };
     if (process.env.ETH_NETWORK === 'POLYGON') {
         params = { gasPrice: "60000000000", gasLimit: 15000000 };
     } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
