@@ -182,7 +182,7 @@ task(TASK_RUN, 'Run task')
 
         if (hre.network.name === 'localhost') {
 
-            if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+            if ((process.env.STAND).startsWith('zksync')) {
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
             } else {
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -231,7 +231,7 @@ task(TASK_TEST, 'test')
         }
 
         if (hre.network.name === 'localhost') {
-            if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+            if ((process.env.STAND).startsWith('zksync')) {
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
             } else {
                 hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -270,7 +270,7 @@ task('simulate', 'Simulate transaction on local node')
         let transaction = await provider.getTransaction(hash);
 
 
-        if ((args.stand || hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+        if ((args.stand || process.env.STAND).startsWith('zksync')) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -281,32 +281,32 @@ task('simulate', 'Simulate transaction on local node')
         });
 
         const fromSigner = await hre.ethers.getSigner(receipt.from);
-        await transferETH(100, receipt.from, hre);
+        await transferETH(10, receipt.from, hre);
 
-        if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+        if ((process.env.STAND).startsWith('zksync')) {
             let {
                 maxFeePerGas, maxPriorityFeePerGas
             } = await hre.ethers.provider.getFeeData();
             tx = {
-                from: from,
-                to: to,
+                from: receipt.from,
+                to: receipt.to,
                 value: 0,
-                nonce: await hre.ethers.provider.getTransactionCount(from, "latest"),
+                nonce: await hre.ethers.provider.getTransactionCount(receipt.from, "latest"),
                 gasLimit: 15000000,
                 maxFeePerGas,
                 maxPriorityFeePerGas,
-                data: data
+                data: transaction.data
             }
 
         } else {
             tx = {
-                from: from,
-                to: to,
+                from: receipt.from,
+                to: receipt.to,
                 value: 0,
-                nonce: await hre.ethers.provider.getTransactionCount(from, "latest"),
+                nonce: await hre.ethers.provider.getTransactionCount(receipt.from, "latest"),
                 gasLimit: 15000000,
                 gasPrice: 150000000000, // 150 GWEI
-                data: data
+                data: transaction.data
             }
         }
         await fromSigner.sendTransaction(tx);
@@ -329,7 +329,7 @@ task('simulateByData', 'Simulate transaction on local node')
 
         await evmCheckpoint('simulate', hre.network.provider);
 
-        if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+        if (( process.env.STAND).startsWith('zksync')) {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         } else {
             hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
@@ -343,7 +343,7 @@ task('simulateByData', 'Simulate transaction on local node')
         await transferETH(100, from, hre);
 
         let tx
-        if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+        if ((process.env.STAND).startsWith('zksync')) {
             let {
                 maxFeePerGas, maxPriorityFeePerGas
             } = await hre.ethers.provider.getFeeData();
@@ -382,7 +382,7 @@ function sleep(ms) {
 
 async function transferETH(amount, to) {
 
-    if ((hre.ovn.stand || process.env.STAND).startsWith('zksync')) {
+    if ((process.env.STAND).startsWith('zksync')) {
         let provider = new Provider("http://localhost:8011");
         let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
         console.log(`Balance [${fromE18(await hre.ethers.provider.getBalance(wallet.address))}]:`);
