@@ -85,14 +85,14 @@ let zaps = [
     //     token0In: 'daiPlus',
     //     token1In: 'dai',
     // },
-    // {
-    //     name: 'CurveNGZap',
-    //     gauge: '0xd68089d9daa2da7888b7ef54158480e09ecc3580',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'usdtPlus',
-    //     token0In: 'usdc',
-    //     token1In: 'frax',
-    // },
+    {
+        name: 'CurveNGZap',
+        gauge: '0xd68089d9daa2da7888b7ef54158480e09ecc3580',
+        token0Out: 'usdPlus',
+        token1Out: 'usdtPlus',
+        token0In: 'usdc',
+        token1In: 'frax',
+    },
     // {
     //     name: 'LynexZap',
     //     gauge: '0xEaf988C649f44c4DDFd7FDe1a8cB290569B66253',

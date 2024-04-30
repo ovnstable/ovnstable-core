@@ -26,14 +26,11 @@ contract CurveNGZap is OdosZap {
         _swap(swapData);
 
         IRewardsOnlyGauge gauge = IRewardsOnlyGauge(curveData.gauge);
-        address _token = gauge.lp_token();
-        ICurveStableSwapNG pool = ICurveStableSwapNG(_token);
-        address token0 = pool.coins(0);
-        address token1 = pool.coins(1);
+        ICurveStableSwapNG pool = ICurveStableSwapNG(gauge.lp_token());        
 
         address[] memory tokensOut = new address[](2);
-        tokensOut[0] = token0;
-        tokensOut[1] = token1;
+        tokensOut[0] = pool.coins(0);
+        tokensOut[1] = pool.coins(1);
         uint256[] memory amountsOut = new uint256[](2);
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
@@ -53,27 +50,20 @@ contract CurveNGZap is OdosZap {
         address _gauge
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
         IRewardsOnlyGauge gauge = IRewardsOnlyGauge(_gauge);
-        address _token = gauge.lp_token();
-        IStableSwapPool pool = IStableSwapPool(_token);
-        uint256 reserve0 = pool.balances(0);
-        uint256 reserve1 = pool.balances(1);
-        address token0 = pool.coins(0);
-        address token1 = pool.coins(1);
-        uint256 dec0 = IERC20Metadata(token0).decimals();
-        uint256 dec1 = IERC20Metadata(token1).decimals();
+        IStableSwapPool pool = IStableSwapPool(gauge.lp_token());
+        uint256 dec0 = IERC20Metadata(pool.coins(0)).decimals();
+        uint256 dec1 = IERC20Metadata(pool.coins(1)).decimals();
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
-        token0Amount = reserve0 * (denominator / (10 ** dec0));
-        token1Amount = reserve1 * (denominator / (10 ** dec1));
+        token0Amount = pool.balances(0) * (denominator / (10 ** dec0));
+        token1Amount = pool.balances(1) * (denominator / (10 ** dec1));
     }
 
     function _addLiquidity(ICurveStableSwapNG pool, address[] memory tokensOut, uint256[] memory amountsOut) internal {
-        uint256 reserve0 = pool.balances(0);
-        uint256 reserve1 = pool.balances(1);
         (uint256 tokensAmount0, uint256 tokensAmount1) = _getAmountToSwap(
             amountsOut[0],
             amountsOut[1],
-            reserve0,
-            reserve1,
+            pool.balances(0),
+            pool.balances(1),
             10 ** IERC20Metadata(tokensOut[0]).decimals(),
             10 ** IERC20Metadata(tokensOut[1]).decimals()
         );
