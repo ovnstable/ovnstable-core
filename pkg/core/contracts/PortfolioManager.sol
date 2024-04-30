@@ -171,6 +171,18 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         emit CashStrategyUpdated(_cashStrategy);
     }
 
+    function setForceCashStrategy(address _cashStrategy) public onlyAdmin {
+        require(_cashStrategy != address(0), "Zero address not allowed");
+
+        if (_cashStrategy == address(cashStrategy)) {
+            emit CashStrategyAlreadySet(_cashStrategy);
+            return;
+        }
+
+        cashStrategy = IStrategy(_cashStrategy);
+
+        emit CashStrategyUpdated(_cashStrategy);
+    }
 
 
     // ---  logic
