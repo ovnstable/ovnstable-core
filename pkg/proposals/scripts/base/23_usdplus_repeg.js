@@ -14,8 +14,8 @@ filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
 
-    let wallet = await initWallet();
-    await transferETH(1, wallet.address);
+    // let wallet = await initWallet();
+    // await transferETH(1, wallet.address);
 
     let addresses = [];
     let values = [];
@@ -132,13 +132,13 @@ async function main() {
     addProposalItem(pm, 'balance', []);
     
 
-    await testProposal(addresses, values, abis);
-    await testUsdPlus(filename, 'base');
+    // await testProposal(addresses, values, abis);
+    // await testUsdPlus(filename, 'base');
     // await testStrategy(filename, alpha, 'base');
     // await testStrategy(filename, rho, 'base');
     // await testStrategy(filename, comp, 'base');
     // await testStrategy(filename, aave, 'base');
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
