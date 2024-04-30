@@ -3,37 +3,33 @@ pragma solidity ^0.8.0;
 
 import "./OdosZap.sol";
 
-import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
 
-contract AerodromeZap is OdosZap {
-    IRouter public aerodromeRouter;
+contract CurveNGZap is OdosZap {
 
     struct ZapParams {
-        address aerodromeRouter;
         address odosRouter;
     }
 
-    struct AerodromeZapInParams {
+    struct CurveZapInParams {
         address gauge;
         uint256[] amountsOut;
     }
 
     function setParams(ZapParams memory params) external onlyAdmin {
-        require(params.aerodromeRouter != address(0), "Zero address not allowed");
         require(params.odosRouter != address(0), "Zero address not allowed");
-
-        aerodromeRouter = IRouter(params.aerodromeRouter);
         odosRouter = params.odosRouter;
     }
 
-    function zapIn(SwapData memory swapData, AerodromeZapInParams memory aerodromeData) external {
+    function zapIn(SwapData memory swapData, CurveZapInParams memory curveData) external {
         _prepareSwap(swapData);
         _swap(swapData);
 
-        IGauge gauge = IGauge(aerodromeData.gauge);
-        address _token = gauge.stakingToken();
-        IPool pool = IPool(_token);
-        (address token0, address token1) = pool.tokens();
+        IRewardsOnlyGauge gauge = IRewardsOnlyGauge(curveData.gauge);
+        address _token = gauge.lp_token();
+        ICurveStableSwapNG pool = ICurveStableSwapNG(_token);
+        address token0 = pool.coins(0);
+        address token1 = pool.coins(1);
 
         address[] memory tokensOut = new address[](2);
         tokensOut[0] = token0;
@@ -43,8 +39,8 @@ contract AerodromeZap is OdosZap {
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
 
-            if (aerodromeData.amountsOut[i] > 0) {
-                asset.transferFrom(msg.sender, address(this), aerodromeData.amountsOut[i]); 
+            if (curveData.amountsOut[i] > 0) {
+                asset.transferFrom(msg.sender, address(this), curveData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));
         }
@@ -56,11 +52,13 @@ contract AerodromeZap is OdosZap {
     function getProportion(
         address _gauge
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
-        IGauge gauge = IGauge(_gauge);
-        address _token = gauge.stakingToken();
-        IPool pool = IPool(_token);
-        (uint256 reserve0, uint256 reserve1, ) = pool.getReserves();
-        (address token0, address token1) = pool.tokens();
+        IRewardsOnlyGauge gauge = IRewardsOnlyGauge(_gauge);
+        address _token = gauge.lp_token();
+        IStableSwapPool pool = IStableSwapPool(_token);
+        uint256 reserve0 = pool.balances(0);
+        uint256 reserve1 = pool.balances(1);
+        address token0 = pool.coins(0);
+        address token1 = pool.coins(1);
         uint256 dec0 = IERC20Metadata(token0).decimals();
         uint256 dec1 = IERC20Metadata(token1).decimals();
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
@@ -68,8 +66,9 @@ contract AerodromeZap is OdosZap {
         token1Amount = reserve1 * (denominator / (10 ** dec1));
     }
 
-    function _addLiquidity(IPool pool, address[] memory tokensOut, uint256[] memory amountsOut) internal {
-        (uint256 reserve0, uint256 reserve1, ) = pool.getReserves();
+    function _addLiquidity(ICurveStableSwapNG pool, address[] memory tokensOut, uint256[] memory amountsOut) internal {
+        uint256 reserve0 = pool.balances(0);
+        uint256 reserve1 = pool.balances(1);
         (uint256 tokensAmount0, uint256 tokensAmount1) = _getAmountToSwap(
             amountsOut[0],
             amountsOut[1],
@@ -81,22 +80,20 @@ contract AerodromeZap is OdosZap {
 
         IERC20 asset0 = IERC20(tokensOut[0]);
         IERC20 asset1 = IERC20(tokensOut[1]);
-        asset0.approve(address(aerodromeRouter), tokensAmount0);
-        asset1.approve(address(aerodromeRouter), tokensAmount1);
+        asset0.approve(address(pool), tokensAmount0);
+        asset1.approve(address(pool), tokensAmount1);
 
         uint256 amountAsset0Before = asset0.balanceOf(address(this));
         uint256 amountAsset1Before = asset1.balanceOf(address(this));
 
-        aerodromeRouter.addLiquidity(
-            tokensOut[0],
-            tokensOut[1],
-            pool.stable(),
-            tokensAmount0,
-            tokensAmount1,
-            OvnMath.subBasisPoints(tokensAmount0, stakeSlippageBP),
-            OvnMath.subBasisPoints(tokensAmount1, stakeSlippageBP),
-            address(this),
-            block.timestamp
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = tokensAmount0;
+        amounts[1] = tokensAmount1;
+
+        pool.add_liquidity(
+            amounts,
+            OvnMath.subBasisPoints(pool.calc_token_amount(amounts, true), stakeSlippageBP),
+            msg.sender
         );
 
         uint256 amountAsset0After = asset0.balanceOf(address(this));
@@ -121,7 +118,7 @@ contract AerodromeZap is OdosZap {
         emit ReturnedToUser(amountsReturned, tokensOut);
     }
 
-    function _depositToGauge(IPool pool, IGauge gauge) internal {
+    function _depositToGauge(ICurveStableSwapNG pool, IRewardsOnlyGauge gauge) internal {
         uint256 poolBalance = pool.balanceOf(address(this));
         pool.approve(address(gauge), poolBalance);
         gauge.deposit(poolBalance, msg.sender);

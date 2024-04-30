@@ -374,6 +374,8 @@ async function getERC20(name, wallet) {
 
 async function getERC20ByAddress(address, wallet) {
 
+    console.log("address in getERC20ByAddress: ", address);
+
     let ethers = hre.ethers;
 
     if (!wallet) {
@@ -592,7 +594,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
 
 
 async function getPrice() {
-    let params = { gasPrice: "1000000000", gasLimit: "1000000000" };
+    let params = { gasPrice: "1000000000", gasLimit: "30000000" };
     if (process.env.ETH_NETWORK === 'POLYGON') {
         params = { gasPrice: "60000000000", gasLimit: 15000000 };
     } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
@@ -878,6 +880,15 @@ async function transferAsset(assetAddress, to, amount) {
                 case ARBITRUM.fraxbp:
                     from = "0x7D94283d7C15B87aeD6a296C3d1c2Fb334509907";
                     break;
+                case ARBITRUM.usdtPlus:
+                    from = "0xc5543b3a2973dd3b9d156376e1e8e7d0dcac3664";
+                    break;
+                case ARBITRUM.usdPlus:
+                    from = "0x036b8593b217ceaA9A2B46ca52d3Dc2bAFAA29AB";
+                    break;
+                case ARBITRUM.frax:
+                    from = '0x9cd4fF80d81E4dDA8E9D637887a5dB7E0c8e007B';
+                    break; 
                 default:
                     throw new Error('Unknown asset address');
             }
@@ -896,6 +907,24 @@ async function transferAsset(assetAddress, to, amount) {
                 case BASE.crvUsd:
                     from = '0x9f1920d0cbb63ed03376a1e09fd2851d601234c8';
                     break;
+                case BASE.dola:
+                    from = '0x7944642920Df33BAE461f86Aa0cd0b4B8284330E';
+                    break;
+                case BASE.sfrax:
+                    from = '0x6e74053a3798e0fC9a9775F7995316b27f21c4D2';
+                    break;
+                case BASE.ovn:
+                    from = '0xf02d9f19060eE2dd50047dC6E1E9eBAC9bA436FE';
+                    break
+                case BASE.aero:
+                    from = '0x082Bdc61Fe48aE3C35700e345576c03f62fF4483';
+                    break
+                case BASE.eusd:
+                    from = '0x7a8e66c3c704c11b5e2a0ac9bcb8466c009b6afc';
+                    break
+                case BASE.wstEth:
+                    from = '0x31b7538090c8584fed3a053fd183e202c26f9a3e';
+                    break
                 default:
                     throw new Error('Unknown asset address');
             }
@@ -919,6 +948,15 @@ async function transferAsset(assetAddress, to, amount) {
                     break;
                 case LINEA.usdt:
                     from = '0xd7aa9ba6caac7b0436c91396f22ca5a7f31664fc';
+                    break;
+                case LINEA.usdPlus:
+                    from = '0x12a79e67ed7f4fd0a0318d331941800898dab30d';
+                    break;
+                case LINEA.dai:
+                    from = '0x428ab2ba90eba0a4be7af34c9ac451ab061ac010';
+                    break;
+                case LINEA.usdtPlus:
+                    from = '0x9030d5c596d636eefc8f0ad7b2788ae7e9ef3d46';
                     break;
                 default:
                     throw new Error('Unknown asset address');
@@ -983,9 +1021,13 @@ async function transferAsset(assetAddress, to, amount) {
             throw new Error('Unknown mapping ETH_NETWORK');
     }
 
+    console.log("assetAddress: ", assetAddress);
+
     await transferETH(1, from);
 
     let asset = await getERC20ByAddress(assetAddress);
+
+    console.log(await asset.name());
 
     if (hre.network.name === 'localhost') {
         if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
@@ -1014,6 +1056,9 @@ async function transferAsset(assetAddress, to, amount) {
     let balance = await asset.balanceOf(to);
 
     let symbol = await asset.symbol();
+
+    // console.log(symbol, await asset.balanceOf(to));
+
     let fromAsset = (await asset.decimals()) === 18 ? fromE18 : fromE6;
     console.log(`[Node] Transfer asset: [${symbol}] balance: [${fromAsset(balance)}] from: [${from}] to: [${to}]`);
 }

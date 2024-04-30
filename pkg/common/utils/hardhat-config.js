@@ -94,7 +94,8 @@ function getNetworks() {
             url: node_url('linea'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: 'auto',
+            gasPrice: "auto",
+            gas: 2100000,
             zksync: false,
         },
 
@@ -103,6 +104,7 @@ function getNetworks() {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: "auto",
+            gas: 2100000,
             zksync: false,
         },
 
@@ -270,6 +272,7 @@ let zksolc = {
 let solidity = {
     version: "0.8.17",
     settings: {
+        viaIR: true,
         optimizer: {
             enabled: true,
             runs: 200

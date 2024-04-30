@@ -3,64 +3,65 @@ pragma solidity ^0.8.0;
 
 import "./OdosZap.sol";
 
-import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Lynex.sol";
 
-contract AerodromeZap is OdosZap {
-    IRouter public aerodromeRouter;
+contract LynexZap is OdosZap {
+    IRouterV2 lynexRouter;
 
     struct ZapParams {
-        address aerodromeRouter;
         address odosRouter;
+        address lynexRouter;
     }
 
-    struct AerodromeZapInParams {
+    struct LynexZapInParams {
         address gauge;
         uint256[] amountsOut;
     }
 
     function setParams(ZapParams memory params) external onlyAdmin {
-        require(params.aerodromeRouter != address(0), "Zero address not allowed");
+        require(params.lynexRouter != address(0), "Zero address not allowed");
         require(params.odosRouter != address(0), "Zero address not allowed");
 
-        aerodromeRouter = IRouter(params.aerodromeRouter);
+        lynexRouter = IRouterV2(params.lynexRouter);
         odosRouter = params.odosRouter;
     }
 
-    function zapIn(SwapData memory swapData, AerodromeZapInParams memory aerodromeData) external {
+    function zapIn(SwapData memory swapData, LynexZapInParams memory lynexData) external {
         _prepareSwap(swapData);
         _swap(swapData);
 
-        IGauge gauge = IGauge(aerodromeData.gauge);
-        address _token = gauge.stakingToken();
-        IPool pool = IPool(_token);
-        (address token0, address token1) = pool.tokens();
+        IGauge gauge = IGauge(lynexData.gauge);
+        address _token = gauge.stakeToken();
+        IPair pair = IPair(_token);
+        
 
         address[] memory tokensOut = new address[](2);
-        tokensOut[0] = token0;
-        tokensOut[1] = token1;
+        tokensOut[0] = pair.token0();
+        tokensOut[1] = pair.token1();
         uint256[] memory amountsOut = new uint256[](2);
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
 
-            if (aerodromeData.amountsOut[i] > 0) {
-                asset.transferFrom(msg.sender, address(this), aerodromeData.amountsOut[i]); 
+            if (lynexData.amountsOut[i] > 0) {
+                asset.transferFrom(msg.sender, address(this), lynexData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));
         }
 
-        _addLiquidity(pool, tokensOut, amountsOut);
-        _depositToGauge(pool, gauge);
+        _addLiquidity(pair, tokensOut, amountsOut);
+        _depositToGauge(pair, gauge);
     }
 
     function getProportion(
         address _gauge
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
         IGauge gauge = IGauge(_gauge);
-        address _token = gauge.stakingToken();
-        IPool pool = IPool(_token);
-        (uint256 reserve0, uint256 reserve1, ) = pool.getReserves();
-        (address token0, address token1) = pool.tokens();
+        address _token = gauge.stakeToken();
+        IPair pair = IPair(_token);
+        (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
+        address token0 = (pair.token0).address;
+        address token1 = (pair.token1).address;
         uint256 dec0 = IERC20Metadata(token0).decimals();
         uint256 dec1 = IERC20Metadata(token1).decimals();
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
@@ -68,8 +69,10 @@ contract AerodromeZap is OdosZap {
         token1Amount = reserve1 * (denominator / (10 ** dec1));
     }
 
-    function _addLiquidity(IPool pool, address[] memory tokensOut, uint256[] memory amountsOut) internal {
-        (uint256 reserve0, uint256 reserve1, ) = pool.getReserves();
+    function _addLiquidity(IPair pair, address[] memory tokensOut, uint256[] memory amountsOut) internal {
+        
+        (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
+
         (uint256 tokensAmount0, uint256 tokensAmount1) = _getAmountToSwap(
             amountsOut[0],
             amountsOut[1],
@@ -79,19 +82,24 @@ contract AerodromeZap is OdosZap {
             10 ** IERC20Metadata(tokensOut[1]).decimals()
         );
 
+        
+
         IERC20 asset0 = IERC20(tokensOut[0]);
         IERC20 asset1 = IERC20(tokensOut[1]);
-        asset0.approve(address(aerodromeRouter), tokensAmount0);
-        asset1.approve(address(aerodromeRouter), tokensAmount1);
+        asset0.approve(address(lynexRouter), tokensAmount0);
+        asset1.approve(address(lynexRouter), tokensAmount1);
 
         uint256 amountAsset0Before = asset0.balanceOf(address(this));
         uint256 amountAsset1Before = asset1.balanceOf(address(this));
 
-        aerodromeRouter.addLiquidity(
+        
+
+
+        lynexRouter.addLiquidity(
             tokensOut[0],
             tokensOut[1],
-            pool.stable(),
-            tokensAmount0,
+            true, // for stable pools, change, if pool should be volatile
+            tokensAmount0, 
             tokensAmount1,
             OvnMath.subBasisPoints(tokensAmount0, stakeSlippageBP),
             OvnMath.subBasisPoints(tokensAmount1, stakeSlippageBP),
@@ -121,9 +129,9 @@ contract AerodromeZap is OdosZap {
         emit ReturnedToUser(amountsReturned, tokensOut);
     }
 
-    function _depositToGauge(IPool pool, IGauge gauge) internal {
-        uint256 poolBalance = pool.balanceOf(address(this));
-        pool.approve(address(gauge), poolBalance);
-        gauge.deposit(poolBalance, msg.sender);
+    function _depositToGauge(IPair pair, IGauge gauge) internal {
+        uint256 pairBalance = pair.balanceOf(address(this));
+        pair.approve(address(gauge), pairBalance);
+        gauge.deposit(pairBalance);
     }
 }

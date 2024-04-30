@@ -14,7 +14,7 @@ async function getOdosSwapData(tokenIn, tokenOut, amountTokenIn) {
         "inputTokens": inputToken,
         "outputTokens": outputToken,
         "userAddr": insurance.address,
-        "blackList": ["Overnight Exchange"] // for Insurance
+        "blackList": ["Overnight Exchange", "Hashflow"] // for Insurance
     }
 
     const request = await getOdosRequest(params);
