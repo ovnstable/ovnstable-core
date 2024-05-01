@@ -613,7 +613,12 @@ async function getPrice() {
         let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
         gasPrice = gasPrice.add(percentage);
         return { gasPrice: gasPrice, gasLimit: 20000000 }
-    }
+    } else if (process.env.ETH_NETWORK === 'LINEA') {
+        let gasPrice = await ethers.provider.getGasPrice();
+        let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
+        gasPrice = gasPrice.add(percentage);
+        return { gasPrice: gasPrice, gasLimit: 20000000 }
+    } 
 
     return params;
 }
@@ -1021,13 +1026,9 @@ async function transferAsset(assetAddress, to, amount) {
             throw new Error('Unknown mapping ETH_NETWORK');
     }
 
-    console.log("assetAddress: ", assetAddress);
-
     await transferETH(1, from);
 
     let asset = await getERC20ByAddress(assetAddress);
-
-    console.log(await asset.name());
 
     if (hre.network.name === 'localhost') {
         if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
@@ -1056,8 +1057,6 @@ async function transferAsset(assetAddress, to, amount) {
     let balance = await asset.balanceOf(to);
 
     let symbol = await asset.symbol();
-
-    // console.log(symbol, await asset.balanceOf(to));
 
     let fromAsset = (await asset.decimals()) === 18 ? fromE18 : fromE6;
     console.log(`[Node] Transfer asset: [${symbol}] balance: [${fromAsset(balance)}] from: [${from}] to: [${to}]`);
