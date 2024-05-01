@@ -11,8 +11,8 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let roleManager = await getContract('RoleManager', 'base');
-    let timelock = await getContract('AgentTimelock', 'base');
+    let roleManager = await getContract('RoleManager', 'arbitrum');
+    let timelock = await getContract('AgentTimelock', 'arbitrum');
     let dev3 = "0x05129E3CE8C566dE564203B0fd85111bBD84C424";
     let dev4 = "0xcd8562CD85fD93C7e2E80B4Cf69097E5562a76f9";
 
