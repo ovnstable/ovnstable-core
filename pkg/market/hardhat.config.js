@@ -17,6 +17,6 @@ module.exports = {
     solidity: config.solidity,
     etherscan: config.etherscan(),
     mocha: config.mocha,
-    gasReporter: config.gasReport
-
+    gasReporter: config.gasReport,
+    gas: 1000000
 };

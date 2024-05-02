@@ -94,7 +94,8 @@ function getNetworks() {
             url: node_url('linea'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: 'auto',
+            gasPrice: "auto",
+            gas: 2100000,
             zksync: false,
         },
 
@@ -103,6 +104,7 @@ function getNetworks() {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: "auto",
+            gas: 2100000,
             zksync: false,
         },
 
