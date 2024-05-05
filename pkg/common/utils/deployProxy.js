@@ -152,7 +152,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
 
     let proxy;
     try {
-        proxy = await ethers.getContract(contractName);
+        proxy = await getContract(contractName);
     } catch (e) {
     }
 
