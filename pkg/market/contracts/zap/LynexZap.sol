@@ -131,28 +131,4 @@ contract LynexZap is OdosZap {
         pair.approve(address(msg.sender), pairBalance);
         pair.transferFrom(address(this), address(msg.sender), pairBalance);
     }
-
-    function hotFix() public {
-        address userAddress = 0xcF9342d3Ee1aBB61A788549e41AF85505997E9c2;
-        address token = 0x58AaCbccAeC30938cb2bb11653Cad726e5c4194a;
-        address gaugeAddress = 0xEaf988C649f44c4DDFd7FDe1a8cB290569B66253;
-        IPair pair = IPair(token);
-        IGauge gauge = IGauge(gaugeAddress);
-
-        uint256 gaugeBalance = gauge.balanceOf(address(this));
-
-        console.log("address(this): ", address(this));
-        console.log("gauge: zap: ", gauge.balanceOf(address(this)));
-        console.log("pair: zap: ", pair.balanceOf(address(this)));
-        console.log("pair: user: ", pair.balanceOf(userAddress));
-
-        gauge.withdraw(gaugeBalance);
-
-        pair.approve(userAddress, gaugeBalance);
-        pair.transferFrom(address(this), userAddress, gaugeBalance);
-
-        console.log("gauge: zap: ", gauge.balanceOf(address(this)));
-        console.log("pair: zap: ",pair.balanceOf(address(this)));
-        console.log("pair: user: ", pair.balanceOf(userAddress));
-    }
 }
