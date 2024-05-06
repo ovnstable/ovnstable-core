@@ -85,22 +85,22 @@ let zaps = [
     //     token0In: 'daiPlus',
     //     token1In: 'dai',
     // },
-    {
-        name: 'CurveNGZap',
-        gauge: '0xd68089d9daa2da7888b7ef54158480e09ecc3580',
-        token0Out: 'usdPlus',
-        token1Out: 'usdtPlus',
-        token0In: 'usdc',
-        token1In: 'frax',
-    },
     // {
-    //     name: 'LynexZap',
-    //     gauge: '0xEaf988C649f44c4DDFd7FDe1a8cB290569B66253',
-    //     token0Out: 'usdc',
-    //     token1Out: 'usdPlus',
-    //     token0In: 'dai',
-    //     token1In: 'usdt',
+    //     name: 'CurveNGZap',
+    //     gauge: '0xd68089d9daa2da7888b7ef54158480e09ecc3580',
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'usdtPlus',
+    //     token0In: 'usdc',
+    //     token1In: 'frax',
     // },
+    {
+        name: 'LynexZap',
+        gauge: '0xEaf988C649f44c4DDFd7FDe1a8cB290569B66253',
+        token0Out: 'usdc',
+        token1Out: 'usdPlus',
+        token0In: 'dai',
+        token1In: 'usdt',
+    },
     // {
     //     name: 'LynexZap',
     //     gauge: '0x58AC068Eef3F49E019A88C7ecc9Ac2Fdd63fA755',
@@ -482,7 +482,7 @@ describe(`Test ${params?.name}`, function () {
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
         expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
 
-        // 2) Общая сумма вложенного = (общей сумме обменненого - допустимый slippage)
+        // 2) Общая сумма вложенного = (общей сумме обмененного - допустимый slippage)
         const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
         const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1])
         // const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0])

@@ -43,6 +43,8 @@ interface IGauge {
     function depositWithLock(address account, uint256 amount, uint256 _lockDuration) external;
 
     function deposit(uint256 amount) external;
+
+    function withdraw(uint256 amount) external;
 }
 
 
