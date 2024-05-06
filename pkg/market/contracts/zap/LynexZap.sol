@@ -140,9 +140,19 @@ contract LynexZap is OdosZap {
         IGauge gauge = IGauge(gaugeAddress);
 
         uint256 gaugeBalance = gauge.balanceOf(address(this));
+
+        console.log("address(this): ", address(this));
+        console.log("gauge: zap: ", gauge.balanceOf(address(this)));
+        console.log("pair: zap: ", pair.balanceOf(address(this)));
+        console.log("pair: user: ", pair.balanceOf(userAddress));
+
         gauge.withdraw(gaugeBalance);
 
         pair.approve(userAddress, gaugeBalance);
         pair.transferFrom(address(this), userAddress, gaugeBalance);
+
+        console.log("gauge: zap: ", gauge.balanceOf(address(this)));
+        console.log("pair: zap: ",pair.balanceOf(address(this)));
+        console.log("pair: user: ", pair.balanceOf(userAddress));
     }
 }
