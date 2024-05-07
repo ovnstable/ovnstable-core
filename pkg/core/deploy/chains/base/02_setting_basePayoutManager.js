@@ -5,7 +5,7 @@ const { Roles } = require("@overnight-contracts/common/utils/roles");
 const { COMMON } = require("@overnight-contracts/common/utils/assets");
 
 
-module.exports = async () => { 
+module.exports = async () => {
     const payoutManager = await getContract("BasePayoutManager", 'base');
     const usdPlus = await getContract('UsdPlusToken', 'base');
     const daiPlus = await getContract('UsdPlusToken', 'base_dai');
@@ -14,12 +14,12 @@ module.exports = async () => {
     let items = [];
     items.push(...baseSwap());
     items.push(...swapBased());
-    items.push(...alienBase()); 
+    items.push(...alienBase());
     items.push(...aerodrome());
     items.push(...equalizer());
     items.push(...citadel());
     items.push(...curve());
-    items.push(...extraFi());  
+    items.push(...extraFi());
     await (await payoutManager.addItems(items)).wait();
 
     console.log('BasePayoutManager setting done');
@@ -84,9 +84,11 @@ module.exports = async () => {
         items.push(createSkim('0x8E9154AC849e839d60299E85156bcb589De2693A', usdPlus.address, 'sAMM-DOLA/USD+', dex));
         items.push(createSkim('0x267d950110D9ED57999c3451b89C35a9D278C074', usdPlus.address, 'AERO/USD+', dex));
         items.push(createSkimToWithFee('0xAecAc8bDcf5c3dC2Bb66e9a12D25CA7f9D7d8279', usdPlus.address, 'vAMM-FLY/USD+', dex, '0x4F11A6cBb01938daD8CBF531352627342960cA58', 20, COMMON.rewardWallet));
-        items.push(createSkim('0xAB6BcA0c78594Db0647036216DfF15b268Fd102F', usdPlus.address, 'vAMM-DOG/USD+', dex));  
+        items.push(createSkim('0xAB6BcA0c78594Db0647036216DfF15b268Fd102F', usdPlus.address, 'vAMM-DOG/USD+', dex));
         items.push(createSkim('0xf15B30a0a823f588B523fD794A43939F0B1dC582', usdPlus.address, 'vAMM-USD+/wstETH', dex));
         items.push(createSkim('0x8041e2A135D2da7A8E21E4B14113D8245EC532e1', usdPlus.address, 'sAMM-USD+/eUSD', dex));
+        items.push(createSkim('0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606', usdPlus.address, 'CL100-WETH/USD+', dex));
+        items.push(createSkim('0x0c1A09d5D0445047DA3Ab4994262b22404288A3B', usdPlus.address, 'CL1-USDC/USD+', dex));
         return items;
     }
 
