@@ -14,6 +14,7 @@ import { StableMath } from "./libraries/StableMath.sol";
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
+import "hardhat/console.sol";
 
 /**
  * @dev Fork of OUSD version
@@ -710,6 +711,21 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         rebaseState[_address] = RebaseOptions.OptOut;
 
         _nonRebaseOwners.add(_address);
+    }
+
+    function changeNegativeSupply(uint256 _newTotalSupply) external onlyExchanger {
+
+        console.log("_totalSupply   ", _totalSupply);
+        console.log("_newTotalSupply", _newTotalSupply);
+        
+        _rebasingCreditsPerToken = _rebasingCredits.divPrecisely(_newTotalSupply);
+
+        require(_rebasingCreditsPerToken > 0, "Invalid change in supply");
+
+        _totalSupply = _rebasingCredits.divPrecisely(_rebasingCreditsPerToken);
+
+        console.log("_totalSupply", _totalSupply);
+        console.log("_newTotalSupply", _newTotalSupply);
     }
 
     /**
