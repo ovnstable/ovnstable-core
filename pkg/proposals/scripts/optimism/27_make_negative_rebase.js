@@ -9,8 +9,8 @@ filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
 
-    let wallet = await initWallet();
-    await transferETH(1, wallet.address);
+    // let wallet = await initWallet();
+    // await transferETH(1, wallet.address);
 
     let addresses = [];
     let values = [];
@@ -50,10 +50,10 @@ async function main() {
     addProposalItem(exchange, 'pause', []);
     addProposalItem(usdplus, 'pause', []);
     
-    await showM2M();
-    await testProposal(addresses, values, abis);
-    await showM2M();
-    // await createProposal(filename, addresses, values, abis);
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await showM2M();
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);

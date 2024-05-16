@@ -611,12 +611,12 @@ async function getPrice() {
         return { maxFeePerGas, maxPriorityFeePerGas, gasLimit: 200000000 }
     } else if (process.env.ETH_NETWORK === 'BASE') {
         let gasPrice = await ethers.provider.getGasPrice();
-        let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
+        let percentage = gasPrice.mul(BigNumber.from('10')).div(100);
         gasPrice = gasPrice.add(percentage);
         return { gasPrice: gasPrice, gasLimit: 20000000 }
     } else if (process.env.ETH_NETWORK === 'LINEA') {
         let gasPrice = await ethers.provider.getGasPrice();
-        let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
+        let percentage = gasPrice.mul(BigNumber.from('10')).div(100);
         gasPrice = gasPrice.add(percentage);
         return { gasPrice: gasPrice, gasLimit: 20000000 }
     } 

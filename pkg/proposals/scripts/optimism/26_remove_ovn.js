@@ -26,8 +26,8 @@ async function main() {
     addProposalItem(ins, 'removeMoney', []);
     addProposalItem(ins, 'upgradeTo', [oldImpl]);
     
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
