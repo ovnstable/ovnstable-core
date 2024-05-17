@@ -712,6 +712,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _nonRebaseOwners.add(_address);
     }
 
+    function changeNegativeSupply(uint256 _newTotalSupply) external onlyExchanger {
+        _rebasingCreditsPerToken = _rebasingCredits.divPrecisely(_newTotalSupply);
+        require(_rebasingCreditsPerToken > 0, "Invalid change in supply");
+        _totalSupply = _rebasingCredits.divPrecisely(_rebasingCreditsPerToken);
+    }
+
     /**
      * @dev Modify the supply without minting new tokens. This uses a change in
      *      the exchange rate between "credits" and USD+ tokens to change balances.
