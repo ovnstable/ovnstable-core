@@ -22,9 +22,6 @@ module.exports = async () => {
     items.push(...extraFi());
     await (await payoutManager.addItems(items)).wait();
 
-    await (await payoutManager.removeItem(usdcPlus.address, '0x5C146cd18fa53914580573C9b9604588529406Ca')).wait();
-    await (await payoutManager.removeItem(usdPlus.address, '0x5C146cd18fa53914580573C9b9604588529406Ca')).wait();
-
     console.log('BasePayoutManager setting done');
 
     function baseSwap() {
