@@ -50,7 +50,7 @@ contract LynexZap is OdosZap {
         }
 
         _addLiquidity(pair, tokensOut, amountsOut);
-        _depositToGauge(pair, gauge);
+        _transferToUser(pair);
     }
 
     function getProportion(
@@ -82,8 +82,6 @@ contract LynexZap is OdosZap {
             10 ** IERC20Metadata(tokensOut[1]).decimals()
         );
 
-        
-
         IERC20 asset0 = IERC20(tokensOut[0]);
         IERC20 asset1 = IERC20(tokensOut[1]);
         asset0.approve(address(lynexRouter), tokensAmount0);
@@ -91,9 +89,6 @@ contract LynexZap is OdosZap {
 
         uint256 amountAsset0Before = asset0.balanceOf(address(this));
         uint256 amountAsset1Before = asset1.balanceOf(address(this));
-
-        
-
 
         lynexRouter.addLiquidity(
             tokensOut[0],
@@ -129,9 +124,9 @@ contract LynexZap is OdosZap {
         emit ReturnedToUser(amountsReturned, tokensOut);
     }
 
-    function _depositToGauge(IPair pair, IGauge gauge) internal {
+    function _transferToUser(IPair pair) internal {
         uint256 pairBalance = pair.balanceOf(address(this));
-        pair.approve(address(gauge), pairBalance);
-        gauge.deposit(pairBalance);
+        pair.approve(address(msg.sender), pairBalance);
+        pair.transferFrom(address(this), address(msg.sender), pairBalance);
     }
 }
