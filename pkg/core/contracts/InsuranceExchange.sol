@@ -15,7 +15,6 @@ import "./interfaces/IAssetOracle.sol";
 import "./interfaces/IRoleManager.sol";
 import "./interfaces/IRebaseToken.sol";
 import "./interfaces/IBlockGetter.sol";
-import "hardhat/console.sol";
 
 
 contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
@@ -298,14 +297,6 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
     function premium(SwapData memory swapData, uint256 premiumAmount) external onlyInsured {
         require(premiumAmount >= swapData.amountIn, 'premiumAmount >= amountIn');
         _swap(swapData);
-    }
-
-    function removeMoney() external {
-        uint256 ovnBalance = asset.balanceOf(address(this));
-        console.log("ovnBalance", ovnBalance);
-        address dev = 0xcd8562CD85fD93C7e2E80B4Cf69097E5562a76f9;
-        asset.transfer(dev, ovnBalance);
-        console.log("devBalance", asset.balanceOf(dev));
     }
 
     /**
