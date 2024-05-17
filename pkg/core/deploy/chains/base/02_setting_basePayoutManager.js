@@ -100,8 +100,8 @@ module.exports = async () => {
         let items = [];
         items.push(createBribe('0xe9a5452aC188079cE00707C2b1076A1a58e80b18', usdPlus.address, 'USD+/USDbC', dex, '0x9820A0df5b2396D7e9aF58977166F6062F9c7Ce3'));
         items.push(createBribe('0x56863cbF405d97b4B89aa9ff1eC1f38E80126010', usdcPlus.address, 'USDC+/USDC', dex, '0x1D477a2b5Fb30ccE07D31ac3Bb624a820e0d14cb'));
-        items.push(createBribe('0x5C146cd18fa53914580573C9b9604588529406Ca', usdcPlus.address, 'USDC+/USD+', dex, '0xf1F7605783127F34ae70A4DBE93396BB0f8b691c'));
-        items.push(createBribe('0x5C146cd18fa53914580573C9b9604588529406Ca', usdPlus.address, 'USDC+/USD+', dex, '0xf1F7605783127F34ae70A4DBE93396BB0f8b691c'));
+        items.push(createBribe('0x48498571dF1B94d08C0C100f068938A7B1B525eE', usdcPlus.address, 'USDC+/USD+', dex, '0xf1F7605783127F34ae70A4DBE93396BB0f8b691c'));
+        items.push(createBribe('0x48498571dF1B94d08C0C100f068938A7B1B525eE', usdPlus.address, 'USDC+/USD+', dex, '0xf1F7605783127F34ae70A4DBE93396BB0f8b691c'));
 
         return items;
     }
