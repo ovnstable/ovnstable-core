@@ -42,6 +42,7 @@ let BASE = {
 
     // aave
     aaveProvider: '0xe20fCBdBfFC4Dd138cE8b2E6FBb6CB49777ad64D',
+    aUsdc: '0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB',
     // moonwell
     moonwellUnitroller: '0xfBb21d0380beE3312B33c4353c8936a0F13EF26C',
     moonwellUsdbc: '0x703843C3379b52F9FF486c9f5892218d2a065cC8',

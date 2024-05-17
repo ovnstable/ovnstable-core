@@ -5,14 +5,13 @@ const { Roles } = require("@overnight-contracts/common/utils/roles");
 const { COMMON } = require("@overnight-contracts/common/utils/assets");
 
 
-module.exports = async () => { 
+module.exports = async () => {
     const payoutManager = await getContract("BasePayoutManager", 'base');
     const usdPlus = await getContract('UsdPlusToken', 'base');
     const daiPlus = await getContract('UsdPlusToken', 'base_dai');
     const usdcPlus = await getContract('UsdPlusToken', 'base_usdc');
 
     let items = [];
-
     items.push(...baseSwap());
     items.push(...swapBased());
     items.push(...alienBase());
@@ -86,7 +85,11 @@ module.exports = async () => {
         items.push(createSkim('0x267d950110D9ED57999c3451b89C35a9D278C074', usdPlus.address, 'AERO/USD+', dex));
         items.push(createSkimToWithFee('0xAecAc8bDcf5c3dC2Bb66e9a12D25CA7f9D7d8279', usdPlus.address, 'vAMM-FLY/USD+', dex, '0x4F11A6cBb01938daD8CBF531352627342960cA58', 20, COMMON.rewardWallet));
         items.push(createSkim('0xAB6BcA0c78594Db0647036216DfF15b268Fd102F', usdPlus.address, 'vAMM-DOG/USD+', dex));
-        
+        items.push(createSkim('0xf15B30a0a823f588B523fD794A43939F0B1dC582', usdPlus.address, 'vAMM-USD+/wstETH', dex));
+        items.push(createSkim('0x8041e2A135D2da7A8E21E4B14113D8245EC532e1', usdPlus.address, 'sAMM-USD+/eUSD', dex));
+        items.push(createSkim('0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606', usdPlus.address, 'CL100-WETH/USD+', dex));
+        items.push(createSkim('0x0c1A09d5D0445047DA3Ab4994262b22404288A3B', usdPlus.address, 'CL1-USDC/USD+', dex));
+        items.push(createSkim('0xbB38EeBd670A9F3cafe6D3170862ccD930cB25f9', usdPlus.address, 'vAMM-USD+/sFRAX', dex));
         return items;
     }
 
@@ -96,6 +99,9 @@ module.exports = async () => {
 
         let items = [];
         items.push(createBribe('0xe9a5452aC188079cE00707C2b1076A1a58e80b18', usdPlus.address, 'USD+/USDbC', dex, '0x9820A0df5b2396D7e9aF58977166F6062F9c7Ce3'));
+        items.push(createBribe('0x56863cbF405d97b4B89aa9ff1eC1f38E80126010', usdcPlus.address, 'USDC+/USDC', dex, '0x1D477a2b5Fb30ccE07D31ac3Bb624a820e0d14cb'));
+        items.push(createBribe('0x48498571dF1B94d08C0C100f068938A7B1B525eE', usdcPlus.address, 'USDC+/USD+', dex, '0xf1F7605783127F34ae70A4DBE93396BB0f8b691c'));
+        items.push(createBribe('0x48498571dF1B94d08C0C100f068938A7B1B525eE', usdPlus.address, 'USDC+/USD+', dex, '0xf1F7605783127F34ae70A4DBE93396BB0f8b691c'));
 
         return items;
     }

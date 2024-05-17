@@ -97,7 +97,8 @@ contract StrategySiloUsdtUsdc is Strategy {
     }
 
     function _unstake(address _asset, uint256 _amount, address _beneficiary) internal override returns (uint256) {
-        silo.withdraw(address(usdc), _amount, false);
+        uint256 amountToRedeem = OvnMath.addBasisPoints(_oracleUsdtToUsdc(_amount), swapSlippageBP);
+        silo.withdraw(address(usdc), amountToRedeem, false);
 
         uint256 usdcBalance = usdc.balanceOf(address(this));
         usdc.approve(address(inchSwapper), usdcBalance);

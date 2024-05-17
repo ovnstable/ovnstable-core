@@ -44,6 +44,10 @@ module.exports = async ({deployments}) => {
             ovnAgent = "0xe5d15506088f96252e0c8c80bF5Cf7E3b4121B33";
             gateway = "0x6f015F16De9fC8791b234eF68D486d2bF203FBA8";
             break
+        case "blast":
+            ovnAgent = "0xf9e4a8bbF4BD7700077a36F6bdDB615c221E6E04";
+            gateway = "0xe432150cce91c13a887f7D836923d5597adD8E31";
+            break
         default:
             throw new Error('Unknown chain');
     }

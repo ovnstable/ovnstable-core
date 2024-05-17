@@ -463,6 +463,13 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return _amount;
     }
 
+    function negativeRebase() external onlyAdmin {
+        uint256 totalUsdPlus = usdPlus.totalSupply();
+        uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
+        require(totalUsdPlus > totalNav, 'supply > nav');        
+        usdPlus.changeNegativeSupply(totalNav);
+        require(usdPlus.totalSupply() == totalNav,'total != nav');
+    }
 
     /**
      * @dev Payout

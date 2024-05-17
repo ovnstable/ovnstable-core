@@ -70,17 +70,7 @@ function getGasPrice() {
 
 
 function blockNumber(networkName) {
-
-    if (!networkName) {
-        return Number.parseInt(process.env['HARDHAT_BLOCK_NUMBER']);
-    }
-
-    const blockNumber = Number.parseInt(process.env['HARDHAT_BLOCK_NUMBER_' + networkName.toUpperCase()]);
-    if (Number.isNaN(blockNumber)) {
-        return 0;
-    } else {
-        return blockNumber;
-    }
+    return Number.parseInt(process.env['HARDHAT_BLOCK_NUMBER']);
 }
 
 function getNodeUrl(){

@@ -6,7 +6,6 @@ import "@overnight-contracts/core/contracts/interfaces/IHedgeExchanger.sol";
 import "@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 
-
 contract StrategyEtsInch is Strategy {
 
     // --- params
@@ -86,6 +85,13 @@ contract StrategyEtsInch is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
+
+        if (address(underlyingAsset) == address(asset)) {
+            asset.approve(address(hedgeExchanger), _amount);
+            hedgeExchanger.buy(_amount, "");
+            return;
+        }
+
         // swap asset to underlying to stake
         asset.approve(address(inchSwapper), _amount);
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleAssetToUnderlying(_amount), swapSlippageBP);
@@ -101,6 +107,13 @@ contract StrategyEtsInch is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
+
+        if (address(underlyingAsset) == address(asset)) {
+            rebaseToken.approve(address(hedgeExchanger), _amount);
+            hedgeExchanger.redeem(_amount);
+            return asset.balanceOf(address(this));
+        }
+
         // convert asset to underlying with some addition
         uint256 amountToRedeem = OvnMath.addBasisPoints(_oracleAssetToUnderlying(_amount), swapSlippageBP);
 
@@ -122,6 +135,13 @@ contract StrategyEtsInch is Strategy {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
+
+        if (address(underlyingAsset) == address(asset)) {
+            uint256 rebaseTokenAmount = rebaseToken.balanceOf(address(this));
+            rebaseToken.approve(address(hedgeExchanger), rebaseTokenAmount);
+            hedgeExchanger.redeem(rebaseTokenAmount);
+            return asset.balanceOf(address(this));
+        }
 
         // get all underlying by full rebase
         uint256 rebaseTokenAmount = rebaseToken.balanceOf(address(this));
@@ -147,7 +167,7 @@ contract StrategyEtsInch is Strategy {
 
     function _totalValue() internal view returns (uint256) {
         uint256 rebaseBalance = rebaseToken.balanceOf(address(this));
-        uint256 convertedBalance = _oracleUnderlyingToAsset(rebaseBalance);
+        uint256 convertedBalance = address(underlyingAsset) == address(asset) ? rebaseBalance : _oracleUnderlyingToAsset(rebaseBalance);
         return asset.balanceOf(address(this)) + convertedBalance;
     }
 

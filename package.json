@@ -1,6 +1,6 @@
 {
   "name": "overnight",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "overnight superstable coin & dApp",
   "scripts": {
     "build": "yarn workspaces run build",
