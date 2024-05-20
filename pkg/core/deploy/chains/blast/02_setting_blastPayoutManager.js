@@ -15,6 +15,7 @@ module.exports = async () => {
     items.push(...thruster());  
     items.push(...ambient());  
     items.push(...bladeswap());
+    items.push(...fenixfinance());
     await (await payoutManager.addItems(items)).wait();
 
     console.log("BlastPayoutManager setting done");
