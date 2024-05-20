@@ -972,6 +972,9 @@ async function transferAsset(assetAddress, to, amount) {
                 case OPTIMISM.usdc:
                     from = '0xebe80f029b1c02862b9e8a70a7e5317c06f62cae';
                     break;
+                case OPTIMISM.usdPlus:
+                    from = '0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46';
+                    break;
                 case OPTIMISM.dai:
                     from = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
                     break;

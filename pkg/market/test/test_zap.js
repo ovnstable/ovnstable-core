@@ -93,14 +93,14 @@ let zaps = [
     //     token0In: 'usdc',
     //     token1In: 'frax',
     // },
-    {
-        name: 'LynexZap',
-        gauge: '0xEaf988C649f44c4DDFd7FDe1a8cB290569B66253',
-        token0Out: 'usdc',
-        token1Out: 'usdPlus',
-        token0In: 'dai',
-        token1In: 'usdt',
-    },
+    // {
+    //     name: 'LynexZap',
+    //     gauge: '0xEaf988C649f44c4DDFd7FDe1a8cB290569B66253',
+    //     token0Out: 'usdc',
+    //     token1Out: 'usdPlus',
+    //     token0In: 'dai',
+    //     token1In: 'usdt',
+    // },
     // {
     //     name: 'LynexZap',
     //     gauge: '0x58AC068Eef3F49E019A88C7ecc9Ac2Fdd63fA755',
@@ -202,6 +202,14 @@ let zaps = [
     //     token0In: 'daiPlus',
     //     token1In: 'dai',
     // },
+    {
+        name: 'VelodromeZap',
+        gauge: '0xfAc0Cf9e487356DDc72443061DFDB109885B04fD',
+        token0Out: 'usdPlus',
+        token1Out: 'ovn',
+        token0In: 'usdt',
+        token1In: 'usdc',
+    },
     // {
     //     name: 'BeefyVelodromeZap',
     //     gauge: '0x2bc96f9e07edc7f1aa9aa26e85dc7dd30ace59a6',
@@ -242,6 +250,14 @@ let zaps = [
     //     token0Out: 'usdcCircle',
     //     token1Out: 'usdt',
     // },
+    // {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x0c1A09d5D0445047DA3Ab4994262b22404288A3B',
+    //     token0In: 'usdc',
+    //     token1In: 'usdPlus',
+    //     token0Out: 'usdcCircle',
+    //     token1Out: 'usdt',
+    // }
 ];
 
 
@@ -385,7 +401,7 @@ describe(`Test ${params?.name}`, function () {
             outputTokensDecimals: [token0OutDec, token1OutDec],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
-            outputTokensPrices: [1, 1],
+            outputTokensPrices: [1, 43],
             proportion0: reserves[0] / sumReserves
         })
 
@@ -482,7 +498,7 @@ describe(`Test ${params?.name}`, function () {
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
         expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
 
-        // 2) Общая сумма вложенного = (общей сумме обмененного - допустимый slippage)
+        // 2) Общая сумма вложенного = (общей сумме обменненого - допустимый slippage)
         const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
         const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1])
         // const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0])
