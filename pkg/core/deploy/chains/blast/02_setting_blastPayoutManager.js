@@ -15,6 +15,7 @@ module.exports = async () => {
     items.push(...thruster());  
     items.push(...ambient());  
     items.push(...bladeswap());
+    items.push(...fenixfinance());
     await (await payoutManager.addItems(items)).wait();
 
     console.log("BlastPayoutManager setting done");
@@ -59,6 +60,18 @@ module.exports = async () => {
         let dex = "BladeSwap";
         items.push(createSkim('0x0beEdE4DD53e281d110020185f1EB59D2F5Ce3f4', usdPlus.address, 'ETH/USD+', dex));
         items.push(createSkim('0xCF4A1d04b19855484e5Ab28740905db277E96953', usdPlus.address, 'USDB/USD+', dex));
+        return items;
+                
+    }
+
+    function fenixfinance() {
+
+        let dex = "FenixFinance";
+        let to = "0x0907fb24626a06e383BD289A0e9C8560b8cCC4b5";
+        let fee = 20;
+
+        items.push(createSkimToWithFee('0x6a1de1841c5c3712e3bc7c75ce3d57dedec6915f', usdPlus.address, 'USDB/USD+', dex, to, fee, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0xc5910a7f3b0119ac1a3ad7A268CcE4A62d8C882D', usdPlus.address, 'WETH/USD+', dex, to, fee, COMMON.rewardWallet));
         return items;
                 
     }
