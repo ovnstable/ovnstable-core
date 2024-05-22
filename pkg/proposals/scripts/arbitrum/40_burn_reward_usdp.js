@@ -37,9 +37,9 @@ async function main() {
     addProposalItem(usdp, 'burnRewardWallet', []);
     addProposalItem(usdp, 'upgradeTo', [oldUsdpImpl]);    
 
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
     // await testUsdPlus(filename, 'arbitrum_usdt');
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
