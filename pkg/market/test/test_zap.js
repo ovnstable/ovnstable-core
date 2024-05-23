@@ -339,6 +339,19 @@ describe(`Test ${params?.name}`, function () {
         fromToken1In = token1InDec == 6 ? fromE6 : fromE18;
         fromToken0Out = token0OutDec == 6 ? fromE6 : fromE18;
         fromToken1Out = token1OutDec == 6 ? fromE6 : fromE18;
+
+        if ('priceRange' in params) { 
+            curPriceRange = [...params.priceRange];
+
+            curPriceRange[0] = toToken0Out(curPriceRange[0]);
+            curPriceRange[1] = toToken0Out(curPriceRange[1]);
+
+            console.log("priceRange[0]: ", Math.ceil(Math.sqrt(curPriceRange[0])));
+            console.log("priceRange[1]: ", Math.ceil(Math.sqrt(curPriceRange[1])));
+            console.log("priceRange: ", curPriceRange);
+
+            params.priceRange = [...curPriceRange];
+        }
     });
 
     it("swap and put nearly equal", async function () {
@@ -382,18 +395,10 @@ describe(`Test ${params?.name}`, function () {
         await (await token1Out.approve(zap.address, toE18(10000))).wait();
 
         let reserves;
-        let curPriceRange;
+        
         if ('priceRange' in params) {
-            curPriceRange = [...params.priceRange];
-
-            curPriceRange[0] = toToken0Out(curPriceRange[0]);
-            curPriceRange[1] = toToken0Out(curPriceRange[1]);
-
-            console.log("priceRange[0]: ", Math.ceil(Math.sqrt(curPriceRange[0])));
-            console.log("priceRange[1]: ", Math.ceil(Math.sqrt(curPriceRange[1])));
-            console.log("priceRange: ", curPriceRange);
-
-            reserves = await zap.getProportion(params.pair, curPriceRange);
+            console.log(params.priceRange);
+            reserves = await zap.getProportion(params.pair, params.priceRange);
         } else if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
         } else if ('poolId' in params) {
@@ -454,6 +459,8 @@ describe(`Test ${params?.name}`, function () {
                 ...params,
             }
         )).wait();
+
+        // params.priceRange = [...baseRange];
 
         if ('tokenId' in params) {
             let gauge = await ethers.getContractAt(abiNFTPool, params.gauge, account);

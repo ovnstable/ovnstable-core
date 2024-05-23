@@ -24,11 +24,11 @@ async function main() {
 
     let params = {
         name: 'AerodromeCLZap',
-        pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
-        token0In: 'dola',
-        token1In: 'usdPlus',
-        token0Out: 'sfrax',
-        token1Out: 'usdbc',
+        pair: '0x0c1A09d5D0445047DA3Ab4994262b22404288A3B',
+        token0Out: 'usdc',
+        token1Out: 'usdPlus',
+        token0In: 'sfrax',
+        token1In: 'dai',
         priceRange: [0.95, 1.05],
     }; 
 
@@ -37,18 +37,18 @@ async function main() {
         console.log("setUp done successfully")
 
         account = setUpParams.account;
-
-        console.log(account.address);
-
         token0Out = setUpParams.token0Out;
         token1Out = setUpParams.token1Out;
 
 
-        // console.log("token0", token0Out.address);
+        console.log("token0", token0Out.address);
         token0OutDec = await token0Out.decimals();
+        console.log("token0OutDec:", token0OutDec);
 
-        // console.log("token1", token1Out.address);
+        console.log("token1", token1Out.address);
         token1OutDec = await token1Out.decimals();
+
+        // console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
 
         toToken0Out = token0OutDec == 6 ? toE6 : toE18;
         toToken1Out = token1OutDec == 6 ? toE6 : toE18;
@@ -56,9 +56,22 @@ async function main() {
         fromToken0Out = token0OutDec == 6 ? fromE6 : fromE18;
         fromToken1Out = token1OutDec == 6 ? fromE6 : fromE18;
 
+        if ('priceRange' in params) { 
+            curPriceRange = [...params.priceRange];
 
-        const amountToken1Out = toToken1Out(1);
-        const amountToken0Out = toToken0Out(1);
+            curPriceRange[0] = toToken0Out(curPriceRange[0]);
+            curPriceRange[1] = toToken0Out(curPriceRange[1]);
+
+            console.log("priceRange[0]: ", Math.ceil(Math.sqrt(curPriceRange[0])));
+            console.log("priceRange[1]: ", Math.ceil(Math.sqrt(curPriceRange[1])));
+            console.log("priceRange: ", curPriceRange);
+
+            params.priceRange = [...curPriceRange];
+        }
+        
+        const amountToken0Out = toToken0Out(0.001);
+        const amountToken1Out = toToken1Out(0.001);
+        
 
         await (await token0Out.approve(zap.address, toE18(10000))).wait();
         await (await token1Out.approve(zap.address, toE18(10000))).wait();
@@ -261,7 +274,7 @@ async function getOdosRequest(request) {
 
         // console.log("assembleData: ", assembleData)
         transaction = (await axios.post(urlAssemble, assembleData, { headers: { "Accept-Encoding": "br" } }));
-        console.log('trans: ', transaction, quotaResponse);
+        // console.log('trans: ', transaction, quotaResponse);
         // console.log("odos transaction simulation: ", transaction.data.simulation)
     } catch (e) {
         console.log("[zap] getSwapTransaction: ", e);
