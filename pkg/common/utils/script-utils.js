@@ -901,7 +901,7 @@ async function transferAsset(assetAddress, to, amount) {
         case "BASE":
             switch (assetAddress) {
                 case BASE.usdbc:
-                    from = '0x806b9e17306cb97e93bb6c64ee9c9c318e5a0327';
+                    from = '0x4bb6b2efe7036020ba6f02a05602546c9f25bf28';
                     break;
                 case BASE.usdc:
                     from = '0x20fe51a9229eef2cf8ad9e89d91cab9312cf3b7a';
@@ -925,7 +925,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x082Bdc61Fe48aE3C35700e345576c03f62fF4483';
                     break
                 case BASE.eusd:
-                    from = '0x7a8e66c3c704c11b5e2a0ac9bcb8466c009b6afc';
+                    from = '0xf7401728edd23290d8099ed73f155101dcf8cc0c';
                     break
                 case BASE.wstEth:
                     from = '0x31b7538090c8584fed3a053fd183e202c26f9a3e';

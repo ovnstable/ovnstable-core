@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "./OdosZap.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
-import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
 contract AerodromeCLZap is OdosZap {
     INonfungiblePositionManager public npm;
@@ -11,11 +10,11 @@ contract AerodromeCLZap is OdosZap {
     struct ZapParams {
         address odosRouter;
         address npm;
-    }
+    }   
 
     struct AerodromeCLZapInParams {
         address pair;
-        uint160[] sqrtRange;
+        uint256[] priceRange; // TODO: fix all sqrt implementations
         uint256[] amountsOut;
     }
 
@@ -52,16 +51,19 @@ contract AerodromeCLZap is OdosZap {
             IERC20 asset = IERC20(tokensOut[i]);
 
             if (aerodromeData.amountsOut[i] > 0) {
+                console.log("assets sending: ", aerodromeData.amountsOut[i]);
+                console.log("assets balance: ", asset.balanceOf(msg.sender));
+                console.log("asset: ", tokensOut[i]);
                 asset.transferFrom(msg.sender, address(this), aerodromeData.amountsOut[i]);
             }
             amountsOut[i] = asset.balanceOf(address(this));
         }
 
-        _addLiquidity(pair, tokensOut, amountsOut, aerodromeData.sqrtRange);
+        _addLiquidity(pair, tokensOut, amountsOut, aerodromeData.priceRange);
     }
 
     function getProportion(
-        address _pair, uint160[] memory sqrtRange
+        address _pair, uint256[] memory priceRange
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
         IUniswapV3Pool pair = IUniswapV3Pool(_pair);
         IERC20Metadata token0 = IERC20Metadata(pair.token0());
@@ -70,30 +72,49 @@ contract AerodromeCLZap is OdosZap {
         uint256 dec0 = token0.decimals();
         uint256 dec1 = token1.decimals();
 
-        (uint160 sqrtRatioX96,,,,,,) = pair.slot0();
+        console.log("dec:", dec0);
+
+        (uint160 sqrtRatioX96,,,,,) = pair.slot0();
         // int24 tickSpacing = pair.tickSpacing();
+
+        console.log("sqrtRatioX96:", sqrtRatioX96);
+
+        uint160 sqrtRatio0 = getSqrtRatioByPrice(priceRange[0]);
+        uint160 sqrtRatio1 = getSqrtRatioByPrice(priceRange[1]);
+
+        console.log("sqrt0: ", sqrtRatio0);
+        console.log("sqrt1: ", sqrtRatio1);
+
+        
 
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
             sqrtRatioX96,
             // TickMath.getSqrtRatioAtTick(tick - 4 * tickSpacing),
             // TickMath.getSqrtRatioAtTick(tick + 4 * tickSpacing),
-            sqrtRange[0],
-            sqrtRange[1],
+            sqrtRatio0,
+            sqrtRatio1,
             dec0 * 1000000,
             dec1 * 1000000
         );
 
-        uint256 amount0 = uint256(SqrtPriceMath.getAmount0Delta(sqrtRatioX96,  sqrtRange[1], int128(liquidity)));
-        uint256 amount1 = uint256(SqrtPriceMath.getAmount1Delta(sqrtRange[0],  sqrtRatioX96, int128(liquidity)));
+        console.log("liq:", liquidity);
+
+        
+        uint256 amount0 = uint256(SqrtPriceMath.getAmount0Delta(sqrtRatio0,  sqrtRatioX96, int128(liquidity)));
+        uint256 amount1 = uint256(SqrtPriceMath.getAmount1Delta(sqrtRatioX96,  sqrtRatio1, int128(liquidity)));
+        
 
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
         token0Amount = amount0 * (denominator / (10 ** dec0));
         token1Amount = amount1 * (denominator / (10 ** dec1));
+
+        console.log("amo0:", token0Amount);
+        console.log("amo1:", token1Amount);
     }
 
-    function _addLiquidity(IUniswapV3Pool pair, address[] memory tokensOut, uint256[] memory amountsOut, uint160[] memory sqrtRange) internal {
+    function _addLiquidity(IUniswapV3Pool pair, address[] memory tokensOut, uint256[] memory amountsOut, uint256[] memory priceRange) internal {
 
-        (uint256 reserve0, uint256 reserve1,) = getProportion(address(pair), sqrtRange);
+        (uint256 reserve0, uint256 reserve1,) = getProportion(address(pair), priceRange);
 
         (uint256 tokensAmount0, uint256 tokensAmount1) = _getAmountToSwap(
             amountsOut[0],
@@ -112,12 +133,15 @@ contract AerodromeCLZap is OdosZap {
         // (,int24 tick,,,,,) = pair.slot0();
         // int24 tickSpacing = pair.tickSpacing();
 
+        uint160 sqrtRatio0 = getSqrtRatioByPrice(priceRange[0]);
+        uint160 sqrtRatio1 = getSqrtRatioByPrice(priceRange[1]);
+
         ResultOfLiquidity memory result;
         result.amountAsset0Before = asset0.balanceOf(address(this));
         result.amountAsset1Before = asset1.balanceOf(address(this));
         INonfungiblePositionManager.MintParams memory params = 
             INonfungiblePositionManager.MintParams(tokensOut[0], tokensOut[1], pair.fee(),
-                TickMath.getTickAtSqrtRatio(sqrtRange[0]), TickMath.getTickAtSqrtRatio(sqrtRange[1]), tokensAmount0, tokensAmount1, 0, 0, msg.sender, block.timestamp);
+                TickMath.getTickAtSqrtRatio(sqrtRatio0), TickMath.getTickAtSqrtRatio(sqrtRatio1), tokensAmount0, tokensAmount1, 0, 0, msg.sender, block.timestamp);
 
         npm.mint(params);
 
@@ -145,4 +169,21 @@ contract AerodromeCLZap is OdosZap {
         emit ReturnedToUser(result.amountsReturned, tokensOut);
     }
 
+    function getSqrtRatioByPrice(uint256 price) public pure returns (uint160) {
+        uint160 sqrtRatio = SafeCast.toUint160(sqrt(price));
+        return sqrtRatio;
+    }
+
+    function sqrt(uint y) internal pure returns (uint z) {
+    if (y > 3) {
+        z = y;
+        uint x = y / 2 + 1;
+        while (x < z) {
+            z = x;
+            x = (y / x + x) / 2;
+        }
+    } else if (y != 0) {
+        z = 1;
+    }
+}
 }

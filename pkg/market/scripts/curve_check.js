@@ -20,13 +20,16 @@ const { getOdosAmountOut, getOdosSwapData } = require("@overnight-contracts/comm
 const { getOdosAmountOutOnly } = require("../../common/utils/odos-helper.js");
 
 async function main() {
-    let zap = await getContract('CurveZap');
+    let zap = await getContract('AerodromeCLZap');
 
     let params = {
-        name: 'CurveZap',
-        gauge: '0xd68089d9daa2da7888b7ef54158480e09ecc3580',
-        token0Out: 'usdtPlus',
-        token1Out: 'usdPlus',
+        name: 'AerodromeCLZap',
+        pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
+        token0In: 'dola',
+        token1In: 'usdPlus',
+        token0Out: 'sfrax',
+        token1Out: 'usdbc',
+        priceRange: [0.95, 1.05],
     }; 
 
     let setUpParams = await setUp(params);
@@ -61,7 +64,12 @@ async function main() {
         await (await token1Out.approve(zap.address, toE18(10000))).wait();
 
         let reserves;
-        if ('pair' in params) {
+        if ('priceRange' in params) {
+            params.priceRange[0] = toToken0Out(params.priceRange[0]);
+            params.priceRange[1] = toToken1Out(params.priceRange[1]);
+
+            reserves = await zap.getProportion(params.pair, params.priceRange);
+        } else if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
         } else if ('poolId' in params) {
             reserves = await zap.getProportion(params.gauge, params.poolId);
