@@ -196,4 +196,16 @@ contract AerodromeCLZap is OdosZap {
             z = 1;
         }
     }
+
+
+    function getPriceBySqrtRatio(uint160 sqrtRatio) public pure returns (uint256) {
+        uint256 price = FullMath.mulDiv(uint256(sqrtRatio) * 10**10, uint256(sqrtRatio) * 10**8, 2 ** (96+96));
+        return price;
+    }
+
+    function getCurrentPrice(address pair) public view returns (uint256) {
+        IUniswapV3Pool pair = IUniswapV3Pool(pair);
+        (uint160 sqrtRatioX96,,,,,) = pair.slot0();
+        return FullMath.mulDiv(uint256(sqrtRatioX96) * 10**10, uint256(sqrtRatioX96) * 10**8, 2 ** (96+96));
+    }
 }

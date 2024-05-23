@@ -356,6 +356,8 @@ describe(`Test ${params?.name}`, function () {
 
     it("swap and put nearly equal", async function () {
 
+        console.log("price: ", await zap.getCurrentPrice(params.pair));
+
         const amountToken0In = toToken0In(1);
         const amountToken1In = toToken1In(1);
         const amountToken0Out = toToken0Out(4);
