@@ -7,25 +7,22 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "./interfaces/IInsuranceExchange.sol";
-import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IBlockGetter.sol";
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
+import "./interfaces/IRemoteHub.sol";
 import "./interfaces/IUsdPlusToken.sol";
 
-
-contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
+contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
     uint256 public constant LIQ_DELTA_DM   = 1e6;
     uint256 public constant FISK_FACTOR_DM = 1e5;
-
-    uint256 private constant _NOT_ENTERED = 1;
-    uint256 private constant _ENTERED = 2;
 
     // ---  fields
 
@@ -33,7 +30,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     IERC20 public usdc; // asset name
 
     IPortfolioManager public portfolioManager; //portfolio manager contract
-    IMark2Market public mark2market;
 
     uint256 public buyFee;
     uint256 public buyFeeDenominator; // ~ 100 %
@@ -74,14 +70,13 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     address public blockGetter;
     IRoleManager public roleManager;
-
-    uint256 private _reentrancyGuardStatus;
+    IRemoteHub public remoteHub;
 
     // ---  events
 
     event TokensUpdated(address usdPlus, address asset);
-    event Mark2MarketUpdated(address mark2market);
     event RoleManagerUpdated(address roleManager);
+    event RemoteHubUpdated(address remoteHub);
     event PortfolioManagerUpdated(address portfolioManager);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
     event RedeemFeeUpdated(uint256 fee, uint256 feeDenominator);
@@ -110,13 +105,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // ---  modifiers
 
-    modifier nonReentrant() {
-        require(_reentrancyGuardStatus != _ENTERED, "ReentrancyGuard: reentrant call");
-        _reentrancyGuardStatus = _ENTERED;
-        _;
-        _reentrancyGuardStatus = _NOT_ENTERED;
-    }
-
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
         _;
@@ -127,8 +115,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _;
     }
 
-
-    modifier onlyUnit(){
+    modifier onlyUnit() {
         require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
     }
@@ -143,6 +130,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function initialize() initializer public {
         __AccessControl_init();
         __Pausable_init();
+        __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -168,12 +156,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         compensateLossDenominator = 100000;
     }
 
-    function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyRole(DEFAULT_ADMIN_ROLE)
-    override
-    {}
-
+    function _authorizeUpgrade(address newImplementation) internal onlyRole(DEFAULT_ADMIN_ROLE) override {}
 
     // ---  setters Admin
 
@@ -191,12 +174,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit PortfolioManagerUpdated(_portfolioManager);
     }
 
-    function setMark2Market(address _mark2market) external onlyAdmin {
-        require(_mark2market != address(0), "Zero address not allowed");
-        mark2market = IMark2Market(_mark2market);
-        emit Mark2MarketUpdated(_mark2market);
-    }
-
     function setRoleManager(address _roleManager) external onlyAdmin {
         require(_roleManager != address(0), "Zero address not allowed");
         roleManager = IRoleManager(_roleManager);
@@ -206,6 +183,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function setPayoutManager(address _payoutManager) external onlyAdmin {
         payoutManager = IPayoutManager(_payoutManager);
         emit PayoutManagerUpdated(_payoutManager);
+    }
+
+    function setRemoteHub(address _remoteHub) external onlyAdmin {
+        remoteHub = IRemoteHub(_remoteHub);
+        emit RemoteHubUpdated(_remoteHub);
     }
 
     function setInsurance(address _insurance) external onlyAdmin {
@@ -244,7 +226,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
     }
 
-
     function setOracleLoss(uint256 _oracleLoss,  uint256 _denominator) external onlyPortfolioAgent {
         require(_denominator != 0, "Zero denominator not allowed");
         oracleLoss = _oracleLoss;
@@ -258,7 +239,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         compensateLossDenominator = _denominator;
         emit CompensateLossUpdate(_compensateLoss, _denominator);
     }
-
 
     function setMaxAbroad(uint256 _max) external onlyPortfolioAgent {
         abroadMax = _max;
@@ -296,24 +276,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     // Minting USD+ in exchange for an asset
-
     function mint(MintParams calldata params) external whenNotPaused nonReentrant returns (uint256) {
-        return _buy(params.asset, params.amount, params.referral);
-    }
 
-    // Deprecated method - not recommended for use
-    function buy(address _asset, uint256 _amount) external whenNotPaused nonReentrant returns (uint256) {
-        return _buy(_asset, _amount, "");
-    }
+        address _asset = params.asset;
+        uint256 _amount = params.amount;
+        string memory _referral = params.referral;
 
-
-    /**
-     * @param _asset Asset to spend
-     * @param _amount Amount of asset to spend
-     * @param _referral Referral code
-     * @return Amount of minted USD+ to caller
-     */
-    function _buy(address _asset, uint256 _amount, string memory _referral) internal returns (uint256) {
         require(_asset == address(usdc), "Only asset available for buy");
 
         uint256 currentBalance = usdc.balanceOf(msg.sender);
@@ -380,7 +348,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      * ONLY if balance function triggered on PortfolioManager
      * in other cases: stake/unstake only from cash strategy is safe
      */
-
     function _requireOncePerBlock(bool isBalanced) internal {
 
         uint256 blockNumber;
@@ -483,8 +450,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      * @param simulate - allow to get amount loss/premium for prepare swapData (call.static)
      * @param swapData - Odos swap data for swapping OVN->asset or asset->OVN in Insurance
      */
-
-
     function payout(bool simulate, IInsuranceExchange.SwapData memory swapData) external whenNotPaused onlyUnit nonReentrant returns (int256 swapAmount) {
         
         require(address(payoutManager) != address(0) || usdPlus.nonRebaseOwnersLength() == 0, "Need to specify payoutManager address");
@@ -504,7 +469,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 totalUsdPlus = usdPlus.totalSupply();
         uint256 previousUsdPlus = totalUsdPlus;
 
-        uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
+        uint256 totalNav = _assetToRebase(portfolioManager.totalNetAssets());
         uint256 excessProfit;
         uint256 premium;
         uint256 loss;
@@ -579,7 +544,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         // - totalNav
 
         totalUsdPlus = usdPlus.totalSupply();
-        totalNav = _assetToRebase(mark2market.totalNetAssets());
+        totalNav = _assetToRebase(portfolioManager.totalNetAssets());
+        uint256 newDelta = totalNav * LIQ_DELTA_DM / totalUsdPlus;
 
         require(totalNav >= totalUsdPlus, 'negative rebase');
 
@@ -598,6 +564,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         require(usdPlus.totalSupply() == totalNav,'total != nav');
         require(usdPlus.totalSupply() == expectedTotalUsdPlus, 'total != expected');
+
+        remoteHub.execMultiPayout(newDelta);
 
         emit PayoutEvent(
             profit,

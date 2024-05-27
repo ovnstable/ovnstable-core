@@ -1,11 +1,10 @@
 pragma solidity ^0.8.0;
 
-import "../interfaces/IMark2Market.sol";
 import "../interfaces/IPortfolioManager.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract MockPortfolioManager is IPortfolioManager, IMark2Market {
+contract MockPortfolioManager is IPortfolioManager {
 
     bool public navLess;
     address public navLessTo;

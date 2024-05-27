@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.8.0 <0.9.0;
 import "../PayoutManager.sol";
 import { IRouter, ThenaLibrary } from "@overnight-contracts/connectors/contracts/stuff/Thena.sol";
 

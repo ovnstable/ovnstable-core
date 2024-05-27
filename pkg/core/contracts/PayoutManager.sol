@@ -5,11 +5,10 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./interfaces/IUsdPlusToken.sol";
-
-import "hardhat/console.sol";
 
 abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
@@ -79,7 +78,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
         _;
     }
 
-    modifier onlyUnit(){
+    modifier onlyUnit() {
         require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
     }

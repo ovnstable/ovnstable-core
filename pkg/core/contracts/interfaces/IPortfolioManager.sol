@@ -45,4 +45,16 @@ interface IPortfolioManager {
     function balance() external;
 
     function getTotalRiskFactor() external view returns (uint256);
+
+    struct StrategyAsset {
+        address strategy;
+        uint256 netAssetValue;
+        uint256 liquidationValue;
+    }
+
+    function strategyAssets() external view returns (StrategyAsset[] memory);
+
+    function totalNetAssets() external view returns (uint256);
+
+    function totalLiquidationAssets() external view returns (uint256);
 }

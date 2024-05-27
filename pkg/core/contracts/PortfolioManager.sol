@@ -11,7 +11,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 import "./interfaces/IPortfolioManager.sol";
-import "./interfaces/IMark2Market.sol";
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IRoleManager.sol";
 
@@ -27,7 +26,6 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     mapping(address => uint256) public strategyWeightPositions;
     StrategyWeight[] public strategyWeights;
     IStrategy public cashStrategy;
-    IMark2Market public m2m;
     uint256 public totalRiskFactor;
     uint256 public navSlippageBp;
     IRoleManager public roleManager;
@@ -35,7 +33,6 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     // ---  events
 
     event ExchangerUpdated(address value);
-    event Mark2MarketUpdated(address value);
     event RoleManagerUpdated(address roleManager);
     event AssetUpdated(address value);
     event CashStrategyAlreadySet(address value);
@@ -109,13 +106,6 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
         exchanger = _exchanger;
         emit ExchangerUpdated(_exchanger);
-    }
-
-    function setMark2Market(address _m2m) public onlyAdmin {
-        require(_m2m != address(0), "Zero address not allowed");
-
-        m2m = IMark2Market(_m2m);
-        emit Mark2MarketUpdated(_m2m);
     }
 
     function setRoleManager(address _roleManager) external onlyAdmin {
@@ -274,7 +264,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         // 2) when execute stake/unstake
 
         // allowable losses 0.04% = USD+ mint/redeem fee
-        uint256 minNavExpected = OvnMath.subBasisPoints(m2m.totalNetAssets(), navSlippageBp);
+        uint256 minNavExpected = OvnMath.subBasisPoints(totalNetAssets(), navSlippageBp);
         minNavExpected = minNavExpected - withdrawAmount; // subscribe withdraw amount
 
         StrategyWeight[] memory strategies = getAllStrategyWeights();
@@ -367,7 +357,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
             );
         }
 
-        require(m2m.totalNetAssets() >= minNavExpected, "PM: NAV less than expected");
+        require(totalNetAssets() >= minNavExpected, "PM: NAV less than expected");
 
     }
 
@@ -506,5 +496,50 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     function getTotalRiskFactor() external override view returns (uint256) {
         return totalRiskFactor;
+    }
+
+    function strategyAssets() public view override returns (StrategyAsset[] memory) {
+
+        IPortfolioManager.StrategyWeight[] memory weights = getAllStrategyWeights();
+        uint256 count = weights.length;
+
+        StrategyAsset[] memory assets = new StrategyAsset[](count);
+
+        for (uint8 i = 0; i < count; i++) {
+            IPortfolioManager.StrategyWeight memory weight = weights[i];
+            IStrategy strategy = IStrategy(weight.strategy);
+
+            assets[i] = StrategyAsset(
+                weight.strategy,
+                strategy.netAssetValue(),
+                strategy.liquidationValue()
+            );
+        }
+
+        return assets;
+    }
+
+    function totalNetAssets() public view override returns (uint256) {
+        return _totalAssets(false);
+    }
+
+    function totalLiquidationAssets() public view override returns (uint256) {
+        return _totalAssets(true);
+    }
+
+    function _totalAssets(bool liquidation) internal view returns (uint256) {
+        uint256 totalAssetPrice = 0;
+        IPortfolioManager.StrategyWeight[] memory weights = getAllStrategyWeights();
+
+        for (uint8 i = 0; i < weights.length; i++) {
+            IStrategy strategy = IStrategy(weights[i].strategy);
+            if (liquidation) {
+                totalAssetPrice += strategy.liquidationValue();
+            } else {
+                totalAssetPrice += strategy.netAssetValue();
+            }
+        }
+
+        return totalAssetPrice;
     }
 }
