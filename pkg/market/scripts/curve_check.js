@@ -78,8 +78,8 @@ async function main() {
 
         let reserves;
         if ('priceRange' in params) {
-            params.priceRange[0] = toToken0Out(params.priceRange[0]);
-            params.priceRange[1] = toToken1Out(params.priceRange[1]);
+            // params.priceRange[0] = toToken0Out(params.priceRange[0]);
+            // params.priceRange[1] = toToken1Out(params.priceRange[1]);
 
             reserves = await zap.getProportion(params.pair, params.priceRange);
         } else if ('pair' in params) {

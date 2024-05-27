@@ -1751,6 +1751,25 @@ library TickMath {
     }
 }
 
+// library Util {
+//     function getSqrtRatioByPrice(uint256 price, uint256 decimals) internal pure returns (uint160) {
+//         return SafeCast.toUint160(sqrt(FullMath.mulDiv(price, 2 ** 192, decimals)));
+//     }
+
+//     function sqrt(uint y) internal pure returns (uint z) {
+//         if (y > 3) {
+//             z = y;
+//             uint x = y / 2 + 1;
+//             while (x < z) {
+//                 z = x;
+//                 x = (y / x + x) / 2;
+//             }
+//         } else if (y != 0) {
+//             z = 1;
+//         }
+//     }
+// }
+
 library SafeCast {
     /// @notice Cast a uint256 to a uint160, revert on overflow
     /// @param y The uint256 to be downcasted

@@ -314,18 +314,18 @@ describe(`Test ${params?.name}`, function () {
         token0Out = setUpParams.token0Out;
         token1Out = setUpParams.token1Out;
 
-        console.log("token0", token0In.address);
+        // console.log("token0", token0In.address);
         token0InDec = await token0In.decimals();
         // console.log(token0InDec);
 
-        console.log("token1", token1In.address);
+        // console.log("token1", token1In.address);
         token1InDec = await token1In.decimals();
 
-        console.log("token0", token0Out.address);
+        // console.log("token0", token0Out.address);
         token0OutDec = await token0Out.decimals();
-        console.log("token0OutDec:", token0OutDec);
+        // console.log("token0OutDec:", token0OutDec);
 
-        console.log("token1", token1Out.address);
+        // console.log("token1", token1Out.address);
         token1OutDec = await token1Out.decimals();
 
         // console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
@@ -361,7 +361,7 @@ describe(`Test ${params?.name}`, function () {
         const amountToken0In = toToken0In(1);
         const amountToken1In = toToken1In(1);
         const amountToken0Out = toToken0Out(4);
-        console.log("amountToken0Out: ", amountToken0Out);
+        // console.log("amountToken0Out: ", amountToken0Out);
         const amountToken1Out = toToken1Out(5);
 
         await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
@@ -398,8 +398,15 @@ describe(`Test ${params?.name}`, function () {
 
         let reserves;
         
+        let npm;
+        let prevUserBalance;
+
+        
         if ('priceRange' in params) {
             console.log(params.priceRange);
+
+            // npm = await zap.npm();
+            // prevUserBalance = await npm.balanceOf(account);
             reserves = await zap.getProportion(params.pair, params.priceRange);
         } else if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
@@ -444,11 +451,11 @@ describe(`Test ${params?.name}`, function () {
             return { "tokenAddress": tokenAddress, "receiver": zap.address };
         });
 
-        console.log("St")
+        // console.log("St")
 
-        console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params.router);
+        // console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params.router);
 
-        console.log("END")
+        // console.log("END")
 
         let receipt = await (await zap.connect(account).zapIn(
             {
@@ -495,6 +502,12 @@ describe(`Test ${params?.name}`, function () {
         const outputTokensEvent = receipt.events.find((event) => event.event === "OutputTokens");
         const putIntoPoolEvent = receipt.events.find((event) => event.event === "PutIntoPool");
         const returnedToUserEvent = receipt.events.find((event) => event.event === "ReturnedToUser");
+        let mintEvent;
+
+        if ('priceRange' in params) {
+            mintEvent = receipt.events.find((event) => event.event === "IncreaseLiquidity");
+        }
+
 
         console.log(`Input tokens: ${inputTokensEvent.args.amountsIn} ${inputTokensEvent.args.tokensIn}`);
         console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
@@ -536,6 +549,14 @@ describe(`Test ${params?.name}`, function () {
         expect(fromToken1In(await token1In.balanceOf(zap.address))).to.lessThan(1);
         expect(fromToken0Out(await token0Out.balanceOf(zap.address))).to.lessThan(1);
         expect(fromToken1Out(await token1Out.balanceOf(zap.address))).to.lessThan(1);
+
+        // 3) user have his LP-tokens
+        if ('priceRange' in params) {
+            // let amount0 = mintEvent.args.amount0;
+            // let amount1 = mintEvent.args.amount1;
+            expect(amount0 / (amount0 + amount1)).to.equals(reserves[0] / sumReserves);
+        }
+        
     }
 
     async function showBalances() {
