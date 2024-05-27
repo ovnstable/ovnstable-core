@@ -257,7 +257,7 @@ let zaps = [
         token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
-        priceRange: [1.95, 2.05],
+        priceRange: [195, 205],
     }
 ];
 
