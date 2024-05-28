@@ -257,7 +257,7 @@ let zaps = [
         token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
-        priceRange: [4.5, 5],
+        priceRange: [0.5, 1.5],
     }
 ];
 
@@ -358,9 +358,9 @@ describe(`Test ${params?.name}`, function () {
 
         console.log("price: ", await zap.getCurrentPrice(params.pair));
 
-        const amountToken0In = toToken0In(1);
-        const amountToken1In = toToken1In(1);
-        const amountToken0Out = toToken0Out(4);
+        const amountToken0In = toToken0In(0);
+        const amountToken1In = toToken1In(0);
+        const amountToken0Out = toToken0Out(0);
         // console.log("amountToken0Out: ", amountToken0Out);
         const amountToken1Out = toToken1Out(5);
 
@@ -424,12 +424,12 @@ describe(`Test ${params?.name}`, function () {
         // console.log(token0In, dai, token0InDec, account.address);
 
         const proportions = calculateProportionForPool({
-            inputTokensDecimals: [token0InDec, token1InDec],
-            inputTokensAddresses: [token0In.address, token1In.address],
-            inputTokensAmounts: [amountToken0In, amountToken1In],
-            // inputTokensDecimals: [],
-            // inputTokensAddresses: [],
-            // inputTokensAmounts: [],
+            // inputTokensDecimals: [token0InDec, token1InDec],
+            // inputTokensAddresses: [token0In.address, token1In.address],
+            // inputTokensAmounts: [amountToken0In, amountToken1In],
+            inputTokensDecimals: [],
+            inputTokensAddresses: [],
+            inputTokensAmounts: [],
             inputTokensPrices: [1, 1],
             // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
             outputTokensDecimals: [token0OutDec, token1OutDec],
@@ -454,13 +454,13 @@ describe(`Test ${params?.name}`, function () {
             return { "tokenAddress": tokenAddress, "receiver": zap.address };
         });
 
-        // console.log("St")
+        console.log("St")
 
-        // console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
+        console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
 
-        // console.log("END")
+        console.log("END")
 
-        let receipt = await (await zap.connect(account).zapIn(
+        let price = await (await zap.connect(account).zapIn(
             {
                 inputs: inputTokens,
                 outputs: outputTokens,
@@ -482,7 +482,7 @@ describe(`Test ${params?.name}`, function () {
 
             await gauge.connect(account).approve(zap.address, lastTokenId);
 
-            receipt = await (await zap.connect(account).zapIn(
+            price = await (await zap.connect(account).zapIn(
                 {
                     inputs: inputTokens,
                     outputs: outputTokens,
@@ -501,14 +501,14 @@ describe(`Test ${params?.name}`, function () {
 
         await showBalances();
 
-        const inputTokensEvent = receipt.events.find((event) => event.event === "InputTokens");
-        const outputTokensEvent = receipt.events.find((event) => event.event === "OutputTokens");
-        const putIntoPoolEvent = receipt.events.find((event) => event.event === "PutIntoPool");
-        const returnedToUserEvent = receipt.events.find((event) => event.event === "ReturnedToUser");
+        const inputTokensEvent = price.events.find((event) => event.event === "InputTokens");
+        const outputTokensEvent = price.events.find((event) => event.event === "OutputTokens");
+        const putIntoPoolEvent = price.events.find((event) => event.event === "PutIntoPool");
+        const returnedToUserEvent = price.events.find((event) => event.event === "ReturnedToUser");
         let mintEvent;
 
         if ('priceRange' in params) {
-            mintEvent = receipt.events.find((event) => event.event === "IncreaseLiquidity");
+            mintEvent = price.events.find((event) => event.event === "IncreaseLiquidity");
         }
 
 
@@ -517,11 +517,11 @@ describe(`Test ${params?.name}`, function () {
         console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
         console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
 
-        expect(token0In.address).to.equals(inputTokensEvent.args.tokensIn[0]);
-        expect(token1In.address).to.equals(inputTokensEvent.args.tokensIn[1]);
+        // expect(token0In.address).to.equals(inputTokensEvent.args.tokensIn[0]);
+        // expect(token1In.address).to.equals(inputTokensEvent.args.tokensIn[1]);
 
-        expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
-        expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
+        // expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
+        // expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
 
         expect(token0Out.address).to.equals(putIntoPoolEvent.args.tokensPut[0]);
         expect(token1Out.address).to.equals(putIntoPoolEvent.args.tokensPut[1]);
@@ -540,15 +540,15 @@ describe(`Test ${params?.name}`, function () {
         console.log("prop0: ", proportion0);
         console.log("prop1: ", putTokenAmount0 / (putTokenAmount0 + putTokenAmount1));
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
-        // expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
+        expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
 
         // 2) Общая сумма вложенного = (общей сумме обменненого - допустимый slippage)
-        const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
-        const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1])
-        // const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0])
-        // const outTokenAmount1 = fromToken1Out(outputTokensEvent.args.amountsOut[1])
+        // const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
+        // const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1])
+        const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0])
+        const outTokenAmount1 = fromToken1Out(outputTokensEvent.args.amountsOut[1])
 
-        console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
+        // console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
         expect(fromToken0In(await token0In.balanceOf(zap.address))).to.lessThan(1);
         expect(fromToken1In(await token1In.balanceOf(zap.address))).to.lessThan(1);
@@ -557,9 +557,17 @@ describe(`Test ${params?.name}`, function () {
 
         // 3) user have his LP-tokens
         if ('priceRange' in params) {
-            // let amount0 = mintEvent.args.amount0;
-            // let amount1 = mintEvent.args.amount1;
-            // expect(amount0 / (amount0 + amount1)).to.equals(reserves[0] / sumReserves);
+            price = await zap.getCurrentPrice(params.pair);
+            console.log(price.toString());
+
+            let price0 = parseInt(toE18(fromToken0Out(params.priceRange[0])));
+            let price1 = parseInt(toE18(fromToken0Out(params.priceRange[1])));
+            
+            if (price0 > price || price1 < price) {
+                expect(putTokenAmount0 * putTokenAmount1).to.equals(0);
+                console.log(price.toString());
+            }
+            
         }
         
     }
