@@ -39,6 +39,7 @@ async function main() {
         account = setUpParams.account;
         token0Out = setUpParams.token0Out;
         token1Out = setUpParams.token1Out;
+        token1In = setUpParams.token1In;
 
 
         console.log("token0", token0Out.address);
@@ -47,14 +48,17 @@ async function main() {
 
         console.log("token1", token1Out.address);
         token1OutDec = await token1Out.decimals();
+        token1InDec = await token1In.decimals();
 
         // console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
 
         toToken0Out = token0OutDec == 6 ? toE6 : toE18;
         toToken1Out = token1OutDec == 6 ? toE6 : toE18;
+        toToken1In = token1InDec == 6 ? toE6 : toE18;
 
         fromToken0Out = token0OutDec == 6 ? fromE6 : fromE18;
         fromToken1Out = token1OutDec == 6 ? fromE6 : fromE18;
+        fromToken1In = token1InDec == 6 ? fromE6 : fromE18;
 
         if ('priceRange' in params) { 
             curPriceRange = [...params.priceRange];
@@ -71,6 +75,7 @@ async function main() {
         
         const amountToken0Out = toToken0Out(0);
         const amountToken1Out = toToken1Out(0.001);
+        const amountToken1In = toToken1Out(0.001);
         
 
         await (await token0Out.approve(zap.address, toE18(10000))).wait();
@@ -94,10 +99,10 @@ async function main() {
 
 
     const proportions = calculateProportionForPool({
-        inputTokensDecimals: [],
-        inputTokensAddresses: [],
-        inputTokensAmounts: [],
-        inputTokensPrices: [],
+        inputTokensDecimals: [token0InDec, token1InDec],
+            inputTokensAddresses: [token0In.address, token1In.address],
+            inputTokensAmounts: [amountToken0In, amountToken1In],
+            inputTokensPrices: [1, 1],
         // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
         outputTokensDecimals: [token0OutDec, token1OutDec],
         outputTokensAddresses: [token0Out.address, token1Out.address],

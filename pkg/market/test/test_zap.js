@@ -360,7 +360,7 @@ describe(`Test ${params?.name}`, function () {
 
         const amountToken0In = toToken0In(1);
         const amountToken1In = toToken1In(1);
-        const amountToken0Out = toToken0Out(1);
+        const amountToken0Out = toToken0Out(0);
         // console.log("amountToken0Out: ", amountToken0Out);
         const amountToken1Out = toToken1Out(5);
 
