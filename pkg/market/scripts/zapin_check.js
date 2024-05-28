@@ -17,7 +17,7 @@ const { toE6, fromE6, fromE18, toAsset, toE18 } = require("@overnight-contracts/
 const axios = require("axios");
 const { default: BigNumber } = require("bignumber.js");
 const { getOdosAmountOut, getOdosSwapData } = require("@overnight-contracts/common/utils/odos-helper");
-const { getOdosAmountOutOnly } = require("../../common/utils/odos-helper.js");
+const { getOdosAmountOutOnly } = require("@overnight-contracts/common/utils/odos-helper.js");
 
 async function main() {
     let zap = await getContract('AerodromeCLZap');
@@ -29,7 +29,7 @@ async function main() {
         token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
-        priceRange: [0.95, 1.05],
+        priceRange: [1.95, 2.05],
     }; 
 
     let setUpParams = await setUp(params);
@@ -59,8 +59,8 @@ async function main() {
         if ('priceRange' in params) { 
             curPriceRange = [...params.priceRange];
 
-            curPriceRange[0] = toToken0Out(curPriceRange[0]);
-            curPriceRange[1] = toToken0Out(curPriceRange[1]);
+            curPriceRange[0] = Math.ceil(toToken0Out(curPriceRange[0]));
+            curPriceRange[1] = Math.ceil(toToken0Out(curPriceRange[1]));
 
             console.log("priceRange[0]: ", Math.ceil(Math.sqrt(curPriceRange[0])));
             console.log("priceRange[1]: ", Math.ceil(Math.sqrt(curPriceRange[1])));
