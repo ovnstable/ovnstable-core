@@ -358,9 +358,9 @@ describe(`Test ${params?.name}`, function () {
 
         console.log("price: ", await zap.getCurrentPrice(params.pair));
 
-        const amountToken0In = toToken0In(0);
-        const amountToken1In = toToken1In(0);
-        const amountToken0Out = toToken0Out(0);
+        const amountToken0In = toToken0In(1);
+        const amountToken1In = toToken1In(1);
+        const amountToken0Out = toToken0Out(1);
         // console.log("amountToken0Out: ", amountToken0Out);
         const amountToken1Out = toToken1Out(5);
 
@@ -398,15 +398,9 @@ describe(`Test ${params?.name}`, function () {
 
         let reserves;
         
-        let npm;
-        let prevUserBalance;
-
-        
         if ('priceRange' in params) {
             console.log(params.priceRange);
 
-            // npm = await zap.npm();
-            // prevUserBalance = await npm.balanceOf(account);
             reserves = await zap.getProportion(params.pair, params.priceRange);
         } else if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
@@ -417,19 +411,13 @@ describe(`Test ${params?.name}`, function () {
         }
         const sumReserves = reserves[0].add(reserves[1]);
 
-        console.log("prop: ", reserves[0] / sumReserves);
-
-        // let dai = (await getERC20('dai')).connect(account);
-
-        // console.log(token0In, dai, token0InDec, account.address);
-
         const proportions = calculateProportionForPool({
-            // inputTokensDecimals: [token0InDec, token1InDec],
-            // inputTokensAddresses: [token0In.address, token1In.address],
-            // inputTokensAmounts: [amountToken0In, amountToken1In],
-            inputTokensDecimals: [],
-            inputTokensAddresses: [],
-            inputTokensAmounts: [],
+            inputTokensDecimals: [token0InDec, token1InDec],
+            inputTokensAddresses: [token0In.address, token1In.address],
+            inputTokensAmounts: [amountToken0In, amountToken1In],
+            // inputTokensDecimals: [],
+            // inputTokensAddresses: [],
+            // inputTokensAmounts: [],
             inputTokensPrices: [1, 1],
             // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
             outputTokensDecimals: [token0OutDec, token1OutDec],
@@ -454,11 +442,11 @@ describe(`Test ${params?.name}`, function () {
             return { "tokenAddress": tokenAddress, "receiver": zap.address };
         });
 
-        console.log("St")
+        // console.log("St")
 
-        console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
+        // console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
 
-        console.log("END")
+        // console.log("END")
 
         let price = await (await zap.connect(account).zapIn(
             {
@@ -471,8 +459,6 @@ describe(`Test ${params?.name}`, function () {
                 ...params,
             }
         )).wait();
-
-        // params.priceRange = [...baseRange];
 
         if ('tokenId' in params) {
             let gauge = await ethers.getContractAt(abiNFTPool, params.gauge, account);
@@ -517,11 +503,11 @@ describe(`Test ${params?.name}`, function () {
         console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
         console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
 
-        // expect(token0In.address).to.equals(inputTokensEvent.args.tokensIn[0]);
-        // expect(token1In.address).to.equals(inputTokensEvent.args.tokensIn[1]);
+        expect(token0In.address).to.equals(inputTokensEvent.args.tokensIn[0]);
+        expect(token1In.address).to.equals(inputTokensEvent.args.tokensIn[1]);
 
-        // expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
-        // expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
+        expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
+        expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
 
         expect(token0Out.address).to.equals(putIntoPoolEvent.args.tokensPut[0]);
         expect(token1Out.address).to.equals(putIntoPoolEvent.args.tokensPut[1]);
@@ -535,7 +521,7 @@ describe(`Test ${params?.name}`, function () {
         const putTokenAmount0 = fromToken0Out(putIntoPoolEvent.args.amountsPut[0]);
         const putTokenAmount1 = fromToken1Out(putIntoPoolEvent.args.amountsPut[1]);
 
-        // console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
+        console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
 
         console.log("prop0: ", proportion0);
         console.log("prop1: ", putTokenAmount0 / (putTokenAmount0 + putTokenAmount1));
@@ -543,12 +529,12 @@ describe(`Test ${params?.name}`, function () {
         expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
 
         // 2) Общая сумма вложенного = (общей сумме обменненого - допустимый slippage)
-        // const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
-        // const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1])
+        const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
+        const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1])
         const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0])
         const outTokenAmount1 = fromToken1Out(outputTokensEvent.args.amountsOut[1])
 
-        // console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
+        console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
         expect(fromToken0In(await token0In.balanceOf(zap.address))).to.lessThan(1);
         expect(fromToken1In(await token1In.balanceOf(zap.address))).to.lessThan(1);
