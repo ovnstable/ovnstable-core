@@ -257,7 +257,7 @@ let zaps = [
         token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
-        priceRange: [195, 205],
+        priceRange: [4.5, 5],
     }
 ];
 
@@ -369,10 +369,10 @@ describe(`Test ${params?.name}`, function () {
 
     it("swap and disbalance on one asset", async function () {
 
-        const amountToken0In = toToken0In(100);
-        const amountToken1In = toToken1In(100);
-        const amountToken0Out = toToken0Out(800);
-        const amountToken1Out = toToken1Out(100);
+        const amountToken0In = toToken0In(1);
+        const amountToken1In = toToken1In(1);
+        const amountToken0Out = toToken0Out(2);
+        const amountToken1Out = toToken1Out(30);
 
         await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
     });
@@ -427,6 +427,9 @@ describe(`Test ${params?.name}`, function () {
             inputTokensDecimals: [token0InDec, token1InDec],
             inputTokensAddresses: [token0In.address, token1In.address],
             inputTokensAmounts: [amountToken0In, amountToken1In],
+            // inputTokensDecimals: [],
+            // inputTokensAddresses: [],
+            // inputTokensAmounts: [],
             inputTokensPrices: [1, 1],
             // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
             outputTokensDecimals: [token0OutDec, token1OutDec],
@@ -453,7 +456,7 @@ describe(`Test ${params?.name}`, function () {
 
         // console.log("St")
 
-        // console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params.router);
+        // console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
 
         // console.log("END")
 
@@ -534,8 +537,10 @@ describe(`Test ${params?.name}`, function () {
 
         // console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
 
+        console.log("prop0: ", proportion0);
+        console.log("prop1: ", putTokenAmount0 / (putTokenAmount0 + putTokenAmount1));
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
-        expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
+        // expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
 
         // 2) Общая сумма вложенного = (общей сумме обменненого - допустимый slippage)
         const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])

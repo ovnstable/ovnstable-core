@@ -49,10 +49,11 @@ contract AerodromeCLZap is OdosZap {
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
-
+            // console.log("start amount: ", tokensOut[i], asset.balanceOf(address(this)));
             if (aerodromeData.amountsOut[i] > 0) {
                 asset.transferFrom(msg.sender, address(this), aerodromeData.amountsOut[i]);
             }
+            // console.log("end amount: ", tokensOut[i], asset.balanceOf(address(this)));
             amountsOut[i] = asset.balanceOf(address(this));
         }
 
@@ -63,25 +64,19 @@ contract AerodromeCLZap is OdosZap {
         address _pair, uint256[] memory priceRange
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
         IUniswapV3Pool pair = IUniswapV3Pool(_pair);
-        IERC20Metadata token0 = IERC20Metadata(pair.token0());
-        IERC20Metadata token1 = IERC20Metadata(pair.token1());
 
-        uint256 dec0 = token0.decimals();
-        uint256 dec1 = token1.decimals();
+        uint256 dec0;
+        uint256 dec1;
 
-        console.log("dec:", dec0);
-        console.log("dec1:", dec1);
+        {
+            IERC20Metadata token0 = IERC20Metadata(pair.token0());
+            IERC20Metadata token1 = IERC20Metadata(pair.token1());
+            dec0 = token0.decimals();
+            dec1 = token1.decimals();
+        }
+        
 
         (uint160 sqrtRatioX96,,,,,) = pair.slot0();
-        // int24 tickSpacing = pair.tickSpacing();
-
-        // console.log("sqrtRatioX96:", sqrtRatioX96);
-
-        // uint160 sqrtRatio0 = 
-        // uint160 sqrtRatio1 = ;
-
-        // console.log("sqrt0: ", sqrtRatio0);
-        // console.log("sqrt1: ", sqrtRatio1);
 
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
             sqrtRatioX96,
@@ -91,13 +86,19 @@ contract AerodromeCLZap is OdosZap {
             dec1 * 1000000
         );
 
-        console.log("liq:", liquidity);
+        
+        (token0Amount, token1Amount) = LiquidityAmounts.getAmountsForLiquidity( // TODO: check decimals
+            sqrtRatioX96,
+            Util.getSqrtRatioByPrice(priceRange[0], 10 ** dec0),
+            Util.getSqrtRatioByPrice(priceRange[1], 10 ** dec0),
+            liquidity
+        );
 
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
-        token0Amount = uint256(SqrtPriceMath.getAmount0Delta(Util.getSqrtRatioByPrice(priceRange[0], 10 ** dec0),  sqrtRatioX96, int128(liquidity))) * (denominator / (10 ** dec0));
-        token1Amount = uint256(SqrtPriceMath.getAmount1Delta(sqrtRatioX96, Util.getSqrtRatioByPrice(priceRange[1], 10 ** dec0), int128(liquidity))) * (denominator / (10 ** dec1));
+        // token0Amount = uint256(SqrtPriceMath.getAmount0Delta(Util.getSqrtRatioByPrice(priceRange[0], 10 ** dec0), sqrtRatioX96, int128(liquidity))) * (denominator / (10 ** dec0));
+        // token1Amount = uint256(SqrtPriceMath.getAmount1Delta(sqrtRatioX96, Util.getSqrtRatioByPrice(priceRange[1], 10 ** dec0), int128(liquidity))) * (denominator / (10 ** dec1));
 
-        console.log("delta: ", Util.getSqrtRatioByPrice(priceRange[0], 10 ** dec0), sqrtRatioX96, Util.getSqrtRatioByPrice(priceRange[1], 10 ** dec0));
+        // console.log("delta: ", Util.getSqrtRatioByPrice(priceRange[0], 10 ** dec0), sqrtRatioX96, Util.getSqrtRatioByPrice(priceRange[1], 10 ** dec0));
         console.log("amo0:", token0Amount);
         console.log("amo1:", token1Amount);
     }

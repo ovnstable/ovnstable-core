@@ -69,7 +69,7 @@ async function main() {
             params.priceRange = [...curPriceRange];
         }
         
-        const amountToken0Out = toToken0Out(0.001);
+        const amountToken0Out = toToken0Out(0);
         const amountToken1Out = toToken1Out(0.001);
         
 
@@ -118,6 +118,12 @@ async function main() {
     const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
         return { "tokenAddress": tokenAddress, "receiver": zap.address };
     });
+
+    console.log("St")
+
+        console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
+
+        console.log("END")
 
     let receipt = await (await zap.connect(account).zapIn(
         {
