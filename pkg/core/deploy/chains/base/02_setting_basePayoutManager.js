@@ -92,6 +92,11 @@ module.exports = async () => {
         items.push(createSkim('0xbB38EeBd670A9F3cafe6D3170862ccD930cB25f9', usdPlus.address, 'vAMM-USD+/sFRAX', dex));
         items.push(createSkimToWithFee('0x4Ef1E503C4F1e5664ac98294d0e42ddC9c0FF961', usdPlus.address, 'CL1-USDz/USD+', dex, '0xDeAF42D4a2CC1Dc14505Ce4E4f59629aeC253d75', 90, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0x6f8e210030f6eE6933b032628a0e148a1CcfF6a6', usdPlus.address, 'CL200-TKN/USD+', dex, '0xee79A6F7aB51f6c660c06dA26ff93095B5Da83Ab', 10, '0xDeAF42D4a2CC1Dc14505Ce4E4f59629aeC253d75'));
+        items.push(createSkim('0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD', usdPlus.address, 'CL1-DOLA/USD+', dex));
+        items.push(createSkim('0x20086910E220D5f4c9695B784d304A72a0de403B', usdPlus.address, 'CL1-USD+/USDbC', dex));
+        items.push(createSkim('0x8e62bE92c6Fb091428d0d6cBa0C0e32529B27e51', usdPlus.address, 'CL50-USD+/sFRAX', dex));
+        items.push(createSkim('0x8e62bE92c6Fb091428d0d6cBa0C0e32529B27e51', usdPlus.address, 'CL50-USD+/sFRAX', dex));
+        items.push(createSkim('0x9EfdF5b3E05e52c2957BDA3e89Ea35C5296A78f0', usdPlus.address, 'CL50-USD+/eUSD', dex));
         
         return items;
     }
