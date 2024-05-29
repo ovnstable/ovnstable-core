@@ -24,12 +24,12 @@ async function main() {
 
     let params = {
         name: 'AerodromeCLZap',
-        pair: '0x0c1A09d5D0445047DA3Ab4994262b22404288A3B',
-        token0Out: 'usdc',
+        pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
+        token0Out: 'weth',
         token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
-        priceRange: [0.95, 1.05],
+        priceRange: [1000, 2000],
     }; 
 
     let setUpParams = await setUp(params);
@@ -39,7 +39,7 @@ async function main() {
         account = setUpParams.account;
         token0Out = setUpParams.token0Out;
         token1Out = setUpParams.token1Out;
-        token1In = setUpParams.token1In;
+        
 
 
         console.log("token0", token0Out.address);
@@ -48,23 +48,23 @@ async function main() {
 
         console.log("token1", token1Out.address);
         token1OutDec = await token1Out.decimals();
-        token1InDec = await token1In.decimals();
+        
 
         // console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
 
         toToken0Out = token0OutDec == 6 ? toE6 : toE18;
         toToken1Out = token1OutDec == 6 ? toE6 : toE18;
-        toToken1In = token1InDec == 6 ? toE6 : toE18;
+        // toToken1In = token1InDec == 6 ? toE6 : toE18;
 
         fromToken0Out = token0OutDec == 6 ? fromE6 : fromE18;
         fromToken1Out = token1OutDec == 6 ? fromE6 : fromE18;
-        fromToken1In = token1InDec == 6 ? fromE6 : fromE18;
+        // fromToken1In = token1InDec == 6 ? fromE6 : fromE18;
 
         if ('priceRange' in params) { 
             curPriceRange = [...params.priceRange];
 
-            curPriceRange[0] = Math.ceil(toToken0Out(curPriceRange[0]));
-            curPriceRange[1] = Math.ceil(toToken0Out(curPriceRange[1]));
+            curPriceRange[0] = Math.ceil(toE6(curPriceRange[0])).toString();
+            curPriceRange[1] = Math.ceil(toE6(curPriceRange[1])).toString();
 
             console.log("priceRange[0]: ", Math.ceil(Math.sqrt(curPriceRange[0])));
             console.log("priceRange[1]: ", Math.ceil(Math.sqrt(curPriceRange[1])));
@@ -75,7 +75,7 @@ async function main() {
         
         const amountToken0Out = toToken0Out(0);
         const amountToken1Out = toToken1Out(0.001);
-        const amountToken1In = toToken1Out(0.001);
+        // const amountToken1In = toToken1Out(0.001);
         
 
         await (await token0Out.approve(zap.address, toE18(10000))).wait();
@@ -96,18 +96,20 @@ async function main() {
         }
         const sumReserves = reserves[0].add(reserves[1]);
 
+        console.log("prop: ", reserves[0] / sumReserves);
+
 
 
     const proportions = calculateProportionForPool({
-        inputTokensDecimals: [token0InDec, token1InDec],
-            inputTokensAddresses: [token0In.address, token1In.address],
-            inputTokensAmounts: [amountToken0In, amountToken1In],
-            inputTokensPrices: [1, 1],
+        inputTokensDecimals: [],
+            inputTokensAddresses: [],
+            inputTokensAmounts: [],
+            inputTokensPrices: [],
         // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
         outputTokensDecimals: [token0OutDec, token1OutDec],
         outputTokensAddresses: [token0Out.address, token1Out.address],
         outputTokensAmounts: [amountToken0Out, amountToken1Out],
-        outputTokensPrices: [1, 1],
+        outputTokensPrices: [3844, 1],
         proportion0: reserves[0] / sumReserves
     })
 
@@ -172,6 +174,9 @@ function calculateProportionForPool(
 
     const output0InMoneyWithProportion = sumInputs * proportion0;
     const output1InMoneyWithProportion = sumInputs * (1 - proportion0);
+
+    console.log("base: ", tokenOut0, tokenOut1);
+    console.log("baseprop: ", output0InMoneyWithProportion, output1InMoneyWithProportion);
 
     const inputTokens = inputTokensAddresses.map((address, index) => {
         return { "tokenAddress": address, "amount": inputTokensAmounts[index].toString() };

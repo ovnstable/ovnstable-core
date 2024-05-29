@@ -257,8 +257,35 @@ let zaps = [
         token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
+        priceRange: [4.5, 15],
+    },
+    {
+        name: 'AerodromeCLZap',
+        pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
+        token0Out: 'dola',
+        token1Out: 'usdPlus',
+        token0In: 'sfrax',
+        token1In: 'dai',
         priceRange: [0.5, 1.5],
-    }
+    },
+    // {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
+    //     token0Out: 'weth',
+    //     token1Out: 'usdPlus',
+    //     token0In: 'sfrax',
+    //     token1In: 'dai',
+    //     priceRange: [1000.67143, 2000.11111],
+    // },
+    {
+        name: 'AerodromeCLZap',
+        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+        token0Out: 'usdPlus',
+        token1Out: 'usdbc',
+        token0In: 'sfrax',
+        token1In: 'dai',
+        priceRange: [0.989, 1.10001],
+    },
 ];
 
 
@@ -328,7 +355,7 @@ describe(`Test ${params?.name}`, function () {
         // console.log("token1", token1Out.address);
         token1OutDec = await token1Out.decimals();
 
-        // console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
+        console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
 
         toToken0In = token0InDec == 6 ? toE6 : toE18;
         toToken1In = token1InDec == 6 ? toE6 : toE18;
@@ -343,8 +370,8 @@ describe(`Test ${params?.name}`, function () {
         if ('priceRange' in params) { 
             curPriceRange = [...params.priceRange];
 
-            curPriceRange[0] = Math.ceil(toToken0Out(curPriceRange[0]));
-            curPriceRange[1] = Math.ceil(toToken0Out(curPriceRange[1]));
+            curPriceRange[0] = Math.ceil(toE6(curPriceRange[0])).toString();
+            curPriceRange[1] = Math.ceil(toE6(curPriceRange[1])).toString();
 
             console.log("priceRange[0]: ", Math.ceil(Math.sqrt(curPriceRange[0])));
             console.log("priceRange[1]: ", Math.ceil(Math.sqrt(curPriceRange[1])));
@@ -360,7 +387,7 @@ describe(`Test ${params?.name}`, function () {
 
         const amountToken0In = toToken0In(1);
         const amountToken1In = toToken1In(1);
-        const amountToken0Out = toToken0Out(0);
+        const amountToken0Out = toToken0Out(1);
         // console.log("amountToken0Out: ", amountToken0Out);
         const amountToken1Out = toToken1Out(5);
 
@@ -397,11 +424,12 @@ describe(`Test ${params?.name}`, function () {
         await (await token1Out.approve(zap.address, toE18(10000))).wait();
 
         let reserves;
-        
+        console.log("CCCCCCCC");
         if ('priceRange' in params) {
             console.log(params.priceRange);
 
             reserves = await zap.getProportion(params.pair, params.priceRange);
+            console.log("DDDDDDDDDDDDDDD");
         } else if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
         } else if ('poolId' in params) {
@@ -415,15 +443,15 @@ describe(`Test ${params?.name}`, function () {
             inputTokensDecimals: [token0InDec, token1InDec],
             inputTokensAddresses: [token0In.address, token1In.address],
             inputTokensAmounts: [amountToken0In, amountToken1In],
+            inputTokensPrices: [1, 1],
             // inputTokensDecimals: [],
             // inputTokensAddresses: [],
             // inputTokensAmounts: [],
-            inputTokensPrices: [1, 1],
             // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
             outputTokensDecimals: [token0OutDec, token1OutDec],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
-            outputTokensPrices: [1, 1],
+            outputTokensPrices: [3844, 1],
             proportion0: reserves[0] / sumReserves
         })
 
@@ -541,13 +569,16 @@ describe(`Test ${params?.name}`, function () {
         expect(fromToken0Out(await token0Out.balanceOf(zap.address))).to.lessThan(1);
         expect(fromToken1Out(await token1Out.balanceOf(zap.address))).to.lessThan(1);
 
-        // 3) user have his LP-tokens
+        
         if ('priceRange' in params) {
+
+            console.log((await zap.getCurrentPrice('0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD')).toString());
+
             price = await zap.getCurrentPrice(params.pair);
             console.log(price.toString());
 
-            let price0 = parseInt(toE18(fromToken0Out(params.priceRange[0])));
-            let price1 = parseInt(toE18(fromToken0Out(params.priceRange[1])));
+            let price0 = parseInt(params.priceRange[0]);
+            let price1 = parseInt(params.priceRange[1]);
             
             if (price0 > price || price1 < price) {
                 expect(putTokenAmount0 * putTokenAmount1).to.equals(0);

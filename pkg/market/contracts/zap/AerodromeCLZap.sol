@@ -49,11 +49,11 @@ contract AerodromeCLZap is OdosZap {
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
-            // console.log("start amount: ", tokensOut[i], asset.balanceOf(address(this)));
+
             if (aerodromeData.amountsOut[i] > 0) {
                 asset.transferFrom(msg.sender, address(this), aerodromeData.amountsOut[i]);
             }
-            // console.log("end amount: ", tokensOut[i], asset.balanceOf(address(this)));
+
             amountsOut[i] = asset.balanceOf(address(this));
         }
 
@@ -82,12 +82,17 @@ contract AerodromeCLZap is OdosZap {
             sqrtRatioX96,
             Util.getSqrtRatioByPrice(priceRange[0], 10 ** dec0),
             Util.getSqrtRatioByPrice(priceRange[1], 10 ** dec0),
-            dec0 * 1000000,
-            dec1 * 1000000
+            10 ** dec0,
+            10 ** dec1
         );
 
+        // console.log("sqrtprice00: ", Util.getSqrtRatioByPrice(priceRange[0], 10 ** dec0));
+
+        // console.log("sqrtprice1: ", Util.getSqrtRatioByPrice(priceRange[1], 10 ** dec0));
         
-        (token0Amount, token1Amount) = LiquidityAmounts.getAmountsForLiquidity( // TODO: check decimals
+
+        
+        (token0Amount, token1Amount) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtRatioX96,
             Util.getSqrtRatioByPrice(priceRange[0], 10 ** dec0),
             Util.getSqrtRatioByPrice(priceRange[1], 10 ** dec0),
@@ -95,10 +100,10 @@ contract AerodromeCLZap is OdosZap {
         );
 
         denominator = 10 ** (dec0 > dec1 ? dec0 : dec1);
-        // token0Amount = uint256(SqrtPriceMath.getAmount0Delta(Util.getSqrtRatioByPrice(priceRange[0], 10 ** dec0), sqrtRatioX96, int128(liquidity))) * (denominator / (10 ** dec0));
-        // token1Amount = uint256(SqrtPriceMath.getAmount1Delta(sqrtRatioX96, Util.getSqrtRatioByPrice(priceRange[1], 10 ** dec0), int128(liquidity))) * (denominator / (10 ** dec1));
-
-        // console.log("delta: ", Util.getSqrtRatioByPrice(priceRange[0], 10 ** dec0), sqrtRatioX96, Util.getSqrtRatioByPrice(priceRange[1], 10 ** dec0));
+        
+        token0Amount = token0Amount * (denominator / (10 ** dec0)); 
+        token1Amount = token1Amount * (denominator / (10 ** dec1));
+        
         console.log("amo0:", token0Amount);
         console.log("amo1:", token1Amount);
     }
@@ -106,24 +111,28 @@ contract AerodromeCLZap is OdosZap {
     function _addLiquidity(IUniswapV3Pool pair, address[] memory tokensOut, uint256[] memory amountsOut, uint256[] memory priceRange) internal {
         
         ResultOfLiquidity memory result;
-
         
         IERC20 asset0 = IERC20(tokensOut[0]);
         IERC20 asset1 = IERC20(tokensOut[1]);
         asset0.approve(address(npm), amountsOut[0]);
         asset1.approve(address(npm), amountsOut[1]);
 
-        
         result.amountAsset0Before = asset0.balanceOf(address(this));
         result.amountAsset1Before = asset1.balanceOf(address(this));
-        
 
         {
             uint160 sqrtRatio0 = Util.getSqrtRatioByPrice(priceRange[0], 10 ** IERC20Metadata(tokensOut[0]).decimals());
             uint160 sqrtRatio1 = Util.getSqrtRatioByPrice(priceRange[1], 10 ** IERC20Metadata(tokensOut[0]).decimals());
-        
-            npm.mint(INonfungiblePositionManager.MintParams(tokensOut[0], tokensOut[1], pair.tickSpacing(),
-                TickMath.getTickAtSqrtRatio(sqrtRatio0), TickMath.getTickAtSqrtRatio(sqrtRatio1), amountsOut[0], amountsOut[1], 0, 0, msg.sender, block.timestamp, 0));
+
+            int24 tickSpacing = pair.tickSpacing();
+            int24 lowerTick = TickMath.getTickAtSqrtRatio(sqrtRatio0);
+            int24 upperTick = TickMath.getTickAtSqrtRatio(sqrtRatio1);
+
+            lowerTick = lowerTick > 0 ? lowerTick - lowerTick % tickSpacing : lowerTick - tickSpacing - (lowerTick % tickSpacing);
+            upperTick = upperTick > 0 ? upperTick + tickSpacing - (upperTick % tickSpacing) : upperTick - (upperTick % tickSpacing);
+
+            npm.mint(INonfungiblePositionManager.MintParams(tokensOut[0], tokensOut[1], tickSpacing,
+                lowerTick, upperTick, amountsOut[0], amountsOut[1], 0, 0, msg.sender, block.timestamp, 0));
         }
 
         result.amountAsset0After = asset0.balanceOf(address(this));
@@ -151,7 +160,10 @@ contract AerodromeCLZap is OdosZap {
 
     function getCurrentPrice(address pair) public view returns (uint256) {
         IUniswapV3Pool pool = IUniswapV3Pool(pair);
+        IERC20Metadata token0 = IERC20Metadata(pool.token0());
+        uint256 dec0 = token0.decimals();
+
         (uint160 sqrtRatioX96,,,,,) = pool.slot0();
-        return FullMath.mulDiv(uint256(sqrtRatioX96) * 10**10, uint256(sqrtRatioX96) * 10**8, 2 ** (96+96));
+        return FullMath.mulDiv(uint256(sqrtRatioX96) * 10**dec0, uint256(sqrtRatioX96), 2 ** (96+96));
     }
 }

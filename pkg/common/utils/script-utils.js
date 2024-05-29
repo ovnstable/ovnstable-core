@@ -913,7 +913,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x9f1920d0cbb63ed03376a1e09fd2851d601234c8';
                     break;
                 case BASE.dola:
-                    from = '0x7944642920Df33BAE461f86Aa0cd0b4B8284330E';
+                    from = '0x051f943f331538b8d9768cccdcf0e9f60289dd6b';
                     break;
                 case BASE.sfrax:
                     from = '0x6e74053a3798e0fC9a9775F7995316b27f21c4D2';
@@ -929,6 +929,9 @@ async function transferAsset(assetAddress, to, amount) {
                     break
                 case BASE.wstEth:
                     from = '0x31b7538090c8584fed3a053fd183e202c26f9a3e';
+                    break
+                case BASE.weth:
+                    from = '0x2b8804c2b652f05f7fdd8e0a02f01ee58f01667e';
                     break
                 default:
                     throw new Error('Unknown asset address');
