@@ -40,7 +40,10 @@ module.exports = async () => {
         items.push(createBribe('0x58aacbccaec30938cb2bb11653cad726e5c4194a', usdPlus.address, 'USDC/USD+', dex, '0x2198BbF8A4f1A52161ab3411897CC4fb4E2CD5ca'));
         items.push(createBribe('0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91', usdPlus.address, 'USDT+/USD+', dex, '0xcC56DD87294fDA597F71ABADE8e233cF3A84fE43'));
         items.push(createBribe('0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91', usdtPlus.address, 'USDT+/USD+', dex, "0xcC56DD87294fDA597F71ABADE8e233cF3A84fE43"));
-
+        items.push(createSkim('0x93b6d53d8a33c92003D0c41065cb2842934C2619', usdtPlus.address, 'USDT+/USDT', dex));
+        items.push(createSkimToWithFee('0x6F501662A76577FBB3Bb230Be5E8e69D41d8c711', usdPlus.address, 'vAMM-FLY/USD+', dex, '0x4015363dba83Bd7c922B190Ca8D283481ba99116', 20,  COMMON.rewardWallet));
+        items.push(createBribe('0x2c5455EC697254B9c649892eEd425126791e334a', usdPlus.address, 'EURO3/USD+', dex, "0x4489E4e7973967a05a5311b4E099A25D3f31c392"));
+        
         return items;
     }
 

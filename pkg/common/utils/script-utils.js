@@ -137,11 +137,11 @@ async function settingSection(id, exec) {
                 console.log(`SetDepositor fail: ${e}`);
             }
 
-            try {
-                await addStrategyToApi(strategy, id);
-            } catch (e) {
-                console.log(`Add strategy to API error: ${e}`);
-            }
+            // try {
+            //     await addStrategyToApi(strategy, id);
+            // } catch (e) {
+            //     console.log(`Add strategy to API error: ${e}`);
+            // }
             console.log(`[${strategyName}] setting done`)
         } catch (e) {
             console.error(`[${strategyName}] setting fail: ` + e);
@@ -404,7 +404,7 @@ async function getCoreAsset(stand = process.env.STAND) {
         return await getERC20('usdt');
 
     } else if (stand === 'base') {
-        return await getERC20('usdbc');
+        return await getERC20('usdc');
 
     } else if (stand === 'arbitrum_eth') {
         return await getERC20('weth');
@@ -587,6 +587,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
     if (usdPlus) {
         let totalUsdPlus = fromUsdPlus(await usdPlus.totalSupply({ blockTag: blocknumber }), stand);
         console.log('Total USD+: ' + totalUsdPlus);
+        console.log('Difference is: ',totalUsdPlus - fromAsset(totalNetAssets.toString(), stand));
     }
 
 }
@@ -610,7 +611,7 @@ async function getPrice() {
         return { maxFeePerGas, maxPriorityFeePerGas, gasLimit: 200000000 }
     } else if (process.env.ETH_NETWORK === 'BASE') {
         let gasPrice = await ethers.provider.getGasPrice();
-        let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
+        let percentage = gasPrice.mul(BigNumber.from('10')).div(100);
         gasPrice = gasPrice.add(percentage);
         return { gasPrice: 1000000000, gasLimit: 30000000 }
     } else if (process.env.ETH_NETWORK === 'LINEA') {
@@ -933,6 +934,7 @@ async function transferAsset(assetAddress, to, amount) {
                 case BASE.weth:
                     from = '0x2b8804c2b652f05f7fdd8e0a02f01ee58f01667e';
                     break
+
                 default:
                     throw new Error('Unknown asset address');
             }

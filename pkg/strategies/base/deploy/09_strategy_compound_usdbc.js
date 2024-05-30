@@ -9,18 +9,20 @@ module.exports = async ({deployments}) => {
         await deployProxy(name, deployments, save);
     });
 
-    await settingSection(async (strategy) => {
+    await settingSection('', async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
     });
 };
 
 async function getParams() {
     return {
+        usdc: BASE.usdc,
         usdbc: BASE.usdbc,
         comp: BASE.comp,
         cUsdbc: BASE.compoundUsdbc,
         compoundRewards: BASE.compoundRewards,
         rewardWallet: COMMON.rewardWallet,
+        inchSwapper: BASE.inchSwapper,
     }
 }
 

@@ -21,283 +21,170 @@ const { getOdosAmountOut, getOdosSwapData } = require("@overnight-contracts/comm
 const { getOdosAmountOutOnly } = require("../../common/utils/odos-helper.js");
 
 let zaps = [
-    // {
-    //     name: 'AerodromeZap',
-    //     gauge: '0x87803Cb321624921cedaAD4555F07Daa0D1Ed325',
-    //     token0Out: 'daiPlus',
-    //     token1Out: 'usdPlus',
-    //     token0In: 'usdbc',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'AerodromeZap',
-    //     gauge: '0x969c70383A95704C6a35497d8C77BF38dc152e63',
-    //     token0Out: 'dola',
-    //     token1Out: 'usdPlus',
-    //     token0In: 'usdbc',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'AerodromeZap',
-    //     gauge: '0x9701A079C6e80D91CE4c464C4a996237A27FE537',
-    //     token0Out: 'usdc',
-    //     token1Out: 'usdPlus',
-    //     token0In: 'usdbc',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'AerodromeZap',
-    //     gauge: '0xEc4288995734ca01eAfC97588658F37515823502',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'sfrax',
-    //     token0In: 'usdbc',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'AerodromeZap',
-    //     gauge: '0x365f5413BBC783D1fff1cAe9D3Bd9A16eA698D19',
-    //     token0Out: 'aero',
-    //     token1Out: 'ovn',
-    //     token0In: 'usdbc',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'AerodromeZap',
-    //     gauge: '0xf09B1177d10775791d5806544AB51F1990Cb7c9A',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'eusd',
-    //     token0In: 'usdbc',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'AerodromeZap',
-    //     gauge: '0xcC5931E3f7ce8967Dcdc4BC5C7cfd5bF3d7Cf1FE',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'wstEth',
-    //     token0In: 'usdbc',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'BeefyAerodromeZap',
-    //     gauge: '0x661413c7baf43c53e6beff6567aad4b4f58bb10a',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'usdbc',
-    //     token0In: 'daiPlus',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'CurveNGZap',
-    //     gauge: '0xd68089d9daa2da7888b7ef54158480e09ecc3580',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'usdtPlus',
-    //     token0In: 'usdc',
-    //     token1In: 'frax',
-    // },
-    // {
-    //     name: 'LynexZap',
-    //     gauge: '0xEaf988C649f44c4DDFd7FDe1a8cB290569B66253',
-    //     token0Out: 'usdc',
-    //     token1Out: 'usdPlus',
-    //     token0In: 'dai',
-    //     token1In: 'usdt',
-    // },
-    // {
-    //     name: 'LynexZap',
-    //     gauge: '0x58AC068Eef3F49E019A88C7ecc9Ac2Fdd63fA755',
-    //     token0Out: 'usdtPlus',
-    //     token1Out: 'usdPlus',
-    //     token0In: 'dai',
-    //     token1In: 'usdt',
-    // },
-    // {
-    //     name: 'AlienBaseZap',
-    //     gauge: '0x52eaeCAC2402633d98b95213d0b473E069D86590',
-    //     poolId: 7,
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'usdbc',
-    //     token0In: 'daiPlus',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'ArbidexZap',
-    //     gauge: '0xd2bcFd6b84E778D2DE5Bb6A167EcBBef5D053A06',
-    //     poolId: 8,
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'usdc',
-    //     token0In: 'daiPlus',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'BaseSwapZap',
-    //     pair: '0x696b4d181Eb58cD4B54a59d2Ce834184Cf7Ac31A',
-    //     gauge: '0xB404b32D20F780c7c2Fa44502096675867DecA1e',
-    //     tokenId: 0,
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'usdbc',
-    //     token0In: 'daiPlus',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'ChronosZap',
-    //     gauge: '0xcd4a56221175b88d4fb28ca2138d670cc1197ca9',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'daiPlus',
-    //     token0In: 'usdc',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'DefiedgeZap',
-    //     gauge: '0xd1c33d0af58eb7403f7c01b21307713aa18b29d3',
-    //     chef: '0xD7cf8Dc79b15a61714061C5B7A1c12ddE9f3f088',
-    //     pid: 0,
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'usdc',
-    //     token0In: 'daiPlus',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'DemetorZap',
-    //     gauge: '0xC8F82e522BC5ca3C340753b69Cb18e68dA216362',
-    //     token0Out: 'usds',
-    //     token1Out: 'usdPlus',
-    //     token0In: 'daiPlus',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'RamsesZap',
-    //     gauge: '0x88d8D2bDC4f12862FbaBEA43cEc08B8FCD2234Da',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'daiPlus',
-    //     token0In: 'usdc',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'SwapBasedZap',
-    //     gauge: '0x1b0d1C09fD360ADe0Caf4bFfE2933E2CC8846a62', // USDbC+/USD+
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'usdbc',
-    //     token0In: 'daiPlus',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'ThenaZap',
-    //     gauge: '0x31740dfF2D806690eDF3Ec72A2c301032a6265Bc',
-    //     token0Out: 'usdt',
-    //     token1Out: 'usdplus',
-    //     token0In: 'usdc',
-    // },
-    // {
-    //     name: 'VelocimeterZap',
-    //     gauge: '0x0daf00a383f8897553ac1d03f4445b15afa1dcb9',
-    //     token0Out: 'daiPlus',
-    //     token1Out: 'usdPlus',
-    //     token0In: 'usdbc',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'VelodromeZap',
-    //     gauge: '0xC263655114CdE848C73B899846FE7A2D219c10a8',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'usdc',
-    //     token0In: 'daiPlus',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'VelodromeZap',
-    //     gauge: '0xfAc0Cf9e487356DDc72443061DFDB109885B04fD',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'ovn',
-    //     token0In: 'usdt',
-    //     token1In: 'usdc',
-    // },
-    // {
-    //     name: 'BeefyVelodromeZap',
-    //     gauge: '0x2bc96f9e07edc7f1aa9aa26e85dc7dd30ace59a6',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'usdc',
-    //     token0In: 'daiPlus',
-    //     token1In: 'dai',
-    // },
-    // {
-    //     name: 'ConvexZap',
-    //     pair: '0xb34a7d1444a707349Bc7b981B7F2E1f20F81F013',
-    //     token0In: 'dai',
-    //     token1In: 'usdc',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'fraxbp',
-    // },
-    // {
-    //     name: 'HorizaZap',
-    //     pair: '0xcc78afeCe206D8432e687294F038B7dea1046B40',
-    //     token0In: 'dai',
-    //     token1In: 'daiPlus',
-    //     token0Out: 'usdcCircle',
-    //     token1Out: 'usdPlus',
-    // },
-    // {
-    //     name: 'PancakeEqualWideZap', // deprecated
-    //     pair: '0x721F37495cD70383B0A77Bf1eB8f97eef29498Bb',
-    //     token0Out: 'usdcCircle',
-    //     token1Out: 'usdPlus',
-    //     token0In: 'dai',
-    //     token1In: 'usdt',
-    // },
-    // {
-    //     name: 'Pancake8020Zap',
-    //     pair: '0x7e928afb59f5dE9D2f4d162f754C6eB40c88aA8E',
-    //     token0In: 'usdc',
-    //     token1In: 'usdPlus',
-    //     token0Out: 'usdcCircle',
-    //     token1Out: 'usdt',
-    // },
-    // {
-    //     name: 'AerodromeCLZap',
-    //     pair: '0x0c1A09d5D0445047DA3Ab4994262b22404288A3B',
-    //     token0Out: 'usdc',
-    //     token1Out: 'usdPlus',
-    //     token0In: 'sfrax',
-    //     token1In: 'dai',
-    //     priceRange: [4.5, 15],
-    // },
-    // {
-    //     name: 'AerodromeCLZap',
-    //     pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
-    //     token0Out: 'dola',
-    //     token1Out: 'usdPlus',
-    //     token0In: 'sfrax',
-    //     token1In: 'dai',
-    //     priceRange: [0.5, 1.5],
-    // },
     {
-        name: 'AerodromeCLZap',
-        pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
-        token0Out: 'weth',
+        name: 'AerodromeZap',
+        gauge: '0x87803Cb321624921cedaAD4555F07Daa0D1Ed325',
+        token0Out: 'daiPlus',
         token1Out: 'usdPlus',
-        token0In: 'sfrax',
+        token0In: 'usdbc',
         token1In: 'dai',
-        priceRange: [3710.875620, 10016.029659],
     },
-    // {
-    //     name: 'AerodromeCLZap',
-    //     pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
-    //     token0Out: 'usdPlus',
-    //     token1Out: 'usdbc',
-    //     token0In: 'sfrax',
-    //     token1In: 'dai',
-    //     priceRange: [0.989, 1.10001],
-    // },
+    {
+        name: 'BeefyAerodromeZap',
+        gauge: '0x661413c7baf43c53e6beff6567aad4b4f58bb10a',
+        token0Out: 'usdPlus',
+        token1Out: 'usdbc',
+        token0In: 'daiPlus',
+        token1In: 'dai',
+    },
+    {
+        name: 'CurveZap',
+        gauge: '0xc0798d022eEE81F1408895325A9fBe171d2a24f1',
+        token0Out: 'usdPlus',
+        token1Out: 'crvUsd',
+        token0In: 'usdbc',
+        token1In: 'dai',
+    },
+    {
+        name: 'AlienBaseZap',
+        gauge: '0x52eaeCAC2402633d98b95213d0b473E069D86590',
+        poolId: 7,
+        token0Out: 'usdPlus',
+        token1Out: 'usdbc',
+        token0In: 'daiPlus',
+        token1In: 'dai',
+    },
+    {
+        name: 'ArbidexZap',
+        gauge: '0xd2bcFd6b84E778D2DE5Bb6A167EcBBef5D053A06',
+        poolId: 8,
+        token0Out: 'usdPlus',
+        token1Out: 'usdc',
+        token0In: 'daiPlus',
+        token1In: 'dai',
+    },
+    {
+        name: 'BaseSwapZap',
+        pair: '0x696b4d181Eb58cD4B54a59d2Ce834184Cf7Ac31A',
+        gauge: '0xB404b32D20F780c7c2Fa44502096675867DecA1e',
+        tokenId: 0,
+        token0Out: 'usdPlus',
+        token1Out: 'usdbc',
+        token0In: 'daiPlus',
+        token1In: 'dai',
+    },
+    {
+        name: 'ChronosZap',
+        gauge: '0xcd4a56221175b88d4fb28ca2138d670cc1197ca9',
+        token0Out: 'usdPlus',
+        token1Out: 'daiPlus',
+        token0In: 'usdc',
+        token1In: 'dai',
+    },
+    {
+        name: 'DefiedgeZap',
+        gauge: '0xd1c33d0af58eb7403f7c01b21307713aa18b29d3',
+        chef: '0xD7cf8Dc79b15a61714061C5B7A1c12ddE9f3f088',
+        pid: 0,
+        token0Out: 'usdPlus',
+        token1Out: 'usdc',
+        token0In: 'daiPlus',
+        token1In: 'dai',
+    },
+    {
+        name: 'DemetorZap',
+        gauge: '0xC8F82e522BC5ca3C340753b69Cb18e68dA216362',
+        token0Out: 'usds',
+        token1Out: 'usdPlus',
+        token0In: 'daiPlus',
+        token1In: 'dai',
+    },
+    {
+        name: 'RamsesZap',
+        gauge: '0x88d8D2bDC4f12862FbaBEA43cEc08B8FCD2234Da',
+        token0Out: 'usdPlus',
+        token1Out: 'daiPlus',
+        token0In: 'usdc',
+        token1In: 'dai',
+    },
+    {
+        name: 'SwapBasedZap',
+        gauge: '0x1b0d1C09fD360ADe0Caf4bFfE2933E2CC8846a62', // USDbC+/USD+
+        token0Out: 'usdPlus',
+        token1Out: 'usdbc',
+        token0In: 'daiPlus',
+        token1In: 'dai',
+    },
+    {
+        name: 'ThenaZap',
+        gauge: '0x31740dfF2D806690eDF3Ec72A2c301032a6265Bc',
+        token0Out: 'usdt',
+        token1Out: 'usdplus',
+        token0In: 'usdc',
+    },
+    {
+        name: 'VelocimeterZap',
+        gauge: '0x0daf00a383f8897553ac1d03f4445b15afa1dcb9',
+        token0Out: 'daiPlus',
+        token1Out: 'usdPlus',
+        token0In: 'usdbc',
+        token1In: 'dai',
+    },
+    {
+        name: 'VelodromeZap',
+        gauge: '0xC263655114CdE848C73B899846FE7A2D219c10a8',
+        token0Out: 'usdPlus',
+        token1Out: 'usdc',
+        token0In: 'daiPlus',
+        token1In: 'dai',
+    },
+    {
+        name: 'BeefyVelodromeZap',
+        gauge: '0x2bc96f9e07edc7f1aa9aa26e85dc7dd30ace59a6',
+        token0Out: 'usdPlus',
+        token1Out: 'usdc',
+        token0In: 'daiPlus',
+        token1In: 'dai',
+    },
+    {
+        name: 'ConvexZap',
+        pair: '0xb34a7d1444a707349Bc7b981B7F2E1f20F81F013',
+        token0In: 'dai',
+        token1In: 'usdc',
+        token0Out: 'usdPlus',
+        token1Out: 'fraxbp',
+    },
+    {
+        name: 'HorizaZap',
+        pair: '0xcc78afeCe206D8432e687294F038B7dea1046B40',
+        token0In: 'dai',
+        token1In: 'daiPlus',
+        token0Out: 'usdcCircle',
+        token1Out: 'usdPlus',
+    },
+    {
+        name: 'PancakeEqualZap',
+        pair: '0x7e928afb59f5dE9D2f4d162f754C6eB40c88aA8E',
+        token0In: 'usdc',
+        token1In: 'usdPlus',
+        token0Out: 'usdcCircle',
+        token1Out: 'usdt',
+    },
+    {
+        name: 'Pancake8020Zap',
+        pair: '0x7e928afb59f5dE9D2f4d162f754C6eB40c88aA8E',
+        token0In: 'usdc',
+        token1In: 'usdPlus',
+        token0Out: 'usdcCircle',
+        token1Out: 'usdt',
+    },
 ];
 
 
-// let params = zaps.filter(value => value.name === process.env.TEST_STRATEGY)[0];
+let params = zaps.filter(value => value.name === process.env.TEST_STRATEGY)[0];
 
+if (!params) return;
 
-// console.log(params);
-
-// if (!params) return;
-
-describe('Testing all zaps', function() {
-    zaps.forEach((params) => {
 describe(`Test ${params?.name}`, function () {
 
     let zap;
@@ -341,18 +228,9 @@ describe(`Test ${params?.name}`, function () {
         token0Out = setUpParams.token0Out;
         token1Out = setUpParams.token1Out;
 
-        // console.log("token0", token0In.address);
         token0InDec = await token0In.decimals();
-        // console.log(token0InDec);
-
-        // console.log("token1", token1In.address);
         token1InDec = await token1In.decimals();
-
-        // console.log("token0", token0Out.address);
         token0OutDec = await token0Out.decimals();
-        // console.log("token0OutDec:", token0OutDec);
-
-        // console.log("token1", token1Out.address);
         token1OutDec = await token1Out.decimals();
 
         console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
@@ -383,13 +261,10 @@ describe(`Test ${params?.name}`, function () {
 
     it("swap and put nearly equal", async function () {
 
-        console.log("price: ", await zap.getCurrentPrice(params.pair));
-
-        const amountToken0In = toToken0In(1);
-        const amountToken1In = toToken1In(1);
-        const amountToken0Out = toToken0Out(1);
-        // console.log("amountToken0Out: ", amountToken0Out);
-        const amountToken1Out = toToken1Out(5000);
+        const amountToken0In = toToken0In(100);
+        const amountToken1In = toToken1In(100);
+        const amountToken0Out = toToken0Out(400);
+        const amountToken1Out = toToken1Out(500);
 
         await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
     });
@@ -438,15 +313,15 @@ describe(`Test ${params?.name}`, function () {
         }
         const sumReserves = reserves[0].add(reserves[1]);
 
+        // let dai = (await getERC20('dai')).connect(account);
+
+        // console.log(token0In, dai, token0InDec, account.address);
+
         const proportions = calculateProportionForPool({
             // inputTokensDecimals: [token0InDec, token1InDec],
             // inputTokensAddresses: [token0In.address, token1In.address],
             // inputTokensAmounts: [amountToken0In, amountToken1In],
             inputTokensPrices: [1, 1],
-            inputTokensDecimals: [],
-            inputTokensAddresses: [],
-            inputTokensAmounts: [],
-            // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
             outputTokensDecimals: [token0OutDec, token1OutDec],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
@@ -464,6 +339,10 @@ describe(`Test ${params?.name}`, function () {
         });
 
     
+
+    
+
+    
         // getPriceBySqrtRatio
         const inputTokens = proportions.inputTokens.map(({ tokenAddress, amount }) => {
             return { "tokenAddress": tokenAddress, "amountIn": amount };
@@ -471,6 +350,12 @@ describe(`Test ${params?.name}`, function () {
         const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
             return { "tokenAddress": tokenAddress, "receiver": zap.address };
         });
+
+        console.log("St")
+
+        console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params.router);
+
+        console.log("END")
 
         console.log("St")
 
@@ -559,10 +444,10 @@ describe(`Test ${params?.name}`, function () {
         expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
 
         // 2) Общая сумма вложенного = (общей сумме обменненого - допустимый slippage)
-        // const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
-        // const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1])
-        const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0])
-        const outTokenAmount1 = fromToken1Out(outputTokensEvent.args.amountsOut[1])
+        const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
+        const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1])
+        // const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0])
+        // const outTokenAmount1 = fromToken1Out(outputTokensEvent.args.amountsOut[1])
 
         // console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
         console.log(putTokenAmount0, putTokenAmount1);
@@ -617,8 +502,7 @@ describe(`Test ${params?.name}`, function () {
     }
 
 });
-});
-});
+
 
 async function getOdosRequest(request) {
     let swapParams = {
