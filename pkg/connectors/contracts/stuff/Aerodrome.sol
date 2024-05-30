@@ -1756,6 +1756,10 @@ library Util {
         return SafeCast.toUint160(sqrt(FullMath.mulDiv(price, 2 ** 192, decimals)));
     }
 
+    function getPriceBySqrtRatio(uint160 sqrtRatio, uint256 decimals) internal pure returns (uint256) {
+        return FullMath.mulDiv(uint256(sqrtRatio), uint256(sqrtRatio) * decimals, 2 ** 192);
+    }
+
     function sqrt(uint y) internal pure returns (uint z) {
         if (y > 3) {
             z = y;

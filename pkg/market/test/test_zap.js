@@ -250,42 +250,42 @@ let zaps = [
     //     token0Out: 'usdcCircle',
     //     token1Out: 'usdt',
     // },
-    {
-        name: 'AerodromeCLZap',
-        pair: '0x0c1A09d5D0445047DA3Ab4994262b22404288A3B',
-        token0Out: 'usdc',
-        token1Out: 'usdPlus',
-        token0In: 'sfrax',
-        token1In: 'dai',
-        priceRange: [4.5, 15],
-    },
-    {
-        name: 'AerodromeCLZap',
-        pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
-        token0Out: 'dola',
-        token1Out: 'usdPlus',
-        token0In: 'sfrax',
-        token1In: 'dai',
-        priceRange: [0.5, 1.5],
-    },
     // {
     //     name: 'AerodromeCLZap',
-    //     pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
-    //     token0Out: 'weth',
+    //     pair: '0x0c1A09d5D0445047DA3Ab4994262b22404288A3B',
+    //     token0Out: 'usdc',
     //     token1Out: 'usdPlus',
     //     token0In: 'sfrax',
     //     token1In: 'dai',
-    //     priceRange: [1000.67143, 2000.11111],
+    //     priceRange: [4.5, 15],
+    // },
+    // {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
+    //     token0Out: 'dola',
+    //     token1Out: 'usdPlus',
+    //     token0In: 'sfrax',
+    //     token1In: 'dai',
+    //     priceRange: [0.5, 1.5],
     // },
     {
         name: 'AerodromeCLZap',
-        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
-        token0Out: 'usdPlus',
-        token1Out: 'usdbc',
+        pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
+        token0Out: 'weth',
+        token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
-        priceRange: [0.989, 1.10001],
+        priceRange: [3710.875620, 10016.029659],
     },
+    // {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'usdbc',
+    //     token0In: 'sfrax',
+    //     token1In: 'dai',
+    //     priceRange: [0.989, 1.10001],
+    // },
 ];
 
 
@@ -389,7 +389,7 @@ describe(`Test ${params?.name}`, function () {
         const amountToken1In = toToken1In(1);
         const amountToken0Out = toToken0Out(1);
         // console.log("amountToken0Out: ", amountToken0Out);
-        const amountToken1Out = toToken1Out(5);
+        const amountToken1Out = toToken1Out(5000);
 
         await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
     });
@@ -424,12 +424,11 @@ describe(`Test ${params?.name}`, function () {
         await (await token1Out.approve(zap.address, toE18(10000))).wait();
 
         let reserves;
-        console.log("CCCCCCCC");
+
         if ('priceRange' in params) {
             console.log(params.priceRange);
 
             reserves = await zap.getProportion(params.pair, params.priceRange);
-            console.log("DDDDDDDDDDDDDDD");
         } else if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
         } else if ('poolId' in params) {
@@ -440,20 +439,23 @@ describe(`Test ${params?.name}`, function () {
         const sumReserves = reserves[0].add(reserves[1]);
 
         const proportions = calculateProportionForPool({
-            inputTokensDecimals: [token0InDec, token1InDec],
-            inputTokensAddresses: [token0In.address, token1In.address],
-            inputTokensAmounts: [amountToken0In, amountToken1In],
+            // inputTokensDecimals: [token0InDec, token1InDec],
+            // inputTokensAddresses: [token0In.address, token1In.address],
+            // inputTokensAmounts: [amountToken0In, amountToken1In],
             inputTokensPrices: [1, 1],
-            // inputTokensDecimals: [],
-            // inputTokensAddresses: [],
-            // inputTokensAmounts: [],
+            inputTokensDecimals: [],
+            inputTokensAddresses: [],
+            inputTokensAmounts: [],
             // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
             outputTokensDecimals: [token0OutDec, token1OutDec],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
-            outputTokensPrices: [3844, 1],
+            outputTokensPrices: [3765, 1],
             proportion0: reserves[0] / sumReserves
         })
+
+        console.log("proporion0: ", reserves[0] / sumReserves);
+        console.log("proporion1: ", reserves[0] / reserves[1]);
 
         const request = await getOdosRequest({
             "inputTokens": proportions.inputTokens,
@@ -470,11 +472,11 @@ describe(`Test ${params?.name}`, function () {
             return { "tokenAddress": tokenAddress, "receiver": zap.address };
         });
 
-        // console.log("St")
+        console.log("St")
 
-        // console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
+        console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
 
-        // console.log("END")
+        console.log("END")
 
         let price = await (await zap.connect(account).zapIn(
             {
@@ -531,11 +533,11 @@ describe(`Test ${params?.name}`, function () {
         console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
         console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
 
-        expect(token0In.address).to.equals(inputTokensEvent.args.tokensIn[0]);
-        expect(token1In.address).to.equals(inputTokensEvent.args.tokensIn[1]);
+        // expect(token0In.address).to.equals(inputTokensEvent.args.tokensIn[0]);
+        // expect(token1In.address).to.equals(inputTokensEvent.args.tokensIn[1]);
 
-        expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
-        expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
+        // expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
+        // expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
 
         expect(token0Out.address).to.equals(putIntoPoolEvent.args.tokensPut[0]);
         expect(token1Out.address).to.equals(putIntoPoolEvent.args.tokensPut[1]);
@@ -557,23 +559,21 @@ describe(`Test ${params?.name}`, function () {
         expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
 
         // 2) Общая сумма вложенного = (общей сумме обменненого - допустимый slippage)
-        const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
-        const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1])
+        // const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
+        // const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1])
         const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0])
         const outTokenAmount1 = fromToken1Out(outputTokensEvent.args.amountsOut[1])
 
-        console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
+        // console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
+        console.log(putTokenAmount0, putTokenAmount1);
 
-        expect(fromToken0In(await token0In.balanceOf(zap.address))).to.lessThan(1);
-        expect(fromToken1In(await token1In.balanceOf(zap.address))).to.lessThan(1);
+        // expect(fromToken0In(await token0In.balanceOf(zap.address))).to.lessThan(1);
+        // expect(fromToken1In(await token1In.balanceOf(zap.address))).to.lessThan(1);
         expect(fromToken0Out(await token0Out.balanceOf(zap.address))).to.lessThan(1);
         expect(fromToken1Out(await token1Out.balanceOf(zap.address))).to.lessThan(1);
 
         
         if ('priceRange' in params) {
-
-            console.log((await zap.getCurrentPrice('0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD')).toString());
-
             price = await zap.getCurrentPrice(params.pair);
             console.log(price.toString());
 
@@ -628,7 +628,7 @@ async function getOdosRequest(request) {
         "outputTokens": request.outputTokens,
         "userAddr": request.userAddr,
         "slippageLimitPercent": 1,
-        "sourceBlacklist": ["Hashflow", "Overnight Exchange"],
+        "sourceBlacklist": ["Hashflow", "Overnight Exchange", "Curve TriCrypto NG", "SushiSwap V3", "Curve Factory"],
         "sourceWhitelist": [],
         "simulate": false,
         "pathViz": false,

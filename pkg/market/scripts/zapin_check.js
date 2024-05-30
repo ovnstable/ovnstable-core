@@ -29,8 +29,8 @@ async function main() {
         token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
-        priceRange: [1000, 2000],
-    }; 
+        priceRange: [3710.875620, 10016.029659],
+    };
 
     let setUpParams = await setUp(params);
 
@@ -109,7 +109,7 @@ async function main() {
         outputTokensDecimals: [token0OutDec, token1OutDec],
         outputTokensAddresses: [token0Out.address, token1Out.address],
         outputTokensAmounts: [amountToken0Out, amountToken1Out],
-        outputTokensPrices: [3844, 1],
+        outputTokensPrices: [3872, 1],
         proportion0: reserves[0] / sumReserves
     })
 
@@ -199,8 +199,14 @@ function calculateProportionForPool(
         }
 
     } else if (output1InMoneyWithProportion < tokenOut1) {
-        const dif = tokenOut1 - output1InMoneyWithProportion;
-        const token1AmountForSwap = new BigNumber((dif / outputTokensPrices[1]).toString()).times(new BigNumber(10).pow(outputTokensDecimals[1])).toFixed(0);
+        const dif = (tokenOut1 - output1InMoneyWithProportion);
+        console.log("dif: ", dif);
+        console.log("dif / dec: ", new BigNumber((dif / outputTokensPrices[1]).toString()));
+        
+        const token1AmountForSwap = new BigNumber((dif / outputTokensPrices[1]).toString()).times(new BigNumber(10).pow(outputTokensDecimals[1])).toFixed(0, BigNumber.ROUND_DOWN);
+        
+        console.log("token1AmountForSwap: ", token1AmountForSwap);
+        
         inputTokens.push({ "tokenAddress": outputTokensAddresses[1], "amount": token1AmountForSwap.toString() })
 
         return {
