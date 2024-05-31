@@ -79,7 +79,7 @@ contract AerodromeCLZap is OdosZap {
             (lowerTick, upperTick) = Util.priceToTicks(aerodromeData.priceRange, dec0, pool.tickSpacing());
         } else {
             lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (aerodromeData.tickDelta / 2));
-            upperTick = lowerTick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2); 
+            upperTick = tick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2); 
         }
         
         uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(lowerTick);
@@ -121,7 +121,7 @@ contract AerodromeCLZap is OdosZap {
             (lowerTick, upperTick) = Util.priceToTicks(aerodromeData.priceRange, 10 ** IERC20Metadata(tokensOut[0]).decimals(), tickSpacing);
         } else {
             lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (aerodromeData.tickDelta / 2));
-            upperTick = lowerTick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2); 
+            upperTick = tick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2); 
         }
 
         (uint256 tokenId,,,) = npm.mint(INonfungiblePositionManager.MintParams(tokensOut[0], tokensOut[1], tickSpacing,
