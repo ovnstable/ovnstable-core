@@ -155,7 +155,6 @@ contract AerodromeCLZap is OdosZap {
     function getPriceFromTick(AerodromeCLZapInParams memory aerodromeData) public view returns (uint256 left, uint256 right) {
         IUniswapV3Pool pool = IUniswapV3Pool(aerodromeData.pair);
         uint256 dec0 = 10 ** IERC20Metadata(pool.token0()).decimals();
-        uint256 dec1 = 10 ** IERC20Metadata(pool.token1()).decimals();
         int24 tickSpacing = pool.tickSpacing();
         (, int24 tick,,,,) = pool.slot0();
 
@@ -163,7 +162,7 @@ contract AerodromeCLZap is OdosZap {
         int24 upperTick = tick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2); 
 
         left = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(lowerTick), dec0);
-        right = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(upperTick), dec1);
+        right = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(upperTick), dec0);
     }
 
     function getCurrentPrice(address pair) public view returns (uint256) {
