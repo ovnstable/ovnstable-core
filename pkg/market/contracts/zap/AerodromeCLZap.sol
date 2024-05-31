@@ -58,7 +58,7 @@ contract AerodromeCLZap is OdosZap {
             amountsOut[i] = asset.balanceOf(address(this));
         }
 
-        _addLiquidity(pair, tokensOut, amountsOut, aerodromeData.priceRange);
+        _addLiquidity(pair, tokensOut, amountsOut, aerodromeData.priceRange, aerodromeData.tickDelta);
     }
 
     function _priceToTicks(uint256[] memory priceRange, uint256 dec0, int24 tickSpacing) internal pure returns(int24 lowerTick, int24 upperTick) {
@@ -81,14 +81,16 @@ contract AerodromeCLZap is OdosZap {
         IUniswapV3Pool pair = IUniswapV3Pool(aerodromeData.pair);
         uint256 dec0 = 10 ** IERC20Metadata(pair.token0()).decimals();
         uint256 dec1 = 10 ** IERC20Metadata(pair.token1()).decimals();
-        (uint160 sqrtRatioX96, ,,,,) = pair.slot0();
+        (uint160 sqrtRatioX96, int24 tick,,,,) = pair.slot0();
+        int24 tickSpacing = pair.tickSpacing();
         int24 lowerTick; 
         int24 upperTick;
 
         if(aerodromeData.tickDelta == 0) {
             (lowerTick, upperTick) = _priceToTicks(aerodromeData.priceRange, dec0, pair.tickSpacing());
         } else {
-            (lowerTick, upperTick) = (0, 0);
+            lowerTick = tick / tickSpacing * tickSpacing;
+            upperTick = lowerTick + tickSpacing;
         }
         
         uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(lowerTick);
@@ -103,7 +105,7 @@ contract AerodromeCLZap is OdosZap {
         token1Amount = token1Amount * (denominator / dec1);
     }
 
-    function _addLiquidity(IUniswapV3Pool pair, address[] memory tokensOut, uint256[] memory amountsOut, uint256[] memory priceRange) internal {
+    function _addLiquidity(IUniswapV3Pool pair, address[] memory tokensOut, uint256[] memory amountsOut, uint256[] memory priceRange, int24 tickDelta) internal {
         
         ResultOfLiquidity memory result;
         
