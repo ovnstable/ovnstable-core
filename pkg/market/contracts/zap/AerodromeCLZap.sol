@@ -61,7 +61,7 @@ contract AerodromeCLZap is OdosZap {
         _addLiquidity(pair, tokensOut, amountsOut, aerodromeData.priceRange, aerodromeData.tickDelta);
     }
 
-    function _priceToTicks(uint256[] memory priceRange, uint256 dec0, int24 tickSpacing) internal pure returns(int24 lowerTick, int24 upperTick) {
+    function _priceToTicks(uint256[] memory priceRange, uint256 dec0, int24 tickSpacing) internal pure returns (int24 lowerTick, int24 upperTick) {
 
         lowerTick = TickMath.getTickAtSqrtRatio(Util.getSqrtRatioByPrice(priceRange[0], dec0));
         upperTick = TickMath.getTickAtSqrtRatio(Util.getSqrtRatioByPrice(priceRange[1], dec0));
@@ -117,8 +117,17 @@ contract AerodromeCLZap is OdosZap {
         result.amountAsset0Before = asset0.balanceOf(address(this));
         result.amountAsset1Before = asset1.balanceOf(address(this));
 
+        int24 lowerTick; 
+        int24 upperTick;
         int24 tickSpacing = pair.tickSpacing();
-        (int24 lowerTick, int24 upperTick) = _priceToTicks(priceRange, 10 ** IERC20Metadata(tokensOut[0]).decimals(), tickSpacing);
+        (, int24 tick,,,,) = pair.slot0();
+
+        if (tickDelta == 0) {
+            (lowerTick, upperTick) = _priceToTicks(priceRange, 10 ** IERC20Metadata(tokensOut[0]).decimals(), tickSpacing);
+        } else {
+            lowerTick = tick / tickSpacing * tickSpacing;
+            upperTick = lowerTick + tickSpacing;
+        }
 
         npm.mint(INonfungiblePositionManager.MintParams(tokensOut[0], tokensOut[1], tickSpacing,
             lowerTick, upperTick, amountsOut[0], amountsOut[1], 0, 0, msg.sender, block.timestamp, 0));
