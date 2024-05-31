@@ -14,6 +14,7 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
 import "./interfaces/IUsdPlusToken.sol";
 import "./interfaces/IRoleManager.sol";
+import "./interfaces/IMarket.sol";
 
 contract RemoteHub is CCIPReceiver, Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using SafeERC20 for IERC20;
@@ -65,6 +66,8 @@ contract RemoteHub is CCIPReceiver, Initializable, AccessControlUpgradeable, UUP
         address payoutManager;
         address roleManager;
         address remoteHub;
+        address market;
+        address wusdp;
     }
 
     struct MultichainCallItem {
@@ -350,16 +353,27 @@ contract RemoteHub is CCIPReceiver, Initializable, AccessControlUpgradeable, UUP
 
     function multiTransfer(address _to, uint256 _amount, uint64 _destinationChainSelector) whenNotPaused public {
 
-        IUsdPlusToken(chainItemById[chainSelector].usdp).transferFrom(msg.sender, address(this), _amount);
+        IUsdPlusToken usdp = IUsdPlusToken(chainItemById[chainSelector].usdp);
+        IERC20 wusdp = IERC20(chainItemById[chainSelector].wusdp);
+        usdp.transferFrom(msg.sender, address(this), _amount);
+        IMarket(chainItemById[chainSelector].market).wrap(address(usdp),usdp.balanceOf(address(this)), address(this)); 
 
-        DataCallItem[] memory dataCallItem;
+        DataCallItem[] memory dataCallItems = new DataCallItem[](2);
+        dataCallItems[0] = DataCallItem({
+            executor: chainItemById[_destinationChainSelector].wusdp,
+            data: abi.encodeWithSignature("approve(address,uint256)", chainItemById[_destinationChainSelector].market, wusdp.balanceOf(address(this)))
+        });
+        dataCallItems[1] = DataCallItem({
+            executor: chainItemById[_destinationChainSelector].market,
+            data: abi.encodeWithSignature("unwrap(address,uint256,address)", chainItemById[_destinationChainSelector].usdp, wusdp.balanceOf(address(this)), _to)
+        });
 
         MultichainCallItem memory multichainCallItem = MultichainCallItem({
                 chainSelector: _destinationChainSelector,
-                receiver: _to,
-                token: chainItemById[chainSelector].usdp,
-                amount: _amount,
-                batchData: dataCallItem
+                receiver: chainItemById[_destinationChainSelector].remoteHub,
+                token: chainItemById[chainSelector].wusdp,
+                amount: wusdp.balanceOf(address(this)),
+                batchData: dataCallItems
             });
 
         _sendViaCCIP(multichainCallItem);

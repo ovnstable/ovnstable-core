@@ -147,6 +147,21 @@ contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgrade
         return _convertToAssetsUp(shares);
     }
 
+    // for CCIP
+    function mint(address account, uint256 amount) external notPaused {
+        uint256 assets = _convertToAssetsUp(amount);
+        uint256 shares = mint_usdp(address(this), assets);
+        _mint(account, amount);
+    }
+
+    function burn(uint256 amount) external notPaused {
+        _burn(msg.sender, amount);
+        uint256 assets = _convertToAssetsUp(amount);
+        uint256 shares = burn_usdp(address(this), assets);
+
+
+    }
+
     /// @inheritdoc IERC4626
     function mint(uint256 shares, address receiver) external notPaused override returns (uint256) {
         require(shares != 0, "Zero shares not allowed");
