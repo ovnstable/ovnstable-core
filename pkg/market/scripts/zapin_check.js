@@ -24,13 +24,13 @@ async function main() {
 
     let params = {
         name: 'AerodromeCLZap',
-        pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
-        token0Out: 'dola',
+        pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
+        token0Out: 'weth',
         token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
-        priceRange: [100, 4000],
-        tickDelta: '1'
+        priceRange: [3544, 3917],
+        tickDelta: '0'
     };
 
     let setUpParams = await setUp(params);

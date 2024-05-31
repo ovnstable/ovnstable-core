@@ -6,6 +6,8 @@ import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 
 contract AerodromeCLZap is OdosZap {
     INonfungiblePositionManager public npm;
+
+    event TokenId(uint256 tokenId); // name..?
     
     struct ZapParams {
         address odosRouter;
@@ -41,12 +43,12 @@ contract AerodromeCLZap is OdosZap {
         _prepareSwap(swapData);
         _swap(swapData);
 
-        IUniswapV3Pool pair = IUniswapV3Pool(aerodromeData.pair);
+        IUniswapV3Pool pool = IUniswapV3Pool(aerodromeData.pair);
 
         address[] memory tokensOut = new address[](2);
-        tokensOut[0] = pair.token0();
-        tokensOut[1] = pair.token1();
-        uint256[] memory amountsOut = new uint256[](2);
+        tokensOut[0] = pool.token0();
+        tokensOut[1] = pool.token1();
+        // uint256[] memory amountsOut = new uint256[](2);
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
@@ -55,42 +57,29 @@ contract AerodromeCLZap is OdosZap {
                 asset.transferFrom(msg.sender, address(this), aerodromeData.amountsOut[i]);
             }
 
-            amountsOut[i] = asset.balanceOf(address(this));
+            aerodromeData.amountsOut[i] = asset.balanceOf(address(this));
         }
 
-        _addLiquidity(pair, tokensOut, amountsOut, aerodromeData.priceRange, aerodromeData.tickDelta);
-    }
-
-    function _priceToTicks(uint256[] memory priceRange, uint256 dec0, int24 tickSpacing) internal pure returns (int24 lowerTick, int24 upperTick) {
-
-        lowerTick = TickMath.getTickAtSqrtRatio(Util.getSqrtRatioByPrice(priceRange[0], dec0));
-        upperTick = TickMath.getTickAtSqrtRatio(Util.getSqrtRatioByPrice(priceRange[1], dec0));
-
-        if (lowerTick % tickSpacing != 0) {
-            lowerTick = lowerTick > 0 ? lowerTick - lowerTick % tickSpacing : lowerTick - tickSpacing - (lowerTick % tickSpacing);
-        }
-        if (upperTick % tickSpacing != 0) {
-            upperTick = upperTick > 0 ? upperTick + tickSpacing - (upperTick % tickSpacing) : upperTick - (upperTick % tickSpacing);
-        }
+        _addLiquidity(aerodromeData);
     }
 
     function getProportion(
         AerodromeCLZapInParams memory aerodromeData
     ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
 
-        IUniswapV3Pool pair = IUniswapV3Pool(aerodromeData.pair);
-        uint256 dec0 = 10 ** IERC20Metadata(pair.token0()).decimals();
-        uint256 dec1 = 10 ** IERC20Metadata(pair.token1()).decimals();
-        (uint160 sqrtRatioX96, int24 tick,,,,) = pair.slot0();
-        int24 tickSpacing = pair.tickSpacing();
+        IUniswapV3Pool pool = IUniswapV3Pool(aerodromeData.pair);
+        uint256 dec0 = 10 ** IERC20Metadata(pool.token0()).decimals();
+        uint256 dec1 = 10 ** IERC20Metadata(pool.token1()).decimals();
+        (uint160 sqrtRatioX96, int24 tick,,,,) = pool.slot0();
+        int24 tickSpacing = pool.tickSpacing();
         int24 lowerTick; 
         int24 upperTick;
 
         if(aerodromeData.tickDelta == 0) {
-            (lowerTick, upperTick) = _priceToTicks(aerodromeData.priceRange, dec0, pair.tickSpacing());
+            (lowerTick, upperTick) = Util.priceToTicks(aerodromeData.priceRange, dec0, pool.tickSpacing());
         } else {
-            lowerTick = tick / tickSpacing * tickSpacing;
-            upperTick = lowerTick + tickSpacing * aerodromeData.tickDelta; // TODO: fix ranges ;
+            lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (aerodromeData.tickDelta / 2));
+            upperTick = lowerTick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2); 
         }
         
         uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(lowerTick);
@@ -105,32 +94,40 @@ contract AerodromeCLZap is OdosZap {
         token1Amount = token1Amount * (denominator / dec1);
     }
 
-    function _addLiquidity(IUniswapV3Pool pair, address[] memory tokensOut, uint256[] memory amountsOut, uint256[] memory priceRange, int24 tickDelta) internal {
+    function _addLiquidity(AerodromeCLZapInParams memory aerodromeData) internal {
+        
+        IUniswapV3Pool pool = IUniswapV3Pool(aerodromeData.pair);
+
+        address[] memory tokensOut = new address[](2);
+        tokensOut[0] = pool.token0();
+        tokensOut[1] = pool.token1();
         
         ResultOfLiquidity memory result;
         
         IERC20 asset0 = IERC20(tokensOut[0]);
         IERC20 asset1 = IERC20(tokensOut[1]);
-        asset0.approve(address(npm), amountsOut[0]);
-        asset1.approve(address(npm), amountsOut[1]);
+        asset0.approve(address(npm), aerodromeData.amountsOut[0]);
+        asset1.approve(address(npm), aerodromeData.amountsOut[1]);
 
         result.amountAsset0Before = asset0.balanceOf(address(this));
         result.amountAsset1Before = asset1.balanceOf(address(this));
 
         int24 lowerTick; 
         int24 upperTick;
-        int24 tickSpacing = pair.tickSpacing();
-        (, int24 tick,,,,) = pair.slot0();
+        int24 tickSpacing = pool.tickSpacing();
+        (, int24 tick,,,,) = pool.slot0();
 
-        if (tickDelta == 0) {
-            (lowerTick, upperTick) = _priceToTicks(priceRange, 10 ** IERC20Metadata(tokensOut[0]).decimals(), tickSpacing);
+        if (aerodromeData.tickDelta == 0) {
+            (lowerTick, upperTick) = Util.priceToTicks(aerodromeData.priceRange, 10 ** IERC20Metadata(tokensOut[0]).decimals(), tickSpacing);
         } else {
-            lowerTick = tick / tickSpacing * tickSpacing;
-            upperTick = lowerTick + tickSpacing * tickDelta; // TODO: fix ranges 
+            lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (aerodromeData.tickDelta / 2));
+            upperTick = lowerTick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2); 
         }
 
-        npm.mint(INonfungiblePositionManager.MintParams(tokensOut[0], tokensOut[1], tickSpacing,
-            lowerTick, upperTick, amountsOut[0], amountsOut[1], 0, 0, msg.sender, block.timestamp, 0));
+        (uint256 tokenId,,,) = npm.mint(INonfungiblePositionManager.MintParams(tokensOut[0], tokensOut[1], tickSpacing,
+            lowerTick, upperTick, aerodromeData.amountsOut[0], aerodromeData.amountsOut[1], 0, 0, msg.sender, block.timestamp, 0));
+
+        emit TokenId(tokenId); 
         
         result.amountAsset0After = asset0.balanceOf(address(this));
         result.amountAsset1After = asset1.balanceOf(address(this));
@@ -155,32 +152,12 @@ contract AerodromeCLZap is OdosZap {
         emit ReturnedToUser(result.amountsReturned, tokensOut);
     }
 
-
-    function getProportionForTicks(address _pair, int24[] memory ticks) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
-        IUniswapV3Pool pair = IUniswapV3Pool(_pair);
-        uint256 dec0 = 10 ** IERC20Metadata(pair.token0()).decimals();
-        uint256 dec1 = 10 ** IERC20Metadata(pair.token1()).decimals();
-        (uint160 sqrtRatioX96,,,,,) = pair.slot0();
-        
-        
-        uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(ticks[0]);
-        uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(ticks[1]);
-        
-        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, sqrtRatio0, sqrtRatio1, dec0 * 1000, dec1 * 1000);
-        (token0Amount, token1Amount) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatio0, sqrtRatio1, liquidity);
-
-        denominator = dec0 > dec1 ? dec0 : dec1;
-        
-        token0Amount = token0Amount * (denominator / dec0);
-        token1Amount = token1Amount * (denominator / dec1);
-    }
-
     function getPriceFromTick(AerodromeCLZapInParams memory aerodromeData) public view returns (uint256 left, uint256 right) {
-        IUniswapV3Pool pair = IUniswapV3Pool(aerodromeData.pair);
-        uint256 dec0 = 10 ** IERC20Metadata(pair.token0()).decimals();
-        uint256 dec1 = 10 ** IERC20Metadata(pair.token1()).decimals();
-        int24 tickSpacing = pair.tickSpacing();
-        (, int24 tick,,,,) = pair.slot0();
+        IUniswapV3Pool pool = IUniswapV3Pool(aerodromeData.pair);
+        uint256 dec0 = 10 ** IERC20Metadata(pool.token0()).decimals();
+        uint256 dec1 = 10 ** IERC20Metadata(pool.token1()).decimals();
+        int24 tickSpacing = pool.tickSpacing();
+        (, int24 tick,,,,) = pool.slot0();
 
         int24 lowerTick = tick / tickSpacing * tickSpacing;
         int24 upperTick = lowerTick + tickSpacing * aerodromeData.tickDelta;
