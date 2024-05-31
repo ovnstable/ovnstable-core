@@ -29,7 +29,7 @@ async function main() {
         token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
-        priceRange: [100, 3000],
+        priceRange: [100, 4000],
     };
 
     let setUpParams = await setUp(params);
