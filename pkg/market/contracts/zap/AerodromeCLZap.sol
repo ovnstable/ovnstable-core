@@ -159,8 +159,8 @@ contract AerodromeCLZap is OdosZap {
         int24 tickSpacing = pool.tickSpacing();
         (, int24 tick,,,,) = pool.slot0();
 
-        int24 lowerTick = tick / tickSpacing * tickSpacing;
-        int24 upperTick = lowerTick + tickSpacing * aerodromeData.tickDelta;
+        int24 lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (aerodromeData.tickDelta / 2));
+        int24 upperTick = tick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2); 
 
         left = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(lowerTick), dec0);
         right = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(upperTick), dec1);
