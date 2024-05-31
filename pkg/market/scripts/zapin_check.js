@@ -29,7 +29,7 @@ async function main() {
         token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
-        priceRange: [3710.875620, 10016.029659],
+        priceRange: [100, 3000],
     };
 
     let setUpParams = await setUp(params);
@@ -94,9 +94,20 @@ async function main() {
         } else {
             reserves = await zap.getProportion(params.gauge);
         }
-        const sumReserves = reserves[0].add(reserves[1]);
+
+        price = fromE6(await zap.getCurrentPrice(params.pair)).toFixed(0).toString();
+        console.log(price);
+
+        const sumReserves = (reserves[0]).mul(price).add(reserves[1]);
+
+        console.log("sumReserves: ", sumReserves);
+        console.log("reserve0: ", reserves[0].toString());
+        console.log("reserve0 with price: ", reserves[0] * price);
+        console.log("reserve1: ", reserves[1].toString());
+        
 
         console.log("prop: ", reserves[0] / sumReserves);
+        console.log("prop with price: ", ((reserves[0]).mul(price).div(sumReserves)).toString());
 
 
 
@@ -109,8 +120,8 @@ async function main() {
         outputTokensDecimals: [token0OutDec, token1OutDec],
         outputTokensAddresses: [token0Out.address, token1Out.address],
         outputTokensAmounts: [amountToken0Out, amountToken1Out],
-        outputTokensPrices: [3872, 1],
-        proportion0: reserves[0] / sumReserves
+        outputTokensPrices: [3748, 1],
+        proportion0: reserves[0] * price / sumReserves
     })
 
     const request = await getOdosRequest({
@@ -182,6 +193,7 @@ function calculateProportionForPool(
         return { "tokenAddress": address, "amount": inputTokensAmounts[index].toString() };
     });
     if (output0InMoneyWithProportion < tokenOut0) {
+        console.log("A");
         const dif = tokenOut0 - output0InMoneyWithProportion;
         const token0AmountForSwap = new BigNumber((dif / outputTokensPrices[0]).toString()).times(new BigNumber(10).pow(outputTokensDecimals[0])).toFixed(0);
         inputTokens.push({ "tokenAddress": outputTokensAddresses[0], "amount": token0AmountForSwap.toString() })
@@ -199,11 +211,12 @@ function calculateProportionForPool(
         }
 
     } else if (output1InMoneyWithProportion < tokenOut1) {
+        console.log("B");
         const dif = (tokenOut1 - output1InMoneyWithProportion);
         console.log("dif: ", dif);
         console.log("dif / dec: ", new BigNumber((dif / outputTokensPrices[1]).toString()));
         
-        const token1AmountForSwap = new BigNumber((dif / outputTokensPrices[1]).toString()).times(new BigNumber(10).pow(outputTokensDecimals[1])).toFixed(0, BigNumber.ROUND_DOWN);
+        const token1AmountForSwap = new BigNumber((dif / outputTokensPrices[1]).toString()).times(new BigNumber(10).pow(outputTokensDecimals[1])).toFixed(0);
         
         console.log("token1AmountForSwap: ", token1AmountForSwap);
         
@@ -221,6 +234,13 @@ function calculateProportionForPool(
             "amountToken1Out": (new BigNumber(outputTokensAmounts[1]).minus(token1AmountForSwap)).toFixed(0),
         }
 
+    } else if (output1InMoneyWithProportion === tokenOut1 && output0InMoneyWithProportion === tokenOut0 && (proportion0 === 1 || proportion0 === 0)) {
+        return {
+            "outputTokens": [],
+            "inputTokens": [],
+            "amountToken0Out": outputTokensAmounts[0].toString(),
+            "amountToken1Out": outputTokensAmounts[1].toString()
+        }
     } else {
 
         const difToGetFromOdos0 = output0InMoneyWithProportion - tokenOut0;
