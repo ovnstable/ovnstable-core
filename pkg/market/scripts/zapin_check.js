@@ -24,12 +24,13 @@ async function main() {
 
     let params = {
         name: 'AerodromeCLZap',
-        pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
-        token0Out: 'weth',
+        pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
+        token0Out: 'dola',
         token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
         priceRange: [100, 4000],
+        tickDelta: '1'
     };
 
     let setUpParams = await setUp(params);
@@ -74,7 +75,7 @@ async function main() {
         }
         
         const amountToken0Out = toToken0Out(0);
-        const amountToken1Out = toToken1Out(0.001);
+        const amountToken1Out = toToken1Out(0.01);
         // const amountToken1In = toToken1Out(0.001);
         
 
@@ -86,7 +87,7 @@ async function main() {
             // params.priceRange[0] = toToken0Out(params.priceRange[0]);
             // params.priceRange[1] = toToken1Out(params.priceRange[1]);
 
-            reserves = await zap.getProportion(params.pair, params.priceRange);
+            reserves = await zap.getProportion({amountsOut: [], ...params});
         } else if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
         } else if ('poolId' in params) {

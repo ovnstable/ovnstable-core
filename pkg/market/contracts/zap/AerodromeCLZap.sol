@@ -90,7 +90,7 @@ contract AerodromeCLZap is OdosZap {
             (lowerTick, upperTick) = _priceToTicks(aerodromeData.priceRange, dec0, pair.tickSpacing());
         } else {
             lowerTick = tick / tickSpacing * tickSpacing;
-            upperTick = lowerTick + tickSpacing;
+            upperTick = lowerTick + tickSpacing * aerodromeData.tickDelta; // TODO: fix ranges ;
         }
         
         uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(lowerTick);
@@ -126,7 +126,7 @@ contract AerodromeCLZap is OdosZap {
             (lowerTick, upperTick) = _priceToTicks(priceRange, 10 ** IERC20Metadata(tokensOut[0]).decimals(), tickSpacing);
         } else {
             lowerTick = tick / tickSpacing * tickSpacing;
-            upperTick = lowerTick + tickSpacing;
+            upperTick = lowerTick + tickSpacing * tickDelta; // TODO: fix ranges 
         }
 
         npm.mint(INonfungiblePositionManager.MintParams(tokensOut[0], tokensOut[1], tickSpacing,
@@ -173,6 +173,20 @@ contract AerodromeCLZap is OdosZap {
         
         token0Amount = token0Amount * (denominator / dec0);
         token1Amount = token1Amount * (denominator / dec1);
+    }
+
+    function getPriceFromTick(AerodromeCLZapInParams memory aerodromeData) public view returns (uint256 left, uint256 right) {
+        IUniswapV3Pool pair = IUniswapV3Pool(aerodromeData.pair);
+        uint256 dec0 = 10 ** IERC20Metadata(pair.token0()).decimals();
+        uint256 dec1 = 10 ** IERC20Metadata(pair.token1()).decimals();
+        int24 tickSpacing = pair.tickSpacing();
+        (, int24 tick,,,,) = pair.slot0();
+
+        int24 lowerTick = tick / tickSpacing * tickSpacing;
+        int24 upperTick = lowerTick + tickSpacing * aerodromeData.tickDelta;
+
+        left = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(lowerTick), dec0);
+        right = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(upperTick), dec1);
     }
 
     function getCurrentPrice(address pair) public view returns (uint256) {
