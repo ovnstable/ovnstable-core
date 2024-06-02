@@ -12,11 +12,9 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
-import "./interfaces/IUsdPlusToken.sol";
-import "./interfaces/IRoleManager.sol";
-import "./interfaces/IMarket.sol";
+import "./interfaces/IRemoteHub.sol";
 
-contract RemoteHub is CCIPReceiver, Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
+contract RemoteHub is IRemoteHub, CCIPReceiver, Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using SafeERC20 for IERC20;
 
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
@@ -59,17 +57,6 @@ contract RemoteHub is CCIPReceiver, Initializable, AccessControlUpgradeable, UUP
         bytes data
     );
 
-    struct ChainItem {
-        uint64 chainSelector;
-        address usdp;
-        address exchange;
-        address payoutManager;
-        address roleManager;
-        address remoteHub;
-        address market;
-        address wusdp;
-    }
-
     struct MultichainCallItem {
         uint64 chainSelector;
         address receiver;
@@ -95,7 +82,44 @@ contract RemoteHub is CCIPReceiver, Initializable, AccessControlUpgradeable, UUP
     ChainItem[] public chainItems;
     mapping(uint64 => ChainItem) public chainItemById;
     mapping(uint64 => mapping(address => bool)) public allowlistedDestinationAddresses;
-    uint64 chainSelector;
+    uint64 public chainSelector;
+
+    function getChainItemById(uint64 key) public view returns(ChainItem memory) {
+        return chainItemById[key];
+    }
+
+    function ccipPool() external view returns(address) {
+        return chainItemById[chainSelector].ccipPool;
+    }
+
+    function usdp() external view returns(IUsdPlusToken) {
+        return IUsdPlusToken(chainItemById[chainSelector].usdp);
+    }
+
+    function exchange() external view returns(IExchange) {
+        return IExchange(chainItemById[chainSelector].exchange);
+    }
+
+    function payoutManager() external view returns(IPayoutManager) {
+        return IPayoutManager(chainItemById[chainSelector].payoutManager);
+    }
+
+    function roleManager() external view returns(IRoleManager) {
+        return IRoleManager(chainItemById[chainSelector].roleManager);
+    }
+
+    function remoteHub() external view returns(IRemoteHub) {
+        return IRemoteHub(chainItemById[chainSelector].remoteHub);
+    }
+
+    function wusdp() external view returns(IWrappedUsdPlusToken) {
+        return IWrappedUsdPlusToken(chainItemById[chainSelector].wusdp);
+    }
+
+    function market() external view returns(IMarket) {
+        return IMarket(chainItemById[chainSelector].market);
+    }
+
 
     /// @dev Modifier that checks if the chain with the given destinationChainSelector is allowlisted.
     /// @param _destinationChainSelector The selector of the destination chain.

@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
 import "@overnight-contracts/common/contracts/libraries/WadRayMath.sol";
-// import "@overnight-contracts/core/contracts/interfaces/IRemoteHub.sol";
+import "./interfaces/IRemoteHub.sol";
 
 
 contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
@@ -111,7 +111,7 @@ contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgrade
         require(assets != 0, "Zero assets not allowed");
         require(receiver != address(0), "Zero address for receiver not allowed");
 
-        asset().transferFrom(msg.sender, address(this), assets);
+        remoteHub.usdp().transferFrom(msg.sender, address(this), assets);
 
         uint256 shares = _convertToSharesDown(assets);
 
@@ -137,14 +137,14 @@ contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgrade
     // for CCIP
     function mint(address account, uint256 amount) external whenNotPaused onlyCCIP {
         uint256 assets = _convertToAssetsUp(amount);
-        asset().mint(address(this), assets);
+        remoteHub.usdp().mint(address(this), assets);
         _mint(account, amount);
     }
 
     function burn(uint256 amount) external whenNotPaused onlyCCIP {
         _burn(msg.sender, amount);
         uint256 assets = _convertToAssetsUp(amount);
-        asset().burn(address(this), assets);
+        remoteHub.usdp().burn(address(this), assets);
     }
 
     /// @inheritdoc IERC4626
@@ -155,7 +155,7 @@ contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgrade
         uint256 assets = _convertToAssetsUp(shares);
 
         if (assets != 0) {
-            asset().transferFrom(msg.sender, address(this), assets);
+            remoteHub.usdp().transferFrom(msg.sender, address(this), assets);
         }
 
         _mint(receiver, shares);
@@ -193,7 +193,7 @@ contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgrade
             _burn(owner, shares);
         }
 
-        asset().transfer(receiver, assets);
+        remoteHub.usdp().transfer(receiver, assets);
 
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
 
@@ -227,7 +227,7 @@ contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgrade
         uint256 assets = _convertToAssetsDown(shares);
 
         if (assets != 0) {
-            asset().transfer(receiver, assets);
+            remoteHub.usdp().transfer(receiver, assets);
         }
 
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
@@ -236,7 +236,7 @@ contract WrappedUsdPlusToken is IERC4626, ERC20Upgradeable, AccessControlUpgrade
     }
 
     function rate() public view returns (uint256) {
-        return 10 ** 54 / asset().rebasingCreditsPerTokenHighres();
+        return 10 ** 54 / remoteHub.usdp().rebasingCreditsPerTokenHighres();
     }
 
 }

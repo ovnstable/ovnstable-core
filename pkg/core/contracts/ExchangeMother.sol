@@ -12,10 +12,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "./interfaces/IInsuranceExchange.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IBlockGetter.sol";
-import "./interfaces/IPayoutManager.sol";
-import "./interfaces/IRoleManager.sol";
 import "./interfaces/IRemoteHub.sol";
-import "./interfaces/IUsdPlusToken.sol";
 
 contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
@@ -26,7 +23,6 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     // ---  fields
 
-    IUsdPlusToken public usdPlus;
     IERC20 public usdc; // asset name
 
     IPortfolioManager public portfolioManager; //portfolio manager contract
@@ -50,8 +46,6 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
     //    then payouts started by any next buy/redeem
     uint256 public payoutTimeRange;
 
-    IPayoutManager public payoutManager;
-
     // last block number when buy/redeem was executed
     uint256 public lastBlockNumber;
 
@@ -69,19 +63,17 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
     address public profitRecipient;
 
     address public blockGetter;
-    IRoleManager public roleManager;
+
     IRemoteHub public remoteHub;
 
     // ---  events
 
-    event TokensUpdated(address usdPlus, address asset);
-    event RoleManagerUpdated(address roleManager);
+    event AssetUpdated(address asset);
     event RemoteHubUpdated(address remoteHub);
     event PortfolioManagerUpdated(address portfolioManager);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
     event RedeemFeeUpdated(uint256 fee, uint256 feeDenominator);
     event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
-    event PayoutManagerUpdated(address payoutManager);
     event InsuranceUpdated(address insurance);
     event BlockGetterUpdated(address blockGetter);
 
@@ -103,6 +95,18 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
     event OracleLossUpdate(uint256 oracleLoss, uint256 denominator);
     event CompensateLossUpdate(uint256 compensateLoss, uint256 denominator);
 
+    function roleManager() internal view returns(IRoleManager) {
+        return remoteHub.roleManager();
+    }
+
+    function usdPlus() internal view returns(IUsdPlusToken) {
+        return remoteHub.usdp();
+    }
+
+    function payoutManager() internal view returns(IPayoutManager) {
+        return remoteHub.payoutManager();
+    }
+
     // ---  modifiers
 
     modifier onlyAdmin() {
@@ -111,12 +115,12 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
     }
 
     modifier onlyPortfolioAgent() {
-        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
+        require(roleManager().hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
         _;
     }
 
     modifier onlyUnit() {
-        require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
+        require(roleManager().hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
     }
 
@@ -160,29 +164,16 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     // ---  setters Admin
 
-    function setTokens(address _usdPlus, address _asset) external onlyAdmin {
-        require(_usdPlus != address(0), "Zero address not allowed");
+    function setAsset(address _asset) external onlyAdmin {
         require(_asset != address(0), "Zero address not allowed");
-        usdPlus = IUsdPlusToken(_usdPlus);
         usdc = IERC20(_asset);
-        emit TokensUpdated(_usdPlus, _asset);
+        emit AssetUpdated(_asset);
     }
 
     function setPortfolioManager(address _portfolioManager) external onlyAdmin {
         require(_portfolioManager != address(0), "Zero address not allowed");
         portfolioManager = IPortfolioManager(_portfolioManager);
         emit PortfolioManagerUpdated(_portfolioManager);
-    }
-
-    function setRoleManager(address _roleManager) external onlyAdmin {
-        require(_roleManager != address(0), "Zero address not allowed");
-        roleManager = IRoleManager(_roleManager);
-        emit RoleManagerUpdated(_roleManager);
-    }
-
-    function setPayoutManager(address _payoutManager) external onlyAdmin {
-        payoutManager = IPayoutManager(_payoutManager);
-        emit PayoutManagerUpdated(_payoutManager);
     }
 
     function setRemoteHub(address _remoteHub) external onlyAdmin {
@@ -303,7 +294,7 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
         uint256 buyAmount;
         (buyAmount, buyFeeAmount) = _takeFee(usdPlusAmount, true);
 
-        usdPlus.mint(msg.sender, buyAmount);
+        usdPlus().mint(msg.sender, buyAmount);
 
         emit EventExchange("mint", buyAmount, buyFeeAmount, msg.sender, _referral);
 
@@ -318,7 +309,7 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
     function redeem(address _asset, uint256 _amount) external whenNotPaused nonReentrant returns (uint256) {
         require(_asset == address(usdc), "Only asset available for redeem");
         require(_amount > 0, "Amount of USD+ is zero");
-        require(usdPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
+        require(usdPlus().balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
 
         uint256 assetAmount = _rebaseToAsset(_amount);
         require(assetAmount > 0, "Amount of asset is zero");
@@ -332,7 +323,7 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
         _requireOncePerBlock(isBalanced);
 
         // Or just burn from sender
-        usdPlus.burn(msg.sender, _amount);
+        usdPlus().burn(msg.sender, _amount);
 
         require(usdc.balanceOf(address(this)) >= redeemAmount, "Not enough for transfer redeemAmount");
         SafeERC20.safeTransfer(usdc, msg.sender, redeemAmount);
@@ -407,7 +398,7 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
     function _rebaseToAsset(uint256 _amount) internal view returns (uint256){
 
         uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
-        uint256 usdPlusDecimals = usdPlus.decimals();
+        uint256 usdPlusDecimals = usdPlus().decimals();
         if (assetDecimals > usdPlusDecimals) {
             _amount = _amount * (10 ** (assetDecimals - usdPlusDecimals));
         } else {
@@ -421,7 +412,7 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
     function _assetToRebase(uint256 _amount) internal view returns (uint256){
 
         uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
-        uint256 usdPlusDecimals = usdPlus.decimals();
+        uint256 usdPlusDecimals = usdPlus().decimals();
         if (assetDecimals > usdPlusDecimals) {
             _amount = _amount / (10 ** (assetDecimals - usdPlusDecimals));
         } else {
@@ -452,7 +443,7 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
      */
     function payout(bool simulate, IInsuranceExchange.SwapData memory swapData) external whenNotPaused onlyUnit nonReentrant returns (int256 swapAmount) {
         
-        require(address(payoutManager) != address(0) || usdPlus.nonRebaseOwnersLength() == 0, "Need to specify payoutManager address");
+        require(address(payoutManager()) != address(0) || usdPlus().nonRebaseOwnersLength() == 0, "Need to specify payoutManager address");
 
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return 0;
@@ -466,7 +457,7 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         portfolioManager.claimAndBalance();
 
-        uint256 totalUsdPlus = usdPlus.totalSupply();
+        uint256 totalUsdPlus = usdPlus().totalSupply();
         uint256 previousUsdPlus = totalUsdPlus;
 
         uint256 totalNav = _assetToRebase(portfolioManager.totalNetAssets());
@@ -521,7 +512,7 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
                 totalNav = totalNav - _assetToRebase(premium);
             }
 
-            delta = totalNav * LIQ_DELTA_DM / usdPlus.totalSupply();
+            delta = totalNav * LIQ_DELTA_DM / usdPlus().totalSupply();
 
             if (abroadMax < delta) {
 
@@ -529,11 +520,11 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
                 // We send the difference to the OVN wallet.
 
                 uint256 newTotalSupply = totalNav * LIQ_DELTA_DM / abroadMax;
-                excessProfit = newTotalSupply - usdPlus.totalSupply();
+                excessProfit = newTotalSupply - usdPlus().totalSupply();
 
                 // Mint USD+ to OVN wallet
                 require(profitRecipient != address(0), 'profitRecipient address is zero');
-                usdPlus.mint(profitRecipient, excessProfit);
+                usdPlus().mint(profitRecipient, excessProfit);
             }
 
         }
@@ -543,7 +534,7 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
         // - totalUsdPlus
         // - totalNav
 
-        totalUsdPlus = usdPlus.totalSupply();
+        totalUsdPlus = usdPlus().totalSupply();
         totalNav = _assetToRebase(portfolioManager.totalNetAssets());
         uint256 newDelta = totalNav * LIQ_DELTA_DM / totalUsdPlus;
 
@@ -554,16 +545,16 @@ contract ExchangeMother is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
         uint256 expectedTotalUsdPlus = previousUsdPlus + profit + excessProfit;
 
-        (NonRebaseInfo [] memory nonRebaseInfo, uint256 nonRebaseDelta) = usdPlus.changeSupply(totalNav);
+        (NonRebaseInfo [] memory nonRebaseInfo, uint256 nonRebaseDelta) = usdPlus().changeSupply(totalNav);
 
         // notify listener about payout done
-        if (address(payoutManager) != address(0)) {
-            usdPlus.mint(address(payoutManager), nonRebaseDelta);
-            payoutManager.payoutDone(address(usdPlus), nonRebaseInfo);
+        if (address(payoutManager()) != address(0)) {
+            usdPlus().mint(address(payoutManager()), nonRebaseDelta);
+            payoutManager().payoutDone(address(usdPlus()), nonRebaseInfo);
         }
 
-        require(usdPlus.totalSupply() == totalNav,'total != nav');
-        require(usdPlus.totalSupply() == expectedTotalUsdPlus, 'total != expected');
+        require(usdPlus().totalSupply() == totalNav,'total != nav');
+        require(usdPlus().totalSupply() == expectedTotalUsdPlus, 'total != expected');
 
         remoteHub.execMultiPayout(newDelta);
 

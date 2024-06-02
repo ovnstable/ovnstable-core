@@ -13,8 +13,9 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "./libraries/StableMath.sol";
 
-import "./interfaces/IPayoutManager.sol";
+import {NonRebaseInfo} from "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
+import "./interfaces/IRemoteHub.sol";
 import "./libraries/WadRayMath.sol";
 
 /**
@@ -51,20 +52,15 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     uint256 private _rebasingCreditsPerToken;
 
     uint256 public nonRebasingSupply;
-    uint256 private DELETED_1; // not used (liquidityIndex)
-    uint256 private DELETED_2; // not used (liquidityIndexDenominator)
 
     EnumerableSet.AddressSet private _owners;
 
-    address public exchange;
     uint8 private _decimals;
-    address public payoutManager;
 
     mapping(address => uint256) public nonRebasingCreditsPerToken;
     mapping(address => RebaseOptions) public rebaseState;
     EnumerableSet.AddressSet _nonRebaseOwners;
-
-    IRoleManager public roleManager;
+    IRemoteHub public remoteHub;
 
     event TotalSupplyUpdatedHighres(
         uint256 totalSupply,
@@ -76,11 +72,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         OptIn,
         OptOut
     }
-
-    event ExchangerUpdated(address exchanger);
-    event PayoutManagerUpdated(address payoutManager);
-    event RoleManagerUpdated(address roleManager);
-
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -109,41 +100,28 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * @dev Verifies that the caller is the Exchanger contract
      */
     modifier onlyExchanger() {
-        require(exchange == _msgSender(), "Caller is not the EXCHANGER");
+        require(remoteHub.exchangeAddress() == _msgSender(), "Caller is not the EXCHANGER");
+        _;
+    }
+
+    modifier onlyWrapper() {
+        require(remoteHub.exchangeAddress() == _msgSender(), "Caller is not the WRAPPER");
         _;
     }
 
     modifier onlyPayoutManager() {
-        require(payoutManager == _msgSender(), "Caller is not the PAYOUT_MANAGER");
+        require(remoteHub.payoutManagerAddress() == _msgSender(), "Caller is not the PAYOUT_MANAGER");
         _;
     }
 
     modifier onlyPortfolioAgent() {
-        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, _msgSender()), "Restricted to Portfolio Agent");
+        require(remoteHub.roleManager().hasRole(PORTFOLIO_AGENT_ROLE, _msgSender()), "Restricted to Portfolio Agent");
         _;
     }
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Restricted to admins");
         _;
-    }
-
-    function setExchanger(address _exchanger) external onlyAdmin {
-        require(_exchanger != address(0), 'exchange is zero');
-        exchange = _exchanger;
-        emit ExchangerUpdated(_exchanger);
-    }
-
-    function setPayoutManager(address _payoutManager) external onlyAdmin {
-        require(_payoutManager != address(0), 'payoutManager is zero');
-        payoutManager = _payoutManager;
-        emit PayoutManagerUpdated(_payoutManager);
-    }
-
-    function setRoleManager(address _roleManager) external onlyAdmin {
-        require(_roleManager != address(0), 'roleManager is zero');
-        roleManager = IRoleManager(_roleManager);
-        emit RoleManagerUpdated(_roleManager);
     }
 
     function pause() public onlyPortfolioAgent {
@@ -526,7 +504,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Mints new tokens, increasing totalSupply.
      */
-    function mint(address _account, uint256 _amount) external whenNotPaused onlyExchanger {
+    function mint(address _account, uint256 _amount) external whenNotPaused onlyExchanger onlyWrapper {
         _mint(_account, _amount);
     }
 
@@ -570,7 +548,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Burns tokens, decreasing totalSupply.
      */
-    function burn(address account, uint256 amount) external whenNotPaused onlyExchanger {
+    function burn(address account, uint256 amount) external whenNotPaused onlyExchanger onlyWrapper {
         _burn(account, amount);
     }
 
