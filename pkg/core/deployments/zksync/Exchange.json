@@ -146,6 +146,13 @@
       "type": "event"
     },
     {
+      "inputs": [],
+      "name": "negativeRebase",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {

@@ -182,11 +182,11 @@ task(TASK_RUN, 'Run task')
 
         if (hre.network.name === 'localhost') {
 
-            if ((process.env.STAND).startsWith('zksync')) {
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-            } else {
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-            }
+            // if ((process.env.STAND).startsWith('zksync')) {
+            //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+            // } else {
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+            // }
         }
 
         settingNetwork(hre);
@@ -231,11 +231,11 @@ task(TASK_TEST, 'test')
         }
 
         if (hre.network.name === 'localhost') {
-            if ((process.env.STAND).startsWith('zksync')) {
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-            } else {
-                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-            }
+            // if ((process.env.STAND).startsWith('zksync')) {
+            //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+            // } else {
+            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+            // }
         }
 
         settingNetwork(hre);
@@ -270,11 +270,11 @@ task('simulate', 'Simulate transaction on local node')
         let transaction = await provider.getTransaction(hash);
 
 
-        if ((args.stand || process.env.STAND).startsWith('zksync')) {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-        } else {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-        }
+        // if ((args.stand || process.env.STAND).startsWith('zksync')) {
+        //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+        // } else {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        // }
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
             params: [receipt.from],
@@ -329,11 +329,11 @@ task('simulateByData', 'Simulate transaction on local node')
 
         await evmCheckpoint('simulate', hre.network.provider);
 
-        if (( process.env.STAND).startsWith('zksync')) {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-        } else {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-        }
+        // if ((process.env.STAND).startsWith('zksync')) {
+        //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+        // } else {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        // }
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
             params: [from],
@@ -383,7 +383,7 @@ function sleep(ms) {
 async function transferETH(amount, to) {
 
     if ((process.env.STAND).startsWith('zksync')) {
-        let provider = new Provider("http://localhost:8011");
+        let provider = new Provider("http://localhost:8545"); //8011
         let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
         console.log(`Balance [${fromE18(await hre.ethers.provider.getBalance(wallet.address))}]:`);
 

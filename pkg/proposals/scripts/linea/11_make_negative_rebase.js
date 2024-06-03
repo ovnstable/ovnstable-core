@@ -16,33 +16,25 @@ async function main() {
     let abis = [];
 
     // let mendi = await getContract('StrategyMendiUsdt', 'linea');
-    let alpha = await getContract('StrategyEtsAlpha', 'linea');
     let exchange = await getContract('Exchange', 'linea');
     let usdplus = await getContract('UsdPlusToken', 'linea');
     let payout = await getContract('LineaPayoutManager', 'linea');
     let pm = await getContract('PortfolioManager', 'linea');
 
-    let implEx = '';
-    let implUsdp = '';
-    let implAlpha = '';
+    let implEx = '0xeDE3D783523F9a2E1Ad74E4853EdE457e0Fb9525';
+    let implUsdp = '0x3aB4838Caf3FA3d4825731A959F2dC73d30632F1';
 
-    addProposalItem(alpha, 'upgradeTo', [implAlpha]);
+    // addProposalItem(exchange, 'unpause', []);
+    // addProposalItem(usdplus, 'unpause', []);
 
-    addProposalItem(exchange, 'unpause', []);
-    addProposalItem(usdplus, 'unpause', []);
-
-    addProposalItem(pm, 'removeStrategy', ['0x375Ca8E03901eCdc1e9dEC6B14d2b39B665A4D85']); //alpha linea
-
-    addProposalItem(payout, 'removeItem', ['', '']);
-    addProposalItem(exchange, 'upgradeTo', [implEx]);
-    addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
+    // addProposalItem(payout, 'removeItems', []);
+    // addProposalItem(exchange, 'upgradeTo', [implEx]);
+    // addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
 
     addProposalItem(pm, 'balance', []);
 
     addProposalItem(exchange, 'negativeRebase', []);
 
-    // addProposalItem(exchange, 'pause', []);
-    // addProposalItem(usdplus, 'pause', []);
 
     await showM2M();
     await testProposal(addresses, values, abis);

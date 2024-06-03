@@ -909,6 +909,13 @@
     },
     {
       "inputs": [],
+      "name": "negativeRebase",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "nextPayoutTime",
       "outputs": [
         {

@@ -1,5 +1,5 @@
 const dotenv = require('dotenv');
-dotenv.config({path:__dirname+ '/../../../.env'});
+dotenv.config({ path: __dirname + '/../../../.env' });
 
 
 function node_url(networkName) {
@@ -16,11 +16,11 @@ function node_url(networkName) {
     }
     if (!uri || uri === '') {
         if (networkName === 'localhost') {
-            if (isZkSync()) {
-               return 'http://localhost:8011'
-            } else {
-                return 'http://localhost:8545'
-            }
+            // if (isZkSync()) {
+            //     return 'http://localhost:8011'
+            // } else {
+            return 'http://localhost:8545'
+            // }
         }
         return '';
     }
@@ -51,7 +51,7 @@ function accounts(networkName) {
     return [getPrivateKey(networkName)];
 }
 
-function isZkSync(){
+function isZkSync() {
     return process.env.STAND.toLowerCase().startsWith('zksync');
 }
 
@@ -70,13 +70,13 @@ function getGasPrice() {
 
 
 function blockNumber(networkName) {
-    return Number.parseInt(process.env['HARDHAT_BLOCK_NUMBER']);
+    return Number.parseInt(process.env['HARDHAT_BLOCK_NUMBER_' + networkName]);
 }
 
-function getNodeUrl(){
+function getNodeUrl() {
     return node_url(process.env.ETH_NETWORK.toLowerCase());
 }
-function getBlockNumber(){
+function getBlockNumber() {
     return blockNumber(process.env.ETH_NETWORK.toLowerCase())
 }
 
