@@ -1,13 +1,13 @@
 {
-  "name": "@overnight-contracts/connectors",
-  "version": "0.0.94",
-  "description": "Connectors to protocols",
-  "main": "hardhat.config",
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "build": "hardhat compile",
-    "test": "hardhat test"
-  }
+    "name": "@overnight-contracts/connectors",
+    "version": "0.0.96",
+    "description": "Connectors to protocols",
+    "main": "hardhat.config",
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "build": "hardhat compile",
+        "test": "hardhat test"
+    }
 }
