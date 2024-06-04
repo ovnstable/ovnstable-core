@@ -15,31 +15,36 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let exchange = await getContract('Exchange', 'zksync');
-    let usdplus = await getContract('UsdPlusToken', 'zksync');
-    let payout = await getContract('OptimismPayoutManager', 'zksync');
-    let pm = await getContract('PortfolioManager', 'zksync');
+    let exchange = await getContract('Exchange', 'linea');
+    let usdplus = await getContract('UsdPlusToken', 'linea');
+    let payout = await getContract('LineaPayoutManager', 'linea');
+    let pm = await getContract('PortfolioManager', 'linea');
 
-    let implEx = '';
-    let implUsdp = '';
+    let exchangeUsdt = await getContract('Exchange', 'linea_usdt');
+    let usdplusUsdt = await getContract('UsdPlusToken', 'linea_usdt');
+    let payoutUsdt = await getContract('LineaPayoutManager', 'linea_usdt');
+    let pmUsdt = await getContract('PortfolioManager', 'linea_usdt');
 
+    let implEx = '0x61e7BF9B82F3b0B9b490F6db9C2A582358907d2A';
+    let implUsdp = '0xB0992A4108Bd1cf0f8e429Fc0A1D7073C7dD9Fd2';
     addProposalItem(exchange, 'upgradeTo', [implEx]);
     addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
+    addProposalItem(exchangeUsdt, 'upgradeTo', [implEx]);
+    addProposalItem(usdplusUsdt, 'upgradeTo', [implUsdp]);
 
     addProposalItem(exchange, 'unpause', []);
     addProposalItem(usdplus, 'unpause', []);
-
-    addProposalItem(payout, 'removeItems', []);
+    addProposalItem(exchangeUsdt, 'unpause', []);
+    addProposalItem(usdplusUsdt, 'unpause', []);
 
     addProposalItem(pm, 'balance', []);
+    addProposalItem(pmUsdt, 'balance', []);
 
-    addProposalItem(exchange, 'negativeRebase', []);
 
-
-    await showM2M();
-    await testProposal(addresses, values, abis);
-    await showM2M();
-    // await createProposal(filename, addresses, values, abis);
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await showM2M();
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);

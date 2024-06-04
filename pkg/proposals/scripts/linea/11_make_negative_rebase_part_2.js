@@ -25,32 +25,17 @@ async function main() {
     let payoutUsdt = await getContract('LineaPayoutManager', 'linea_usdt');
     let pmUsdt = await getContract('PortfolioManager', 'linea_usdt');
 
-    let implEx = '';
-    let implUsdp = '';
-    addProposalItem(exchange, 'upgradeTo', [implEx]);
-    addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
-    addProposalItem(exchangeUsdt, 'upgradeTo', [implEx]);
-    addProposalItem(usdplusUsdt, 'upgradeTo', [implUsdp]);
-
-    addProposalItem(exchange, 'unpause', []);
-    addProposalItem(usdplus, 'unpause', []);
-    addProposalItem(exchangeUsdt, 'unpause', []);
-    addProposalItem(usdplusUsdt, 'unpause', []);
 
     addProposalItem(payout, 'removeItems', []);
     addProposalItem(payoutUsdt, 'removeItems', []);
-
-    addProposalItem(pm, 'balance', []);
-    addProposalItem(pmUsdt, 'balance', []);
-
     addProposalItem(exchange, 'negativeRebase', []);
     addProposalItem(exchangeUsdt, 'negativeRebase', []);
 
 
-    await showM2M();
-    await testProposal(addresses, values, abis);
-    await showM2M();
-    // await createProposal(filename, addresses, values, abis);
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await showM2M();
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
