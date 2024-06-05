@@ -20,8 +20,8 @@ async function main() {
     addProposalItem(ex, 'setBuyFee', ['10', '100000']);
     addProposalItem(ex, 'setRedeemFee', ['10', '100000']);
 
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
