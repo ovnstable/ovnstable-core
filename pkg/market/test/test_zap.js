@@ -20,7 +20,7 @@ const abiNFTPool = require("./abi/NFTPool.json");
 const { getOdosAmountOut, getOdosSwapData } = require("@overnight-contracts/common/utils/odos-helper");
 const { getOdosAmountOutOnly } = require("../../common/utils/odos-helper.js");
 
-let zaps_aerodrome = [
+let zaps = [
     // {
     //     name: 'AerodromeZap',
     //     gauge: '0x87803Cb321624921cedaAD4555F07Daa0D1Ed325',
@@ -430,38 +430,7 @@ let zaps_aerodrome = [
     // },
 ];
 
-let zaps_pancake = [
-    {
-        name: 'PancakeCLZap',
-        pair: '0x0c1A09d5D0445047DA3Ab4994262b22404288A3B',
-        token0Out: 'usdc',
-        token1Out: 'usdPlus',
-        token0In: 'sfrax',
-        token1In: 'dai',
-        priceRange: [4.5, 15],
-    },
-    {
-        name: 'PancakeCLZap',
-        pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
-        token0Out: 'dola',
-        token1Out: 'usdPlus',
-        token0In: 'sfrax',
-        token1In: 'dai',
-        priceRange: [0.5, 1.5],
-    },
-    {
-        name: 'PancakeCLZap',
-        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
-        token0Out: 'usdPlus',
-        token1Out: 'usdbc',
-        token0In: 'sfrax',
-        token1In: 'dai',
-        priceRange: [0.989, 1.10001],
-    },
-];
 
-// TODO: remove hardcode
-let zaps = zaps_pancake;
 
 describe('Testing all zaps', function() {
     zaps.forEach((params) => {
