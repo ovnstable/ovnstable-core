@@ -8,8 +8,6 @@ let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf('.js'));
 
 async function main() {
-    let wallet = await initWallet();
-    await transferETH(1, wallet.address);
 
     let addresses = [];
     let values = [];
@@ -36,20 +34,30 @@ async function main() {
     addProposalItem(exchangeUsdt, 'unpause', []);
     addProposalItem(usdplusUsdt, 'unpause', []);
 
+    addProposalItem(exchange, 'setTargetParams', ["914317529711360028780342093", "424178038498", "88788106772414687908"]);
+    addProposalItem(exchangeUsdt, 'setTargetParams', ["946196274061462956380585316", "322291673255", "32797371192812997663"]);
+
     addProposalItem(payout, 'removeItems', []);
     addProposalItem(payoutUsdt, 'removeItems', []);
-    addProposalItem(exchange, 'negativeRebasePools', ["914317529711360028780342093", "5272579780631420970344893754", ["0xbE23da11fbF9dA0F7C13eA73A4bB511b9Bc00177",
-        "0x58aacbccaec30938cb2bb11653cad726e5c4194a", "0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91", "0x93b6d53d8a33c92003D0c41065cb2842934C2619",
-        "0x6F501662A76577FBB3Bb230Be5E8e69D41d8c711", "0x2c5455EC697254B9c649892eEd425126791e334a"]]);
-    addProposalItem(exchangeUsdt, 'negativeRebasePools', ["946196274061462956380585316", "5181173126665482632471553232", ["0xbE23da11fbF9dA0F7C13eA73A4bB511b9Bc00177",
-        "0x58aacbccaec30938cb2bb11653cad726e5c4194a", "0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91", "0x93b6d53d8a33c92003D0c41065cb2842934C2619",
-        "0x6F501662A76577FBB3Bb230Be5E8e69D41d8c711", "0x2c5455EC697254B9c649892eEd425126791e334a"]]);
 
+    addProposalItem(exchange, 'negativeRebase', []);
+    addProposalItem(exchangeUsdt, 'negativeRebase', []);
+    let implExOld = '0x61e7BF9B82F3b0B9b490F6db9C2A582358907d2A';
+    let implUsdpOld = '0xB0992A4108Bd1cf0f8e429Fc0A1D7073C7dD9Fd2';
+    addProposalItem(exchange, 'upgradeTo', [implExOld]);
+    addProposalItem(usdplus, 'upgradeTo', [implUsdpOld]);
+    addProposalItem(exchangeUsdt, 'upgradeTo', [implExOld]);
+    addProposalItem(usdplusUsdt, 'upgradeTo', [implUsdpOld]);
+    // await showM2M("linea");
+    // await showM2M("linea_usdt");
+    // await testProposal(addresses, values, abis);
+    // await showM2M("linea");
+    // await showM2M("linea_usdt");
 
-    await showM2M();
-    await testProposal(addresses, values, abis);
-    await showM2M();
-    // await createProposal(filename, addresses, values, abis);
+    // await testUsdPlus(filename, 'linea');
+    // await testUsdPlus(filename, 'linea_usdt');
+
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);

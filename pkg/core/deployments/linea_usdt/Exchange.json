@@ -905,21 +905,21 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "previousRebasingCreditsPerTokenHighres",
+          "name": "_newRebasingCreditsPerToken",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
-          "name": "targetRebasingCreditsPerTokenHighres",
+          "name": "_newTotalSupply",
           "type": "uint256"
         },
         {
-          "internalType": "address[]",
-          "name": "pools",
-          "type": "address[]"
+          "internalType": "uint256",
+          "name": "_newRebasingCredits",
+          "type": "uint256"
         }
       ],
-      "name": "negativeRebasePools",
+      "name": "setTargetParams",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

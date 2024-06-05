@@ -27,7 +27,10 @@ async function main() {
 
 
     let implUsdp = '0x343B0C4e372DA18fAA625030AbdB532882175315';
+    let implEx = '0xC1D72528dCac34189bF576838cC7b4C7735a3487';
+    addProposalItem(exchange, 'upgradeTo', [implEx]);
     addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
+    addProposalItem(exchangeUsdt, 'upgradeTo', [implEx]);
     addProposalItem(usdplusUsdt, 'upgradeTo', [implUsdp]);
     addProposalItem(payout, 'removeItems', []);
     addProposalItem(payoutUsdt, 'removeItems', []);
@@ -35,9 +38,11 @@ async function main() {
     addProposalItem(exchangeUsdt, 'negativeRebase', []);
 
 
-    await showM2M();
+    await showM2M("linea");
+    await showM2M("linea_usdt");
     await testProposal(addresses, values, abis);
-    await showM2M();
+    await showM2M("linea");
+    await showM2M("linea_usdt");
     // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {

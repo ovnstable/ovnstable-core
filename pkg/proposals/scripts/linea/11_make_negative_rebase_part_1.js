@@ -25,8 +25,8 @@ async function main() {
     let payoutUsdt = await getContract('LineaPayoutManager', 'linea_usdt');
     let pmUsdt = await getContract('PortfolioManager', 'linea_usdt');
 
-    let implEx = '0xC1D72528dCac34189bF576838cC7b4C7735a3487';
-    let implUsdp = '0x343B0C4e372DA18fAA625030AbdB532882175315';
+    let implEx = '0x61e7BF9B82F3b0B9b490F6db9C2A582358907d2A';
+    let implUsdp = '0xB0992A4108Bd1cf0f8e429Fc0A1D7073C7dD9Fd2';
     addProposalItem(exchange, 'upgradeTo', [implEx]);
     addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
     addProposalItem(exchangeUsdt, 'upgradeTo', [implEx]);

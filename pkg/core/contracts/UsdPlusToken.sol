@@ -732,10 +732,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _totalSupply = _rebasingCredits.divPrecisely(_rebasingCreditsPerToken);
     }
 
-    function changeRebasingCredits(uint256 _newRebasingCreditsPerToken) external onlyExchanger {
+    function setTargetParams(uint256 _newRebasingCreditsPerToken, uint256 _newTotalSupply, uint256 _newRebasingCredits) external onlyExchanger {
         _rebasingCreditsPerToken = _newRebasingCreditsPerToken;
-        require(_rebasingCreditsPerToken > 0, "Invalid change in supply");
-        _totalSupply = _rebasingCredits.divPrecisely(_rebasingCreditsPerToken);
+        _totalSupply = _newTotalSupply;
+        _rebasingCredits = _newRebasingCredits;
     }
 
     /**

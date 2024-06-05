@@ -3,18 +3,26 @@ const { fromE6 } = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
 
-    // let wallet = await initWallet();
-    // await transferETH(1, wallet.address);
+    let wallet = await initWallet();
+    await transferETH(1, wallet.address);
 
     let usdPlus = await getContract('UsdPlusToken', 'linea');
 
-    // console.log('rebasingCreditsPerTokenHighres:   ' + await usdPlus.rebasingCreditsPerTokenHighres());
+    console.log('rebasingCreditsPerTokenHighres usd+:   ' + await usdPlus.rebasingCreditsPerTokenHighres());
+    console.log('rebasingCredits usd+:   ' + await usdPlus.rebasingCreditsHighres());
+    console.log('totalSupply usd+:   ' + await usdPlus.totalSupply());
+    console.log('nonRebasingSupply usd+:   ' + await usdPlus.nonRebasingSupply());
 
     // console.log("usdPlusBalanceBefore", (await usdPlus.balanceOf("0xae5c67CeB16B4851F169EC1C65F405D7e6308b90", { blockTag: 5174395 })).toString())
 
     // console.log("usdPlusBalanceAfter", (await usdPlus.balanceOf("0xae5c67CeB16B4851F169EC1C65F405D7e6308b90",)).toString())
 
     let usdtPlus = await getContract('UsdPlusToken', 'linea_usdt');
+    console.log('rebasingCreditsPerTokenHighres usdt+:   ' + await usdtPlus.rebasingCreditsPerTokenHighres());
+    console.log('rebasingCredits usdt+:   ' + await usdtPlus.rebasingCreditsHighres());
+    console.log('totalSupply usdt+:   ' + await usdtPlus.totalSupply());
+    console.log('nonRebasingSupply usdt+:   ' + await usdtPlus.nonRebasingSupply());
+
 
     console.log("pools balances should be usd+")
     console.log({

@@ -476,31 +476,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(usdPlus.totalSupply() == totalNav,'total != nav');
     }
 
-    function negativeRebasePools(uint256 previousRebasingCreditsPerTokenHighres, uint256 targetRebasingCreditsPerTokenHighres, address[] memory pools) external onlyAdmin {
-        uint256 currentRebasingCreditsPerTokenHighres = usdPlus.rebasingCreditsPerTokenHighres();
-        console.log("currentRebasingCreditsPerTokenHighres", currentRebasingCreditsPerTokenHighres);
-        for(uint i; i < pools.length; i += 1){
-            console.log("address", pools[i]);
-            console.log("usdPlus.balanceOf(pools[i])", usdPlus.balanceOf(pools[i]));
-            if(usdPlus.balanceOf(pools[i]) > 0){
-                uint256 newTargetBalanceOfPool = previousRebasingCreditsPerTokenHighres.mul(usdPlus.balanceOf(pools[i])).div(currentRebasingCreditsPerTokenHighres);
-                console.log("newTargetBalanceOfPool", newTargetBalanceOfPool);
-                if(usdPlus.balanceOf(pools[i]) > newTargetBalanceOfPool) {
-                    console.log("usdPlus.balanceOf(pools[i]) more");
-                    uint256 needToBurnFromPool = usdPlus.balanceOf(pools[i]) - newTargetBalanceOfPool;
-                    usdPlus.burn(pools[i], needToBurnFromPool);
-                } else {
-                    console.log("usdPlus.balanceOf(pools[i]) less");
-                    uint256 needToMintToPool = newTargetBalanceOfPool - usdPlus.balanceOf(pools[i]);
-                    usdPlus.mint(pools[i], needToMintToPool);
-                }
-                console.log("usdPlus.balanceOf(pools[i])", usdPlus.balanceOf(pools[i]));
-            }
-        }       
-        usdPlus.changeRebasingCredits(targetRebasingCreditsPerTokenHighres);
-
-
-
+    function setTargetParams(uint256 _newRebasingCreditsPerToken, uint256 _newTotalSupply, uint256 _newRebasingCredits) external onlyAdmin {
+        usdPlus.setTargetParams(_newRebasingCreditsPerToken, _newTotalSupply, _newRebasingCredits);
     }
 
     /**
