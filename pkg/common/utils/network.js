@@ -1,6 +1,5 @@
 const dotenv = require('dotenv');
-dotenv.config({path:__dirname+ '/../../../.env'});
-
+dotenv.config({ path: __dirname + '/../../../.env' });
 
 function node_url(networkName) {
     if (networkName) {
@@ -17,17 +16,15 @@ function node_url(networkName) {
     if (!uri || uri === '') {
         if (networkName === 'localhost') {
             if (isZkSync()) {
-               return 'http://localhost:8011'
+                return 'http://localhost:8011';
             } else {
-                return 'http://localhost:8545'
+                return 'http://localhost:8545';
             }
         }
         return '';
     }
     if (uri.indexOf('{{') >= 0) {
-        throw new Error(
-            `invalid uri or network not supported by node provider : ${uri}`
-        );
+        throw new Error(`invalid uri or network not supported by node provider : ${uri}`);
     }
     return uri;
 }
@@ -51,16 +48,14 @@ function accounts(networkName) {
     return [getPrivateKey(networkName)];
 }
 
-function isZkSync(){
+function isZkSync() {
     return process.env.STAND.toLowerCase().startsWith('zksync');
 }
 
 function getGasPrice() {
-
     let gasPrice = Number.parseFloat(process.env.GAS_PRICE);
 
-    if (gasPrice === undefined || gasPrice === 0)
-        throw new Error("Unknown gasPpice");
+    if (gasPrice === undefined || gasPrice === 0) throw new Error('Unknown gasPpice');
 
     let wei = gasPrice * 1e9;
     console.log(`[Node] Gas price:  Gwei: [${gasPrice}] Wei: [${wei}]`);
@@ -68,16 +63,15 @@ function getGasPrice() {
     return wei;
 }
 
-
 function blockNumber(networkName) {
-    return Number.parseInt(process.env['HARDHAT_BLOCK_NUMBER']);
+    return Number.parseInt(process.env['HARDHAT_BLOCK_NUMBER_' + networkName]);
 }
 
-function getNodeUrl(){
+function getNodeUrl() {
     return node_url(process.env.ETH_NETWORK.toLowerCase());
 }
-function getBlockNumber(){
-    return blockNumber(process.env.ETH_NETWORK.toLowerCase())
+function getBlockNumber() {
+    return blockNumber(process.env.ETH_NETWORK.toLowerCase());
 }
 
 module.exports = {
@@ -88,4 +82,4 @@ module.exports = {
     accounts: accounts,
     blockNumber: blockNumber,
     getBlockNumber: getBlockNumber,
-}
+};
