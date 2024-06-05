@@ -93,13 +93,199 @@ let zaps = [
     //     token0In: 'usdc',
     //     token1In: 'frax',
     // },
+
+    // {
+    //     name: 'LynexZap',
+    //     gauge: '0xEaf988C649f44c4DDFd7FDe1a8cB290569B66253',
+    //     token0Out: 'usdc',
+    //     token1Out: 'usdPlus',
+    //     token0In: 'dai',
+    //     token1In: 'usdt',
+    // },
+    // {
+    //     name: 'LynexZap',
+    //     gauge: '0x58AC068Eef3F49E019A88C7ecc9Ac2Fdd63fA755',
+    //     token0Out: 'usdtPlus',
+    //     token1Out: 'usdPlus',
+    //     token0In: 'dai',
+    //     token1In: 'usdt',
+    // },
+    // {
+    //     name: 'AlienBaseZap',
+    //     gauge: '0x52eaeCAC2402633d98b95213d0b473E069D86590',
+    //     poolId: 7,
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'usdbc',
+    //     token0In: 'daiPlus',
+    //     token1In: 'dai',
+    // },
+    // {
+    //     name: 'ArbidexZap',
+    //     gauge: '0xd2bcFd6b84E778D2DE5Bb6A167EcBBef5D053A06',
+    //     poolId: 8,
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'usdc',
+    //     token0In: 'daiPlus',
+    //     token1In: 'dai',
+    // },
+    // {
+    //     name: 'BaseSwapZap',
+    //     pair: '0x696b4d181Eb58cD4B54a59d2Ce834184Cf7Ac31A',
+    //     gauge: '0xB404b32D20F780c7c2Fa44502096675867DecA1e',
+    //     tokenId: 0,
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'usdbc',
+    //     token0In: 'daiPlus',
+    //     token1In: 'dai',
+    // },
+    // {
+    //     name: 'ChronosZap',
+    //     gauge: '0xcd4a56221175b88d4fb28ca2138d670cc1197ca9',
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'daiPlus',
+    //     token0In: 'usdc',
+    //     token1In: 'dai',
+    // },
+    // {
+    //     name: 'DefiedgeZap',
+    //     gauge: '0xd1c33d0af58eb7403f7c01b21307713aa18b29d3',
+    //     chef: '0xD7cf8Dc79b15a61714061C5B7A1c12ddE9f3f088',
+    //     pid: 0,
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'usdc',
+    //     token0In: 'daiPlus',
+    //     token1In: 'dai',
+    // },
+    // {
+    //     name: 'DemetorZap',
+    //     gauge: '0xC8F82e522BC5ca3C340753b69Cb18e68dA216362',
+    //     token0Out: 'usds',
+    //     token1Out: 'usdPlus',
+    //     token0In: 'daiPlus',
+    //     token1In: 'dai',
+    // },
+    // {
+    //     name: 'RamsesZap',
+    //     gauge: '0x88d8D2bDC4f12862FbaBEA43cEc08B8FCD2234Da',
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'daiPlus',
+    //     token0In: 'usdc',
+    //     token1In: 'dai',
+    // },
+    // {
+    //     name: 'SwapBasedZap',
+    //     gauge: '0x1b0d1C09fD360ADe0Caf4bFfE2933E2CC8846a62', // USDbC+/USD+
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'usdbc',
+    //     token0In: 'daiPlus',
+    //     token1In: 'dai',
+    // },
+    // {
+    //     name: 'ThenaZap',
+    //     gauge: '0x31740dfF2D806690eDF3Ec72A2c301032a6265Bc',
+    //     token0Out: 'usdt',
+    //     token1Out: 'usdplus',
+    //     token0In: 'usdc',
+    // },
+    // {
+    //     name: 'VelocimeterZap',
+    //     gauge: '0x0daf00a383f8897553ac1d03f4445b15afa1dcb9',
+    //     token0Out: 'daiPlus',
+    //     token1Out: 'usdPlus',
+    //     token0In: 'usdbc',
+    //     token1In: 'dai',
+    // },
+    // {
+    //     name: 'VelodromeZap',
+    //     gauge: '0xC263655114CdE848C73B899846FE7A2D219c10a8',
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'usdc',
+    //     token0In: 'daiPlus',
+    //     token1In: 'dai',
+    // },
+    // {
+    //     name: 'VelodromeZap',
+    //     gauge: '0xfAc0Cf9e487356DDc72443061DFDB109885B04fD',
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'ovn',
+    //     token0In: 'usdt',
+    //     token1In: 'usdc',
+    // },
+    // {
+    //     name: 'BeefyVelodromeZap',
+    //     gauge: '0x2bc96f9e07edc7f1aa9aa26e85dc7dd30ace59a6',
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'usdc',
+    //     token0In: 'daiPlus',
+    //     token1In: 'dai',
+    // },
+    // {
+    //     name: 'ConvexZap',
+    //     pair: '0xb34a7d1444a707349Bc7b981B7F2E1f20F81F013',
+    //     token0In: 'dai',
+    //     token1In: 'usdc',
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'fraxbp',
+    // },
+    // {
+    //     name: 'HorizaZap',
+    //     pair: '0xcc78afeCe206D8432e687294F038B7dea1046B40',
+    //     token0In: 'dai',
+    //     token1In: 'daiPlus',
+    //     token0Out: 'usdcCircle',
+    //     token1Out: 'usdPlus',
+    // },
+    // {
+    //     name: 'PancakeEqualWideZap', // deprecated
+    //     pair: '0x721F37495cD70383B0A77Bf1eB8f97eef29498Bb',
+    //     token0Out: 'usdcCircle',
+    //     token1Out: 'usdPlus',
+    //     token0In: 'dai',
+    //     token1In: 'usdt',
+    // },
+    // {
+    //     name: 'Pancake8020Zap',
+    //     pair: '0x7e928afb59f5dE9D2f4d162f754C6eB40c88aA8E',
+    //     token0In: 'usdc',
+    //     token1In: 'usdPlus',
+    //     token0Out: 'usdcCircle',
+    //     token1Out: 'usdt',
+    // },
     {
-        name: 'LynexZap',
-        gauge: '0xEaf988C649f44c4DDFd7FDe1a8cB290569B66253',
+        name: 'AerodromeCLZap',
+        pair: '0x0c1A09d5D0445047DA3Ab4994262b22404288A3B',
         token0Out: 'usdc',
         token1Out: 'usdPlus',
-        token0In: 'dai',
-        token1In: 'usdt',
+        token0In: 'sfrax',
+        token1In: 'dai',
+        priceRange: [4.5, 15],
+    },
+    {
+        name: 'AerodromeCLZap',
+        pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
+        token0Out: 'dola',
+        token1Out: 'usdPlus',
+        token0In: 'sfrax',
+        token1In: 'dai',
+        priceRange: [0.5, 1.5],
+    },
+    // {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
+    //     token0Out: 'weth',
+    //     token1Out: 'usdPlus',
+    //     token0In: 'sfrax',
+    //     token1In: 'dai',
+    //     priceRange: [1000.67143, 2000.11111],
+    // },
+    {
+        name: 'AerodromeCLZap',
+        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+        token0Out: 'usdPlus',
+        token1Out: 'usdbc',
+        token0In: 'sfrax',
+        token1In: 'dai',
+        priceRange: [0.989, 1.10001],
     },
     // {
     //     name: 'LynexZap',
@@ -245,12 +431,6 @@ let zaps = [
 ];
 
 
-// let params = zaps.filter(value => value.name === process.env.TEST_STRATEGY)[0];
-
-
-// console.log(params);
-
-// if (!params) return;
 
 describe('Testing all zaps', function() {
     zaps.forEach((params) => {
@@ -297,20 +477,22 @@ describe(`Test ${params?.name}`, function () {
         token0Out = setUpParams.token0Out;
         token1Out = setUpParams.token1Out;
 
-        console.log("token0", token0In.address);
+
+        // console.log("token0", token0In.address);
         token0InDec = await token0In.decimals();
         // console.log(token0InDec);
 
-        console.log("token1", token1In.address);
+        // console.log("token1", token1In.address);
         token1InDec = await token1In.decimals();
 
-        console.log("token0", token0Out.address);
+        // console.log("token0", token0Out.address);
         token0OutDec = await token0Out.decimals();
+        // console.log("token0OutDec:", token0OutDec);
 
-        console.log("token1", token1Out.address);
+        // console.log("token1", token1Out.address);
         token1OutDec = await token1Out.decimals();
 
-        // console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
+        console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
 
         toToken0In = token0InDec == 6 ? toE6 : toE18;
         toToken1In = token1InDec == 6 ? toE6 : toE18;
@@ -321,13 +503,31 @@ describe(`Test ${params?.name}`, function () {
         fromToken1In = token1InDec == 6 ? fromE6 : fromE18;
         fromToken0Out = token0OutDec == 6 ? fromE6 : fromE18;
         fromToken1Out = token1OutDec == 6 ? fromE6 : fromE18;
+
+        if ('priceRange' in params) { 
+            curPriceRange = [...params.priceRange];
+
+            curPriceRange[0] = Math.ceil(toE6(curPriceRange[0])).toString();
+            curPriceRange[1] = Math.ceil(toE6(curPriceRange[1])).toString();
+
+            console.log("priceRange[0]: ", Math.ceil(Math.sqrt(curPriceRange[0])));
+            console.log("priceRange[1]: ", Math.ceil(Math.sqrt(curPriceRange[1])));
+            console.log("priceRange: ", curPriceRange);
+
+            params.priceRange = [...curPriceRange];
+        }
     });
 
     it("swap and put nearly equal", async function () {
 
+
+        console.log("price: ", await zap.getCurrentPrice(params.pair));
+
         const amountToken0In = toToken0In(1);
         const amountToken1In = toToken1In(1);
-        const amountToken0Out = toToken0Out(4);
+        const amountToken0Out = toToken0Out(1);
+        // console.log("amountToken0Out: ", amountToken0Out);
+
         const amountToken1Out = toToken1Out(5);
 
         await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
@@ -335,10 +535,10 @@ describe(`Test ${params?.name}`, function () {
 
     it("swap and disbalance on one asset", async function () {
 
-        const amountToken0In = toToken0In(100);
-        const amountToken1In = toToken1In(100);
-        const amountToken0Out = toToken0Out(800);
-        const amountToken1Out = toToken1Out(100);
+        const amountToken0In = toToken0In(1);
+        const amountToken1In = toToken1In(1);
+        const amountToken0Out = toToken0Out(2);
+        const amountToken1Out = toToken1Out(30);
 
         await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
     });
@@ -363,7 +563,13 @@ describe(`Test ${params?.name}`, function () {
         await (await token1Out.approve(zap.address, toE18(10000))).wait();
 
         let reserves;
-        if ('pair' in params) {
+        console.log("CCCCCCCC");
+        if ('priceRange' in params) {
+            console.log(params.priceRange);
+
+            reserves = await zap.getProportion(params.pair, params.priceRange);
+            console.log("DDDDDDDDDDDDDDD");
+        } else if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
         } else if ('poolId' in params) {
             reserves = await zap.getProportion(params.gauge, params.poolId);
@@ -381,11 +587,14 @@ describe(`Test ${params?.name}`, function () {
             inputTokensAddresses: [token0In.address, token1In.address],
             inputTokensAmounts: [amountToken0In, amountToken1In],
             inputTokensPrices: [1, 1],
+            // inputTokensDecimals: [],
+            // inputTokensAddresses: [],
+            // inputTokensAmounts: [],
             // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
             outputTokensDecimals: [token0OutDec, token1OutDec],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
-            outputTokensPrices: [1, 1],
+            outputTokensPrices: [3844, 1],
             proportion0: reserves[0] / sumReserves
         })
 
@@ -396,7 +605,6 @@ describe(`Test ${params?.name}`, function () {
         });
 
     
-
         const inputTokens = proportions.inputTokens.map(({ tokenAddress, amount }) => {
             return { "tokenAddress": tokenAddress, "amountIn": amount };
         });
@@ -404,13 +612,14 @@ describe(`Test ${params?.name}`, function () {
             return { "tokenAddress": tokenAddress, "receiver": zap.address };
         });
 
-        console.log("St")
 
-        console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params.router);
+        // console.log("St")
 
-        console.log("END")
+        // console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
 
-        let receipt = await (await zap.connect(account).zapIn(
+        // console.log("END")
+
+        let price = await (await zap.connect(account).zapIn(
             {
                 inputs: inputTokens,
                 outputs: outputTokens,
@@ -430,7 +639,7 @@ describe(`Test ${params?.name}`, function () {
 
             await gauge.connect(account).approve(zap.address, lastTokenId);
 
-            receipt = await (await zap.connect(account).zapIn(
+            price = await (await zap.connect(account).zapIn(
                 {
                     inputs: inputTokens,
                     outputs: outputTokens,
@@ -449,10 +658,16 @@ describe(`Test ${params?.name}`, function () {
 
         await showBalances();
 
-        const inputTokensEvent = receipt.events.find((event) => event.event === "InputTokens");
-        const outputTokensEvent = receipt.events.find((event) => event.event === "OutputTokens");
-        const putIntoPoolEvent = receipt.events.find((event) => event.event === "PutIntoPool");
-        const returnedToUserEvent = receipt.events.find((event) => event.event === "ReturnedToUser");
+        const inputTokensEvent = price.events.find((event) => event.event === "InputTokens");
+        const outputTokensEvent = price.events.find((event) => event.event === "OutputTokens");
+        const putIntoPoolEvent = price.events.find((event) => event.event === "PutIntoPool");
+        const returnedToUserEvent = price.events.find((event) => event.event === "ReturnedToUser");
+        let mintEvent;
+
+        if ('priceRange' in params) {
+            mintEvent = price.events.find((event) => event.event === "IncreaseLiquidity");
+        }
+
 
         console.log(`Input tokens: ${inputTokensEvent.args.amountsIn} ${inputTokensEvent.args.tokensIn}`);
         console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
@@ -477,16 +692,18 @@ describe(`Test ${params?.name}`, function () {
         const putTokenAmount0 = fromToken0Out(putIntoPoolEvent.args.amountsPut[0]);
         const putTokenAmount1 = fromToken1Out(putIntoPoolEvent.args.amountsPut[1]);
 
-        // console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
+        console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
 
+        console.log("prop0: ", proportion0);
+        console.log("prop1: ", putTokenAmount0 / (putTokenAmount0 + putTokenAmount1));
         expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
         expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
 
         // 2) Общая сумма вложенного = (общей сумме обмененного - допустимый slippage)
         const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0])
         const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1])
-        // const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0])
-        // const outTokenAmount1 = fromToken1Out(outputTokensEvent.args.amountsOut[1])
+        const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0])
+        const outTokenAmount1 = fromToken1Out(outputTokensEvent.args.amountsOut[1])
 
         console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
 
@@ -494,6 +711,25 @@ describe(`Test ${params?.name}`, function () {
         expect(fromToken1In(await token1In.balanceOf(zap.address))).to.lessThan(1);
         expect(fromToken0Out(await token0Out.balanceOf(zap.address))).to.lessThan(1);
         expect(fromToken1Out(await token1Out.balanceOf(zap.address))).to.lessThan(1);
+
+        
+        if ('priceRange' in params) {
+
+            console.log((await zap.getCurrentPrice('0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD')).toString());
+
+            price = await zap.getCurrentPrice(params.pair);
+            console.log(price.toString());
+
+            let price0 = parseInt(params.priceRange[0]);
+            let price1 = parseInt(params.priceRange[1]);
+            
+            if (price0 > price || price1 < price) {
+                expect(putTokenAmount0 * putTokenAmount1).to.equals(0);
+                console.log(price.toString());
+            }
+            
+        }
+        
     }
 
     async function showBalances() {
@@ -730,4 +966,3 @@ async function setUp(params) {
         token1In: (await getERC20(params.token1In)).connect(account),
     }
 }
-

@@ -77,6 +77,8 @@ let BASE = {
     chainlinkUsdc: "0x7e860098F58bBFC8648a4311b374B1D669a2bc6B",
     chainlinkDai: "0x591e79239a7d679378eC8c847e5038150364C78F",
     chainlinkWeth: "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+
+    aerodromeNpm: "0x827922686190790b37229fd06084350e74485b72",
 };
 
 let LINEA = {
