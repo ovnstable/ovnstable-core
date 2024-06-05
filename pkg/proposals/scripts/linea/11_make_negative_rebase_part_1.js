@@ -8,8 +8,8 @@ let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf('.js'));
 
 async function main() {
-    // let wallet = await initWallet();
-    // await transferETH(1, wallet.address);
+    let wallet = await initWallet();
+    await transferETH(1, wallet.address);
 
     let addresses = [];
     let values = [];
@@ -25,26 +25,26 @@ async function main() {
     let payoutUsdt = await getContract('LineaPayoutManager', 'linea_usdt');
     let pmUsdt = await getContract('PortfolioManager', 'linea_usdt');
 
-    let implEx = '0x61e7BF9B82F3b0B9b490F6db9C2A582358907d2A';
-    let implUsdp = '0xB0992A4108Bd1cf0f8e429Fc0A1D7073C7dD9Fd2';
+    let implEx = '0xC1D72528dCac34189bF576838cC7b4C7735a3487';
+    let implUsdp = '0x343B0C4e372DA18fAA625030AbdB532882175315';
     addProposalItem(exchange, 'upgradeTo', [implEx]);
     addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
     addProposalItem(exchangeUsdt, 'upgradeTo', [implEx]);
     addProposalItem(usdplusUsdt, 'upgradeTo', [implUsdp]);
 
-    addProposalItem(exchange, 'unpause', []);
-    addProposalItem(usdplus, 'unpause', []);
-    addProposalItem(exchangeUsdt, 'unpause', []);
-    addProposalItem(usdplusUsdt, 'unpause', []);
+    // addProposalItem(exchange, 'unpause', []);
+    // addProposalItem(usdplus, 'unpause', []);
+    // addProposalItem(exchangeUsdt, 'unpause', []);
+    // addProposalItem(usdplusUsdt, 'unpause', []);
 
     addProposalItem(pm, 'balance', []);
     addProposalItem(pmUsdt, 'balance', []);
 
 
-    // await showM2M();
-    // await testProposal(addresses, values, abis);
-    // await showM2M();
-    await createProposal(filename, addresses, values, abis);
+    await showM2M();
+    await testProposal(addresses, values, abis);
+    await showM2M();
+    // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);

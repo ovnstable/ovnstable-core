@@ -134,6 +134,8 @@ interface IUsdPlusToken {
     function rebaseOptOut(address _address) external;
 
     function changeNegativeSupply(uint256 _newTotalSupply) external;
+    
+    function changeRebasingCredits(uint256 _newRebasingCreditsPerToken) external;
 
     function changeSupply(uint256 _newTotalSupply) external returns (NonRebaseInfo [] memory, uint256);
 

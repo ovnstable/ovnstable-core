@@ -210,7 +210,7 @@ function getNetworks() {
         localhost: localhost,
 
         hardhat: {
-            zksync: zkSync,
+            zksync: false,
             forking: {
                 url: node_url(process.env.ETH_NETWORK),
                 blockNumber: blockNumber(process.env.ETH_NETWORK),

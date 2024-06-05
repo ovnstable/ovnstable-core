@@ -71,6 +71,29 @@
       "type": "event"
     },
     {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "previousRebasingCreditsPerTokenHighres",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "targetRebasingCreditsPerTokenHighres",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address[]",
+          "name": "pools",
+          "type": "address[]"
+        }
+      ],
+      "name": "negativeRebasePools",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {
