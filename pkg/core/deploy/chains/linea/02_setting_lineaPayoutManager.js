@@ -11,6 +11,8 @@ module.exports = async () => {
     const usdPlus = await getContract('UsdPlusToken', 'linea');
     const usdtPlus = await getContract('UsdPlusToken', 'linea_usdt');
 
+    await (await payoutManager.removeItem(usdPlus.address, '0xbE23da11fbF9dA0F7C13eA73A4bB511b9Bc00177')).wait();
+
     let items = [];
     items.push(...own());
     items.push(...lynex());
@@ -36,7 +38,7 @@ module.exports = async () => {
         let dex = 'Lynex';
 
         let items = [];
-        items.push(createSkim('0xbE23da11fbF9dA0F7C13eA73A4bB511b9Bc00177', usdtPlus.address, 'USDT+/USDT', dex));
+        items.push(createBribeWithFee('0xbE23da11fbF9dA0F7C13eA73A4bB511b9Bc00177', usdPlus.address, 'USDT+/USDT', dex, '0x40EDa9062ff60baDE8B8eA06E254135529e8792B', 20, COMMON.rewardWallet));
         items.push(createBribe('0x58aacbccaec30938cb2bb11653cad726e5c4194a', usdPlus.address, 'USDC/USD+', dex, '0x2198BbF8A4f1A52161ab3411897CC4fb4E2CD5ca'));
         items.push(createBribe('0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91', usdPlus.address, 'USDT+/USD+', dex, '0xcC56DD87294fDA597F71ABADE8e233cF3A84fE43'));
         items.push(createBribe('0xc5f4c5c2077bbbac5a8381cf30ecdf18fde42a91', usdtPlus.address, 'USDT+/USD+', dex, "0xcC56DD87294fDA597F71ABADE8e233cF3A84fE43"));
