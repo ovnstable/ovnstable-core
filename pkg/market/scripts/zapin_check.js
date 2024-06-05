@@ -20,16 +20,17 @@ const { getOdosAmountOut, getOdosSwapData } = require("@overnight-contracts/comm
 const { getOdosAmountOutOnly } = require("@overnight-contracts/common/utils/odos-helper.js");
 
 async function main() {
-    let zap = await getContract('AerodromeCLZap');
+    let zap = await getContract('PancakeCLZap');
+    console.log("block:", await ethers.provider.getBlockNumber());
 
     let params = {
-        name: 'AerodromeCLZap',
-        pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
-        token0Out: 'weth',
-        token1Out: 'usdPlus',
-        token0In: 'sfrax',
-        token1In: 'dai',
-        priceRange: [3544, 3917],
+        name: 'PancakeCLZap',
+        pair: '0x7e928afb59f5dE9D2f4d162f754C6eB40c88aA8E',
+        token0In: 'usdc',
+        token1In: 'usdPlus',
+        token0Out: 'usdcCircle',
+        token1Out: 'usdt',
+        priceRange: [0.989, 1.10001],
         tickDelta: '0'
     };
 
@@ -74,8 +75,8 @@ async function main() {
             params.priceRange = [...curPriceRange];
         }
         
-        const amountToken0Out = toToken0Out(0);
-        const amountToken1Out = toToken1Out(0.01);
+        const amountToken0Out = toToken0Out(0.1);
+        const amountToken1Out = toToken1Out(0.1);
         // const amountToken1In = toToken1Out(0.001);
         
 
@@ -155,6 +156,43 @@ async function main() {
             ...params,
         }, 
     )).wait();
+
+    const inputTokensEvent = receipt.events.find((event) => event.event === "InputTokens");
+    const outputTokensEvent = receipt.events.find((event) => event.event === "OutputTokens");
+    const putIntoPoolEvent = receipt.events.find((event) => event.event === "PutIntoPool");
+    const returnedToUserEvent = receipt.events.find((event) => event.event === "ReturnedToUser");
+    let mintEvent;
+
+    if ('priceRange' in params) {
+        mintEvent = receipt.events.find((event) => event.event === "IncreaseLiquidity");
+    }
+
+    console.log(`Input tokens: ${inputTokensEvent.args.amountsIn} ${inputTokensEvent.args.tokensIn}`);
+    console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
+    console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
+    console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
+
+    expect(token0Out.address).to.equals(putIntoPoolEvent.args.tokensPut[0]);
+    expect(token1Out.address).to.equals(putIntoPoolEvent.args.tokensPut[1]);
+
+    expect(token0Out.address).to.equals(returnedToUserEvent.args.tokensReturned[0]);
+    expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
+
+    // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
+    const proportion0 = reserves[0] / reserves[0].add(reserves[1]);
+    const proportion1 = reserves[1] / reserves[0].add(reserves[1]);
+    const putTokenAmount0 = fromToken0Out(putIntoPoolEvent.args.amountsPut[0]);
+    const putTokenAmount1 = fromToken1Out(putIntoPoolEvent.args.amountsPut[1]);
+
+    console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
+
+    console.log("prop0: ", proportion0);
+    console.log("prop1: ", putTokenAmount0 / (putTokenAmount0 + putTokenAmount1));
+    expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
+    expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
+
+    expect(fromToken0Out(await token0Out.balanceOf(zap.address))).to.lessThan(1);
+    expect(fromToken1Out(await token1Out.balanceOf(zap.address))).to.lessThan(1);
 }
 
 function calculateProportionForPool(
