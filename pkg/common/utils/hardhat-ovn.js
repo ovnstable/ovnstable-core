@@ -129,6 +129,15 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
             let block = await provider.getBlockNumber() - 31;
 
             console.log('Set last block: ' + block);
+
+            console.log({
+                forking: {
+                    jsonRpcUrl: nodeUrl,
+                    url: nodeUrl,
+                    blockNumber: block,
+                    ignoreUnknownTxType: true,
+                },
+            })
             await hre.network.provider.request({
                 method: "hardhat_reset",
                 params: [
@@ -452,10 +461,12 @@ function updateFeedData(hre) {
                 return { maxFeePerGas, maxPriorityFeePerGas }
 
             } else {
-                let gasPrice = await provider.getGasPrice();
+                // let gasPrice = await provider.getGasPrice();
+                let gasPrice = 200000000
                 console.log(`Get gasPrice: ${gasPrice.toString()}`);
                 return {
-                    gasPrice: gasPrice
+                    gasPrice: gasPrice,
+                    gasLimit: 5000000
                 }
             }
         };

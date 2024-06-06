@@ -3,8 +3,8 @@ const { fromE6 } = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
 
-    let wallet = await initWallet();
-    await transferETH(1, wallet.address);
+    // let wallet = await initWallet();
+    // await transferETH(1, wallet.address);
 
     let usdPlus = await getContract('UsdPlusToken', 'linea');
 
