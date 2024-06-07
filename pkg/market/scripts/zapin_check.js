@@ -29,8 +29,8 @@ async function main() {
         token1Out: 'usdPlus',
         token0In: 'sfrax',
         token1In: 'dai',
-        priceRange: [3544, 3917],
-        tickDelta: '0'
+        priceRange: [1000, 5000],
+        tickDelta: '1'
     };
 
     let setUpParams = await setUp(params);
@@ -140,7 +140,7 @@ async function main() {
 
     console.log("St")
 
-        console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
+        console.log(inputTokens, outputTokens, [proportions.amountToken0Out, proportions.amountToken1Out], params);
 
         console.log("END")
 
