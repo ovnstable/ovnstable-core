@@ -1,0 +1,13 @@
+{
+  "name": "@overnight-contracts/cross",
+  "version": "0.1.0",
+  "description": "Core contracts",
+  "main": "hardhat.config",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test"
+  }
+}
