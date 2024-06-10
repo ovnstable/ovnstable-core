@@ -21,7 +21,7 @@ async function main() {
     let pm = await getContract('PortfolioManager', 'zksync');
 
     let implEx = '';
-    let implUsdp = '';
+    let implUsdp = '0x2D768AFcB9147Cd2989BBCf90F45Fc506a3D59d0';
 
     addProposalItem(exchange, 'upgradeTo', [implEx]);
     addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
@@ -34,6 +34,9 @@ async function main() {
     addProposalItem(pm, 'balance', []);
 
     addProposalItem(exchange, 'negativeRebase', []);
+
+    addProposalItem(exchange, 'pause', []);
+    addProposalItem(usdplus, 'pause', []);
 
 
     await showM2M();
