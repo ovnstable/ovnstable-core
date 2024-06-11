@@ -15,28 +15,19 @@ async function main() {
     let values = [];
     let abis = [];
 
+
     let exchange = await getContract('Exchange', 'zksync');
     let usdplus = await getContract('UsdPlusToken', 'zksync');
-    let payout = await getContract('OptimismPayoutManager', 'zksync');
+    let payout = await getContract('ZkSyncPayoutManager', 'zksync');
     let pm = await getContract('PortfolioManager', 'zksync');
 
-    let implEx = '';
-    let implUsdp = '0x2D768AFcB9147Cd2989BBCf90F45Fc506a3D59d0';
-
-    addProposalItem(exchange, 'upgradeTo', [implEx]);
-    addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
-
-    addProposalItem(exchange, 'unpause', []);
-    addProposalItem(usdplus, 'unpause', []);
-
-    addProposalItem(payout, 'removeItems', []);
-
-    addProposalItem(pm, 'balance', []);
+    let implEx = '0x4872a592854FDaE12233792D5441e666CAC861AB';
+    let implUsdp = '0xC95362d8AB474D8993af0387ce05E4Cc7328A093';
 
     addProposalItem(exchange, 'negativeRebase', []);
 
-    addProposalItem(exchange, 'pause', []);
-    addProposalItem(usdplus, 'pause', []);
+    // addProposalItem(exchange, 'pause', []);
+    // addProposalItem(usdplus, 'pause', []);
 
 
     await showM2M();

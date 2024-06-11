@@ -26,6 +26,13 @@
       "type": "event"
     },
     {
+      "inputs": [],
+      "name": "negativeRebase",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {
@@ -144,13 +151,6 @@
       ],
       "name": "EventExchange",
       "type": "event"
-    },
-    {
-      "inputs": [],
-      "name": "negativeRebase",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
     },
     {
       "anonymous": false,
@@ -898,19 +898,6 @@
           "type": "uint256"
         }
       ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "newLiquidityIndex",
-          "type": "uint256"
-        }
-      ],
-      "name": "negativeRebase",
-      "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
