@@ -23,14 +23,36 @@ async function main() {
     let zap = await getContract('PancakeCLZap');
     console.log("block:", await ethers.provider.getBlockNumber());
 
+    // let params = {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x7e928afb59f5dE9D2f4d162f754C6eB40c88aA8E',
+    //     token0In: 'usdc',
+    //     token1In: 'usdPlus',
+    //     token0Out: 'usdc',
+    //     token1Out: 'usdt',
+    //     priceRange: [0.989, 1.10001],
+    //     tickDelta: '0'
+    // };
+
+    // let params = {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+    //     token0In: 'usdc',
+    //     token1In: 'usdPlus',
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'usdbc',
+    //     priceRange: [0.989, 1.10001],
+    //     tickDelta: '0'
+    // };
+
     let params = {
         name: 'PancakeCLZap',
-        pair: '0x7e928afb59f5dE9D2f4d162f754C6eB40c88aA8E',
-        token0In: 'usdc',
+        pair: '0xe37304f7489ed253b2a46a1d9dabdca3d311d22e',
+        token0In: 'usdtPlus',
         token1In: 'usdPlus',
-        token0Out: 'usdcCircle',
-        token1Out: 'usdt',
-        priceRange: [0.989, 1.10001],
+        token0Out: 'weth',
+        token1Out: 'usdPlus',
+        priceRange: [3321, 4059],
         tickDelta: '0'
     };
 
@@ -39,7 +61,8 @@ async function main() {
         console.log("setUp done successfully")
 
         account = setUpParams.account;
-        token0Out = setUpParams.token0Out;
+    token0In = setUpParams.token0In;
+    token0Out = setUpParams.token0Out;
         token1Out = setUpParams.token1Out;
         
 
@@ -75,12 +98,12 @@ async function main() {
             params.priceRange = [...curPriceRange];
         }
         
-        const amountToken0Out = toToken0Out(0.1);
-        const amountToken1Out = toToken1Out(0.1);
+        const amountToken0Out = toToken0Out(0);
+        const amountToken1Out = toToken1Out(0);
         // const amountToken1In = toToken1Out(0.001);
-        
 
-        await (await token0Out.approve(zap.address, toE18(10000))).wait();
+    await (await token0In.approve(zap.address, toE18(10000))).wait();
+    await (await token0Out.approve(zap.address, toE18(10000))).wait();
         await (await token1Out.approve(zap.address, toE18(10000))).wait();
 
         let reserves;
@@ -114,15 +137,15 @@ async function main() {
 
 
     const proportions = calculateProportionForPool({
-        inputTokensDecimals: [],
-            inputTokensAddresses: [],
-            inputTokensAmounts: [],
-            inputTokensPrices: [],
+        inputTokensDecimals: [6],
+            inputTokensAddresses: ['0xb1084db8d3c05cebd5fa9335df95ee4b8a0edc30'],
+            inputTokensAmounts: [1000000],
+            inputTokensPrices: [3671],
         // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
         outputTokensDecimals: [token0OutDec, token1OutDec],
         outputTokensAddresses: [token0Out.address, token1Out.address],
         outputTokensAmounts: [amountToken0Out, amountToken1Out],
-        outputTokensPrices: [3748, 1],
+        outputTokensPrices: [3671, 1],
         proportion0: reserves[0] * price / sumReserves
     })
 
@@ -141,20 +164,23 @@ async function main() {
 
     console.log("St")
 
-        console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
+        // console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
 
         console.log("END")
 
+    let swapData = {
+        inputs: inputTokens,
+        outputs: outputTokens,
+        data: request.data
+    };
+    let pancakeData = {
+        amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out],
+        ...params,
+    };
+    console.log(swapData, pancakeData);
     let receipt = await (await zap.connect(account).zapIn(
-        {
-            inputs: inputTokens,
-            outputs: outputTokens,
-            data: request.data
-        },
-        {
-            amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out],
-            ...params,
-        }, 
+        swapData,
+        pancakeData,
     )).wait();
 
     const inputTokensEvent = receipt.events.find((event) => event.event === "InputTokens");
@@ -208,6 +234,18 @@ function calculateProportionForPool(
         proportion0,
     }
 ) {
+    console.log("calculateProportionForPool:");
+    console.log(
+        inputTokensDecimals,
+        inputTokensAddresses,
+        inputTokensAmounts,
+        inputTokensPrices,
+        outputTokensDecimals,
+        outputTokensAddresses,
+        outputTokensAmounts,
+        outputTokensPrices,
+        proportion0
+    );
     const tokenOut0 = Number.parseFloat(new BigNumber(outputTokensAmounts[0].toString()).div(new BigNumber(10).pow(outputTokensDecimals[0])).toFixed(3).toString()) * outputTokensPrices[0];
     const tokenOut1 = Number.parseFloat(new BigNumber(outputTokensAmounts[1].toString()).div(new BigNumber(10).pow(outputTokensDecimals[1])).toFixed(3).toString()) * outputTokensPrices[1];
     const sumInitialOut = tokenOut0 + tokenOut1;
@@ -320,6 +358,7 @@ async function setUp(params) {
 
     return {
         account: account,
+        token0In: (await getERC20(params.token0In)).connect(account),
         token0Out: (await getERC20(params.token0Out)).connect(account),
         token1Out: (await getERC20(params.token1Out)).connect(account)
     }
@@ -339,6 +378,8 @@ async function getOdosRequest(request) {
         "pathViz": false,
         "disableRFQs": false
     }
+
+    console.log("odos request:", swapParams);
 
     // @ts-ignore
     const urlQuote = 'https://api.overnight.fi/root/odos/sor/quote/v2';
@@ -372,7 +413,6 @@ async function getOdosRequest(request) {
         return 0;
     }
 
-    
     console.log('Success get data from Odos!');
     return transaction.data.transaction;
 }

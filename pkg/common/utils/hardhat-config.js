@@ -105,7 +105,7 @@ function getNetworks() {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: "auto",
-            gas: "auto",
+            gas: 4200000,
             zksync: false,
         },
 
