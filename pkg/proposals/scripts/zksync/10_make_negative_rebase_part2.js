@@ -30,10 +30,10 @@ async function main() {
     // addProposalItem(usdplus, 'pause', []);
 
 
-    await showM2M();
-    await testProposal(addresses, values, abis);
-    await showM2M();
-    // await createProposal(filename, addresses, values, abis);
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await showM2M();
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);

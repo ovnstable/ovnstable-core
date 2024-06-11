@@ -20,8 +20,8 @@ async function main() {
     let payout = await getContract('ZkSyncPayoutManager', 'zksync');
     let pm = await getContract('PortfolioManager', 'zksync');
 
-    let implEx = '0x2A36B91AFdA64940A450f5ff3E0F8ED232B3c03E';
-    let implUsdp = '0xd9dbB931449b7a149bF3709d053C584b47f2F204';
+    let implEx = '0x74438529F81E5F6ba4A777026C0b72979470baB8';
+    let implUsdp = '0x2A36B91AFdA64940A450f5ff3E0F8ED232B3c03E';
 
     addProposalItem(exchange, 'upgradeTo', [implEx]);
     addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
@@ -34,10 +34,10 @@ async function main() {
     addProposalItem(pm, 'balance', []);
 
 
-    await showM2M();
-    await testProposal(addresses, values, abis);
-    await showM2M();
-    // await createProposal(filename, addresses, values, abis);
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await showM2M();
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
