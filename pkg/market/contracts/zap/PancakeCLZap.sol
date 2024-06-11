@@ -78,8 +78,9 @@ contract PancakeCLZap is OdosZap {
         if(pancakeData.tickDelta == 0) {
             (lowerTick, upperTick) = _priceToTicks(pancakeData.priceRange, dec0, pool.tickSpacing());
         } else {
-            lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (pancakeData.tickDelta / 2));
-            upperTick = tick + tickSpacing * ((pancakeData.tickDelta + 1) / 2);
+            int24 offset = tick > 0 ? int24(1) : int24(0);
+            lowerTick = tick / tickSpacing * tickSpacing - tickSpacing * ((pancakeData.tickDelta + 1 - offset) / 2);
+            upperTick = tick / tickSpacing * tickSpacing + tickSpacing * ((pancakeData.tickDelta + offset) / 2); 
         }
 
         uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(lowerTick);
@@ -120,8 +121,9 @@ contract PancakeCLZap is OdosZap {
         if (pancakeData.tickDelta == 0) {
             (lowerTick, upperTick) = _priceToTicks(pancakeData.priceRange, 10 ** IERC20Metadata(tokensOut[0]).decimals(), tickSpacing);
         } else {
-            lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (pancakeData.tickDelta / 2));
-            upperTick = tick + tickSpacing * ((pancakeData.tickDelta + 1) / 2);
+            int24 offset = tick > 0 ? int24(1) : int24(0);
+            lowerTick = tick / tickSpacing * tickSpacing - tickSpacing * ((pancakeData.tickDelta + 1 - offset) / 2);
+            upperTick = tick / tickSpacing * tickSpacing + tickSpacing * ((pancakeData.tickDelta + offset) / 2); 
         }
 
         (uint256 tokenId,,,) = npm.mint(MintParams(tokensOut[0], tokensOut[1], pool.fee(),
