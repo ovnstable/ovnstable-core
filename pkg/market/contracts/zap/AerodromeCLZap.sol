@@ -171,4 +171,9 @@ contract AerodromeCLZap is OdosZap {
         (uint160 sqrtRatioX96,,,,,) = pool.slot0();
         return FullMath.mulDiv(uint256(sqrtRatioX96) * 10 ** dec0, uint256(sqrtRatioX96), 2 ** (96 + 96));
     }
+
+    function getTickSpacing(address pair) public view returns (int24) {
+        IUniswapV3Pool pool = IUniswapV3Pool(pair);
+        return pool.tickSpacing();
+    }
 }
