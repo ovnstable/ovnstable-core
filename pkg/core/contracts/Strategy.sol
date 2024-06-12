@@ -10,9 +10,6 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IRoleManager.sol";
 
-
-import "hardhat/console.sol";
-
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
@@ -61,7 +58,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     // --- setters
 
     function setStrategyParams(address _portfolioManager, address _roleManager) public onlyAdmin {
-        console.log("AAAAAAAAA");
         require(_portfolioManager != address(0), "Zero address not allowed");
         require(_roleManager != address(0), "Zero address not allowed");
         portfolioManager = _portfolioManager;

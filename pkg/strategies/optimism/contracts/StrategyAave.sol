@@ -6,8 +6,6 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyAave is Strategy {
 
     IERC20 public usdcToken;
@@ -158,8 +156,6 @@ contract StrategyAave is Strategy {
         address aUSDCn = 0x38d693cE1dF5AaDF7bC62595A37D667aD57922e5;
         
         IERC20 usdce = IERC20(USDCe);
-
-        console.log();
 
         uint24 _poolFee = 100; // 0.01%
 

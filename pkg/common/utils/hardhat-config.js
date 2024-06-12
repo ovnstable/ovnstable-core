@@ -221,7 +221,7 @@ function getNetworks() {
             chains: {
                 10: {
                   hardforkHistory: {
-                    london: 121292954
+                    london: 121293553
                   }
                 }
             },

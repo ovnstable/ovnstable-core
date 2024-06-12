@@ -237,8 +237,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     await transferETH(10, walletAddress, await getPrice());
     let roleManager = await getContract('RoleManager', stand);
 
-    console.log(1);
-
     let tables = [];
 
     tables.push({
@@ -266,25 +264,15 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
         result: '------',
     });
 
-    console.log(2);
-
     let isNewStrategy = strategy.setStrategyParams !== undefined;
 
     await execTimelock(async timelock => {
         if (isNewStrategy) {
-            console.log(2.3);
-            console.log(timelock.address);
-            console.log(roleManager.address);
-            console.log(await getPrice());
-            console.log(await strategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, timelock.address));
             await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, await getPrice());
         } else {
-            console.log(2.4);
             await strategy.connect(timelock).setPortfolioManager(timelock.address, await getPrice());
         }
     });
-
-    console.log(2.5);
 
     tables.push(
         await testCase(async () => {
@@ -292,15 +280,12 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
         }, 'strategy.netAssetValue'),
     );
 
-    console.log(3);
-
     tables.push(
         await testCase(async () => {
             await strategy.netAssetValue();
         }, 'strategy.liquidationValue'),
     );
 
-    console.log(4);
     tables.push(
         await testCase(async () => {
             await execTimelock(async timelock => {
@@ -312,7 +297,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
         }, 'strategy.stake'),
     );
 
-    console.log(5);
     tables.push(
         await testCase(async () => {
             await execTimelock(async timelock => {
@@ -321,7 +305,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
             });
         }, 'strategy.unstake'),
     );
-    console.log(6);
 
     tables.push(
         await testCase(async () => {
@@ -331,7 +314,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
             });
         }, 'strategy.claimRewards'),
     );
-    console.log(7);
 
     tables.push(
         await testCase(async () => {

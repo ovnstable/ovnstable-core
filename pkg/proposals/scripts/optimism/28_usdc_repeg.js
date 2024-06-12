@@ -23,7 +23,7 @@ async function main() {
     let rm = await getContract('RoleManager', 'optimism');
     let ex = await getContract('Exchange', 'optimism');
 
-    let newAaveImpl = "0x43DA718dBD3EbdC11B6dDB8D0a440ff3C785b698";
+    let newAaveImpl = "0x9272EA66be5369ae3DeaC43a4508d8D38FC43721";
     let oldAaveImpl = "0xc9b3fEc466f406b1Bb234D6b4c472bB7567A2E26";
     let timelock = "0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011"; 
     
@@ -31,39 +31,17 @@ async function main() {
     await transferETH(10, "0x66BC0120b3287f08408BCC76ee791f0bad17Eeef");
 
     addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock]);
-    addProposalItem(rm, 'grantRole', [Roles.DEFAULT_ADMIN_ROLE, timelock]);
     addProposalItem(ex, 'setTokens', [OPTIMISM.usdPlus, OPTIMISM.usdc]);
     addProposalItem(pm, 'setAsset', [OPTIMISM.usdc]);
     
     addProposalItem(aave, 'upgradeTo', [newAaveImpl]);
-
-    usdc = await getERC20('usdc');
-    usdce = await getERC20('usdce');
-    ausdc = await getERC20('aUsdc');
-    ausdcn = await getERC20('aUsdcn');
-
-    console.log((await usdc.balanceOf('0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76')).toString());
-    console.log((await usdce.balanceOf('0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76')).toString());
-    console.log((await ausdc.balanceOf('0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76')).toString());
-    console.log((await ausdcn.balanceOf('0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76')).toString());
-
-  
-
     addProposalItem(aave, 'usdcRepeg', []);
-
-
     addProposalItem(aave, 'upgradeTo', [oldAaveImpl]);
 
     await testProposal(addresses, values, abis);
     await testUsdPlus(filename, 'optimism');
     await testStrategy(filename, aave, 'optimism');
     // await createProposal(filename, addresses, values, abis);
-
-
-    console.log((await usdc.balanceOf('0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76')).toString());
-    console.log((await usdce.balanceOf('0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76')).toString());
-    console.log((await ausdc.balanceOf('0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76')).toString());
-    console.log((await ausdcn.balanceOf('0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76')).toString());
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
