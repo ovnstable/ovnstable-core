@@ -27,8 +27,8 @@ async function main() {
     let oldAaveImpl = "0xc9b3fEc466f406b1Bb234D6b4c472bB7567A2E26";
     let timelock = "0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011"; 
     
-    await transferETH(10, timelock);
-    await transferETH(10, "0x66BC0120b3287f08408BCC76ee791f0bad17Eeef");
+    // await transferETH(10, timelock);
+    // await transferETH(10, "0x66BC0120b3287f08408BCC76ee791f0bad17Eeef");
 
     addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock]);
     addProposalItem(ex, 'setTokens', [OPTIMISM.usdPlus, OPTIMISM.usdc]);
@@ -38,10 +38,10 @@ async function main() {
     addProposalItem(aave, 'usdcRepeg', []);
     addProposalItem(aave, 'upgradeTo', [oldAaveImpl]);
 
-    await testProposal(addresses, values, abis);
-    await testUsdPlus(filename, 'optimism');
-    await testStrategy(filename, aave, 'optimism');
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    // await testUsdPlus(filename, 'optimism');
+    // await testStrategy(filename, aave, 'optimism');
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
