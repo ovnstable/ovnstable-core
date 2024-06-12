@@ -276,6 +276,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
             console.log(timelock.address);
             console.log(roleManager.address);
             console.log(await getPrice());
+            console.log(await strategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, timelock.address));
             await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, await getPrice());
         } else {
             console.log(2.4);

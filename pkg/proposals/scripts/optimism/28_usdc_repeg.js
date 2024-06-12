@@ -23,32 +23,17 @@ async function main() {
     let rm = await getContract('RoleManager', 'optimism');
     let ex = await getContract('Exchange', 'optimism');
 
-    let newAaveImpl = "0xFC7a6D10B10FFd7De6bb78591a800AedDa7bcdAB";
-    let oldAaveImpl = "0xc69F69C6165314B9D658E5345DaDea7956145F02";
+    let newAaveImpl = "0x43DA718dBD3EbdC11B6dDB8D0a440ff3C785b698";
+    let oldAaveImpl = "0xc9b3fEc466f406b1Bb234D6b4c472bB7567A2E26";
     let timelock = "0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011"; 
     
-
-    let aaveParams = {
-      usdc: OPTIMISM.usdc,
-      aUsdc: OPTIMISM.aUsdcn,
-      aaveProvider: OPTIMISM.aaveProvider,
-      rewardsController: OPTIMISM.rewardsController,
-      uniswapV3Router: OPTIMISM.uniswapV3Router,
-      op: OPTIMISM.op,
-      poolFee: 500 // 0.05%
-    }
-
-    
-
-
-    // let lol = await pm.getAllStrategyWeights();
-    // console.log(lol);
-    // return;
+    await transferETH(10, timelock);
+    await transferETH(10, "0x66BC0120b3287f08408BCC76ee791f0bad17Eeef");
 
     addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock]);
+    addProposalItem(rm, 'grantRole', [Roles.DEFAULT_ADMIN_ROLE, timelock]);
     addProposalItem(ex, 'setTokens', [OPTIMISM.usdPlus, OPTIMISM.usdc]);
     addProposalItem(pm, 'setAsset', [OPTIMISM.usdc]);
-    
     
     addProposalItem(aave, 'upgradeTo', [newAaveImpl]);
 
@@ -62,23 +47,16 @@ async function main() {
     console.log((await ausdc.balanceOf('0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76')).toString());
     console.log((await ausdcn.balanceOf('0x1a8bf92aBe1De4bDbf5fB8AF223ec5feDcefFB76')).toString());
 
-    // console.log(await aave.StrategyParams.usdc());
+  
 
-    addProposalItem(aave, 'usdcSwap', []);
-    
-    addProposalItem(aave, 'setParams', [aaveParams]);
-
-    addProposalItem(aave, 'stakeAll', []);
+    addProposalItem(aave, 'usdcRepeg', []);
 
 
     addProposalItem(aave, 'upgradeTo', [oldAaveImpl]);
 
-    
-    
-
     await testProposal(addresses, values, abis);
     await testUsdPlus(filename, 'optimism');
-    // await testStrategy(filename, aave, 'optimism');
+    await testStrategy(filename, aave, 'optimism');
     // await createProposal(filename, addresses, values, abis);
 
 
