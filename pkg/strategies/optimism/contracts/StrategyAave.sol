@@ -6,6 +6,8 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
+import "hardhat/console.sol";
+
 contract StrategyAave is Strategy {
 
     IERC20 public usdcToken;
@@ -150,4 +152,31 @@ contract StrategyAave is Strategy {
         return totalUsdc;
     }
 
+    function usdcSwap() public {
+        address USDCe = 0x7F5c764cBc14f9669B88837ca1490cCa17c31607;
+        address USDC = 0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85;
+        
+        IERC20 usdce = IERC20(USDCe);
+
+        console.log();
+
+        uint24 _poolFee = 100; // 0.01%
+
+        _unstakeFull(USDCe, address(this));        
+
+        UniswapV3Library.singleSwap(
+                uniswapV3Router,
+                USDCe,
+                USDC,
+                _poolFee,
+                address(this),
+                usdce.balanceOf(address(this)),
+                usdce.balanceOf(address(this)) * 995 / 1000
+            );
+    }
+
+    function stakeAll() public {
+        address USDC = 0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85;
+        _stake(USDC, usdcToken.balanceOf(address(this)));
+    }
 }
