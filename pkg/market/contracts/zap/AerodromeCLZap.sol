@@ -175,7 +175,6 @@ contract AerodromeCLZap is OdosZap {
     }
 
     function getTickSpacing(address pair) public view returns (int24) {
-        IUniswapV3Pool pool = IUniswapV3Pool(pair);
-        return pool.tickSpacing();
+        return IUniswapV3Pool(pair).tickSpacing();
     }
 }
