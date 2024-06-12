@@ -48,7 +48,6 @@ contract PancakeCLZap is OdosZap {
         address[] memory tokensOut = new address[](2);
         tokensOut[0] = pool.token0();
         tokensOut[1] = pool.token1();
-        // uint256[] memory amountsOut = new uint256[](2);
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
@@ -175,7 +174,6 @@ contract PancakeCLZap is OdosZap {
     }
 
     function getTickSpacing(address pair) public view returns (int24) {
-        IPancakeV3Pool pool = IPancakeV3Pool(pair);
-        return pool.tickSpacing();
+        return IPancakeV3Pool(pair).tickSpacing();
     }
 }
