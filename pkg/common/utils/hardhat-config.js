@@ -217,6 +217,14 @@ function getNetworks() {
                 blockNumber: blockNumber(process.env.ETH_NETWORK),
                 ignoreUnknownTxType: true,
             },
+            // uncomment to fix history error
+            // chains: {
+            //     10: {
+            //       hardforkHistory: {
+            //         london: 121293553
+            //       }
+            //     }
+            // },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
             },
