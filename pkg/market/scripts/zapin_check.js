@@ -52,6 +52,10 @@ async function main() {
         token1In: 'usdPlus',
         token0Out: 'weth',
         token1Out: 'usdPlus',
+        token0In: 'sfrax',
+        token1In: 'dai',
+        priceRange: [1000, 5000],
+        tickDelta: '1'
         priceRange: [3321, 4059],
         tickDelta: '0'
     };

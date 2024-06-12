@@ -78,8 +78,9 @@ contract AerodromeCLZap is OdosZap {
         if(aerodromeData.tickDelta == 0) {
             (lowerTick, upperTick) = Util.priceToTicks(aerodromeData.priceRange, dec0, pool.tickSpacing());
         } else {
-            lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (aerodromeData.tickDelta / 2));
-            upperTick = tick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2); 
+            int24 offset = tick > 0 ? int24(1) : int24(0);
+            lowerTick = tick / tickSpacing * tickSpacing - tickSpacing * ((aerodromeData.tickDelta + 1 - offset) / 2);
+            upperTick = tick / tickSpacing * tickSpacing + tickSpacing * ((aerodromeData.tickDelta + offset) / 2); 
         }
         
         uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(lowerTick);
@@ -120,8 +121,9 @@ contract AerodromeCLZap is OdosZap {
         if (aerodromeData.tickDelta == 0) {
             (lowerTick, upperTick) = Util.priceToTicks(aerodromeData.priceRange, 10 ** IERC20Metadata(tokensOut[0]).decimals(), tickSpacing);
         } else {
-            lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (aerodromeData.tickDelta / 2));
-            upperTick = tick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2); 
+            int24 offset = tick > 0 ? int24(1) : int24(0);
+            lowerTick = tick / tickSpacing * tickSpacing - tickSpacing * ((aerodromeData.tickDelta + 1 - offset) / 2);
+            upperTick = tick / tickSpacing * tickSpacing + tickSpacing * ((aerodromeData.tickDelta + offset) / 2); 
         }
 
         (uint256 tokenId,,,) = npm.mint(INonfungiblePositionManager.MintParams(tokensOut[0], tokensOut[1], tickSpacing,
