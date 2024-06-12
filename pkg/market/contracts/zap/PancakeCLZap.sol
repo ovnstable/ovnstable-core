@@ -76,7 +76,7 @@ contract PancakeCLZap is OdosZap {
         int24 upperTick;
 
         if(pancakeData.tickDelta == 0) {
-            (lowerTick, upperTick) = _priceToTicks(pancakeData.priceRange, dec0, pool.tickSpacing());
+            (lowerTick, upperTick) = Util.priceToTicks(pancakeData.priceRange, dec0, pool.tickSpacing());
         } else {
             int24 offset = tick > 0 ? int24(1) : int24(0);
             lowerTick = tick / tickSpacing * tickSpacing - tickSpacing * ((pancakeData.tickDelta + 1 - offset) / 2);
@@ -119,7 +119,7 @@ contract PancakeCLZap is OdosZap {
         (, int24 tick,,,,,) = pool.slot0();
 
         if (pancakeData.tickDelta == 0) {
-            (lowerTick, upperTick) = _priceToTicks(pancakeData.priceRange, 10 ** IERC20Metadata(tokensOut[0]).decimals(), tickSpacing);
+            (lowerTick, upperTick) = Util.priceToTicks(pancakeData.priceRange, 10 ** IERC20Metadata(tokensOut[0]).decimals(), tickSpacing);
         } else {
             int24 offset = tick > 0 ? int24(1) : int24(0);
             lowerTick = tick / tickSpacing * tickSpacing - tickSpacing * ((pancakeData.tickDelta + 1 - offset) / 2);
@@ -154,40 +154,6 @@ contract PancakeCLZap is OdosZap {
         emit ReturnedToUser(result.amountsReturned, tokensOut);
     }
 
-    function _getSqrtRatioByPrice(uint256 price, uint256 decimals) internal pure returns (uint160) {
-        return SafeCast.toUint160(_sqrt(FullMath.mulDiv(price, 2 ** 192, decimals)));
-    }
-
-    function _getPriceBySqrtRatio(uint160 sqrtRatio, uint256 decimals) internal pure returns (uint256) {
-        return FullMath.mulDiv(uint256(sqrtRatio), uint256(sqrtRatio) * decimals, 2 ** 192);
-    }
-
-    function _priceToTicks(uint256[] memory priceRange, uint256 dec0, int24 tickSpacing) internal pure returns (int24 lowerTick, int24 upperTick) {
-
-        lowerTick = TickMath.getTickAtSqrtRatio(_getSqrtRatioByPrice(priceRange[0], dec0));
-        upperTick = TickMath.getTickAtSqrtRatio(_getSqrtRatioByPrice(priceRange[1], dec0));
-
-        if (lowerTick % tickSpacing != 0) {
-            lowerTick = lowerTick > 0 ? lowerTick - lowerTick % tickSpacing : lowerTick - tickSpacing - (lowerTick % tickSpacing);
-        }
-        if (upperTick % tickSpacing != 0) {
-            upperTick = upperTick > 0 ? upperTick + tickSpacing - (upperTick % tickSpacing) : upperTick - (upperTick % tickSpacing);
-        }
-    }
-
-    function _sqrt(uint y) internal pure returns (uint z) {
-        if (y > 3) {
-            z = y;
-            uint x = y / 2 + 1;
-            while (x < z) {
-                z = x;
-                x = (y / x + x) / 2;
-            }
-        } else if (y != 0) {
-            z = 1;
-        }
-    }
-
     function getPriceFromTick(PancakeCLZapInParams memory pancakeData) public view returns (uint256 left, uint256 right) {
         IPancakeV3Pool pool = IPancakeV3Pool(pancakeData.pair);
         uint256 dec0 = 10 ** IERC20Metadata(pool.token0()).decimals();
@@ -197,8 +163,8 @@ contract PancakeCLZap is OdosZap {
         int24 lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (pancakeData.tickDelta / 2));
         int24 upperTick = tick + tickSpacing * ((pancakeData.tickDelta + 1) / 2);
 
-        left = _getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(lowerTick), dec0);
-        right = _getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(upperTick), dec0);
+        left = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(lowerTick), dec0);
+        right = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(upperTick), dec0);
     }
 
     function getCurrentPrice(address pair) public view returns (uint256) {
