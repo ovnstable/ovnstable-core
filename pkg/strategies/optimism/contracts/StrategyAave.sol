@@ -150,30 +150,4 @@ contract StrategyAave is Strategy {
         return totalUsdc;
     }
 
-    function usdcRepeg() public {
-        address USDCe = 0x7F5c764cBc14f9669B88837ca1490cCa17c31607;
-        address USDC = 0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85;
-        address aUSDCn = 0x38d693cE1dF5AaDF7bC62595A37D667aD57922e5;
-        
-        IERC20 usdce = IERC20(USDCe);
-
-        uint24 _poolFee = 100; // 0.01%
-
-        _unstakeFull(USDCe, address(this));        
-
-        UniswapV3Library.singleSwap(
-                uniswapV3Router,
-                USDCe,
-                USDC,
-                _poolFee,
-                address(this),
-                usdce.balanceOf(address(this)),
-                usdce.balanceOf(address(this)) * 995 / 1000
-            );
-
-        usdcToken = IERC20(USDC);
-        aUsdcToken = IERC20(aUSDCn);
-
-        _stake(USDC, usdcToken.balanceOf(address(this)));
-    }
 }
