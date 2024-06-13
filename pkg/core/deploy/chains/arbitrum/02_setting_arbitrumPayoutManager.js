@@ -41,7 +41,9 @@ module.exports = async () => {
         items.push(createSkim('0x8a06339Abd7499Af755DF585738ebf43D5D62B94', usdPlus.address, 'USD+/USDT+', dex));
         items.push(createSkim('0x8a06339Abd7499Af755DF585738ebf43D5D62B94', usdtPlus.address, 'USD+/USDT+', dex));
         items.push(createSkim('0x35D85D531BE7159cB6f92E8B9CeaF04eC28c6ad9', usdPlus.address, 'USD+/USDV', dex));
-
+        items.push(createSkim('0xf92768916015b5eBd9fa54D6BA10dA5864e24914', usdPlus.address, 'USD+/ARB', dex));
+        items.push(createSkim('0xa1F9159e11aD48524c16C9bf10bf440815b03e6C', usdPlus.address, 'USD+/USDC', dex));
+        items.push(createSkim('0xe37304F7489ed253b2A46A1d9DabDcA3d311D22E', usdPlus.address, 'USD+/WETH', dex));
 
         return items;
     }
