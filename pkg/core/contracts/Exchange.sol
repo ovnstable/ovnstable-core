@@ -7,7 +7,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "./interfaces/IInsuranceExchange.sol";
 import "./interfaces/IMark2Market.sol";
@@ -16,13 +15,9 @@ import "./interfaces/IBlockGetter.sol";
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./interfaces/IUsdPlusToken.sol";
-import "hardhat/console.sol";
 
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
-    
-    using SafeMath for uint256;
-
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
@@ -474,10 +469,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(totalUsdPlus > totalNav, 'supply > nav');        
         usdPlus.changeNegativeSupply(totalNav);
         require(usdPlus.totalSupply() == totalNav,'total != nav');
-    }
-
-    function setTargetParams(uint256 _newRebasingCreditsPerToken, uint256 _newTotalSupply, uint256 _newRebasingCredits) external onlyAdmin {
-        usdPlus.setTargetParams(_newRebasingCreditsPerToken, _newTotalSupply, _newRebasingCredits);
     }
 
     /**

@@ -14,7 +14,6 @@ import { StableMath } from "./libraries/StableMath.sol";
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
-import "hardhat/console.sol";
 
 /**
  * @dev Fork of OUSD version
@@ -670,26 +669,13 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function rebaseOptIn(address _address) public onlyPayoutManager notPaused nonReentrant {
         require(_isNonRebasingAccount(_address), "Account has not opted out");
 
-
-        console.log("address", _address);
-
-        console.log("_creditBalances[_address]", _creditBalances[_address]);
-        console.log("_rebasingCreditsPerToken", _rebasingCreditsPerToken);
-        console.log("_creditsPerToken(_address)", _creditsPerToken(_address));
-
         // Convert balance into the same amount at the current exchange rate
         uint256 newCreditBalance = _creditBalances[_address]
             .mul(_rebasingCreditsPerToken)
             .div(_creditsPerToken(_address));
 
-        console.log("balanceOf(_address)", balanceOf(_address));
         // Decreasing non rebasing supply
-        console.log("nonRebasingSupply", nonRebasingSupply);
-        if(nonRebasingSupply < balanceOf(_address)) {
-            nonRebasingSupply = 0;
-        } else {
-            nonRebasingSupply = nonRebasingSupply.sub(balanceOf(_address));
-        }
+        nonRebasingSupply = nonRebasingSupply.sub(balanceOf(_address));
 
         _creditBalances[_address] = newCreditBalance;
 
@@ -730,12 +716,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _rebasingCreditsPerToken = _rebasingCredits.divPrecisely(_newTotalSupply);
         require(_rebasingCreditsPerToken > 0, "Invalid change in supply");
         _totalSupply = _rebasingCredits.divPrecisely(_rebasingCreditsPerToken);
-    }
-
-    function setTargetParams(uint256 _newRebasingCreditsPerToken, uint256 _newTotalSupply, uint256 _newRebasingCredits) external onlyExchanger {
-        _rebasingCreditsPerToken = _newRebasingCreditsPerToken;
-        _totalSupply = _newTotalSupply;
-        _rebasingCredits = _newRebasingCredits;
     }
 
     /**

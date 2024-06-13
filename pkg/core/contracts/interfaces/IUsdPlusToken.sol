@@ -135,8 +135,6 @@ interface IUsdPlusToken {
 
     function changeNegativeSupply(uint256 _newTotalSupply) external;
 
-    function setTargetParams(uint256 _newRebasingCreditsPerToken, uint256 _newTotalSupply, uint256 _newRebasingCredits) external;
-
     function changeSupply(uint256 _newTotalSupply) external returns (NonRebaseInfo [] memory, uint256);
 
     function rebasingCreditsPerTokenHighres() external view returns (uint256);
