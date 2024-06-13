@@ -8,41 +8,38 @@ let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf('.js'));
 
 async function main() {
-    // let wallet = await initWallet();
-    // await transferETH(1, wallet.address);
+    let wallet = await initWallet();
+    await transferETH(1, wallet.address);
 
     let addresses = [];
     let values = [];
     let abis = [];
 
-    // let mendi = await getContract('StrategyMendiUsdt', 'linea');
-    let alpha = await getContract('StrategyEtsAlpha', 'linea');
     let exchange = await getContract('Exchange', 'linea');
     let usdplus = await getContract('UsdPlusToken', 'linea');
     let payout = await getContract('LineaPayoutManager', 'linea');
     let pm = await getContract('PortfolioManager', 'linea');
 
-    let implEx = '';
-    let implUsdp = '';
-    let implAlpha = '';
+    let exchangeUsdt = await getContract('Exchange', 'linea_usdt');
+    let usdplusUsdt = await getContract('UsdPlusToken', 'linea_usdt');
+    let payoutUsdt = await getContract('LineaPayoutManager', 'linea_usdt');
+    let pmUsdt = await getContract('PortfolioManager', 'linea_usdt');
 
-    addProposalItem(alpha, 'upgradeTo', [implAlpha]);
-
-    addProposalItem(exchange, 'unpause', []);
-    addProposalItem(usdplus, 'unpause', []);
-
-    addProposalItem(pm, 'removeStrategy', ['0x375Ca8E03901eCdc1e9dEC6B14d2b39B665A4D85']); //alpha linea
-
-    addProposalItem(payout, 'removeItem', ['', '']);
+    let implEx = '0x61e7BF9B82F3b0B9b490F6db9C2A582358907d2A';
+    let implUsdp = '0xB0992A4108Bd1cf0f8e429Fc0A1D7073C7dD9Fd2';
     addProposalItem(exchange, 'upgradeTo', [implEx]);
     addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
+    addProposalItem(exchangeUsdt, 'upgradeTo', [implEx]);
+    addProposalItem(usdplusUsdt, 'upgradeTo', [implUsdp]);
+
+    // addProposalItem(exchange, 'unpause', []);
+    // addProposalItem(usdplus, 'unpause', []);
+    // addProposalItem(exchangeUsdt, 'unpause', []);
+    // addProposalItem(usdplusUsdt, 'unpause', []);
 
     addProposalItem(pm, 'balance', []);
+    addProposalItem(pmUsdt, 'balance', []);
 
-    addProposalItem(exchange, 'negativeRebase', []);
-
-    // addProposalItem(exchange, 'pause', []);
-    // addProposalItem(usdplus, 'pause', []);
 
     await showM2M();
     await testProposal(addresses, values, abis);

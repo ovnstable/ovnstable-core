@@ -19,6 +19,7 @@ const { Roles } = require('./roles');
 const fs = require('fs');
 const { getEmptyOdosData } = require('./odos-helper');
 const { COMMON } = require('./assets');
+const { sleep } = require('zksync-web3/build/src/utils');
 const ethers = hre.ethers;
 const proposalStates = ['Pending', 'Active', 'Canceled', 'Defeated', 'Succeeded', 'Queued', 'Expired', 'Executed'];
 const { platform } = process;
@@ -345,6 +346,7 @@ async function testProposal(addresses, values, abis) {
 
             console.log(`Transaction: index: [${i}] address: [${address}]`);
             await (await timelock.sendTransaction(tx, await getPrice())).wait();
+            await sleep(3000)
         }
     });
 }

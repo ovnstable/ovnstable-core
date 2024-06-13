@@ -27,11 +27,11 @@ async function main() {
     const account2 = accounts[0];
 
     if (hre.network.name === 'localhost') {
-        if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-        } else {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-        }
+        // if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
+        //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+        // } else {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        // }
     }
 
     await hre.network.provider.request({
@@ -55,21 +55,21 @@ async function main() {
     console.log(await account.getBalance());
 
     await deployments.fixture(['LynexZap']);
-        let zap = await ethers.getContract('LynexZap');
-        // let gauge = await ethers.getContractAt("0xEaf988C649f44c4DDFd7FDe1a8cB290569B66253");
-        // let pair = await ethers.getContractAt("0x58AaCbccAeC30938cb2bb11653Cad726e5c4194a");
-        // let userAddress = "0xcF9342d3Ee1aBB61A788549e41AF85505997E9c2";
+    let zap = await ethers.getContract('LynexZap');
+    // let gauge = await ethers.getContractAt("0xEaf988C649f44c4DDFd7FDe1a8cB290569B66253");
+    // let pair = await ethers.getContractAt("0x58AaCbccAeC30938cb2bb11653Cad726e5c4194a");
+    // let userAddress = "0xcF9342d3Ee1aBB61A788549e41AF85505997E9c2";
 
-        // let balance = await gauge.balanceOf(zap.address);
-        // console.log("gauge: zap: ", await gauge.balanceOf(zap.address));
-        // console.log("pair: zap: ", await pair.balanceOf(zap.address));
-        // console.log("pair: user: ", await pair.balanceOf(userAddress));
-        console.log("hot fix");
-        await zap.hotFix();
-        
-        // console.log("gauge: zap: ", await gauge.balanceOf(zap.address));
-        // console.log("pair: zap: ", await pair.balanceOf(zap.address));
-        // console.log("pair: user: ", await pair.balanceOf(userAddress));
+    // let balance = await gauge.balanceOf(zap.address);
+    // console.log("gauge: zap: ", await gauge.balanceOf(zap.address));
+    // console.log("pair: zap: ", await pair.balanceOf(zap.address));
+    // console.log("pair: user: ", await pair.balanceOf(userAddress));
+    console.log("hot fix");
+    await zap.hotFix();
+
+    // console.log("gauge: zap: ", await gauge.balanceOf(zap.address));
+    // console.log("pair: zap: ", await pair.balanceOf(zap.address));
+    // console.log("pair: user: ", await pair.balanceOf(userAddress));
 
 }
 

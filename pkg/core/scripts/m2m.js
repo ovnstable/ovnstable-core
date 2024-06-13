@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 const fs = require("fs");
 
-const {showM2M} = require("@overnight-contracts/common/utils/script-utils");
+const { showM2M, initWallet, transferETH } = require("@overnight-contracts/common/utils/script-utils");
 
 async function main() {
     await showM2M();

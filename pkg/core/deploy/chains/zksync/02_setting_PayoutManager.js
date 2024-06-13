@@ -21,16 +21,14 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     let items = [];
 
-    items.push(...velocore());
     items.push(...syncSwap());
     items.push(...vesync());
-    items.push(...mute());  
+    items.push(...mute());
     items.push(...ezkalibur());
-    items.push(...kyberswap());  
-    items.push(...velocoreV2()); 
-    items.push(...pancakeSwap()); 
+    items.push(...kyberswap());
+    items.push(...pancakeSwap());
     console.log('PayoutManager', payoutManager.address)
-    await (await payoutManager.addItems(items), {gasLimit: 500000000, gasFee: 1000000000}).wait();
+    await (await payoutManager.addItems(items)).wait();
 
     console.log("ZksyncPayoutManager setting done");
 
@@ -57,15 +55,6 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
         let items = [];
         items.push(createSkim("0x3848dbd3EAc429497abd464A18fBEC78EF76f750", usdPlus.address, "USDC/USD+", dex));
-
-        return items;
-    }
-
-    function velocore() {
-        let dex = "Velocore";
-
-        let items = [];
-        items.push(createSkim("0x4b9f00860d7f42870addeb687fa4e47062df71d9", usdPlus.address, "USDC/USD+", dex));
 
         return items;
     }

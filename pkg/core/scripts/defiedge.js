@@ -1,7 +1,7 @@
-const {ethers, upgrades} = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 const hre = require("hardhat");
-const {getContract, transferETH, getPrice, getERC20} = require("@overnight-contracts/common/utils/script-utils");
-const {toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
+const { getContract, transferETH, getPrice, getERC20 } = require("@overnight-contracts/common/utils/script-utils");
+const { toE18, toE6 } = require("@overnight-contracts/common/utils/decimals");
 const BigNumber = require('bignumber.js');
 
 const DefiEdgeTwapStrategy = require("./abi/DefiEdgeTwapStrategy.json");
@@ -10,11 +10,11 @@ const DefiEdgeTwapStrategy = require("./abi/DefiEdgeTwapStrategy.json");
 async function main() {
 
     let ownerAddress = "0x451f0c631Bb812421F8Ee31ef55Ee198e2467B19";
-    if (isZkSync()) {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-    } else {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-    }
+    // if (isZkSync()) {
+    //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+    // } else {
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    // }
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
         params: [ownerAddress],
@@ -30,10 +30,10 @@ async function main() {
     let amount = toE6(1);
 
     // uncomment for DAI+
-//    let strategy = await ethers.getContractAt(DefiEdgeTwapStrategy, "0x014b7eedbb373866f2fafd76643fdf143ef39960");
-//    let usdPlusToken = await getContract('UsdPlusToken', 'optimism_dai');
-//    let asset = await getERC20('dai');
-//    let amount = toE18(1);
+    //    let strategy = await ethers.getContractAt(DefiEdgeTwapStrategy, "0x014b7eedbb373866f2fafd76643fdf143ef39960");
+    //    let usdPlusToken = await getContract('UsdPlusToken', 'optimism_dai');
+    //    let asset = await getERC20('dai');
+    //    let amount = toE18(1);
 
     let price = await getPrice();
 
@@ -78,8 +78,8 @@ async function main() {
         "0x",
         [],
         [
-            {tickLower: -200, tickUpper: 200, amount0: amount0Range, amount1: amount0Range},
-            {tickLower: -2, tickUpper: 2, amount0: amount1Range, amount1: amount1Range}
+            { tickLower: -200, tickUpper: 200, amount0: amount0Range, amount1: amount0Range },
+            { tickLower: -2, tickUpper: 2, amount0: amount1Range, amount1: amount1Range }
         ],
         true,
         price

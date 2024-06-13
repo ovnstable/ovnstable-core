@@ -177,7 +177,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         try {
             impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow });
         } catch (e) {
-            impl = await upgrades.forceImport( proxy, contractFactory, { unsafeAllow: unsafeAllow })
+            impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow })
         }
         implAddress = await getImplementationAddress(ethers.provider, proxy.address);
         console.log(`Deploy ${contractName} Impl  done -> proxy [` + proxy.address + "] impl [" + implAddress + "]");
@@ -237,11 +237,11 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
     if (hre.ovn.gov) {
 
         let timelock = await getContract('AgentTimelock');
-        if (isZkSync()) {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-        } else {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-        }
+        // if (isZkSync()) {
+        //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+        // } else {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        // }
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
             params: [timelock.address],

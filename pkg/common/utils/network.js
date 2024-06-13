@@ -15,11 +15,11 @@ function node_url(networkName) {
     }
     if (!uri || uri === '') {
         if (networkName === 'localhost') {
-            if (isZkSync()) {
-                return 'http://localhost:8011';
-            } else {
-                return 'http://localhost:8545';
-            }
+            // if (isZkSync()) {
+            //     return 'http://localhost:8011'
+            // } else {
+            return 'http://localhost:8545'
+            // }
         }
         return '';
     }

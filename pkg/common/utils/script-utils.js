@@ -9,7 +9,7 @@ const BN = require('bn.js');
 const { fromAsset, toAsset, fromUsdPlus } = require("./decimals");
 const { Wallet, Provider } = require("zksync-web3");
 const { Deployer } = require("@matterlabs/hardhat-zksync-deploy");
-const { BigNumber } = require("ethers"); 
+const { BigNumber } = require("ethers");
 const { updateFeeData } = require("./hardhat-ovn");
 
 let ethers = require('hardhat').ethers;
@@ -113,11 +113,11 @@ async function settingSection(id, exec) {
             if (hre.ovn.gov) {
                 let timelock = await getContract('AgentTimelock');
 
-                if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
-                    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-                } else {
-                    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-                }
+                // if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
+                //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+                // } else {
+                hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+                // }
                 await hre.network.provider.request({
                     method: "hardhat_impersonateAccount",
                     params: [timelock.address],
@@ -290,7 +290,7 @@ async function getContractByAddress(name, address, network) {
 
     try {
         let searchPath = fromDir(require('app-root-path').path, path.join(network, name + ".json"));
-         let contractJson = JSON.parse(fs.readFileSync(searchPath));
+        let contractJson = JSON.parse(fs.readFileSync(searchPath));
         return await ethers.getContractAt(contractJson.abi, address, wallet);
     } catch (e) {
         console.error(`Error: Could not find a contract named [${name}] in network: [${network}]`);
@@ -587,7 +587,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
     if (usdPlus) {
         let totalUsdPlus = fromUsdPlus(await usdPlus.totalSupply({ blockTag: blocknumber }), stand);
         console.log('Total USD+: ' + totalUsdPlus);
-        console.log('Difference is: ',totalUsdPlus - fromAsset(totalNetAssets.toString(), stand));
+        console.log('Difference is: ', totalUsdPlus - fromAsset(totalNetAssets.toString(), stand));
     }
 
 }
@@ -613,13 +613,13 @@ async function getPrice() {
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('10')).div(100);
         gasPrice = gasPrice.add(percentage);
-        return { gasPrice: gasPrice, gasLimit: 20000000 }
+        return { gasPrice: 1000000000, gasLimit: 30000000 }
     } else if (process.env.ETH_NETWORK === 'LINEA') {
         let gasPrice = await ethers.provider.getGasPrice();
-        let percentage = gasPrice.mul(BigNumber.from('10')).div(100);
+        let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
         gasPrice = gasPrice.add(percentage);
         return { gasPrice: gasPrice, gasLimit: 20000000 }
-    } 
+    }
 
     return params;
 }
@@ -627,11 +627,11 @@ async function getPrice() {
 
 async function impersonateAccount(address) {
 
-    if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-    } else {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-    }
+    // if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
+    //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+    // } else {
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    // }
 
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
@@ -662,11 +662,11 @@ async function execTimelock(exec) {
 
     let timelock = await getContract('AgentTimelock');
     if (hre.network.name === 'localhost') {
-        if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-        } else {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-        }
+        // if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
+        //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+        // } else {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        // }
     }
 
     await sleep(1000);
@@ -675,7 +675,7 @@ async function execTimelock(exec) {
         params: [timelock.address],
     });
 
-    await checkTimeLockBalance(); 
+    await checkTimeLockBalance();
 
     const timelockAccount = await hre.ethers.getSigner(timelock.address);
 
@@ -729,11 +729,11 @@ async function changeWeightsAndBalance(weights) {
     console.log('M2M before:')
     await showM2M();
 
-    if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-    } else {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-    }
+    // if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
+    //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+    // } else {
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    // }
 
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
@@ -776,7 +776,7 @@ async function changeWeightsAndBalance(weights) {
 
 async function checkTimeLockBalance() {
 
-    let timelock = await getContract('AgentTimelock');  
+    let timelock = await getContract('AgentTimelock');
 
     const balance = await hre.ethers.provider.getBalance(timelock.address);
 
@@ -820,7 +820,7 @@ async function getDevWallet() {
 
 async function transferETH(amount, to) {
     if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
-        let provider = new Provider("http://localhost:8011");
+        let provider = new Provider("http://localhost:8545"); //8011
         let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
         console.log(`Balance [${fromE18(await provider.getBalance(wallet.address))}]:`);
 
@@ -894,7 +894,7 @@ async function transferAsset(assetAddress, to, amount) {
                     break;
                 case ARBITRUM.frax:
                     from = '0x9cd4fF80d81E4dDA8E9D637887a5dB7E0c8e007B';
-                    break; 
+                    break;
                 default:
                     throw new Error('Unknown asset address');
             }
@@ -902,7 +902,7 @@ async function transferAsset(assetAddress, to, amount) {
         case "BASE":
             switch (assetAddress) {
                 case BASE.usdbc:
-                    from = '0x806b9e17306cb97e93bb6c64ee9c9c318e5a0327';
+                    from = '0x4bb6b2efe7036020ba6f02a05602546c9f25bf28';
                     break;
                 case BASE.usdc:
                     from = '0x20fe51a9229eef2cf8ad9e89d91cab9312cf3b7a';
@@ -914,7 +914,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x9f1920d0cbb63ed03376a1e09fd2851d601234c8';
                     break;
                 case BASE.dola:
-                    from = '0x7944642920Df33BAE461f86Aa0cd0b4B8284330E';
+                    from = '0x051f943f331538b8d9768cccdcf0e9f60289dd6b';
                     break;
                 case BASE.sfrax:
                     from = '0x6e74053a3798e0fC9a9775F7995316b27f21c4D2';
@@ -926,11 +926,15 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x082Bdc61Fe48aE3C35700e345576c03f62fF4483';
                     break
                 case BASE.eusd:
-                    from = '0x7a8e66c3c704c11b5e2a0ac9bcb8466c009b6afc';
+                    from = '0xf7401728edd23290d8099ed73f155101dcf8cc0c';
                     break
                 case BASE.wstEth:
                     from = '0x31b7538090c8584fed3a053fd183e202c26f9a3e';
                     break
+                case BASE.weth:
+                    from = '0x2b8804c2b652f05f7fdd8e0a02f01ee58f01667e';
+                    break
+
                 default:
                     throw new Error('Unknown asset address');
             }
@@ -970,8 +974,14 @@ async function transferAsset(assetAddress, to, amount) {
             break;
         case "OPTIMISM":
             switch (assetAddress) {
+                case OPTIMISM.usdce:
+                    from = '0xacD03D601e5bB1B275Bb94076fF46ED9D753435A';
+                    break;
                 case OPTIMISM.usdc:
-                    from = '0xebe80f029b1c02862b9e8a70a7e5317c06f62cae';
+                    from = '0xacD03D601e5bB1B275Bb94076fF46ED9D753435A';
+                    break;
+                case OPTIMISM.usdPlus:
+                    from = '0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46';
                     break;
                 case OPTIMISM.dai:
                     from = '0x7b7b957c284c2c227c980d6e2f804311947b84d0';
@@ -1022,7 +1032,7 @@ async function transferAsset(assetAddress, to, amount) {
                 default:
                     throw new Error('Unknown asset address');
             }
-            break; 
+            break;
         default:
             throw new Error('Unknown mapping ETH_NETWORK');
     }
@@ -1032,11 +1042,11 @@ async function transferAsset(assetAddress, to, amount) {
     let asset = await getERC20ByAddress(assetAddress);
 
     if (hre.network.name === 'localhost') {
-        if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-        } else {
-            hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-        }
+        // if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
+        //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+        // } else {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        // }
     }
 
     await hre.network.provider.request({
