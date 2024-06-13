@@ -1069,6 +1069,42 @@ library UnsafeMath {
     }
 }
 
+library Util {
+    function getSqrtRatioByPrice(uint256 price, uint256 decimals) internal pure returns (uint160) {
+        return SafeCast.toUint160(sqrt(FullMath.mulDiv(price, 2 ** 192, decimals)));
+    }
+
+    function getPriceBySqrtRatio(uint160 sqrtRatio, uint256 decimals) internal pure returns (uint256) {
+        return FullMath.mulDiv(uint256(sqrtRatio), uint256(sqrtRatio) * decimals, 2 ** 192);
+    }
+
+    function priceToTicks(uint256[] memory priceRange, uint256 dec0, int24 tickSpacing) internal pure returns (int24 lowerTick, int24 upperTick) {
+
+        lowerTick = TickMath.getTickAtSqrtRatio(Util.getSqrtRatioByPrice(priceRange[0], dec0));
+        upperTick = TickMath.getTickAtSqrtRatio(Util.getSqrtRatioByPrice(priceRange[1], dec0));
+
+        if (lowerTick % tickSpacing != 0) {
+            lowerTick = lowerTick > 0 ? lowerTick - lowerTick % tickSpacing : lowerTick - tickSpacing - (lowerTick % tickSpacing);
+        }
+        if (upperTick % tickSpacing != 0) {
+            upperTick = upperTick > 0 ? upperTick + tickSpacing - (upperTick % tickSpacing) : upperTick - (upperTick % tickSpacing);
+        }
+    }
+
+    function sqrt(uint y) internal pure returns (uint z) {
+        if (y > 3) {
+            z = y;
+            uint x = y / 2 + 1;
+            while (x < z) {
+                z = x;
+                x = (y / x + x) / 2;
+            }
+        } else if (y != 0) {
+            z = 1;
+        }
+    }
+}
+
 /// @title The interface for a PancakeSwap V3 Pool
 /// @notice A PancakeSwap pool facilitates swapping and automated market making between any two assets that strictly conform
 /// to the ERC20 specification
