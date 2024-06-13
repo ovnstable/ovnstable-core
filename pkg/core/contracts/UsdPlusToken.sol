@@ -595,12 +595,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         emit Transfer(address(0), _account, _amount);
     }
 
-    function burnRewardWallet() external onlyAdmin {
-        address account = 0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46;
-        uint256 amount = 201398000000;
-        _burn(account, amount);
-    }
-
     /**
      * @dev Burns tokens, decreasing totalSupply.
      */
