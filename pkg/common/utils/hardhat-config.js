@@ -1,10 +1,10 @@
 const dotenv = require('dotenv');
 
 console.log('Process:' + process.cwd());
-dotenv.config({path:__dirname+ '/../../../.env'});
+dotenv.config({ path: __dirname + '/../../../.env' });
 
-const {node_url, accounts, blockNumber, isZkSync} = require("./network");
-const {getGasPrice} = require("./network");
+const { node_url, accounts, blockNumber, isZkSync } = require("./network");
+const { getGasPrice } = require("./network");
 let gasPrice = getGasPrice();
 
 let timeout = 362000000;
@@ -38,16 +38,16 @@ function getNetworks() {
 
 
     let localhost;
-    if (zkSync){
+    if (zkSync) {
         localhost = {
             // Use local node zkSync for testing
-            url: 'http://localhost:8011',
+            url: 'http://localhost:8545',
             timeout: timeout,
             accounts: accountsNetwork,
             zksync: true,
-            ethNetwork: "localhost",
+            ethNetwork: "zksync",
         }
-    }else {
+    } else {
         localhost = {
             timeout: timeout,
             accounts: accountsNetwork,
@@ -211,7 +211,7 @@ function getNetworks() {
         localhost: localhost,
 
         hardhat: {
-            zksync: zkSync,
+            zksync: false,
             forking: {
                 url: node_url(process.env.ETH_NETWORK),
                 blockNumber: blockNumber(process.env.ETH_NETWORK),
@@ -233,7 +233,7 @@ function getNetworks() {
     }
 }
 
-function getChainFromNetwork(network){
+function getChainFromNetwork(network) {
 
     if (network) {
 
@@ -243,7 +243,7 @@ function getChainFromNetwork(network){
             // network can be = arbitrum_dai | optimism | base_dai ...
             // chain only = POLYGON|ARBITRUM|BASE ...
 
-            if (network.includes(chain.toLowerCase())){
+            if (network.includes(chain.toLowerCase())) {
                 return chain;
             }
         }
@@ -289,8 +289,8 @@ let solidity = {
 }
 
 let mocha = require("./mocha-report-setting")
-const {ARBITRUM, BASE, POLYGON, OPTIMISM, BLAST} = require("./assets");
-const {Wallets} = require("./wallets");
+const { ARBITRUM, BASE, POLYGON, OPTIMISM, BLAST } = require("./assets");
+const { Wallets } = require("./wallets");
 
 let gasReport = {
     enabled: false, // Gas Reporter hides unit-test-mocha report
@@ -299,14 +299,14 @@ let gasReport = {
     outputFile: 'gas-report'
 }
 
-function getEtherScan(){
+function getEtherScan() {
 
     let object = {
 
         customChains: [
             {
                 network: "base",
-                chainId:  8453,
+                chainId: 8453,
                 urls: {
                     apiURL: "https://api.basescan.org/api",
                     browserURL: "https://basescan.org"
@@ -314,7 +314,7 @@ function getEtherScan(){
             },
             {
                 network: "base_dai",
-                chainId:  8453,
+                chainId: 8453,
                 urls: {
                     apiURL: "https://api.basescan.org/api",
                     browserURL: "https://basescan.org"
@@ -322,7 +322,7 @@ function getEtherScan(){
             },
             {
                 network: "linea",
-                chainId:  59144,
+                chainId: 59144,
                 urls: {
                     apiURL: "https://api.lineascan.build/api",
                     browserURL: "https://lineascan.build"
@@ -330,7 +330,7 @@ function getEtherScan(){
             },
             {
                 network: "linea_usdt",
-                chainId:  59144,
+                chainId: 59144,
                 urls: {
                     apiURL: "https://api.lineascan.build/api",
                     browserURL: "https://lineascan.build"
@@ -338,7 +338,7 @@ function getEtherScan(){
             },
             {
                 network: "arbitrum_dai",
-                chainId:  42161,
+                chainId: 42161,
                 urls: {
                     apiURL: "https://api.arbiscan.io/api",
                     browserURL: "https://arbiscan.io"
@@ -346,7 +346,7 @@ function getEtherScan(){
             },
             {
                 network: "blast",
-                chainId:  81457,
+                chainId: 81457,
                 urls: {
                     apiURL: "https://api.blastscan.io/api",
                     browserURL: "https://blastscan.io/"
@@ -354,7 +354,7 @@ function getEtherScan(){
             },
             {
                 network: "blast_usdc",
-                chainId:  81457,
+                chainId: 81457,
                 urls: {
                     apiURL: "https://api.blastscan.io/api",
                     browserURL: "https://blastscan.io/"

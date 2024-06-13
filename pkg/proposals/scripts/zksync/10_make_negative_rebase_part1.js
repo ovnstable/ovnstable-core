@@ -15,39 +15,29 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let mendiUsdt = await getContract('StrategyMendiUsdt', 'linea_usdt');
-    let beta = await getContract('StrategyEtsBeta', 'linea_usdt');
-    let exchangeUsdt = await getContract('Exchange', 'linea_usdt');
-    let usdplusUsdt = await getContract('UsdPlusToken', 'linea_usdt');
-    let payoutUsdt = await getContract('LineaPayoutManager', 'linea_usdt');
-    let pmUsdt = await getContract('PortfolioManager', 'linea_usdt');
+    let exchange = await getContract('Exchange', 'zksync');
+    let usdplus = await getContract('UsdPlusToken', 'zksync');
+    let payout = await getContract('ZkSyncPayoutManager', 'zksync');
+    let pm = await getContract('PortfolioManager', 'zksync');
 
-    let implEx = '';
-    let implUsdtp = '';
-    let implBeta = '';
+    let implEx = '0x74438529F81E5F6ba4A777026C0b72979470baB8';
+    let implUsdp = '0x2A36B91AFdA64940A450f5ff3E0F8ED232B3c03E';
 
-    addProposalItem(beta, 'upgradeTo', [implBeta]);
+    addProposalItem(exchange, 'upgradeTo', [implEx]);
+    addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
 
     addProposalItem(exchange, 'unpause', []);
     addProposalItem(usdplus, 'unpause', []);
 
-    addProposalItem(pm, 'removeStrategy', ['0x30F8685fA6C2c9f75f6242f36C4b00dfc2DF9ab8']); //beta linea
-
     addProposalItem(payout, 'removeItems', []);
-    addProposalItem(exchange, 'upgradeTo', [implEx]);
-    addProposalItem(usdplus, 'upgradeTo', [implUsdp]);
 
     addProposalItem(pm, 'balance', []);
 
-    addProposalItem(exchange, 'negativeRebase', []);
 
-    addProposalItem(exchange, 'pause', []);
-    addProposalItem(usdplus, 'pause', []);
-
-    await showM2M();
-    await testProposal(addresses, values, abis);
-    await showM2M();
-    // await createProposal(filename, addresses, values, abis);
+    // await showM2M();
+    // await testProposal(addresses, values, abis);
+    // await showM2M();
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);

@@ -1,4 +1,4 @@
-const {toAsset, toE6} = require("@overnight-contracts/common/utils/decimals");
+const { toAsset, toE6 } = require("@overnight-contracts/common/utils/decimals");
 
 const {
     getContract,
@@ -16,6 +16,7 @@ async function main() {
 
     await (await exchange.buy(asset.address, toAsset(1))).wait();
     await (await exchange.redeem(asset.address, toE6(5))).wait();
+
 
 }
 

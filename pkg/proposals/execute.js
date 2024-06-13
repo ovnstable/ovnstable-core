@@ -6,6 +6,7 @@ const {
     initWallet,
     convertWeights,
     getPrice,
+    transferETH,
 } = require("@overnight-contracts/common/utils/script-utils");
 const {
     createProposal,
@@ -31,7 +32,7 @@ async function main() {
         network = process.env.STAND;
     }
 
-    let name = "05_migrate_usdplus";
+    let name = "12_fix_negative_rebase";
     let batch = JSON.parse(
         await fs.readFileSync(`./batches/${network}/${name}.json`),
     );
@@ -82,6 +83,10 @@ async function main() {
                     datas[i],
                     PREDECESSOR,
                     salt[i],
+                    {
+                        gasPrice: 200_000_000,
+                        gasLimit: 15_000_000
+                    }
                 )
             ).wait();
         }
