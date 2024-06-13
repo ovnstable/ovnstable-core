@@ -107,7 +107,7 @@ contract OdosZap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
                     "Duplicate output tokens"
                 );
                 require(
-                    swapData.outputs[i].receiver == address(this),
+                    swapData.outputs[i].receiver == address(this), // TODO: remove from internal for
                     "Receiver of swap is not this contract"
                 );
             }
