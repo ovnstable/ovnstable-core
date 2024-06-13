@@ -130,14 +130,6 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
 
             console.log('Set last block: ' + block);
 
-            console.log({
-                forking: {
-                    jsonRpcUrl: nodeUrl,
-                    url: nodeUrl,
-                    blockNumber: block,
-                    ignoreUnknownTxType: true,
-                },
-            })
             await hre.network.provider.request({
                 method: "hardhat_reset",
                 params: [
