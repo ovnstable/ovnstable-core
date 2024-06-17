@@ -599,13 +599,13 @@ async function getPrice() {
     if (process.env.ETH_NETWORK === 'POLYGON') {
         params = { gasPrice: "60000000000", gasLimit: 15000000 };
     } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
-        params = { gasLimit: 25000000 }; // gasPrice always 0.1 GWEI
+        params = { gasLimit: 25000000, gasPrice: "100000000" }; // gasPrice always 0.1 GWEI
     } else if (process.env.ETH_NETWORK === 'BSC') {
         params = { gasPrice: "3000000000", gasLimit: 15000000 }; // gasPrice always 3 GWEI
     } else if (process.env.ETH_NETWORK === "OPTIMISM") {
         params = { gasPrice: "1000000000", gasLimit: 10000000 }; // gasPrice always 0.001 GWEI
     } else if (process.env.ETH_NETWORK === 'BLAST') {
-        params = { gasLimit: 25000000 }; // todo
+        params = { gasPrice: "10000000", gasLimit: "25000000" }; // todo
     } else if (process.env.ETH_NETWORK === 'ZKSYNC') {
         let { maxFeePerGas, maxPriorityFeePerGas } = await ethers.provider.getFeeData();
         return { maxFeePerGas, maxPriorityFeePerGas, gasLimit: 200000000 }
