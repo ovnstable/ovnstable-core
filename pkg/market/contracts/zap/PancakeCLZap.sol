@@ -177,7 +177,7 @@ contract PancakeCLZap is OdosZap {
         IPancakeV3Pool pool = IPancakeV3Pool(pair);
         uint256 dec1 = IERC20Metadata(pool.token1()).decimals();
         (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
-        uint256 sqrtRatioX96Inverted = FullMath.mulDiv(uint256(1), uint256(1), uint256(sqrtRatioX96));
+        uint256 sqrtRatioX96Inverted = FullMath.mulDiv(uint256(2 ** 96), uint256(2 ** 96), uint256(sqrtRatioX96));
         return FullMath.mulDiv(uint256(sqrtRatioX96Inverted) * 10 ** dec1, uint256(sqrtRatioX96Inverted), 2 ** (96 + 96));
     }
 
