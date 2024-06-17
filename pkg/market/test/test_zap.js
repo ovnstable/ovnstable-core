@@ -462,7 +462,7 @@ let zaps_pancake = [
 ];
 
 // TODO: remove hardcode
-let zaps = zaps_pancake;
+let zaps = zaps_aerodrome;
 
 describe('Testing all zaps', function() {
     zaps.forEach((params) => {
@@ -495,8 +495,10 @@ describe(`Test ${params?.name}`, function () {
     sharedBeforeEach('deploy and setup', async () => {
         await hre.run("compile");
         await resetHardhatToLastBlock();
+        console.log(1886);
+        console.log(params.name);
         await deployments.fixture([params.name]);
-
+        console.log(111);
         zap = await ethers.getContract(params.name);
 
         let setUpParams = await setUp(params);
@@ -941,6 +943,7 @@ async function setUp(params) {
 
     const signers = await ethers.getSigners();
     const account = signers[0];
+    console.log("signers:", signers);
 
     let usdPlus = await getContract('UsdPlusToken', process.env.STAND);
     // let daiPlus = await getContract('UsdPlusToken', process.env.STAND + '_dai');
