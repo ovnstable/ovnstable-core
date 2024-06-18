@@ -185,4 +185,24 @@ contract AerodromeCLZap is OdosZap {
     function getTickSpacing(address pair) public view returns (int24) {
         return IUniswapV3Pool(pair).tickSpacing();
     }
+
+    function tickToPrice(address pair, int24 tick) public view returns (uint256) {
+        IUniswapV3Pool pool = IUniswapV3Pool(pair);
+        uint256 dec0 = 10 ** IERC20Metadata(pool.token0()).decimals();
+        return Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(tick), dec0);
+    }
+
+    function priceToClosestTick(address pair, uint256 price) public view returns (int24 closestTick) {
+        IUniswapV3Pool pool = IUniswapV3Pool(pair);
+        uint256 dec0 = 10 ** IERC20Metadata(pool.token0()).decimals();
+        int24 currentTick = TickMath.getTickAtSqrtRatio(Util.getSqrtRatioByPrice(price, dec0));
+        int24 tickSpacing = pool.tickSpacing();
+        closestTick = currentTick > 0 ? currentTick - currentTick % tickSpacing : currentTick - tickSpacing - (currentTick % tickSpacing);
+    }
+
+    function getCurrentPoolTick(address pair) public view returns (int24) {
+        IUniswapV3Pool pool = IUniswapV3Pool(pair);
+        (, int24 tick,,,,) = pool.slot0();
+        return tick;
+    }
 }
