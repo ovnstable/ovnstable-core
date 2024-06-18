@@ -21,6 +21,7 @@ module.exports = async () => {
     items.push(...chronos());
     items.push(...curve());
     items.push(...pancakeswap());
+    items.push(...traderjoe());
     await (await payoutManager.addItems(items)).wait();
 
     console.log('ArbitrumPayoutManager setting done');
@@ -75,6 +76,17 @@ module.exports = async () => {
 
         let items = [];
         items.push(createSkim('0x0D20EF7033b73Ea0c9c320304B05da82E2C14E33', usdPlus.address, 'FRAX/USD+', dex));
+
+        return items;
+    }
+
+    function traderjoe() {
+
+        let dex = 'TraderJoe';
+
+        let items = [];
+        items.push(createSkim('0xa8A502ACF4084B8D38362E9F620C689CB4D2EB89', usdPlus.address, 'USD+/ETH', dex));
+        items.push(createSkim('0x37570DB173beF23F6924beaE3CD960b41AB6AD74', usdPlus.address, 'USD+/USDT', dex));
 
         return items;
     }
