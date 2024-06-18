@@ -64,7 +64,7 @@ function getGasPrice() {
 }
 
 function blockNumber(networkName) {
-    return Number.parseInt(process.env['HARDHAT_BLOCK_NUMBER_' + networkName]);
+    return Number.parseInt(process.env['HARDHAT_BLOCK_NUMBER']);
 }
 
 function getNodeUrl() {

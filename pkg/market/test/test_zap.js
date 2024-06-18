@@ -251,15 +251,15 @@ let zaps_aerodrome = [
     //     token0Out: 'usdcCircle',
     //     token1Out: 'usdt',
     // },
-    {
-        name: 'AerodromeCLZap',
-        pair: '0x0c1A09d5D0445047DA3Ab4994262b22404288A3B',
-        token0Out: 'usdc',
-        token1Out: 'usdPlus',
-        token0In: 'sfrax',
-        token1In: 'dai',
-        priceRange: [4.5, 15],
-    },
+    // {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x0c1A09d5D0445047DA3Ab4994262b22404288A3B',
+    //     token0Out: 'usdc',
+    //     token1Out: 'usdPlus',
+    //     token0In: 'sfrax',
+    //     token1In: 'dai',
+    //     priceRange: [4.5, 15],
+    // },
     {
         name: 'AerodromeCLZap',
         pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
@@ -268,6 +268,7 @@ let zaps_aerodrome = [
         token0In: 'sfrax',
         token1In: 'dai',
         priceRange: [0.5, 1.5],
+        tickDelta: '0'
     },
     // {
     //     name: 'AerodromeCLZap',
@@ -278,15 +279,15 @@ let zaps_aerodrome = [
     //     token1In: 'dai',
     //     priceRange: [1000.67143, 2000.11111],
     // },
-    {
-        name: 'AerodromeCLZap',
-        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
-        token0Out: 'usdPlus',
-        token1Out: 'usdbc',
-        token0In: 'sfrax',
-        token1In: 'dai',
-        priceRange: [0.989, 1.10001],
-    },
+    // {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+    //     token0Out: 'usdPlus',
+    //     token1Out: 'usdbc',
+    //     token0In: 'sfrax',
+    //     token1In: 'dai',
+    //     priceRange: [0.989, 1.10001],
+    // },
     // {
     //     name: 'LynexZap',
     //     gauge: '0x58AC068Eef3F49E019A88C7ecc9Ac2Fdd63fA755',
@@ -431,16 +432,16 @@ let zaps_aerodrome = [
 ];
 
 let zaps_pancake = [
-    {
-        name: 'PancakeCLZap',
-        pair: '0x7e928afb59f5dE9D2f4d162f754C6eB40c88aA8E',
-        token0In: 'usdc',
-        token1In: 'usdPlus',
-        token0Out: 'usdcCircle',
-        token1Out: 'usdt',
-        priceRange: [0.989, 1.10001],
-        tickDelta: '0'
-    },
+    // {
+    //     name: 'PancakeCLZap',
+    //     pair: '0x7e928afb59f5dE9D2f4d162f754C6eB40c88aA8E',
+    //     token0In: 'usdc',
+    //     token1In: 'usdPlus',
+    //     token0Out: 'usdcCircle',
+    //     token1Out: 'usdt',
+    //     priceRange: [0.989, 1.10001],
+    //     tickDelta: '0'
+    // },
     // {
     //     name: 'PancakeCLZap',
     //     pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
@@ -544,10 +545,6 @@ describe(`Test ${params?.name}`, function () {
             curPriceRange[0] = Math.ceil(toE6(curPriceRange[0])).toString();
             curPriceRange[1] = Math.ceil(toE6(curPriceRange[1])).toString();
 
-            console.log("priceRange[0]: ", Math.ceil(Math.sqrt(curPriceRange[0])));
-            console.log("priceRange[1]: ", Math.ceil(Math.sqrt(curPriceRange[1])));
-            console.log("priceRange: ", curPriceRange);
-
             params.priceRange = [...curPriceRange];
         }
     });
@@ -560,8 +557,6 @@ describe(`Test ${params?.name}`, function () {
         const amountToken0In = toToken0In(1);
         const amountToken1In = toToken1In(1);
         const amountToken0Out = toToken0Out(1);
-        // console.log("amountToken0Out: ", amountToken0Out);
-
         const amountToken1Out = toToken1Out(5);
 
         await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
@@ -597,11 +592,8 @@ describe(`Test ${params?.name}`, function () {
         await (await token1Out.approve(zap.address, toE18(10000))).wait();
 
         let reserves;
-        console.log("CCCCCCCC");
         if ('priceRange' in params) {
-            console.log(params);
             reserves = await zap.getProportion({amountsOut: [], ...params});
-            console.log("DDDDDDDDDDDDDDD");
         } else if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
         } else if ('poolId' in params) {
@@ -609,11 +601,15 @@ describe(`Test ${params?.name}`, function () {
         } else {
             reserves = await zap.getProportion(params.gauge);
         }
-        const sumReserves = reserves[0].add(reserves[1]);
+        
+        price = fromE6(await zap.getCurrentPrice(params.pair)).toFixed(0).toString();
+        // console.log(price);
 
-        // let dai = (await getERC20('dai')).connect(account);
+        const sumReserves = (reserves[0]).mul(price).add(reserves[1]);
 
-        // console.log(token0In, dai, token0InDec, account.address);
+        console.log("prop: ", reserves[0] / sumReserves);
+        console.log("prop with price: ", ((reserves[0]).mul(price).div(sumReserves)).toString());
+        
 
         const proportions = calculateProportionForPool({
             inputTokensDecimals: [token0InDec, token1InDec],
@@ -627,8 +623,8 @@ describe(`Test ${params?.name}`, function () {
             outputTokensDecimals: [token0OutDec, token1OutDec],
             outputTokensAddresses: [token0Out.address, token1Out.address],
             outputTokensAmounts: [amountToken0Out, amountToken1Out],
-            outputTokensPrices: [3844, 1],
-            proportion0: reserves[0] / sumReserves
+            outputTokensPrices: [1, 1], // TODO: fix prices
+            proportion0: reserves[0] * price / sumReserves
         })
 
         const request = await getOdosRequest({
