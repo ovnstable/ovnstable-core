@@ -20,6 +20,7 @@ module.exports = async () => {
     items.push(...citadel());
     items.push(...curve());
     items.push(...extraFi());
+    items.push(...pancakeswap());
     await (await payoutManager.addItems(items)).wait();
 
     console.log('BasePayoutManager setting done');
@@ -147,6 +148,22 @@ module.exports = async () => {
         items.push(createSkimToWithFee('0x88F6e275dD40250782ff48c9b561C8a875934043', usdPlus.address, 'USD+/OVN', dex, to, fee, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0x3510db57b98866b40dd5d913a73a0117fb6014f0', usdPlus.address, 'USD+ lendpool 1', dex, to, fee, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0x2546fe1f2ca9a31ebed04035eba7c4544bff2745', usdPlus.address, 'USD+ lendpool 1', dex, to, fee, COMMON.rewardWallet));
+        return items;
+    }
+
+    function pancakeswap() {
+
+        let dex = 'PancakeSwap';
+
+        let items = [];
+        items.push(createSkim('0x5b9FEB72588D2800892a00d2abB4ca9071df846e', usdPlus.address, 'USD+/WETH', dex));
+        items.push(createSkim('0xa4846201E94D2a5399774926f760A36D52Ac22BF', usdPlus.address, 'wstETH/USD+', dex));
+        items.push(createSkim('0x40C91EBd1FA940A363989aC80a31B3a988dD649B', usdPlus.address, 'USD+/cbETH', dex));
+        items.push(createSkim('0x98Ee8cd99370Ab19F18Fb9033337995076867ee9', usdPlus.address, 'USD+/BRETT', dex));
+        items.push(createSkim('0xdd5AC923f03a97FF9F0cfbFa0F5E155E46c3727d', usdPlus.address, 'USD+/DEGEN', dex));
+        items.push(createSkim('0x62996340a9bFEeE2A72bfAE8F21b8c0A5E692261', usdPlus.address, 'USD+/AERO', dex));
+
+
         return items;
     }
 };
