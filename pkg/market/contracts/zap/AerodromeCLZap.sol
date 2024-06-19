@@ -186,23 +186,42 @@ contract AerodromeCLZap is OdosZap {
         return IUniswapV3Pool(pair).tickSpacing();
     }
 
-    function tickToPrice(address pair, int24 tick) public view returns (uint256) {
+    function tickToPrice(address pair, int24 tick, bool inverted) public view returns (uint256) {
         IUniswapV3Pool pool = IUniswapV3Pool(pair);
-        uint256 dec0 = 10 ** IERC20Metadata(pool.token0()).decimals();
-        return Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(tick), dec0);
+        uint256 dec = 10 ** IERC20Metadata((inverted ? pool.token1() : pool.token0())).decimals();
+        uint256 sqrtRatioX96 = uint256(TickMath.getSqrtRatioAtTick(tick));
+        if (inverted) {
+            sqrtRatioX96 = FullMath.mulDiv(uint256(2 ** 96), uint256(2 ** 96), sqrtRatioX96);
+        }
+        return Util.getPriceBySqrtRatio(sqrtRatioX96, dec);
     }
 
-    function priceToClosestTick(address pair, uint256 price) public view returns (int24 closestTick) {
+    function priceToClosestTick(address pair, uint256 price, bool inverted) public view returns (int24 closestTick) {
         IUniswapV3Pool pool = IUniswapV3Pool(pair);
-        uint256 dec0 = 10 ** IERC20Metadata(pool.token0()).decimals();
-        int24 currentTick = TickMath.getTickAtSqrtRatio(Util.getSqrtRatioByPrice(price, dec0));
+        uint256 dec = 10 ** IERC20Metadata((inverted ? pool.token1() : pool.token0())).decimals();
+        uint256 sqrtRatioX96 = uint256(Util.getSqrtRatioByPrice(price, dec));
+        if (inverted) {
+            sqrtRatioX96 = FullMath.mulDiv(uint256(2 ** 96), uint256(2 ** 96), sqrtRatioX96);
+        }
+        int24 currentTick = TickMath.getTickAtSqrtRatio(sqrtRatioX96);
         int24 tickSpacing = pool.tickSpacing();
         closestTick = currentTick > 0 ? currentTick - currentTick % tickSpacing : currentTick - tickSpacing - (currentTick % tickSpacing);
     }
 
-    function getCurrentPoolTick(address pair) public view returns (int24) {
+    function getCurrentPoolTick(address pair) public view returns (int24 tick) {
+        (, tick,,,,) = IUniswapV3Pool(pair).slot0();
+    }
+
+    function closestTicksForCurrentTick(address pair) public view returns (int24 left, int24 right) {
         IUniswapV3Pool pool = IUniswapV3Pool(pair);
         (, int24 tick,,,,) = pool.slot0();
-        return tick;
+        int24 tickSpacing = pool.tickSpacing();
+        if (tick % tickSpacing == 0) {
+            left = tick - tickSpacing;
+            right = tick + tickSpacing;
+        } else {
+            left = tick > 0 ? tick - tick % tickSpacing : tick - tickSpacing - (tick % tickSpacing);
+            right = tick > 0 ? tick + tickSpacing - (tick % tickSpacing) : tick - (tick % tickSpacing);
+        }
     }
 }

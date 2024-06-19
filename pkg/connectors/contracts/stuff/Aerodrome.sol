@@ -1756,8 +1756,8 @@ library Util {
         return SafeCast.toUint160(sqrt(FullMath.mulDiv(price, 2 ** 192, decimals)));
     }
 
-    function getPriceBySqrtRatio(uint160 sqrtRatio, uint256 decimals) internal pure returns (uint256) {
-        return FullMath.mulDiv(uint256(sqrtRatio), uint256(sqrtRatio) * decimals, 2 ** 192);
+    function getPriceBySqrtRatio(uint256 sqrtRatio, uint256 decimals) internal pure returns (uint256) {
+        return FullMath.mulDiv(sqrtRatio, sqrtRatio * decimals, 2 ** 192);
     }
 
     function priceToTicks(uint256[] memory priceRange, uint256 dec0, int24 tickSpacing) internal pure returns (int24 lowerTick, int24 upperTick) {
