@@ -146,18 +146,23 @@ contract AerodromeCLZap is OdosZap {
         token1Amount = token1Amount * (denominator / dec1);
     }
 
-//    function getProportionForZap(address pair, int24[] tickRange, InputSwapToken[] memory inputTokens) public view returns (uint256) {
-//        IUniswapV3Pool pool = IUniswapV3Pool(pair);
-//        uint256 sumInputs = 0;
-//        for (uint256 i = 0; i < inputTokens.length; i++) {
-//            sumInputs += inputTokens[i].price * inputTokens[i].amount;
-//        }
-//        (uint256 token0Amount, uint256 token1Amount,) = getProportion(pair, tickRange);
-//        uint256 currentPrice = getCurrentPrice(pair);
-//        uint256 proportion = FullMath.mulDiv(token0Amount, currentPrice, token0Amount * currentPrice + token1Amount);
-//        uint256 output0InMoneyWithProportion = sumInputs * proportion;
-//        uint256 output1InMoneyWithProportion = sumInputs * (proportion);
-//    }
+    function getProportionForZap(address pair, int24[] tickRange, InputSwapToken[] memory inputTokens) public view returns (uint256) {
+        IUniswapV3Pool pool = IUniswapV3Pool(pair);
+        uint256 sumInputs = 0;
+        for (uint256 i = 0; i < inputTokens.length; i++) {
+            sumInputs += inputTokens[i].price * inputTokens[i].amount;
+        }
+        console.log("sumInputs", sumInputs);
+        (uint256 token0Amount, uint256 token1Amount,) = getProportion(pair, tickRange);
+        uint256 currentPrice = getCurrentPrice(pair);
+        uint256 proportion = FullMath.mulDiv(token0Amount, currentPrice, token0Amount * currentPrice + token1Amount);
+        console.log("proportion", proportion);
+        uint256 output0InMoneyWithProportion = sumInputs * proportion;
+        console.log("output0InMoneyWithProportion", output0InMoneyWithProportion);
+        uint256 output1InMoneyWithProportion = sumInputs * (1 - proportion);
+        console.log("output1InMoneyWithProportion", output1InMoneyWithProportion);
+        return currentPrice;
+    }
 
     function getPriceFromTick(AerodromeCLZapInParams memory aerodromeData) public view returns (uint256 left, uint256 right) {
         IUniswapV3Pool pool = IUniswapV3Pool(aerodromeData.pair);

@@ -71,12 +71,12 @@ describe('Testing all zaps', function() {
             });
 
             it('swap and put nearly equal', async function() {
-                // const amountToken0In = toToken0In(1);
-                // const amountToken1In = toToken1In(1);
-                // const amountToken0Out = toToken0Out(1);
-                // const amountToken1Out = toToken1Out(5);
-                //
-                // await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
+                const amounts = [
+                    toTokenIn[0](1),
+                    toTokenIn[1](1),
+                    toTokenIn[2](1),
+                ];
+                await check(amounts);
             });
 
             // it('swap and disbalance on one asset', async function() {
@@ -99,51 +99,50 @@ describe('Testing all zaps', function() {
             //     await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
             // });
 
-            async function check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out) {
+            async function check(amounts) {
                 await showBalances();
+                console.log(inputTokens);
 
-                for
-
-                await (await token0In.approve(zap.address, toE18(10000))).wait();
-                await (await token1In.approve(zap.address, toE18(10000))).wait();
-                await (await token0Out.approve(zap.address, toE18(10000))).wait();
-                await (await token1Out.approve(zap.address, toE18(10000))).wait();
-
-                let reserves;
-                if ('priceRange' in params) {
-                    reserves = await zap.getProportion({ amountsOut: [], ...params });
-                } else if ('pair' in params) {
-                    reserves = await zap.getProportion(params.pair);
-                } else if ('poolId' in params) {
-                    reserves = await zap.getProportion(params.gauge, params.poolId);
-                } else {
-                    reserves = await zap.getProportion(params.gauge);
+                for (let token in inputTokens) {
+                    await (await token.approve(zap.address, toE18(10000))).wait();
                 }
 
-                price = fromE6(await zap.getCurrentPrice(params.pair)).toFixed(0).toString();
-                // console.log(price);
+                // let reserves;
+                // if ('priceRange' in params) {
+                //     reserves = await zap.getProportion({ amountsOut: [], ...params });
+                // } else if ('pair' in params) {
+                //     reserves = await zap.getProportion(params.pair);
+                // } else if ('poolId' in params) {
+                //     reserves = await zap.getProportion(params.gauge, params.poolId);
+                // } else {
+                //     reserves = await zap.getProportion(params.gauge);
+                // }
+                //
+                // price = fromE6(await zap.getCurrentPrice(params.pair)).toFixed(0).toString();
+                // // console.log(price);
+                //
+                // const sumReserves = (reserves[0]).mul(price).add(reserves[1]);
+                //
+                // console.log('prop: ', reserves[0] / sumReserves);
+                // console.log('prop with price: ', ((reserves[0]).mul(price).div(sumReserves)).toString());
 
-                const sumReserves = (reserves[0]).mul(price).add(reserves[1]);
+                // const proportions = calculateProportionForPool({
+                //     inputTokensDecimals: [token0InDec, token1InDec],
+                //     inputTokensAddresses: [token0In.address, token1In.address],
+                //     inputTokensAmounts: [amountToken0In, amountToken1In],
+                //     inputTokensPrices: [1, 1],
+                //     // inputTokensDecimals: [],
+                //     // inputTokensAddresses: [],
+                //     // inputTokensAmounts: [],
+                //     // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
+                //     outputTokensDecimals: [token0OutDec, token1OutDec],
+                //     outputTokensAddresses: [token0Out.address, token1Out.address],
+                //     outputTokensAmounts: [amountToken0Out, amountToken1Out],
+                //     outputTokensPrices: [1, 1], // TODO: fix prices
+                //     proportion0: reserves[0] * price / sumReserves,
+                // });
 
-                console.log('prop: ', reserves[0] / sumReserves);
-                console.log('prop with price: ', ((reserves[0]).mul(price).div(sumReserves)).toString());
 
-
-                const proportions = calculateProportionForPool({
-                    inputTokensDecimals: [token0InDec, token1InDec],
-                    inputTokensAddresses: [token0In.address, token1In.address],
-                    inputTokensAmounts: [amountToken0In, amountToken1In],
-                    inputTokensPrices: [1, 1],
-                    // inputTokensDecimals: [],
-                    // inputTokensAddresses: [],
-                    // inputTokensAmounts: [],
-                    // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
-                    outputTokensDecimals: [token0OutDec, token1OutDec],
-                    outputTokensAddresses: [token0Out.address, token1Out.address],
-                    outputTokensAmounts: [amountToken0Out, amountToken1Out],
-                    outputTokensPrices: [1, 1], // TODO: fix prices
-                    proportion0: reserves[0] * price / sumReserves,
-                });
 
                 const request = await getOdosRequest({
                     'inputTokens': proportions.inputTokens,
