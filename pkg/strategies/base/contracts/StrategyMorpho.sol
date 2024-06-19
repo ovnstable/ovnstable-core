@@ -1,20 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@overnight-contracts/core/contracts/Strategy.sol";
-import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
+
+import "@overnight-contracts/connectors/contracts/stuff/Morpho.sol";
+
+
 import "hardhat/console.sol";
 
 
-contract StrategyAave is Strategy {
+contract StrategyMorpho is Strategy {
 
     // --- params
 
     IERC20 public usdcToken;
-    IERC20 public aUsdcToken;
-    IPoolAddressesProvider public aaveProvider;
+    IERC20 public wellToken;
+    // IERC20 public morphoToken;
 
-
+    IMetaMorpho public mUsdcToken;
+    ISwapRouter public uniswapV3Router;
+    // IUniversalRewardsDistributor rewardsDistrubutor;
+    
     // --- events
 
     event StrategyUpdatedParams();
@@ -24,8 +29,11 @@ contract StrategyAave is Strategy {
 
     struct StrategyParams {
         address usdc;
-        address aUsdc;
-        address aaveProvider;
+        address mUsdc;
+        address well;
+        // address morpho;
+        // address rewardsDistrubutor;
+        address uniswapV3Router;
     }
 
 
@@ -43,8 +51,12 @@ contract StrategyAave is Strategy {
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
         usdcToken = IERC20(params.usdc);
-        aUsdcToken = IERC20(params.aUsdc);
-        aaveProvider = IPoolAddressesProvider(params.aaveProvider);
+        mUsdcToken = IMetaMorpho(params.mUsdc);
+        wellToken = IERC20(params.well);
+        // morphoToken = IERC20(params.morpho);
+        // rewardsDistrubutor = IUniversalRewardsDistributor(params.rewardsDistrubutor);
+        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
+
         emit StrategyUpdatedParams();
     }
 
@@ -58,9 +70,9 @@ contract StrategyAave is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        IPool pool = IPool(aaveProvider.getPool());
-        usdcToken.approve(address(pool), _amount);
-        pool.deposit(address(usdcToken), _amount, address(this), 0);
+        
+        usdcToken.approve(address(mUsdcToken), _amount);
+        mUsdcToken.deposit(_amount, address(this));
     }
 
     function _unstake(
@@ -71,9 +83,9 @@ contract StrategyAave is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        IPool pool = IPool(aaveProvider.getPool());
-        aUsdcToken.approve(address(pool), _amount);
-        return pool.withdraw(_asset, _amount, address(this));
+        
+        
+        return mUsdcToken.withdraw(_amount, address(this), address(this));
     }
 
     function _unstakeFull(
@@ -83,22 +95,16 @@ contract StrategyAave is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        IPool pool = IPool(aaveProvider.getPool());
-        uint256 _amount = aUsdcToken.balanceOf(address(this));
-        aUsdcToken.approve(address(pool), _amount);
-        return pool.withdraw(_asset, _amount, address(this));
+        uint256 _amount = mUsdcToken.balanceOf(address(this));
+
+        return mUsdcToken.withdraw(_amount, address(this), address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return usdcToken.balanceOf(address(this)) + aUsdcToken.balanceOf(address(this));
+        return usdcToken.balanceOf(address(this)) + mUsdcToken.balanceOf(address(this));
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return usdcToken.balanceOf(address(this)) + aUsdcToken.balanceOf(address(this));
+        return usdcToken.balanceOf(address(this)) + mUsdcToken.balanceOf(address(this));
     }
-
-    function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        return 0;
-    }
-
 }
