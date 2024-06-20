@@ -48,6 +48,7 @@
     },
     {
       "address": "0xb782048B029FDA6Db78b1D9DeaDFc7fF2D6EDe93",
+      "txHash": "0xf1dadbf35ff7cbab95588c9f25ad54477229278e553e6647d2ca903a58d3ec1b",
       "kind": "uups"
     }
   ],
@@ -6860,7 +6861,8 @@
       }
     },
     "20f2b9b4e2a7a40d8eac39286955b73d1d43088bd4640432d30ac570027ae86b": {
-      "address": "0xA462e3093b2A1D65f9632dc99f1A669035607E11",
+      "address": "0xcfd7FAD02489E5b099656258Ce4e3fA54d536d10",
+      "txHash": "0x9b218477123907ae05e1c7495fa55cc5f2fab949c60ab520a59e30d327863036",
       "layout": {
         "solcVersion": "0.8.17",
         "storage": [
