@@ -546,6 +546,7 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     const recipient = signers[1];
 
     const strategy = await ethers.getContract(strategyName);
+    await strategy.setStrategyParams(recipient.address, recipient.address);
     
     if (strategyParams.isRunStrategyLogic) {
         console.log(`RunStrategyLogic: ${strategyName}`)
@@ -553,14 +554,7 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     }
 
     let mainAddress = (await initWallet()).address;
-    await transferETH(100, mainAddress);
-    
-    await strategy.connect(await initWallet()).setStrategyParams(recipient.address, recipient.address);
-
-
-    
-
-    
+    await transferETH(100, mainAddress);   
 
 
     // Support ETH+
@@ -570,9 +564,7 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     }
     const asset = await getERC20(assetName);
     await transferAsset(asset.address, mainAddress);
-
     console.log(`Balance [${assetName}]: [${fromAsset(await asset.balanceOf(mainAddress))}]`);
-
     let decimals = await asset.decimals();
     let toAsset;
     if (decimals === 18) {
