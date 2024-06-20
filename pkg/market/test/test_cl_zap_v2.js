@@ -101,30 +101,11 @@ describe('Testing all zaps', function() {
 
             async function check(amounts) {
                 await showBalances();
-                console.log(inputTokens);
-
                 for (let token in inputTokens) {
+                    console.log(token.approve);
                     await (await token.approve(zap.address, toE18(10000))).wait();
                 }
-
-                // let reserves;
-                // if ('priceRange' in params) {
-                //     reserves = await zap.getProportion({ amountsOut: [], ...params });
-                // } else if ('pair' in params) {
-                //     reserves = await zap.getProportion(params.pair);
-                // } else if ('poolId' in params) {
-                //     reserves = await zap.getProportion(params.gauge, params.poolId);
-                // } else {
-                //     reserves = await zap.getProportion(params.gauge);
-                // }
-                //
-                // price = fromE6(await zap.getCurrentPrice(params.pair)).toFixed(0).toString();
-                // // console.log(price);
-                //
-                // const sumReserves = (reserves[0]).mul(price).add(reserves[1]);
-                //
-                // console.log('prop: ', reserves[0] / sumReserves);
-                // console.log('prop with price: ', ((reserves[0]).mul(price).div(sumReserves)).toString());
+                await zap.getProportionForZap(params.pair, params.priceRange, inputTokens);
 
                 // const proportions = calculateProportionForPool({
                 //     inputTokensDecimals: [token0InDec, token1InDec],
@@ -143,7 +124,6 @@ describe('Testing all zaps', function() {
                 // });
 
 
-
                 const request = await getOdosRequest({
                     'inputTokens': proportions.inputTokens,
                     'outputTokens': proportions.outputTokens,
@@ -151,19 +131,13 @@ describe('Testing all zaps', function() {
                 });
 
 
-                const inputTokens = proportions.inputTokens.map(({ tokenAddress, amount }) => {
-                    return { 'tokenAddress': tokenAddress, 'amountIn': amount };
-                });
+                // const inputTokens = proportions.inputTokens.map(({ tokenAddress, amount }) => {
+                //     return { 'tokenAddress': tokenAddress, 'amountIn': amount };
+                // });
                 const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
                     return { 'tokenAddress': tokenAddress, 'receiver': zap.address };
                 });
 
-
-                // console.log("St")
-
-                // console.log(inputTokens, outputTokens, request.data, [proportions.amountToken0Out, proportions.amountToken1Out], params);
-
-                // console.log("END")
                 let swapData = {
                     inputs: inputTokens,
                     outputs: outputTokens,

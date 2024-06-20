@@ -146,7 +146,7 @@ contract AerodromeCLZap is OdosZap {
         token1Amount = token1Amount * (denominator / dec1);
     }
 
-    function getProportionForZap(address pair, int24[] tickRange, InputSwapToken[] memory inputTokens) public view returns (uint256) {
+    function getProportionForZap(address pair, int24[] memory tickRange, InputSwapToken[] memory inputTokens) public view returns (uint256) {
         IUniswapV3Pool pool = IUniswapV3Pool(pair);
         uint256 sumInputs = 0;
         for (uint256 i = 0; i < inputTokens.length; i++) {
@@ -164,18 +164,18 @@ contract AerodromeCLZap is OdosZap {
         return currentPrice;
     }
 
-    function getPriceFromTick(AerodromeCLZapInParams memory aerodromeData) public view returns (uint256 left, uint256 right) {
-        IUniswapV3Pool pool = IUniswapV3Pool(aerodromeData.pair);
-        uint256 dec0 = 10 ** IERC20Metadata(pool.token0()).decimals();
-        int24 tickSpacing = pool.tickSpacing();
-        (, int24 tick,,,,) = pool.slot0();
-
-        int24 lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (aerodromeData.tickDelta / 2));
-        int24 upperTick = tick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2); 
-
-        left = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(lowerTick), dec0);
-        right = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(upperTick), dec0);
-    }
+//    function getPriceFromTick(AerodromeCLZapInParams memory aerodromeData) public view returns (uint256 left, uint256 right) {
+//        IUniswapV3Pool pool = IUniswapV3Pool(aerodromeData.pair);
+//        uint256 dec0 = 10 ** IERC20Metadata(pool.token0()).decimals();
+//        int24 tickSpacing = pool.tickSpacing();
+//        (, int24 tick,,,,) = pool.slot0();
+//
+//        int24 lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (aerodromeData.tickDelta / 2));
+//        int24 upperTick = tick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2);
+//
+//        left = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(lowerTick), dec0);
+//        right = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(upperTick), dec0);
+//    }
 
     function getCurrentPrice(address pair) public view returns (uint256) {
         IUniswapV3Pool pool = IUniswapV3Pool(pair);
@@ -184,37 +184,27 @@ contract AerodromeCLZap is OdosZap {
         return FullMath.mulDiv(uint256(sqrtRatioX96) * 10 ** dec0, uint256(sqrtRatioX96), 2 ** (96 + 96));
     }
 
-    function getCurrentPriceInverted(address pair) public view returns (uint256) {
-        IUniswapV3Pool pool = IUniswapV3Pool(pair);
-        uint256 dec1 = IERC20Metadata(pool.token1()).decimals();
-        (uint160 sqrtRatioX96,,,,,) = pool.slot0();
-        uint256 sqrtRatioX96Inverted = FullMath.mulDiv(uint256(2 ** 96), uint256(2 ** 96), uint256(sqrtRatioX96));
-        return FullMath.mulDiv(uint256(sqrtRatioX96Inverted) * 10 ** dec1, uint256(sqrtRatioX96Inverted), 2 ** (96 + 96));
-    }
-
     function getTickSpacing(address pair) public view returns (int24) {
         return IUniswapV3Pool(pair).tickSpacing();
     }
 
-    function tickToPrice(address pair, int24 tick, bool inverted) public view returns (uint256) {
+    function tickToPrice(address pair, int24 tick) public view returns (uint256) {
         IUniswapV3Pool pool = IUniswapV3Pool(pair);
         uint256 dec = 10 ** IERC20Metadata((inverted ? pool.token1() : pool.token0())).decimals();
         uint256 sqrtRatioX96 = uint256(TickMath.getSqrtRatioAtTick(tick));
-        if (inverted) {
-            sqrtRatioX96 = FullMath.mulDiv(uint256(2 ** 96), uint256(2 ** 96), sqrtRatioX96);
-        }
         return Util.getPriceBySqrtRatio(sqrtRatioX96, dec);
     }
 
-    function priceToClosestTick(address pair, uint256 price, bool inverted) public view returns (int24 closestTick) {
+    function priceToClosestTick(address pair, uint256 price) public view returns (int24 closestTick) {
         IUniswapV3Pool pool = IUniswapV3Pool(pair);
         uint256 dec = 10 ** IERC20Metadata((inverted ? pool.token1() : pool.token0())).decimals();
         uint160 sqrtRatioX96 = Util.getSqrtRatioByPrice(price, dec);
-        if (inverted) {
-            sqrtRatioX96 = uint160(FullMath.mulDiv(uint256(2 ** 96), uint256(2 ** 96), uint256(sqrtRatioX96)));
-        }
+
         int24 currentTick = TickMath.getTickAtSqrtRatio(sqrtRatioX96);
         int24 tickSpacing = pool.tickSpacing();
+        if (closestTick % tickSpacing == 0) {
+
+        }
         closestTick = currentTick > 0 ? currentTick - currentTick % tickSpacing : currentTick - tickSpacing - (currentTick % tickSpacing);
     }
 
@@ -228,7 +218,7 @@ contract AerodromeCLZap is OdosZap {
         int24 tickSpacing = pool.tickSpacing();
         if (tick % tickSpacing == 0) {
             left = tick - tickSpacing;
-            right = tick + tickSpacing;
+            right = tick;
         } else {
             left = tick > 0 ? tick - tick % tickSpacing : tick - tickSpacing - (tick % tickSpacing);
             right = tick > 0 ? tick + tickSpacing - (tick % tickSpacing) : tick - (tick % tickSpacing);

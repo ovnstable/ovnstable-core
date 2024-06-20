@@ -496,10 +496,8 @@ describe(`Test ${params?.name}`, function () {
     sharedBeforeEach('deploy and setup', async () => {
         await hre.run("compile");
         await resetHardhatToLastBlock();
-        console.log(1886);
         console.log(params.name);
         await deployments.fixture([params.name]);
-        console.log(111);
         zap = await ethers.getContract(params.name);
 
         let setUpParams = await setUp(params);
@@ -512,19 +510,9 @@ describe(`Test ${params?.name}`, function () {
         token0Out = setUpParams.token0Out;
         token1Out = setUpParams.token1Out;
 
-
-        // console.log("token0", token0In.address);
         token0InDec = await token0In.decimals();
-        // console.log(token0InDec);
-
-        // console.log("token1", token1In.address);
         token1InDec = await token1In.decimals();
-
-        // console.log("token0", token0Out.address);
         token0OutDec = await token0Out.decimals();
-        // console.log("token0OutDec:", token0OutDec);
-
-        // console.log("token1", token1Out.address);
         token1OutDec = await token1Out.decimals();
 
         console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);

@@ -135,7 +135,6 @@ async function main() {
         inversedPrice = (await zap.getCurrentPriceInverted(params.pair)).toString();
     console.log(price);
     console.log(inversedPrice);
-    return;
 
         const sumReserves = (reserves[0]).mul(price).add(reserves[1]);
 
