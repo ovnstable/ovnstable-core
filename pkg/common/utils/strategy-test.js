@@ -383,7 +383,9 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
 
                     await asset.transfer(recipient.address, assetValue);
                     await asset.connect(recipient).transfer(strategy.address, assetValue);
+                    console.log("aaaaa");
                     await strategy.connect(recipient).stake(asset.address, assetValue);
+                    console.log("bbbbb");
 
                     let delay;
                     if (strategyParams.delay) {
@@ -544,9 +546,7 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     const recipient = signers[1];
 
     const strategy = await ethers.getContract(strategyName);
-    await strategy.setStrategyParams(recipient.address, recipient.address);
-
-
+    
     if (strategyParams.isRunStrategyLogic) {
         console.log(`RunStrategyLogic: ${strategyName}`)
         await runStrategyLogic(strategyName, strategy.address);
@@ -554,6 +554,13 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
 
     let mainAddress = (await initWallet()).address;
     await transferETH(100, mainAddress);
+    
+    await strategy.connect(await initWallet()).setStrategyParams(recipient.address, recipient.address);
+
+
+    
+
+    
 
 
     // Support ETH+
