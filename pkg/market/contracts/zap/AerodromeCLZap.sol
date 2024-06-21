@@ -192,7 +192,7 @@ contract AerodromeCLZap is OdosZap {
 
         int24 currentTick = TickMath.getTickAtSqrtRatio(sqrtRatioX96);
         int24 tickSpacing = pool.tickSpacing();
-        if (closestTick % tickSpacing == 0) {
+        if (currentTick % tickSpacing == 0) {
             closestTick = currentTick;
         } else {
             closestTick = currentTick > 0 ? currentTick - currentTick % tickSpacing : currentTick - tickSpacing - (currentTick % tickSpacing);
