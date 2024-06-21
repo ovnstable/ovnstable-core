@@ -106,11 +106,14 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         uint256 rewardAmount;
         if (_targetIsZero) {
             rewardAmount = _claimRewards(_beneficiary);
+            
             withdrawAmount = _unstakeFull(_asset, _beneficiary);
         } else {
             withdrawAmount = _unstake(_asset, _amount, _beneficiary);
+            
             require(withdrawAmount >= _amount, 'Returned value less than requested amount');
         }
+
 
         require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
 
