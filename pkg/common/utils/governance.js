@@ -269,7 +269,9 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
 
     await execTimelock(async timelock => {
         if (isNewStrategy) {
-            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, await getPrice());
+            console.log('aaa');
+            await strategy.setStrategyParams(timelock.address, roleManager.address, await getPrice());
+            console.log('bbb');
         } else {
             await strategy.connect(timelock).setPortfolioManager(timelock.address, await getPrice());
         }
@@ -283,7 +285,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
 
     tables.push(
         await testCase(async () => {
-            await strategy.netAssetValue();
+            await strategy.liquidationValue();
         }, 'strategy.liquidationValue'),
     );
 
@@ -319,7 +321,6 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(
         await testCase(async () => {
             await execTimelock(async timelock => {
-                console.log(asset.address, 0, walletAddress, true);
                 await strategy.connect(timelock).unstake(asset.address, 0, walletAddress, true, await getPrice());
             });
         }, 'strategy.unstakeFull'),

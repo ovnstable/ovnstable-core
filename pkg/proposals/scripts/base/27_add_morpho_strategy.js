@@ -31,10 +31,14 @@ async function main() {
 
     // let mainAddress = (await initWallet()).address;
     // await transferETH(100, mainAddress);   
+    
     // await testProposal(addresses, values, abis);
+    // await testStrategy(filename, strategy, 'base');
     // await testUsdPlus(filename, 'base');
 
-    await createProposal(filename, addresses, values, abis);
+    // await showM2M();
+
+    // await createProposal(filename, addresses, values, abis);
 
 }
 
