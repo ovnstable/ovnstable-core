@@ -73,6 +73,9 @@ describe('Testing all zaps', function() {
                     toTokenIn[0](1),
                     toTokenIn[1](1),
                 ];
+                const prices = [
+
+                ];
                 await check(amounts);
             });
 
