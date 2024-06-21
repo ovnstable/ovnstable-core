@@ -23,9 +23,9 @@ const { getOdosAmountOutOnly } = require('../../common/utils/odos-helper.js');
 let zaps_aerodrome = [
     {
         name: 'AerodromeCLZap',
-        pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
-        inputTokens: ['sfrax', 'dai', 'usdPlus'],
-        priceRange: [0.5, 1.5],
+        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+        inputTokens: ['dai', 'usdPlus'],
+        priceRange: [0.989, 1.10001],
     },
 ];
 
@@ -56,25 +56,22 @@ describe('Testing all zaps', function() {
                 inputTokens = setUpParams.inputTokens;
                 tokensDec = await Promise.all(inputTokens.map(async (token) => await token.decimals()));
 
-                console.log(tokensDec);
                 toTokenIn = tokensDec.map((token) => token === 6 ? toE6 : toE18);
                 fromTokenIn = tokensDec.map((token) => token === 6 ? fromE6 : fromE18);
 
-                if ('priceRange' in params) {
-                    curPriceRange = [...params.priceRange];
-
-                    curPriceRange[0] = Math.ceil(toE6(curPriceRange[0])).toString();
-                    curPriceRange[1] = Math.ceil(toE6(curPriceRange[1])).toString();
-
-                    params.priceRange = [...curPriceRange];
-                }
+                let curPriceRange = [...params.priceRange];
+                curPriceRange[0] = Math.ceil(toE6(curPriceRange[0])).toString();
+                curPriceRange[1] = Math.ceil(toE6(curPriceRange[1])).toString();
+                let tickRange = await zap.priceToClosestTick(params.pair, curPriceRange);
+                console.log("priceRange:", params.priceRange);
+                console.log("tickRange:", tickRange);
+                params.tickRange = [...tickRange];
             });
 
             it('swap and put nearly equal', async function() {
                 const amounts = [
                     toTokenIn[0](1),
                     toTokenIn[1](1),
-                    toTokenIn[2](1),
                 ];
                 await check(amounts);
             });
@@ -101,11 +98,10 @@ describe('Testing all zaps', function() {
 
             async function check(amounts) {
                 await showBalances();
-                for (let token in inputTokens) {
-                    console.log(token.approve);
-                    await (await token.approve(zap.address, toE18(10000))).wait();
+                for (let i = 0; i < inputTokens.length; i++) {
+                    await (await inputTokens[i].approve(zap.address, toE18(10000))).wait();
                 }
-                await zap.getProportionForZap(params.pair, params.priceRange, inputTokens);
+                await zap.getProportionForZap(params.pair, params.tickRange, inputTokens);
 
                 // const proportions = calculateProportionForPool({
                 //     inputTokensDecimals: [token0InDec, token1InDec],
@@ -122,7 +118,6 @@ describe('Testing all zaps', function() {
                 //     outputTokensPrices: [1, 1], // TODO: fix prices
                 //     proportion0: reserves[0] * price / sumReserves,
                 // });
-
 
                 const request = await getOdosRequest({
                     'inputTokens': proportions.inputTokens,
