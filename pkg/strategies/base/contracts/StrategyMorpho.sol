@@ -5,8 +5,6 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/connectors/contracts/stuff/Morpho.sol";
 
 
-import "hardhat/console.sol";
-
 
 contract StrategyMorpho is Strategy {
 
