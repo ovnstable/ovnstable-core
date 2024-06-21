@@ -538,36 +538,38 @@ describe(`Test ${params?.name}`, function () {
     });
 
     it("swap and put nearly equal", async function () {
+        console.log("price: ", await zap.getCurrentPrice(params.pair));
 
-        let tickSpacing = (await zap.getTickSpacing(params.pair)).toString();
-        console.log("tickSpacing:", tickSpacing);
-        let currentTick = Number(await zap.getCurrentPoolTick(params.pair));
-        console.log("currentTick:", currentTick);
+        const amountToken0In = toToken0In(1);
+        const amountToken1In = toToken1In(1);
+        const amountToken0Out = toToken0Out(1);
+        const amountToken1Out = toToken1Out(5);
 
-        await (await token0Out.approve(zap.address, toE18(1000000))).wait();
-        await (await token1Out.approve(zap.address, toE18(1000000))).wait();
-        console.log("approved");
-        await showBalances();
-        let tx = await (await zap.connect(account).mintTest(
-            token0Out.address,
-            token1Out.address,
-            tickSpacing,
-            currentTick,
-            currentTick + 1,
-            1000000,
-            1000000
-        )).wait();
-        const mintTestEvent = tx.events.find((event) => event.event === "MintTest");
-        console.log("tokenId:", mintTestEvent.args.tokenId.toString());
-        console.log("liquidity:", mintTestEvent.args.liquidity.toString());
-        console.log("amountOut0:", mintTestEvent.args.amountOut0.toString());
-        console.log("amountOut1:", mintTestEvent.args.amountOut1.toString());
-        // const amountToken0In = toToken0In(1);
-        // const amountToken1In = toToken1In(1);
-        // const amountToken0Out = toToken0Out(1);
-        // const amountToken1Out = toToken1Out(5);
+        await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
+
+        // let tickSpacing = (await zap.getTickSpacing(params.pair)).toString();
+        // console.log("tickSpacing:", tickSpacing);
+        // let currentTick = Number(await zap.getCurrentPoolTick(params.pair));
+        // console.log("currentTick:", currentTick);
         //
-        // await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
+        // await (await token0Out.approve(zap.address, toE18(1000000))).wait();
+        // await (await token1Out.approve(zap.address, toE18(1000000))).wait();
+        // console.log("approved");
+        // await showBalances();
+        // let tx = await (await zap.connect(account).mintTest(
+        //     token0Out.address,
+        //     token1Out.address,
+        //     tickSpacing,
+        //     currentTick,
+        //     currentTick + 1,
+        //     1000000,
+        //     1000000
+        // )).wait();
+        // const mintTestEvent = tx.events.find((event) => event.event === "MintTest");
+        // console.log("tokenId:", mintTestEvent.args.tokenId.toString());
+        // console.log("liquidity:", mintTestEvent.args.liquidity.toString());
+        // console.log("amountOut0:", mintTestEvent.args.amountOut0.toString());
+        // console.log("amountOut1:", mintTestEvent.args.amountOut1.toString());
     });
 
     it("swap and disbalance on one asset", async function () {
