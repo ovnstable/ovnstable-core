@@ -10,6 +10,8 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IRoleManager.sol";
 
+import "hardhat/console.sol";
+
 
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
@@ -106,11 +108,16 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         uint256 rewardAmount;
         if (_targetIsZero) {
             rewardAmount = _claimRewards(_beneficiary);
+            
             withdrawAmount = _unstakeFull(_asset, _beneficiary);
         } else {
             withdrawAmount = _unstake(_asset, _amount, _beneficiary);
+            console.log(withdrawAmount);
+            console.log(_amount);
             require(withdrawAmount >= _amount, 'Returned value less than requested amount');
         }
+
+        console.log();
 
         require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
 
