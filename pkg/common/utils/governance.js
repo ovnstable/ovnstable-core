@@ -269,9 +269,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
 
     await execTimelock(async timelock => {
         if (isNewStrategy) {
-            console.log('aaa');
-            await strategy.setStrategyParams(timelock.address, roleManager.address, await getPrice());
-            console.log('bbb');
+            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, await getPrice());
         } else {
             await strategy.connect(timelock).setPortfolioManager(timelock.address, await getPrice());
         }
