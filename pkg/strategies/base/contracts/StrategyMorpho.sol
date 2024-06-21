@@ -83,9 +83,9 @@ contract StrategyMorpho is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
+        mUsdcToken.withdraw(_amount, address(this), address(this));
         
-        
-        return mUsdcToken.withdraw(_amount, address(this), address(this));
+        return usdcToken.balanceOf(address(this));
     }
 
     function _unstakeFull(
@@ -95,16 +95,22 @@ contract StrategyMorpho is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 _amount = mUsdcToken.balanceOf(address(this));
+        uint256 _amount = mUsdcToken.balanceOf(address(this)) / 10 ** (mUsdcToken.decimals() - 6);
 
-        return mUsdcToken.withdraw(_amount, address(this), address(this));
+        mUsdcToken.withdraw(_amount, address(this), address(this));
+
+        return usdcToken.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return usdcToken.balanceOf(address(this)) + mUsdcToken.balanceOf(address(this));
+        return usdcToken.balanceOf(address(this)) + mUsdcToken.balanceOf(address(this)) / 10 ** (mUsdcToken.decimals() - 6);
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return usdcToken.balanceOf(address(this)) + mUsdcToken.balanceOf(address(this));
+        return usdcToken.balanceOf(address(this)) + mUsdcToken.balanceOf(address(this)) / 10 ** (mUsdcToken.decimals() - 6);
+    }
+
+    function _claimRewards(address _beneficiary) internal override returns (uint256) {
+        return 0;
     }
 }
