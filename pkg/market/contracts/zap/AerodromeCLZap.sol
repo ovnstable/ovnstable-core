@@ -63,6 +63,38 @@ contract AerodromeCLZap is OdosZap {
         _addLiquidity(aerodromeData);
     }
 
+    function getProportion(
+        AerodromeCLZapInParams memory aerodromeData
+    ) public view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
+
+        IUniswapV3Pool pool = IUniswapV3Pool(aerodromeData.pair);
+        uint256 dec0 = 10 ** IERC20Metadata(pool.token0()).decimals();
+        uint256 dec1 = 10 ** IERC20Metadata(pool.token1()).decimals();
+        (uint160 sqrtRatioX96, int24 tick,,,,) = pool.slot0();
+        int24 tickSpacing = pool.tickSpacing();
+        int24 lowerTick;
+        int24 upperTick;
+
+        if (aerodromeData.tickDelta == 0) {
+            (lowerTick, upperTick) = Util.priceToTicks(aerodromeData.priceRange, dec0, pool.tickSpacing());
+        } else {
+            int24 offset = tick > 0 ? int24(1) : int24(0);
+            lowerTick = tick / tickSpacing * tickSpacing - tickSpacing * ((aerodromeData.tickDelta + 1 - offset) / 2);
+            upperTick = tick / tickSpacing * tickSpacing + tickSpacing * ((aerodromeData.tickDelta + offset) / 2);
+        }
+
+        uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(lowerTick);
+        uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(upperTick);
+
+        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, sqrtRatio0, sqrtRatio1, dec0 * 1000, dec1 * 1000);
+        (token0Amount, token1Amount) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatio0, sqrtRatio1, liquidity);
+
+        denominator = dec0 > dec1 ? dec0 : dec1;
+
+        token0Amount = token0Amount * (denominator / dec0);
+        token1Amount = token1Amount * (denominator / dec1);
+    }
+
     function _addLiquidity(AerodromeCLZapInParams memory aerodromeData) internal {
 
         IUniswapV3Pool pool = IUniswapV3Pool(aerodromeData.pair);
