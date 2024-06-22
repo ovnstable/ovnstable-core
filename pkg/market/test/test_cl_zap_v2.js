@@ -25,7 +25,7 @@ let zaps_aerodrome = [
         name: 'AerodromeCLZap',
         pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
         inputTokens: ['dai', 'usdPlus'],
-        priceRange: [0.989, 1.10001],
+        priceRange: [1, 1.00022],
     },
 ];
 
@@ -56,15 +56,17 @@ describe('Testing all zaps', function() {
                 inputTokens = setUpParams.inputTokens;
                 tokensDec = await Promise.all(inputTokens.map(async (token) => await token.decimals()));
 
-                toTokenIn = tokensDec.map((token) => token === 6 ? toE6 : toE18);
-                fromTokenIn = tokensDec.map((token) => token === 6 ? fromE6 : fromE18);
+                toTokenIn = tokensDec.map((dec) => dec === 6 ? toE6 : toE18);
+                fromTokenIn = tokensDec.map((dec) => dec === 6 ? fromE6 : fromE18);
 
                 let curPriceRange = [...params.priceRange];
                 curPriceRange[0] = Math.ceil(toE6(curPriceRange[0])).toString();
                 curPriceRange[1] = Math.ceil(toE6(curPriceRange[1])).toString();
                 let tickRange = await zap.priceToClosestTick(params.pair, curPriceRange);
+                let currentTick = await zap.getCurrentPoolTick(params.pair);
                 console.log("priceRange:", params.priceRange);
                 console.log("tickRange:", tickRange);
+                console.log("currentTick:", currentTick);
                 params.tickRange = [...tickRange];
             });
 
@@ -74,9 +76,10 @@ describe('Testing all zaps', function() {
                     toTokenIn[1](1),
                 ];
                 const prices = [
-
+                    toE6(1),
+                    toE6(1),
                 ];
-                await check(amounts);
+                await check(amounts, prices);
             });
 
             // it('swap and disbalance on one asset', async function() {
@@ -99,12 +102,19 @@ describe('Testing all zaps', function() {
             //     await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
             // });
 
-            async function check(amounts) {
+            async function check(amounts, prices) {
                 await showBalances();
+                let inputSwapTokens = [];
                 for (let i = 0; i < inputTokens.length; i++) {
                     await (await inputTokens[i].approve(zap.address, toE18(10000))).wait();
+                    inputSwapTokens.push({
+                        "tokenAddress": inputTokens[i].address,
+                        "amount": amounts[i],
+                        "price": prices[i],
+                    });
                 }
-                await zap.getProportionForZap(params.pair, params.tickRange, inputTokens);
+                console.log("inputSwapTokens:", inputSwapTokens);
+                await zap.getProportionForZap(params.pair, params.tickRange, inputSwapTokens);
 
                 // const proportions = calculateProportionForPool({
                 //     inputTokensDecimals: [token0InDec, token1InDec],
