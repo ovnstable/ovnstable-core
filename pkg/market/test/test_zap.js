@@ -603,6 +603,7 @@ describe(`Test ${params?.name}`, function () {
 
         let reserves;
         if ('priceRange' in params) {
+            console.log("params:", params);
             reserves = await zap.getProportion({amountsOut: [], ...params});
         } else if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
@@ -611,7 +612,7 @@ describe(`Test ${params?.name}`, function () {
         } else {
             reserves = await zap.getProportion(params.gauge);
         }
-        
+        console.log("GOAAAL!!");
         price = fromE6(await zap.getCurrentPrice(params.pair)).toFixed(0).toString();
         // console.log(price);
 
@@ -872,6 +873,8 @@ function calculateProportionForPool(
     const tokenOut1 = Number.parseFloat(new BigNumber(outputTokensAmounts[1].toString()).div(new BigNumber(10).pow(outputTokensDecimals[1])).toFixed(3).toString()) * outputTokensPrices[1];
     const sumInitialOut = tokenOut0 + tokenOut1;
     let sumInputs = 0;
+    console('GOAAAAAAAAL!');
+    console.log(inputTokensPrices, inputTokensDecimals, inputTokensAmounts);
     for (let i = 0; i < inputTokensAmounts.length; i++) {
         sumInputs += Number.parseFloat(
             new BigNumber(inputTokensAmounts[i].toString())
@@ -949,7 +952,6 @@ async function setUp(params) {
 
     const signers = await ethers.getSigners();
     const account = signers[0];
-    console.log("signers:", signers);
 
     let usdPlus = await getContract('UsdPlusToken', process.env.STAND);
     // let daiPlus = await getContract('UsdPlusToken', process.env.STAND + '_dai');
