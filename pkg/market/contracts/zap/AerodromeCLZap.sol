@@ -64,7 +64,6 @@ contract AerodromeCLZap is OdosZap {
     }
 
     function zapIn(SwapData memory swapData, AerodromeCLZapInParams memory aerodromeData) external {
-        console.log("11111");
         _prepareSwap(swapData);
         _swap(swapData);
 
