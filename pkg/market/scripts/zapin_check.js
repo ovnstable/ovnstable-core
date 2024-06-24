@@ -131,10 +131,8 @@ async function main() {
             reserves = await zap.getProportion(params.gauge);
         }
 
-        price = (await zap.getCurrentPrice(params.pair)).toString();
-        inversedPrice = (await zap.getCurrentPriceInverted(params.pair)).toString();
+    price = fromE6(await zap.getCurrentPrice(params.pair)).toFixed(0).toString();
     console.log(price);
-    console.log(inversedPrice);
 
         const sumReserves = (reserves[0]).mul(price).add(reserves[1]);
 
@@ -161,6 +159,7 @@ async function main() {
         outputTokensPrices: [3671, 1],
         proportion0: reserves[0] * price / sumReserves
     })
+    return;
 
     const request = await getOdosRequest({
         "inputTokens": proportions.inputTokens,

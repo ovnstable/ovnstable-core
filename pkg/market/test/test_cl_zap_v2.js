@@ -21,11 +21,17 @@ const { getOdosAmountOut, getOdosSwapData } = require('@overnight-contracts/comm
 const { getOdosAmountOutOnly } = require('../../common/utils/odos-helper.js');
 
 let zaps_aerodrome = [
+    // {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+    //     inputTokens: ['dai', 'usdPlus'],
+    //     priceRange: [1, 1.00022],
+    // },
     {
         name: 'AerodromeCLZap',
-        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+        pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
         inputTokens: ['dai', 'usdPlus'],
-        priceRange: [1, 1.00022],
+        priceRange: [3100, 3500],
     },
 ];
 
@@ -79,30 +85,46 @@ describe('Testing all zaps', function() {
                     toE6(1),
                     toE6(1),
                 ];
-                await check(amounts, prices);
+                const outputTokenPrices = [
+                    toE6(3350),
+                    toE6(1),
+                ];
+                await check(amounts, prices, outputTokenPrices);
             });
-
+            //
             // it('swap and disbalance on one asset', async function() {
-            //
-            //     const amountToken0In = toToken0In(1);
-            //     const amountToken1In = toToken1In(1);
-            //     const amountToken0Out = toToken0Out(2);
-            //     const amountToken1Out = toToken1Out(30);
-            //
-            //     await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
-            // });
-            //
-            // it('swap and disbalance on another asset', async function() {
-            //
-            //     const amountToken0In = toToken0In(100);
-            //     const amountToken1In = toToken1In(100);
-            //     const amountToken0Out = toToken0Out(100);
-            //     const amountToken1Out = toToken1Out(700);
-            //
-            //     await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
+            //     const amounts = [
+            //         toTokenIn[0](1),
+            //         toTokenIn[1](100),
+            //     ];
+            //     const prices = [
+            //         toE6(1),
+            //         toE6(1),
+            //     ];
+            //     const outputTokenPrices = [
+            //         toE6(1),
+            //         toE6(1),
+            //     ];
+            //     await check(amounts, prices, outputTokenPrices);
             // });
 
-            async function check(amounts, prices) {
+            // it('swap and disbalance on another asset', async function() {
+            //     const amounts = [
+            //         toTokenIn[0](1000),
+            //         toTokenIn[1](1),
+            //     ];
+            //     const prices = [
+            //         toE6(1),
+            //         toE6(1),
+            //     ];
+            //     const outputTokenPrices = [
+            //         toE6(1),
+            //         toE6(1),
+            //     ];
+            //     await check(amounts, prices, outputTokenPrices);
+            // });
+
+            async function check(amounts, prices, outputTokenPrices) {
                 await showBalances();
                 let inputSwapTokens = [];
                 for (let i = 0; i < inputTokens.length; i++) {
@@ -114,51 +136,137 @@ describe('Testing all zaps', function() {
                     });
                 }
                 console.log("inputSwapTokens:", inputSwapTokens);
-                await zap.getProportionForZap(params.pair, params.tickRange, inputSwapTokens);
+                // let result = await zap.getProportionForZap(params.pair, params.tickRange, inputSwapTokens, outputTokenPrices);
+                // console.log("inputTokenAddresses:", result.inputTokenAddresses);
+                // console.log("inputTokenAmounts:", result.inputTokenAmounts.map((x) => x.toString()));
+                // console.log("outputTokenAddresses:", result.outputTokenAddresses);
+                // console.log("outputTokenProportions:", result.outputTokenProportions.map((x) => x.toString()));
+                // console.log("outputTokenAmounts:", result.outputTokenAmounts.map((x) => x.toString()));
+                //
+                // let proportions = {
+                //     "inputTokens": result.inputTokenAddresses.map((e, i) => ({
+                //        "tokenAddress": e,
+                //         "amount": result.inputTokenAmounts[i].toString()
+                //     })).filter((x) => x.tokenAddress !== "0x0000000000000000000000000000000000000000"),
+                //     "outputTokens": result.outputTokenAddresses.map((e, i) => ({
+                //         "tokenAddress": e,
+                //         "proportion": fromE6(result.outputTokenProportions[i].toString()),
+                //     })).filter((x) => x.tokenAddress !== "0x0000000000000000000000000000000000000000"),
+                //     "amountToken0Out": result.outputTokenAmounts[0].toString(),
+                //     "amountToken1Out": result.outputTokenAmounts[1].toString(),
+                // };
 
-                // const proportions = calculateProportionForPool({
-                //     inputTokensDecimals: [token0InDec, token1InDec],
-                //     inputTokensAddresses: [token0In.address, token1In.address],
-                //     inputTokensAmounts: [amountToken0In, amountToken1In],
-                //     inputTokensPrices: [1, 1],
-                //     // inputTokensDecimals: [],
-                //     // inputTokensAddresses: [],
-                //     // inputTokensAmounts: [],
-                //     // inputTokensPrices: [await getOdosAmountOutOnly(token0In, dai, token0InDec, account.address), await getOdosAmountOutOnly(token1In, dai, token1InDec, account.address)],
-                //     outputTokensDecimals: [token0OutDec, token1OutDec],
-                //     outputTokensAddresses: [token0Out.address, token1Out.address],
-                //     outputTokensAmounts: [amountToken0Out, amountToken1Out],
-                //     outputTokensPrices: [1, 1], // TODO: fix prices
-                //     proportion0: reserves[0] * price / sumReserves,
-                // });
+                // let proportions = {
+                //     inputTokens: [
+                //         {
+                //             tokenAddress: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+                //             amount: '1000000000000000000'
+                //         },
+                //         {
+                //             tokenAddress: '0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376',
+                //             amount: '568696'
+                //         }
+                //     ],
+                //     outputTokens: [
+                //         {
+                //             tokenAddress: '0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA',
+                //             proportion: 1
+                //         }
+                //     ],
+                //     amountToken0Out: '431304',
+                //     amountToken1Out: '0'
+                // };
 
+                // let proportions =  {
+                //     inputTokens: [
+                //         {
+                //             tokenAddress: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+                //             amount: '1000000000000000000000'
+                //         }
+                //     ],
+                //     outputTokens: [
+                //         {
+                //             tokenAddress: '0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376',
+                //             proportion: 0.424012
+                //         },
+                //         {
+                //             tokenAddress: '0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA',
+                //             proportion: 0.575988
+                //         }
+                //     ],
+                //     amountToken0Out: '1000000',
+                //     amountToken1Out: '0'
+                // };
+
+                // let proportions = {
+                //     inputTokens: [
+                //         {
+                //             tokenAddress: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+                //             amount: '1000000000000000000000'
+                //         }
+                //     ],
+                //     outputTokens: [
+                //         {
+                //             tokenAddress: '0x4200000000000000000000000000000000000006',
+                //             proportion: 0.305585
+                //         },
+                //         {
+                //             tokenAddress: '0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376',
+                //             proportion: 0.694415
+                //         }
+                //     ],
+                //     amountToken0Out: '0',
+                //     amountToken1Out: '1000000'
+                // };
+
+                let proportions =  {
+                    inputTokens: [
+                        {
+                            tokenAddress: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+                            amount: '1000000000000000000'
+                        }
+                    ],
+                    outputTokens: [
+                        {
+                            tokenAddress: '0x4200000000000000000000000000000000000006',
+                            proportion: 0.666323
+                        },
+                        {
+                            tokenAddress: '0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376',
+                            proportion: 0.333677
+                        }
+                    ],
+                    amountToken0Out: '0',
+                    amountToken1Out: '1000000'
+                };
+
+                console.log("proportions", proportions);
                 const request = await getOdosRequest({
                     'inputTokens': proportions.inputTokens,
                     'outputTokens': proportions.outputTokens,
                     'userAddr': zap.address,
                 });
 
-
-                // const inputTokens = proportions.inputTokens.map(({ tokenAddress, amount }) => {
-                //     return { 'tokenAddress': tokenAddress, 'amountIn': amount };
-                // });
-                const outputTokens = proportions.outputTokens.map(({ tokenAddress }) => {
-                    return { 'tokenAddress': tokenAddress, 'receiver': zap.address };
+                const inputTokensSwap = proportions.inputTokens.map(({ tokenAddress, amount }) => {
+                    return { "tokenAddress": tokenAddress, "amountIn": amount };
+                });
+                const outputTokensSwap = proportions.outputTokens.map(({ tokenAddress }) => {
+                    return { "tokenAddress": tokenAddress, "receiver": zap.address };
                 });
 
                 let swapData = {
-                    inputs: inputTokens,
-                    outputs: outputTokens,
+                    inputs: inputTokensSwap,
+                    outputs: outputTokensSwap,
                     data: request.data,
                 };
-                console.log('swap data:', swapData);
-                let price = await (await zap.connect(account).zapIn(
-                    swapData,
-                    {
-                        amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out],
-                        ...params,
-                    },
-                )).wait();
+                let aerodromeData = {
+                    pair: params.pair,
+                    amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out],
+                    tickRange: params.tickRange,
+                }
+                console.log('swapData:', swapData);
+                console.log('aerodromeData:', aerodromeData);
+                let price = await (await zap.connect(account).zapIn(swapData, aerodromeData)).wait();
 
                 if ('tokenId' in params) {
                     let gauge = await ethers.getContractAt(abiNFTPool, params.gauge, account);
@@ -189,12 +297,6 @@ describe('Testing all zaps', function() {
                 const outputTokensEvent = price.events.find((event) => event.event === 'OutputTokens');
                 const putIntoPoolEvent = price.events.find((event) => event.event === 'PutIntoPool');
                 const returnedToUserEvent = price.events.find((event) => event.event === 'ReturnedToUser');
-                let mintEvent;
-
-                if ('priceRange' in params) {
-                    mintEvent = price.events.find((event) => event.event === 'IncreaseLiquidity');
-                }
-
 
                 console.log(`Input tokens: ${inputTokensEvent.args.amountsIn} ${inputTokensEvent.args.tokensIn}`);
                 console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
