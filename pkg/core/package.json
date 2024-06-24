@@ -1,6 +1,6 @@
 {
   "name": "@overnight-contracts/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Core contracts",
   "main": "hardhat.config",
   "directories": {
