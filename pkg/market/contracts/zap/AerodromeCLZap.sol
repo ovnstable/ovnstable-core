@@ -5,6 +5,8 @@ import "./OdosZap.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 
 contract AerodromeCLZap is OdosZap {
+    uint256 internal constant BASE_DIV = 1000000;
+
     INonfungiblePositionManager public npm;
 
     event TokenId(uint256 tokenId); // name..?
@@ -47,13 +49,13 @@ contract AerodromeCLZap is OdosZap {
 
     struct OutTokenInfo {
         uint256 idx;
-        uint256 amount;
+        uint256 amountUsd;
         uint256 prop;
-        uint256 sumProp;
+        uint256 sumPropUsd;
         uint256 propAmount;
         uint256 amountToSwap;
         uint256 outAmount;
-        uint256 price;
+        uint256 priceUsd;
     }
 
     function setParams(ZapParams memory params) external onlyAdmin {
@@ -127,7 +129,7 @@ contract AerodromeCLZap is OdosZap {
         emit ReturnedToUser(result.amountsReturned, tokensOut);
     }
 
-    function _getProportion(IUniswapV3Pool pool, int24[] memory tickRange) internal view returns (uint256 token0Amount, uint256 token1Amount, uint256 denominator) {
+    function _getProportion(IUniswapV3Pool pool, int24[] memory tickRange) internal view returns (uint256 token0Amount, uint256 token1Amount) {
         uint256 dec0 = 10 ** IERC20Metadata(pool.token0()).decimals();
         uint256 dec1 = 10 ** IERC20Metadata(pool.token1()).decimals();
         (uint160 sqrtRatioX96,,,,,) = pool.slot0();
@@ -136,56 +138,23 @@ contract AerodromeCLZap is OdosZap {
         uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(tickRange[1]);
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, sqrtRatio0, sqrtRatio1, dec0 * 1000, dec1 * 1000);
         (token0Amount, token1Amount) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatio0, sqrtRatio1, liquidity);
-        denominator = dec0 > dec1 ? dec0 : dec1;
+        uint256 denominator = dec0 > dec1 ? dec0 : dec1;
 
         token0Amount = token0Amount * (denominator / dec0);
         token1Amount = token1Amount * (denominator / dec1);
     }
 
-    uint256 internal constant BASE_DIV = 1000000;
-
     function getProportionForZap(address pair, int24[] memory tickRange, InputSwapToken[] memory inputTokens, uint256[] memory outputTokenPrices)
-    public view returns (ResultOfProportion memory) {
+    public view returns (ResultOfProportion memory result) {
         IUniswapV3Pool pool = IUniswapV3Pool(pair);
         IERC20Metadata[] memory tokens = new IERC20Metadata[](inputTokens.length);
         OutTokenInfo[] memory outTokens = new OutTokenInfo[](2);
-        uint256 sumInputs;
-        uint256 denominator;
-        uint256 i;
-        ResultOfProportion memory result;
+        uint256 sumInputsUsd;
 
         outTokens[0].idx = inputTokens.length;
         outTokens[1].idx = inputTokens.length;
-        outTokens[0].price = outputTokenPrices[0];
-        outTokens[1].price = outputTokenPrices[1];
-
-        for (i = 0; i < inputTokens.length; i++) {
-            tokens[i] = IERC20Metadata(inputTokens[i].tokenAddress);
-            if (denominator < tokens[i].decimals()) {
-                denominator = tokens[i].decimals();
-            }
-            if (inputTokens[i].tokenAddress == pool.token0()) {
-                outTokens[0].idx = i;
-            } else if (inputTokens[i].tokenAddress == pool.token1()) {
-                outTokens[1].idx = i;
-            }
-        }
-        uint256 usdAmount;
-        for (i = 0; i < inputTokens.length; i++) {
-            usdAmount = inputTokens[i].price * inputTokens[i].amount * 10 ** (denominator - tokens[i].decimals());
-            sumInputs += usdAmount;
-            if (outTokens[0].idx == i) {
-                outTokens[0].amount = usdAmount;
-            } else if (outTokens[1].idx == i) {
-                outTokens[1].amount = usdAmount;
-            }
-        }
-
-        (outTokens[0].propAmount, outTokens[1].propAmount,) = _getProportion(pool, tickRange);
-        outTokens[0].prop = outTokens[0].propAmount * getCurrentPrice(pair);
-        outTokens[1].prop = outTokens[0].prop + outTokens[1].propAmount * BASE_DIV;
-        outTokens[0].sumProp = FullMath.mulDiv(sumInputs, outTokens[0].prop, outTokens[1].prop);
-        outTokens[1].sumProp = sumInputs - outTokens[0].sumProp;
+        outTokens[0].priceUsd = outputTokenPrices[0];
+        outTokens[1].priceUsd = outputTokenPrices[1];
 
         result.inputTokenAddresses = new address[](inputTokens.length);
         result.inputTokenAmounts = new uint256[](inputTokens.length);
@@ -193,60 +162,60 @@ contract AerodromeCLZap is OdosZap {
         result.outputTokenProportions = new uint256[](2);
         result.outputTokenAmounts = new uint256[](2);
 
-        for (i = 0; i < inputTokens.length; i++) {
-            if (outTokens[0].idx != i && outTokens[1].idx != i) {
-                result.inputTokenAddresses[i] = inputTokens[i].tokenAddress;
-                result.inputTokenAmounts[i] = inputTokens[i].amount;
+        for (uint256 i = 0; i < inputTokens.length; i++) {
+            tokens[i] = IERC20Metadata(inputTokens[i].tokenAddress);
+            uint256 amountUsd = inputTokens[i].price * inputTokens[i].amount * 10 ** (18 - tokens[i].decimals());
+            sumInputsUsd += amountUsd;
+            if (outTokens[0].idx == i) {
+                outTokens[0].idx = i;
+                outTokens[0].amountUsd = amountUsd;
+                continue;
             }
-            else if (outTokens[0].idx == i && outTokens[0].sumProp < outTokens[0].amount) {
-                outTokens[0].amountToSwap = (outTokens[0].amount - outTokens[0].sumProp) /
-                    (inputTokens[outTokens[0].idx].price * 10 ** (denominator - tokens[outTokens[0].idx].decimals()));
-                result.inputTokenAddresses[i] = inputTokens[i].tokenAddress;
-                result.inputTokenAmounts[i] = outTokens[0].amountToSwap;
+            if (outTokens[1].idx == i) {
+                outTokens[1].idx = i;
+                outTokens[1].amountUsd = amountUsd;
+                continue;
             }
-            else if (outTokens[1].idx == i && outTokens[1].sumProp < outTokens[1].amount) {
-                outTokens[1].amountToSwap = (outTokens[1].amount - outTokens[1].sumProp) /
-                    (inputTokens[outTokens[1].idx].price * 10 ** (denominator - tokens[outTokens[1].idx].decimals()));
-                result.inputTokenAddresses[i] = inputTokens[i].tokenAddress;
-                result.inputTokenAmounts[i] = outTokens[1].amountToSwap;
-            }
+            // front (!)
+            result.inputTokenAddresses[i] = inputTokens[i].tokenAddress;
+            result.inputTokenAmounts[i] = inputTokens[i].amount;
         }
-        if (outTokens[0].idx < inputTokens.length && outTokens[0].sumProp < outTokens[0].amount) {
-            result.outputTokenAddresses[0] = pool.token1();
-            result.outputTokenProportions[0] = BASE_DIV;
-            result.outputTokenAmounts[0] = inputTokens[outTokens[0].idx].amount - outTokens[0].amountToSwap;
+
+        (outTokens[0].propAmount, outTokens[1].propAmount) = _getProportion(pool, tickRange);
+        outTokens[0].prop = outTokens[0].propAmount * getCurrentPrice(pair);
+        // ?
+        outTokens[1].prop = outTokens[0].prop + outTokens[1].propAmount * BASE_DIV;
+        outTokens[0].sumPropUsd = FullMath.mulDiv(sumInputsUsd, outTokens[0].prop, outTokens[1].prop);
+        outTokens[1].sumPropUsd = sumInputsUsd - outTokens[0].sumPropUsd;
+
+        if (outTokens[0].sumPropUsd == outTokens[0].amountUsd && outTokens[1].sumPropUsd == outTokens[1].amountUsd &&
+            (outTokens[0].prop == 0 || outTokens[0].prop == outTokens[1].prop)) {
+            delete result.inputTokenAddresses;
+            delete result.inputTokenAmounts;
+            result.outputTokenAmounts[0] = outTokens[0].idx < inputTokens.length ? inputTokens[outTokens[0].idx].amount : 0;
             result.outputTokenAmounts[1] = outTokens[1].idx < inputTokens.length ? inputTokens[outTokens[1].idx].amount : 0;
             return result;
         }
-        if (outTokens[1].idx < inputTokens.length && outTokens[1].sumProp < outTokens[1].amount) {
-            result.outputTokenAddresses[0] = pool.token0();
-            result.outputTokenProportions[0] = BASE_DIV;
-            result.outputTokenAmounts[0] = inputTokens[outTokens[1].idx].amount - outTokens[1].amountToSwap;
-            result.outputTokenAmounts[1] = outTokens[0].idx < inputTokens.length ? inputTokens[outTokens[0].idx].amount : 0;
-            return result;
-        }
-        if (outTokens[0].idx < inputTokens.length &&
-        outTokens[0].sumProp == outTokens[0].amount &&
-        outTokens[1].idx < inputTokens.length &&
-        outTokens[1].sumProp == outTokens[1].amount &&
-            (outTokens[0].prop == 0 || outTokens[0].prop == outTokens[1].prop)) {
-            for (i = 0; i < inputTokens.length; i++) {
-                result.inputTokenAddresses[i] = address(0);
-                result.inputTokenAmounts[i] = 0;
-                if (i < 2) {
-                    result.outputTokenAddresses[i] = address(0);
-                    result.outputTokenProportions[i] = 0;
-                }
+
+        for (uint256 i = 0; i < 2; i++) {
+            if (outTokens[i].idx < inputTokens.length && outTokens[i].sumPropUsd < outTokens[i].amountUsd) {
+                outTokens[i].amountToSwap = (outTokens[i].amountUsd - outTokens[i].sumPropUsd) /
+                    (inputTokens[outTokens[i].idx].price * 10 ** (18 - tokens[outTokens[i].idx].decimals()));
+                result.inputTokenAddresses[outTokens[i].idx] = inputTokens[outTokens[i].idx].tokenAddress;
+                result.inputTokenAmounts[outTokens[i].idx] = outTokens[i].amountToSwap;
+                result.outputTokenAddresses[i] = i == 0 ? pool.token0() : pool.token1();
+                // front (!)
+                result.outputTokenProportions[i] = BASE_DIV;
+                result.outputTokenAmounts[i] = inputTokens[outTokens[i].idx].amount - outTokens[i].amountToSwap;
+                result.outputTokenAmounts[1 - i] = outTokens[1 - i].idx < inputTokens.length ? inputTokens[outTokens[1 - i].idx].amount : 0;
+                return result;
             }
-            result.outputTokenAmounts[0] = inputTokens[outTokens[0].idx].amount;
-            result.outputTokenAmounts[1] = inputTokens[outTokens[1].idx].amount;
-            return result;
         }
 
         result.outputTokenAddresses[0] = pool.token0();
         result.outputTokenAddresses[1] = pool.token1();
-        result.outputTokenProportions[0] = FullMath.mulDiv(outTokens[0].sumProp - outTokens[0].amount, BASE_DIV,
-            (outTokens[0].sumProp + outTokens[1].sumProp) - (outTokens[0].amount + outTokens[1].amount));
+        result.outputTokenProportions[0] = FullMath.mulDiv(outTokens[0].sumPropUsd - outTokens[0].amountUsd, BASE_DIV,
+            (outTokens[0].sumPropUsd + outTokens[1].sumPropUsd) - (outTokens[0].amountUsd + outTokens[1].amountUsd));
         result.outputTokenProportions[1] = BASE_DIV - result.outputTokenProportions[0];
         result.outputTokenAmounts[0] = outTokens[0].idx < inputTokens.length ? inputTokens[outTokens[0].idx].amount : 0;
         result.outputTokenAmounts[1] = outTokens[1].idx < inputTokens.length ? inputTokens[outTokens[1].idx].amount : 0;
@@ -293,6 +262,7 @@ contract AerodromeCLZap is OdosZap {
         for (uint256 i = 0; i < prices.length; i++) {
             uint160 sqrtRatioX96 = Util.getSqrtRatioByPrice(prices[i], dec);
             int24 currentTick = TickMath.getTickAtSqrtRatio(sqrtRatioX96);
+            // change to currentTick <= 0
             if (currentTick % tickSpacing == 0) {
                 closestTicks[i] = currentTick;
             } else {
