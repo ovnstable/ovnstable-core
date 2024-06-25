@@ -183,7 +183,7 @@ contract AerodromeCLZap is OdosZap {
 
         (outTokens[0].propAmount, outTokens[1].propAmount) = _getProportion(pool, tickRange);
         outTokens[0].prop = outTokens[0].propAmount * getCurrentPrice(pair);
-        outTokens[1].prop = outTokens[0].prop + outTokens[1].propAmount * IERC20Metadata(outTokens[1].token).decimals();
+        outTokens[1].prop = outTokens[0].prop + outTokens[1].propAmount * (10 ** IERC20Metadata(outTokens[1].token).decimals());
         outTokens[0].sumPropUsd = FullMath.mulDiv(sumInputsUsd, outTokens[0].prop, outTokens[1].prop);
         outTokens[1].sumPropUsd = sumInputsUsd - outTokens[0].sumPropUsd;
 
