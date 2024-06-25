@@ -21,12 +21,12 @@ const { getOdosAmountOut, getOdosSwapData } = require('@overnight-contracts/comm
 const { getOdosAmountOutOnly } = require('../../common/utils/odos-helper.js');
 
 let zaps_aerodrome = [
-    // {
-    //     name: 'AerodromeCLZap',
-    //     pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
-    //     inputTokens: ['dai', 'usdPlus'],
-    //     priceRange: [1, 1.00022],
-    // },
+    {
+        name: 'AerodromeCLZap',
+        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+        inputTokens: ['dai', 'usdPlus'],
+        priceRange: [1, 1.00022],
+    },
     {
         name: 'AerodromeCLZap',
         pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
@@ -85,46 +85,34 @@ describe('Testing all zaps', function() {
                     toE6(1),
                     toE6(1),
                 ];
-                const outputTokenPrices = [
-                    toE6(3350),
+                await check(amounts, prices);
+            });
+
+            it('swap and disbalance on one asset', async function() {
+                const amounts = [
+                    toTokenIn[0](1),
+                    toTokenIn[1](100),
+                ];
+                const prices = [
+                    toE6(1),
                     toE6(1),
                 ];
-                await check(amounts, prices, outputTokenPrices);
+                await check(amounts, prices);
             });
-            //
-            // it('swap and disbalance on one asset', async function() {
-            //     const amounts = [
-            //         toTokenIn[0](1),
-            //         toTokenIn[1](100),
-            //     ];
-            //     const prices = [
-            //         toE6(1),
-            //         toE6(1),
-            //     ];
-            //     const outputTokenPrices = [
-            //         toE6(1),
-            //         toE6(1),
-            //     ];
-            //     await check(amounts, prices, outputTokenPrices);
-            // });
 
-            // it('swap and disbalance on another asset', async function() {
-            //     const amounts = [
-            //         toTokenIn[0](1000),
-            //         toTokenIn[1](1),
-            //     ];
-            //     const prices = [
-            //         toE6(1),
-            //         toE6(1),
-            //     ];
-            //     const outputTokenPrices = [
-            //         toE6(1),
-            //         toE6(1),
-            //     ];
-            //     await check(amounts, prices, outputTokenPrices);
-            // });
+            it('swap and disbalance on another asset', async function() {
+                const amounts = [
+                    toTokenIn[0](1000),
+                    toTokenIn[1](1),
+                ];
+                const prices = [
+                    toE6(1),
+                    toE6(1),
+                ];
+                await check(amounts, prices);
+            });
 
-            async function check(amounts, prices, outputTokenPrices) {
+            async function check(amounts, prices) {
                 await showBalances();
                 let inputSwapTokens = [];
                 for (let i = 0; i < inputTokens.length; i++) {
@@ -136,25 +124,25 @@ describe('Testing all zaps', function() {
                     });
                 }
                 console.log("inputSwapTokens:", inputSwapTokens);
-                // let result = await zap.getProportionForZap(params.pair, params.tickRange, inputSwapTokens, outputTokenPrices);
-                // console.log("inputTokenAddresses:", result.inputTokenAddresses);
-                // console.log("inputTokenAmounts:", result.inputTokenAmounts.map((x) => x.toString()));
-                // console.log("outputTokenAddresses:", result.outputTokenAddresses);
-                // console.log("outputTokenProportions:", result.outputTokenProportions.map((x) => x.toString()));
-                // console.log("outputTokenAmounts:", result.outputTokenAmounts.map((x) => x.toString()));
-                //
-                // let proportions = {
-                //     "inputTokens": result.inputTokenAddresses.map((e, i) => ({
-                //        "tokenAddress": e,
-                //         "amount": result.inputTokenAmounts[i].toString()
-                //     })).filter((x) => x.tokenAddress !== "0x0000000000000000000000000000000000000000"),
-                //     "outputTokens": result.outputTokenAddresses.map((e, i) => ({
-                //         "tokenAddress": e,
-                //         "proportion": fromE6(result.outputTokenProportions[i].toString()),
-                //     })).filter((x) => x.tokenAddress !== "0x0000000000000000000000000000000000000000"),
-                //     "amountToken0Out": result.outputTokenAmounts[0].toString(),
-                //     "amountToken1Out": result.outputTokenAmounts[1].toString(),
-                // };
+                let result = await zap.getProportionForZap(params.pair, params.tickRange, inputSwapTokens);
+                console.log("inputTokenAddresses:", result.inputTokenAddresses);
+                console.log("inputTokenAmounts:", result.inputTokenAmounts.map((x) => x.toString()));
+                console.log("outputTokenAddresses:", result.outputTokenAddresses);
+                console.log("outputTokenProportions:", result.outputTokenProportions.map((x) => x.toString()));
+                console.log("outputTokenAmounts:", result.outputTokenAmounts.map((x) => x.toString()));
+
+                let proportions = {
+                    "inputTokens": result.inputTokenAddresses.map((e, i) => ({
+                       "tokenAddress": e,
+                        "amount": result.inputTokenAmounts[i].toString()
+                    })).filter((x) => x.tokenAddress !== "0x0000000000000000000000000000000000000000"),
+                    "outputTokens": result.outputTokenAddresses.map((e, i) => ({
+                        "tokenAddress": e,
+                        "proportion": fromE6(result.outputTokenProportions[i].toString()),
+                    })).filter((x) => x.tokenAddress !== "0x0000000000000000000000000000000000000000"),
+                    "amountToken0Out": result.outputTokenAmounts[0].toString(),
+                    "amountToken1Out": result.outputTokenAmounts[1].toString(),
+                };
 
                 // let proportions = {
                 //     inputTokens: [
@@ -219,26 +207,26 @@ describe('Testing all zaps', function() {
                 //     amountToken1Out: '1000000'
                 // };
 
-                let proportions =  {
-                    inputTokens: [
-                        {
-                            tokenAddress: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
-                            amount: '1000000000000000000'
-                        }
-                    ],
-                    outputTokens: [
-                        {
-                            tokenAddress: '0x4200000000000000000000000000000000000006',
-                            proportion: 0.666323
-                        },
-                        {
-                            tokenAddress: '0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376',
-                            proportion: 0.333677
-                        }
-                    ],
-                    amountToken0Out: '0',
-                    amountToken1Out: '1000000'
-                };
+                // let proportions =  {
+                //     inputTokens: [
+                //         {
+                //             tokenAddress: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+                //             amount: '1000000000000000000'
+                //         }
+                //     ],
+                //     outputTokens: [
+                //         {
+                //             tokenAddress: '0x4200000000000000000000000000000000000006',
+                //             proportion: 0.666323
+                //         },
+                //         {
+                //             tokenAddress: '0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376',
+                //             proportion: 0.333677
+                //         }
+                //     ],
+                //     amountToken0Out: '0',
+                //     amountToken1Out: '1000000'
+                // };
 
                 console.log("proportions", proportions);
                 const request = await getOdosRequest({
