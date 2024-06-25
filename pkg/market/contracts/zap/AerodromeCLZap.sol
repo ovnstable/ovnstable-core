@@ -166,12 +166,12 @@ contract AerodromeCLZap is OdosZap {
             tokens[i] = IERC20Metadata(inputTokens[i].tokenAddress);
             uint256 amountUsd = inputTokens[i].price * inputTokens[i].amount * 10 ** (18 - tokens[i].decimals());
             sumInputsUsd += amountUsd;
-            if (outTokens[0].idx == i) {
+            if (inputTokens[i].tokenAddress == pool.token0()) {
                 outTokens[0].idx = i;
                 outTokens[0].amountUsd = amountUsd;
                 continue;
             }
-            if (outTokens[1].idx == i) {
+            if (inputTokens[i].tokenAddress == pool.token1()) {
                 outTokens[1].idx = i;
                 outTokens[1].amountUsd = amountUsd;
                 continue;
