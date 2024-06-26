@@ -33,6 +33,12 @@ let zaps_aerodrome = [
         inputTokens: ['dai', 'usdPlus'],
         priceRange: [3100, 3500],
     },
+    {
+        name: 'AerodromeCLZap',
+        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+        inputTokens: ['dai', 'usdPlus'],
+        priceRange: [1.2, 1.5],
+    },
 ];
 
 // TODO: remove hardcode
@@ -112,6 +118,18 @@ describe('Testing all zaps', function() {
                 await check(amounts, prices);
             });
 
+            it('swap and put outside current range', async function() {
+                const amounts = [
+                    toTokenIn[0](0),
+                    toTokenIn[1](1000),
+                ];
+                const prices = [
+                    toE6(1),
+                    toE6(1),
+                ];
+                await check(amounts, prices);
+            });
+
             async function check(amounts, prices) {
                 await showBalances();
                 let inputSwapTokens = [];
@@ -143,90 +161,6 @@ describe('Testing all zaps', function() {
                     "amountToken0Out": result.outputTokenAmounts[0].toString(),
                     "amountToken1Out": result.outputTokenAmounts[1].toString(),
                 };
-
-                // let proportions = {
-                //     inputTokens: [
-                //         {
-                //             tokenAddress: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
-                //             amount: '1000000000000000000'
-                //         },
-                //         {
-                //             tokenAddress: '0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376',
-                //             amount: '568696'
-                //         }
-                //     ],
-                //     outputTokens: [
-                //         {
-                //             tokenAddress: '0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA',
-                //             proportion: 1
-                //         }
-                //     ],
-                //     amountToken0Out: '431304',
-                //     amountToken1Out: '0'
-                // };
-
-                // let proportions =  {
-                //     inputTokens: [
-                //         {
-                //             tokenAddress: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
-                //             amount: '1000000000000000000000'
-                //         }
-                //     ],
-                //     outputTokens: [
-                //         {
-                //             tokenAddress: '0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376',
-                //             proportion: 0.424012
-                //         },
-                //         {
-                //             tokenAddress: '0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA',
-                //             proportion: 0.575988
-                //         }
-                //     ],
-                //     amountToken0Out: '1000000',
-                //     amountToken1Out: '0'
-                // };
-
-                // let proportions = {
-                //     inputTokens: [
-                //         {
-                //             tokenAddress: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
-                //             amount: '1000000000000000000000'
-                //         }
-                //     ],
-                //     outputTokens: [
-                //         {
-                //             tokenAddress: '0x4200000000000000000000000000000000000006',
-                //             proportion: 0.305585
-                //         },
-                //         {
-                //             tokenAddress: '0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376',
-                //             proportion: 0.694415
-                //         }
-                //     ],
-                //     amountToken0Out: '0',
-                //     amountToken1Out: '1000000'
-                // };
-
-                // let proportions =  {
-                //     inputTokens: [
-                //         {
-                //             tokenAddress: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
-                //             amount: '1000000000000000000'
-                //         }
-                //     ],
-                //     outputTokens: [
-                //         {
-                //             tokenAddress: '0x4200000000000000000000000000000000000006',
-                //             proportion: 0.666323
-                //         },
-                //         {
-                //             tokenAddress: '0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376',
-                //             proportion: 0.333677
-                //         }
-                //     ],
-                //     amountToken0Out: '0',
-                //     amountToken1Out: '1000000'
-                // };
 
                 console.log("proportions", proportions);
                 const request = await getOdosRequest({

@@ -164,7 +164,7 @@ contract AerodromeCLZap is OdosZap {
 
         for (uint256 i = 0; i < inputTokens.length; i++) {
             decimals[i] = IERC20Metadata(inputTokens[i].tokenAddress).decimals();
-            uint256 amountUsd = inputTokens[i].price * inputTokens[i].amount * 10 ** (18 - decimals[i]);
+            uint256 amountUsd = FullMath.mulDiv(inputTokens[i].price, inputTokens[i].amount, 10 ** decimals[i]);
             sumInputsUsd += amountUsd;
             if (inputTokens[i].tokenAddress == outTokens[0].token) {
                 outTokens[0].idx = i;
@@ -198,8 +198,7 @@ contract AerodromeCLZap is OdosZap {
 
         for (uint256 i = 0; i < 2; i++) {
             if (outTokens[i].idx < inputTokens.length && outTokens[i].sumPropUsd < outTokens[i].amountUsd) {
-                outTokens[i].amountToSwap = (outTokens[i].amountUsd - outTokens[i].sumPropUsd) /
-                    (inputTokens[outTokens[i].idx].price * 10 ** (18 - decimals[outTokens[i].idx]));
+                outTokens[i].amountToSwap = FullMath.mulDiv(outTokens[i].amountUsd - outTokens[i].sumPropUsd, 10 ** decimals[outTokens[i].idx], inputTokens[outTokens[i].idx].price);
                 result.inputTokenAddresses[outTokens[i].idx] = inputTokens[outTokens[i].idx].tokenAddress;
                 result.inputTokenAmounts[outTokens[i].idx] = outTokens[i].amountToSwap;
                 result.outputTokenAddresses[0] = i == 0 ? outTokens[1].token : outTokens[0].token;
@@ -248,11 +247,10 @@ contract AerodromeCLZap is OdosZap {
         for (uint256 i = 0; i < prices.length; i++) {
             uint160 sqrtRatioX96 = Util.getSqrtRatioByPrice(prices[i], dec);
             int24 currentTick = TickMath.getTickAtSqrtRatio(sqrtRatioX96);
-            // change to currentTick <= 0
-            if (currentTick % tickSpacing == 0) {
-                closestTicks[i] = currentTick;
+            if (currentTick % tickSpacing >= 0) {
+                closestTicks[i] = currentTick - currentTick % tickSpacing;
             } else {
-                closestTicks[i] = currentTick > 0 ? currentTick - currentTick % tickSpacing : currentTick - tickSpacing - (currentTick % tickSpacing);
+                closestTicks[i] = currentTick - tickSpacing - (currentTick % tickSpacing);
             }
         }
         return closestTicks;
@@ -266,12 +264,12 @@ contract AerodromeCLZap is OdosZap {
         IUniswapV3Pool pool = IUniswapV3Pool(pair);
         (, int24 tick,,,,) = pool.slot0();
         int24 tickSpacing = pool.tickSpacing();
-        if (tick % tickSpacing == 0) {
-            left = tick;
-            right = tick + tickSpacing;
+        if (tick % tickSpacing >= 0) {
+            left = tick - tick % tickSpacing;
+            right = tick + tickSpacing - (tick % tickSpacing);
         } else {
-            left = tick > 0 ? tick - tick % tickSpacing : tick - tickSpacing - (tick % tickSpacing);
-            right = tick > 0 ? tick + tickSpacing - (tick % tickSpacing) : tick - (tick % tickSpacing);
+            left = tick - tickSpacing - (tick % tickSpacing);
+            right = tick - (tick % tickSpacing);
         }
     }
 }
