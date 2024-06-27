@@ -1,5 +1,6 @@
 const {
     initWallet,
+    transferETH,
     getContract,
     getPrice,
     getStrategyMapping
@@ -35,11 +36,10 @@ async function main() {
 
 
     let names = [
-        'StrategyZerolend',
-        'StrategyMendiUsdc',
-        'StrategyUsdc'
+        'StrategyMorpho'
     ]
-
+    // let mainAddress = (await initWallet()).address;
+    // await transferETH(100, mainAddress);   
     await showRules(names);
     await moveRulesAll(names);
     await showRules(names);
