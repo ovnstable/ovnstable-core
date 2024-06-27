@@ -6,7 +6,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Morpho.sol";
 
 
 
-contract StrategyMorpho is Strategy {
+contract StrategyMorphoDirect is Strategy {
     
     // --- params
 
