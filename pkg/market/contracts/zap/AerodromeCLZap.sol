@@ -34,6 +34,7 @@ contract AerodromeCLZap is OdosZap {
         address[] outputTokenAddresses;
         uint256[] outputTokenProportions;
         uint256[] outputTokenAmounts;
+        uint256[] poolProportionsUsd;
     }
 
     struct ResultOfLiquidity {
@@ -51,7 +52,6 @@ contract AerodromeCLZap is OdosZap {
         uint256 idx;
         uint256 amountUsd;
         uint256 prop;
-        uint256 sumPropUsd;
         uint256 propAmount;
         uint256 amountToSwap;
         uint256 outAmount;
@@ -161,6 +161,7 @@ contract AerodromeCLZap is OdosZap {
         result.outputTokenAddresses = new address[](2);
         result.outputTokenProportions = new uint256[](2);
         result.outputTokenAmounts = new uint256[](2);
+        result.poolProportionsUsd = new uint256[](2);
 
         for (uint256 i = 0; i < inputTokens.length; i++) {
             decimals[i] = IERC20Metadata(inputTokens[i].tokenAddress).decimals();
@@ -184,10 +185,10 @@ contract AerodromeCLZap is OdosZap {
         (outTokens[0].propAmount, outTokens[1].propAmount) = _getProportion(pool, tickRange);
         outTokens[0].prop = outTokens[0].propAmount * getCurrentPrice(pair);
         outTokens[1].prop = outTokens[0].prop + outTokens[1].propAmount * (10 ** IERC20Metadata(outTokens[1].token).decimals());
-        outTokens[0].sumPropUsd = FullMath.mulDiv(sumInputsUsd, outTokens[0].prop, outTokens[1].prop);
-        outTokens[1].sumPropUsd = sumInputsUsd - outTokens[0].sumPropUsd;
+        result.poolProportionsUsd[0] = FullMath.mulDiv(sumInputsUsd, outTokens[0].prop, outTokens[1].prop);
+        result.poolProportionsUsd[1] = sumInputsUsd - result.poolProportionsUsd[0];
 
-        if (outTokens[0].sumPropUsd == outTokens[0].amountUsd && outTokens[1].sumPropUsd == outTokens[1].amountUsd &&
+        if (result.poolProportionsUsd[0] == outTokens[0].amountUsd && result.poolProportionsUsd[1] == outTokens[1].amountUsd &&
             (outTokens[0].prop == 0 || outTokens[0].prop == outTokens[1].prop)) {
             delete result.inputTokenAddresses;
             delete result.inputTokenAmounts;
@@ -197,8 +198,8 @@ contract AerodromeCLZap is OdosZap {
         }
 
         for (uint256 i = 0; i < 2; i++) {
-            if (outTokens[i].idx < inputTokens.length && outTokens[i].sumPropUsd < outTokens[i].amountUsd) {
-                outTokens[i].amountToSwap = FullMath.mulDiv(outTokens[i].amountUsd - outTokens[i].sumPropUsd, 10 ** decimals[outTokens[i].idx], inputTokens[outTokens[i].idx].price);
+            if (outTokens[i].idx < inputTokens.length && result.poolProportionsUsd[i] < outTokens[i].amountUsd) {
+                outTokens[i].amountToSwap = FullMath.mulDiv(outTokens[i].amountUsd - result.poolProportionsUsd[i], 10 ** decimals[outTokens[i].idx], inputTokens[outTokens[i].idx].price);
                 result.inputTokenAddresses[outTokens[i].idx] = inputTokens[outTokens[i].idx].tokenAddress;
                 result.inputTokenAmounts[outTokens[i].idx] = outTokens[i].amountToSwap;
                 result.outputTokenAddresses[0] = i == 0 ? outTokens[1].token : outTokens[0].token;
@@ -212,8 +213,8 @@ contract AerodromeCLZap is OdosZap {
 
         result.outputTokenAddresses[0] = outTokens[0].token;
         result.outputTokenAddresses[1] = outTokens[1].token;
-        result.outputTokenProportions[0] = FullMath.mulDiv(outTokens[0].sumPropUsd - outTokens[0].amountUsd, BASE_DIV,
-            (outTokens[0].sumPropUsd + outTokens[1].sumPropUsd) - (outTokens[0].amountUsd + outTokens[1].amountUsd));
+        result.outputTokenProportions[0] = FullMath.mulDiv(result.poolProportionsUsd[0] - outTokens[0].amountUsd, BASE_DIV,
+            (result.poolProportionsUsd[0] + result.poolProportionsUsd[1]) - (outTokens[0].amountUsd + outTokens[1].amountUsd));
         result.outputTokenProportions[1] = BASE_DIV - result.outputTokenProportions[0];
         result.outputTokenAmounts[0] = outTokens[0].idx < inputTokens.length ? inputTokens[outTokens[0].idx].amount : 0;
         result.outputTokenAmounts[1] = outTokens[1].idx < inputTokens.length ? inputTokens[outTokens[1].idx].amount : 0;
