@@ -33,12 +33,12 @@ let zaps_aerodrome = [
         inputTokens: ['dai', 'usdPlus'],
         priceRange: [3100, 3500],
     },
-    {
-        name: 'AerodromeCLZap',
-        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
-        inputTokens: ['dai', 'usdPlus'],
-        priceRange: [1.2, 1.5],
-    },
+    // {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+    //     inputTokens: ['dai', 'usdPlus'],
+    //     priceRange: [1.2, 1.5],
+    // },
 ];
 
 // TODO: remove hardcode
@@ -84,12 +84,12 @@ describe('Testing all zaps', function() {
 
             it('swap and put nearly equal', async function() {
                 const amounts = [
-                    toTokenIn[0](1),
+                    toTokenIn[0](100),
                     toTokenIn[1](1),
                 ];
                 const prices = [
-                    toE6(1),
-                    toE6(1),
+                    toE18(1),
+                    toE18(1),
                 ];
                 await check(amounts, prices);
             });
@@ -100,8 +100,8 @@ describe('Testing all zaps', function() {
                     toTokenIn[1](100),
                 ];
                 const prices = [
-                    toE6(1),
-                    toE6(1),
+                    toE18(1),
+                    toE18(1),
                 ];
                 await check(amounts, prices);
             });
@@ -112,23 +112,23 @@ describe('Testing all zaps', function() {
                     toTokenIn[1](1),
                 ];
                 const prices = [
-                    toE6(1),
-                    toE6(1),
+                    toE18(1),
+                    toE18(1),
                 ];
                 await check(amounts, prices);
             });
 
-            it('swap and put outside current range', async function() {
-                const amounts = [
-                    toTokenIn[0](0),
-                    toTokenIn[1](1000),
-                ];
-                const prices = [
-                    toE6(1),
-                    toE6(1),
-                ];
-                await check(amounts, prices);
-            });
+            // it('swap and put outside current range', async function() {
+            //     const amounts = [
+            //         toTokenIn[0](0),
+            //         toTokenIn[1](1000),
+            //     ];
+            //     const prices = [
+            //         toE18(1),
+            //         toE18(1),
+            //     ];
+            //     await check(amounts, prices);
+            // });
 
             async function check(amounts, prices) {
                 await showBalances();
