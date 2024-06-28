@@ -8,11 +8,11 @@ contract AerodromeCLZap is OdosZap {
     INonfungiblePositionManager public npm;
 
     event TokenId(uint256 tokenId); // name..?
-    
+
     struct ZapParams {
         address odosRouter;
         address npm;
-    }   
+    }
 
     struct AerodromeCLZapInParams {
         address pair;
@@ -72,39 +72,39 @@ contract AerodromeCLZap is OdosZap {
         uint256 dec1 = 10 ** IERC20Metadata(pool.token1()).decimals();
         (uint160 sqrtRatioX96, int24 tick,,,,) = pool.slot0();
         int24 tickSpacing = pool.tickSpacing();
-        int24 lowerTick; 
+        int24 lowerTick;
         int24 upperTick;
 
-        if(aerodromeData.tickDelta == 0) {
+        if (aerodromeData.tickDelta == 0) {
             (lowerTick, upperTick) = Util.priceToTicks(aerodromeData.priceRange, dec0, pool.tickSpacing());
         } else {
             int24 offset = tick > 0 ? int24(1) : int24(0);
             lowerTick = tick / tickSpacing * tickSpacing - tickSpacing * ((aerodromeData.tickDelta + 1 - offset) / 2);
-            upperTick = tick / tickSpacing * tickSpacing + tickSpacing * ((aerodromeData.tickDelta + offset) / 2); 
+            upperTick = tick / tickSpacing * tickSpacing + tickSpacing * ((aerodromeData.tickDelta + offset) / 2);
         }
-        
+
         uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(lowerTick);
         uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(upperTick);
-        
+
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, sqrtRatio0, sqrtRatio1, dec0 * 1000, dec1 * 1000);
         (token0Amount, token1Amount) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatio0, sqrtRatio1, liquidity);
 
         denominator = dec0 > dec1 ? dec0 : dec1;
-        
+
         token0Amount = token0Amount * (denominator / dec0);
         token1Amount = token1Amount * (denominator / dec1);
     }
 
     function _addLiquidity(AerodromeCLZapInParams memory aerodromeData) internal {
-        
+
         IUniswapV3Pool pool = IUniswapV3Pool(aerodromeData.pair);
 
         address[] memory tokensOut = new address[](2);
         tokensOut[0] = pool.token0();
         tokensOut[1] = pool.token1();
-        
+
         ResultOfLiquidity memory result;
-        
+
         IERC20 asset0 = IERC20(tokensOut[0]);
         IERC20 asset1 = IERC20(tokensOut[1]);
         asset0.approve(address(npm), aerodromeData.amountsOut[0]);
@@ -113,7 +113,7 @@ contract AerodromeCLZap is OdosZap {
         result.amountAsset0Before = asset0.balanceOf(address(this));
         result.amountAsset1Before = asset1.balanceOf(address(this));
 
-        int24 lowerTick; 
+        int24 lowerTick;
         int24 upperTick;
         int24 tickSpacing = pool.tickSpacing();
         (, int24 tick,,,,) = pool.slot0();
@@ -123,14 +123,14 @@ contract AerodromeCLZap is OdosZap {
         } else {
             int24 offset = tick > 0 ? int24(1) : int24(0);
             lowerTick = tick / tickSpacing * tickSpacing - tickSpacing * ((aerodromeData.tickDelta + 1 - offset) / 2);
-            upperTick = tick / tickSpacing * tickSpacing + tickSpacing * ((aerodromeData.tickDelta + offset) / 2); 
+            upperTick = tick / tickSpacing * tickSpacing + tickSpacing * ((aerodromeData.tickDelta + offset) / 2);
         }
 
         (uint256 tokenId,,,) = npm.mint(INonfungiblePositionManager.MintParams(tokensOut[0], tokensOut[1], tickSpacing,
             lowerTick, upperTick, aerodromeData.amountsOut[0], aerodromeData.amountsOut[1], 0, 0, msg.sender, block.timestamp, 0));
 
-        emit TokenId(tokenId); 
-        
+        emit TokenId(tokenId);
+
         result.amountAsset0After = asset0.balanceOf(address(this));
         result.amountAsset1After = asset1.balanceOf(address(this));
 
@@ -161,7 +161,7 @@ contract AerodromeCLZap is OdosZap {
         (, int24 tick,,,,) = pool.slot0();
 
         int24 lowerTick = tick / tickSpacing * tickSpacing - (tickSpacing * (aerodromeData.tickDelta / 2));
-        int24 upperTick = tick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2); 
+        int24 upperTick = tick + tickSpacing * ((aerodromeData.tickDelta + 1) / 2);
 
         left = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(lowerTick), dec0);
         right = Util.getPriceBySqrtRatio(TickMath.getSqrtRatioAtTick(upperTick), dec0);
@@ -176,5 +176,43 @@ contract AerodromeCLZap is OdosZap {
 
     function getTickSpacing(address pair) public view returns (int24) {
         return IUniswapV3Pool(pair).tickSpacing();
+    }
+
+    function tickToPrice(address pair, int24 tick) public view returns (uint256) {
+        IUniswapV3Pool pool = IUniswapV3Pool(pair);
+        uint256 dec = 10 ** IERC20Metadata(pool.token0()).decimals();
+        uint160 sqrtRatioX96 = TickMath.getSqrtRatioAtTick(tick);
+        return Util.getPriceBySqrtRatio(sqrtRatioX96, dec);
+    }
+
+    function priceToClosestTick(address pair, uint256 price) public view returns (int24 closestTick) {
+        IUniswapV3Pool pool = IUniswapV3Pool(pair);
+        uint256 dec = 10 ** IERC20Metadata(pool.token0()).decimals();
+        uint160 sqrtRatioX96 = Util.getSqrtRatioByPrice(price, dec);
+
+        int24 currentTick = TickMath.getTickAtSqrtRatio(sqrtRatioX96);
+        int24 tickSpacing = pool.tickSpacing();
+        if (currentTick % tickSpacing == 0) {
+            closestTick = currentTick;
+        } else {
+            closestTick = currentTick > 0 ? currentTick - currentTick % tickSpacing : currentTick - tickSpacing - (currentTick % tickSpacing);
+        }
+    }
+
+    function getCurrentPoolTick(address pair) public view returns (int24 tick) {
+        (, tick,,,,) = IUniswapV3Pool(pair).slot0();
+    }
+
+    function closestTicksForCurrentTick(address pair) public view returns (int24 left, int24 right) {
+        IUniswapV3Pool pool = IUniswapV3Pool(pair);
+        (, int24 tick,,,,) = pool.slot0();
+        int24 tickSpacing = pool.tickSpacing();
+        if (tick % tickSpacing == 0) {
+            left = tick;
+            right = tick + tickSpacing;
+        } else {
+            left = tick > 0 ? tick - tick % tickSpacing : tick - tickSpacing - (tick % tickSpacing);
+            right = tick > 0 ? tick + tickSpacing - (tick % tickSpacing) : tick - (tick % tickSpacing);
+        }
     }
 }
