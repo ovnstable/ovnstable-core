@@ -13,18 +13,20 @@ contract StrategyMorphoDirect is Strategy {
     IERC20 public usdcToken;
     IMorpho public morpho;
     Id public marketId;
+    MarketParams public marketParams;
     
     // --- events
 
     event StrategyUpdatedParams();
 
-
+    
     // --- structs
 
     struct StrategyParams {
         address usdc;
         address morpho;
         Id marketId;
+        MarketParams marketParams;
     }
 
 
@@ -44,6 +46,7 @@ contract StrategyMorphoDirect is Strategy {
         usdcToken = IERC20(params.usdc);
         morpho = IMorpho(params.morpho);
         marketId = params.marketId;
+        marketParams = params.marketParams;
         
         emit StrategyUpdatedParams();
     }
@@ -57,8 +60,6 @@ contract StrategyMorphoDirect is Strategy {
     ) internal override {
 
         require(_asset == address(usdcToken), "Some token not compatible");
-
-        MarketParams memory marketParams = morpho.idToMarketParams(marketId); // mb do it in strategy setting
         
         usdcToken.approve(address(morpho), _amount);
 
@@ -74,7 +75,6 @@ contract StrategyMorphoDirect is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        MarketParams memory marketParams = morpho.idToMarketParams(marketId); // mb do it in strategy setting
         morpho.withdraw(marketParams, _amount, 0, address(this), address(this));
         
         return usdcToken.balanceOf(address(this));
@@ -87,8 +87,6 @@ contract StrategyMorphoDirect is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        MarketParams memory marketParams = morpho.idToMarketParams(marketId); // mb do it in strategy setting
-        // (uint256 supplyShares,,) = morpho.position(marketId, address(this));
         morpho.withdraw(marketParams, 0, morpho.position(marketId, address(this)).supplyShares, address(this), address(this));
 
         return usdcToken.balanceOf(address(this));
