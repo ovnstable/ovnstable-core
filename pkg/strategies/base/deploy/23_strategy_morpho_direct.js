@@ -18,7 +18,14 @@ async function getParams() {
     return {
         usdc: BASE.usdc,
         morpho: BASE.morpho,
-        marketId: "0xdba352d93a64b17c71104cbddc6aef85cd432322a1446b5b65163cbbc615cd0c"
+        marketId: "0x104ff0b7c0d67301cb24e3a10b928b0fb0026ee26338e28553b7064fa8b659a9",
+        marketParams: {
+            loanToken: BASE.usdc,
+            collateralToken: BASE.wUsdPlus,
+            oracle: "0x510A4C82f7eBf030aE2bcBDaC2504E59dF03b3E8",
+            irm: "0x46415998764C29aB2a25CbeA6254146D50D22687",
+            lltv: "770000000000000000"
+        }
     };
 }
 
