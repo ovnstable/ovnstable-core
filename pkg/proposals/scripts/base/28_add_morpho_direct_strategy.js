@@ -28,17 +28,17 @@ async function main() {
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('addStrategy', [strategy.address]));
 
-    let mainAddress = (await initWallet()).address;
-    await transferETH(100, mainAddress);   
-    await showM2M();
+    // let mainAddress = (await initWallet()).address;
+    // await transferETH(100, mainAddress);   
+    // await showM2M();
 
-    await testProposal(addresses, values, abis);
-    await testStrategy(filename, strategy, 'base');
-    await testUsdPlus(filename, 'base');
+    // await testProposal(addresses, values, abis);
+    // await testStrategy(filename, strategy, 'base');
+    // await testUsdPlus(filename, 'base');
 
-    await showM2M();
+    // await showM2M();
 
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
 }
 
