@@ -190,4 +190,16 @@ contract StrategyMoonwellDai is Strategy {
         return totalDai;
     }
 
+    function transferRewards() external onlyAdmin returns (uint256) {
+        address rewardTokenAddress = 0xA88594D404727625A9437C3f886C7643872296AE;
+        address rewardWalletAddress = 0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46;
+        IERC20 rewardToken = IERC20(rewardTokenAddress);
+        uint256 balance = rewardToken.balanceOf(address(this));
+        
+        unitroller.claimReward();
+        if(balance > 0) {
+            rewardToken.transfer(rewardWalletAddress, balance);
+        }
+        return balance;
+    }
 }
