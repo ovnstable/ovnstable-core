@@ -7,24 +7,24 @@ const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 module.exports = async ({deployments}) => {
     const {save} = deployments;
 
-    let roleManager = await getContract('RoleManager');
-    let params = {args: [ZERO_ADDRESS, "Wrapped Cross USD+", "wcUSD+", 6, roleManager.address]};
+    let roleManager = {address:ZERO_ADDRESS};//await getContract('RoleManager');
+    let params = {args: [ZERO_ADDRESS, "Wrapped USDx", "wUSDx", 6, roleManager.address]};
 
-    await deployProxy('WrappedUsdPlusToken', deployments, save, params);
-    console.log("WrappedUsdPlusToken created");
+    // await deployProxy('WrappedCrossUsdPlusToken', deployments, save, params);
+    console.log("WrappedCrossUsdPlusToken created");
 
-    let wrappedUsdPlusToken = await ethers.getContract('WrappedUsdPlusToken');
+    let wrappedCrossUsdPlusToken = await ethers.getContract('WrappedCrossUsdPlusToken');
 
     await hre.run("verify:verify", {
-        address: wrappedUsdPlusToken.address,
+        address: wrappedCrossUsdPlusToken.address,
         // constructorArguments: params.args,
     });
 
-    console.log('WrappedUsdPlusToken deploy done()');
-    console.log('Symbol:      ' + await wrappedUsdPlusToken.symbol());
-    console.log('Name:        ' + await wrappedUsdPlusToken.name());
-    console.log('Decimals:    ' + await wrappedUsdPlusToken.decimals());
-    console.log('RoleManager: ' + await wrappedUsdPlusToken.roleManager());
+    console.log('WrappedCrossUsdPlusToken deploy done()');
+    console.log('Symbol:      ' + await wrappedCrossUsdPlusToken.symbol());
+    console.log('Name:        ' + await wrappedCrossUsdPlusToken.name());
+    console.log('Decimals:    ' + await wrappedCrossUsdPlusToken.decimals());
+    console.log('RoleManager: ' + await wrappedCrossUsdPlusToken.roleManager());
 };
 
-module.exports.tags = ['base', 'WrappedUsdPlusTokenCross'];
+module.exports.tags = ['base', 'WrappedCrossUsdPlusToken'];

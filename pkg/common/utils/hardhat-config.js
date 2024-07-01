@@ -20,10 +20,12 @@ class Chain {
     static get ZKSYNC() { return 'ZKSYNC'; }
     static get LINEA() { return 'LINEA'; }
     static get BLAST() { return 'BLAST'; }
+    static get MODE() { return 'MODE'; }
+    static get ETHEREUM() { return 'ETHEREUM'; }
 
 
     static get list() {
-        return ['ARBITRUM', 'BASE', 'POLYGON', 'OPTIMISM', 'BSC', 'ZKSYNC', 'LINEA', 'BLAST']
+        return ['ARBITRUM', 'BASE', 'POLYGON', 'OPTIMISM', 'BSC', 'ZKSYNC', 'LINEA', 'BLAST', 'MODE', 'ETHEREUM']
     }
 }
 
@@ -158,6 +160,23 @@ function getNetworks() {
             timeout: timeout,
             gasPrice: 'auto',
             zksync: false,
+        },
+
+        ethereum: {
+            url: node_url('ethereum'),
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: 'auto',
+            zksync: false,
+        },
+
+        mode: {
+            url: node_url('mode'),
+            accounts: accountsNetwork,
+            timeout: timeout,
+            gasPrice: 'auto',
+            zksync: false,
+            chainId: 34443,
         },
 
         optimism_dai: {
@@ -359,6 +378,22 @@ function getEtherScan() {
                     apiURL: "https://api.blastscan.io/api",
                     browserURL: "https://blastscan.io/"
                 }
+            },
+            {
+                network: "mode",
+                chainId: 34443,
+                urls: {
+                    apiURL: "https://explorer.mode.network/api",
+                    browserURL: "https://explorer.mode.network/"
+                }
+            },
+            {
+                network: "ethereum",
+                chainId: 1,
+                urls: {
+                    apiURL: "https://api.etherscan.io/api",
+                    browserURL: "https://etherscan.io/"
+                }
             }
         ]
 
@@ -379,6 +414,8 @@ function getEtherScan() {
         arbitrum_dai: process.env[`ETHERSCAN_API_ARBITRUM`],
         blast: process.env[`ETHERSCAN_API_BLAST`],
         blast_usdc: process.env[`ETHERSCAN_API_BLAST`],
+        mode: process.env[`ETHERSCAN_API_MODE`],
+        ethereum: process.env[`ETHERSCAN_API_ETHEREUM`],
     }
 
     return object;

@@ -343,6 +343,14 @@ let OPTIMISM = {
     oracleEur: "0x3626369857A10CcC6cc3A6e4f5C2f5984a519F20",
 }
 
+let MODE = {
+    
+}
+
+let ETHEREUM = {
+    
+}
+
 let POLYGON = {
     // tokens
     usdPlus: "0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f",
@@ -446,6 +454,12 @@ function getAssets(network) {
         case "BLAST":
             assets = BLAST;
             break
+        case "MODE":
+            assets = MODE;
+            break
+        case "ETHEREUM":
+            assets = ETHEREUM;
+            break
         default:
             throw new Error('Unknown network');
     }
@@ -462,6 +476,8 @@ module.exports = {
     BASE: BASE,
     LINEA: LINEA,
     OPTIMISM: OPTIMISM,
+    MODE: MODE,
+    ETHEREUM: ETHEREUM,
     BLAST: BLAST,
     COMMON: COMMON,
     getAsset: getAsset,
