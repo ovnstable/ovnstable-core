@@ -302,7 +302,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(
         await testCase(async () => {
             await execTimelock(async timelock => {
-                let amount = toAsset(10_0, stand);
+                let amount = toAsset(5_0, stand);
                 await strategy.connect(timelock).unstake(asset.address, amount, walletAddress, false, await getPrice());
             });
         }, 'strategy.unstake'),
