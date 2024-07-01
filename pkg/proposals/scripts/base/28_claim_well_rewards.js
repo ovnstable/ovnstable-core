@@ -1,5 +1,5 @@
 const hre = require("hardhat");
-const { getContract, transferETH, initWallet, showM2M, execTimelock } = require("@overnight-contracts/common/utils/script-utils");
+const { getContract, transferETH, initWallet, showM2M, execTimelock, getERC20ByAddress } = require("@overnight-contracts/common/utils/script-utils");
 const {
     createProposal,
     testProposal,
@@ -13,32 +13,35 @@ const { prepareEnvironment } = require("@overnight-contracts/common/utils/tests"
 const { strategySiloUsdc } = require("@overnight-contracts/strategies-arbitrum/deploy/38_strategy_silo_usdc");
 const { ethers } = require("hardhat");
 const { strategyEtsEtaParams } = require("@overnight-contracts/strategies-base/deploy/11_ets_eta");
+const { OPTIMISM } = require('@overnight-contracts/common/utils/assets');
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
-    console.log(228);
     let addresses = [];
     let values = [];
     let abis = [];
 
-    let strategy = await getContract('StrategyMoonwellDai', 'base');
-    let pm = await getContract('PortfolioManager', 'base');
+    await transferETH(10, "0x0000000000000000000000000000000000000000");
+    // let strategy = await getContract('StrategyMoonwellDai', 'base_dai');
+    let strategy = await getContract('StrategyMoonwellUsdc', 'base_usdc');
+    let well = await getERC20ByAddress("0xA88594D404727625A9437C3f886C7643872296AE");
 
-    addresses.push(pm.address);
-    values.push(0);
-    abis.push(pm.interface.encodeFunctionData('transferRewards', [strategy.address]));
+    let newImpl = "0x2684B920519C639E6fcF568cAc11bD9780954863";
+    addProposalItem(strategy, 'upgradeTo', [newImpl]);
+    addProposalItem(strategy, 'transferRewards', []);
 
-    // let mainAddress = (await initWallet()).address;
-    // await transferETH(100, mainAddress);   
-    
+    let balanceOfBefore = await well.balanceOf(strategy.address);
     await testProposal(addresses, values, abis);
-    // await testStrategy(filename, strategy, 'base');
-    // await testUsdPlus(filename, 'base');
-
-    // await showM2M();
-
+    let balanceOfAfter = await well.balanceOf(strategy.address);
+    console.log("balanceOf", balanceOfBefore.toString(), balanceOfAfter.toString());
     // await createProposal(filename, addresses, values, abis);
+
+    function addProposalItem(contract, methodName, params) {
+        addresses.push(contract.address);
+        values.push(0);
+        abis.push(contract.interface.encodeFunctionData(methodName, params));
+    }
 
 }
 

@@ -160,7 +160,6 @@ contract StrategyMoonwellUsdc is Strategy {
         IERC20 rewardToken = IERC20(rewardTokenAddress);
         uint256 balance = rewardToken.balanceOf(address(this));
 
-        unitroller.claimReward();
         if(balance > 0){
             rewardToken.transfer(rewardWalletAddress, balance);
         }
