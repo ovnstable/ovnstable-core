@@ -20,7 +20,7 @@ const { getOdosAmountOut, getOdosSwapData } = require("@overnight-contracts/comm
 const { getOdosAmountOutOnly } = require("@overnight-contracts/common/utils/odos-helper.js");
 
 async function main() {
-    let zap = await getContract('PancakeCLZap');
+    let zap = await getContract('AerodromeCLZap');
     console.log("block:", await ethers.provider.getBlockNumber());
 
     // let params = {
@@ -46,15 +46,26 @@ async function main() {
     // };
 
     let params = {
-        name: 'PancakeCLZap',
-        pair: '0xe37304f7489ed253b2a46a1d9dabdca3d311d22e',
-        token0In: 'usdtPlus',
-        token1In: 'usdPlus',
-        token0Out: 'weth',
-        token1Out: 'usdPlus',
-        priceRange: [3321, 4059],
+            name: 'AerodromeCLZap',
+            pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
+            token0Out: 'weth',
+            token1Out: 'usdPlus',
+            token0In: 'sfrax',
+            token1In: 'dai',
+            priceRange: [3600, 4200],
         tickDelta: '0'
-    };
+        };
+
+    // let params = {
+    //     name: 'PancakeCLZap',
+    //     pair: '0xe37304f7489ed253b2a46a1d9dabdca3d311d22e',
+    //     token0In: 'usdtPlus',
+    //     token1In: 'usdPlus',
+    //     token0Out: 'weth',
+    //     token1Out: 'usdPlus',
+    //     priceRange: [3321, 4059],
+    //     tickDelta: '0'
+    // };
 
     let setUpParams = await setUp(params);
 
@@ -120,8 +131,8 @@ async function main() {
             reserves = await zap.getProportion(params.gauge);
         }
 
-        price = fromE6(await zap.getCurrentPrice(params.pair)).toFixed(0).toString();
-        console.log(price);
+    price = fromE6(await zap.getCurrentPrice(params.pair)).toFixed(0).toString();
+    console.log(price);
 
         const sumReserves = (reserves[0]).mul(price).add(reserves[1]);
 
@@ -148,6 +159,7 @@ async function main() {
         outputTokensPrices: [3671, 1],
         proportion0: reserves[0] * price / sumReserves
     })
+    return;
 
     const request = await getOdosRequest({
         "inputTokens": proportions.inputTokens,
