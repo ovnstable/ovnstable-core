@@ -20,12 +20,17 @@ contract StrategyMorphoDirect is Strategy {
     MarketParams public marketParams;
 
     address treasury;
-    uint256 fee;
+    uint256 fee; // in basis points
     uint256 balance;
+    uint256 limit; // in basis points
+
     
     // --- events
 
     event StrategyUpdatedParams();
+    event StrategyUpdatedFee();
+    event StrategyUpdatedLimit();
+    event StrategyUpdatedTreasury();
 
     
     // --- structs
@@ -36,7 +41,7 @@ contract StrategyMorphoDirect is Strategy {
         Id marketId;
         MarketParams marketParams;
         address treasury;
-        uint256 fee; // in basis points
+        uint256 fee;
     }
 
 
@@ -61,6 +66,7 @@ contract StrategyMorphoDirect is Strategy {
         fee = params.fee;
 
         balance = 0;
+        limit = 0; 
         
         emit StrategyUpdatedParams();
     }
@@ -116,7 +122,7 @@ contract StrategyMorphoDirect is Strategy {
         Position memory position = morpho.position(marketId, address(this));
 
         uint256 elapsed = block.timestamp - market.lastUpdate;
-        if (elapsed == 0) return usdcToken.balanceOf(address(this)) + SharesMathLib.toAssetsDown(position.supplyShares, morpho.market(marketId).totalSupplyAssets, morpho.market(marketId).totalSupplyShares);
+        if (elapsed == 0) return SharesMathLib.toAssetsDown(position.supplyShares, morpho.market(marketId).totalSupplyAssets, morpho.market(marketId).totalSupplyShares);
 
         if (marketParams.irm != address(0)) {
             uint256 borrowRate = IIrm(marketParams.irm).borrowRateView(marketParams, market);
@@ -148,16 +154,33 @@ contract StrategyMorphoDirect is Strategy {
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        console.log("cur: ", usdcToken.balanceOf(address(this)) + currentDepositValue());
-        console.log("prev: ", balance);
-        uint256 revenue = (usdcToken.balanceOf(address(this)) + currentDepositValue() - balance) * fee / 10000;
+        uint256 curNetAssetValue = usdcToken.balanceOf(address(this)) + currentDepositValue();
+        uint256 revenue = (curNetAssetValue - balance) * fee / 10000;
         
-        if(revenue > 0) {   
+        if(revenue > 0 && revenue * 10000 < curNetAssetValue * limit) {   
             morpho.withdraw(marketParams, revenue, 0, address(this), address(this));
             usdcToken.transfer(treasury, revenue);
             balance -= revenue;
         }
 
         return revenue;
+    }
+
+    function setFee(uint256 _fee) onlyPortfolioManager public {
+        fee = _fee;
+
+        emit StrategyUpdatedFee();
+    }
+
+    function setTreasury(address _treasury) onlyPortfolioManager public {
+        treasury = _treasury;
+
+        emit StrategyUpdatedTreasury();
+    }
+
+    function setLimit(uint256 _limit) onlyPortfolioManager public {
+        limit = _limit;
+
+        emit StrategyUpdatedLimit();
     }
 }
