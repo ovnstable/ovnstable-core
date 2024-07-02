@@ -383,8 +383,8 @@ function getEtherScan() {
                 network: "mode",
                 chainId: 34443,
                 urls: {
-                    apiURL: "https://explorer.mode.network/api",
-                    browserURL: "https://explorer.mode.network/"
+                    apiURL: "https://api.routescan.io/v2/network/mainnet/evm/34443/etherscan",
+                    browserURL: "https://modescan.io"
                 }
             },
             {
@@ -414,7 +414,7 @@ function getEtherScan() {
         arbitrum_dai: process.env[`ETHERSCAN_API_ARBITRUM`],
         blast: process.env[`ETHERSCAN_API_BLAST`],
         blast_usdc: process.env[`ETHERSCAN_API_BLAST`],
-        mode: process.env[`ETHERSCAN_API_MODE`],
+        mode: "mode",
         ethereum: process.env[`ETHERSCAN_API_ETHEREUM`],
     }
 
