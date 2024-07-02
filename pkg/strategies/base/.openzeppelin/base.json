@@ -12304,6 +12304,7 @@
             "offset": 0,
             "slot": "255",
             "type": "t_contract(IRoleManager)21255",
+
             "contract": "Strategy",
             "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
           },

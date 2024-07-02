@@ -9,6 +9,7 @@ contract StrategyMorphoDirect is Strategy {
     using MathLib for uint256;
     using UtilsLib for uint256;
     using SharesMathLib for uint256;
+
     
     // --- params
 
@@ -20,6 +21,7 @@ contract StrategyMorphoDirect is Strategy {
     address treasury;
     uint256 fee;
     uint256 balance;
+
     
     // --- events
 
@@ -76,7 +78,6 @@ contract StrategyMorphoDirect is Strategy {
         usdcToken.approve(address(morpho), _amount);
 
         morpho.supply(marketParams, _amount, 0, address(this), "");
-        
         balance += _amount;
     }
 
