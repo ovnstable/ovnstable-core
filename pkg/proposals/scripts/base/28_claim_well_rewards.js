@@ -26,11 +26,14 @@ async function main() {
     let strategyDai = await getContract('StrategyMoonwellDai', 'base_dai');
     let strategyUsdc = await getContract('StrategyMoonwellUsdc', 'base_usdc');
     let well = await getERC20ByAddress("0xA88594D404727625A9437C3f886C7643872296AE");
+    let timelock = await getContract('AgentTimelock');
 
-    let newImplUsdc = "0x0f50F1D8DB0Eb0d96f377924183AE1BaE371A955";
-    let newImplDai = "0x57E0551890f96f9D1Ab4B873e6Be173476097966";
-    addProposalItem(strategyDai, 'upgradeTo', [newImpl]);
-    addProposalItem(strategyUsdc, 'upgradeTo', [newImpl]);
+    let newImplDai = "0x2684B920519C639E6fcF568cAc11bD9780954863";
+    let newImplUsdc = "0x2684B920519C639E6fcF568cAc11bD9780954863";
+    addProposalItem(strategyDai, 'upgradeTo', [newImplDai]);
+    addProposalItem(strategyUsdc, 'upgradeTo', [newImplUsdc]);
+    addProposalItem(strategyDai, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock.address]);
+    addProposalItem(strategyUsdc, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock.address]);
     addProposalItem(strategyDai, 'transferRewards', []);
     addProposalItem(strategyUsdc, 'transferRewards', []);
 
