@@ -33,16 +33,37 @@ let zaps_aerodrome = [
         inputTokens: ['dai', 'usdPlus'],
         priceRange: [3100, 3500],
     },
-    // {
-    //     name: 'AerodromeCLZap',
-    //     pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
-    //     inputTokens: ['dai', 'usdPlus'],
-    //     priceRange: [1.2, 1.5],
-    // },
+    {
+        name: 'AerodromeCLZap',
+        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+        inputTokens: ['dai', 'usdPlus'],
+        priceRange: [1.2, 1.5],
+    },
+];
+
+let zaps_pancake = [
+    {
+        name: 'PancakeCLZap',
+        pair: '0x721F37495cD70383B0A77Bf1eB8f97eef29498Bb',
+        inputTokens: ['dai', 'usdPlus'],
+        priceRange: [0.9997, 1.0002],
+    },
+    {
+        name: 'PancakeCLZap',
+        pair: '0xe37304f7489ed253b2a46a1d9dabdca3d311d22e',
+        inputTokens: ['dai', 'usdPlus'],
+        priceRange: [3100, 3500],
+    },
+    {
+        name: 'PancakeCLZap',
+        pair: '0x721F37495cD70383B0A77Bf1eB8f97eef29498Bb',
+        inputTokens: ['dai', 'usdPlus'],
+        priceRange: [1.2, 1.5],
+    },
 ];
 
 // TODO: remove hardcode
-let zaps = zaps_aerodrome;
+let zaps = zaps_pancake;
 
 describe('Testing all zaps', function() {
     zaps.forEach((params) => {
@@ -118,17 +139,17 @@ describe('Testing all zaps', function() {
                 await check(amounts, prices);
             });
 
-            // it('swap and put outside current range', async function() {
-            //     const amounts = [
-            //         toTokenIn[0](0),
-            //         toTokenIn[1](1000),
-            //     ];
-            //     const prices = [
-            //         toE18(1),
-            //         toE18(1),
-            //     ];
-            //     await check(amounts, prices);
-            // });
+            it('swap and put outside current range', async function() {
+                const amounts = [
+                    toTokenIn[0](0),
+                    toTokenIn[1](10000),
+                ];
+                const prices = [
+                    toE18(1),
+                    toE18(1),
+                ];
+                await check(amounts, prices);
+            });
 
             async function check(amounts, prices) {
                 await showBalances();
@@ -163,11 +184,18 @@ describe('Testing all zaps', function() {
                 };
 
                 console.log("proportions", proportions);
-                const request = await getOdosRequest({
-                    'inputTokens': proportions.inputTokens,
-                    'outputTokens': proportions.outputTokens,
-                    'userAddr': zap.address,
-                });
+                let request;
+                if (proportions.inputTokens.length === 0 && proportions.outputTokens.length === 0) {
+                    request = {
+                        "data": "0x"
+                    }
+                } else {
+                    request = await getOdosRequest({
+                        'inputTokens': proportions.inputTokens,
+                        'outputTokens': proportions.outputTokens,
+                        'userAddr': zap.address,
+                    });
+                }
 
                 const inputTokensSwap = proportions.inputTokens.map(({ tokenAddress, amount }) => {
                     return { "tokenAddress": tokenAddress, "amountIn": amount };
