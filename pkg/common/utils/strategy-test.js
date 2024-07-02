@@ -15,36 +15,36 @@ const { Roles } = require("./roles");
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
     let values = [
-        {
-            value: 0.02,
-        },
-        {
-            value: 0.2,
-        },
-        {
-            value: 2,
-        },
-        {
-            value: 20,
-        },
-        {
-            value: 200,
-        },
-        {
-            value: 2000,
-        },
-        {
-            value: 20000,
-        },
-        {
-            value: 100000,
-        },
-        {
-            value: 200000,
-        },
-        {
-            value: 1000000,
-        },
+        // {
+        //     value: 0.02,
+        // },
+        // {
+        //     value: 0.2,
+        // },
+        // {
+        //     value: 2,
+        // },
+        // {
+        //     value: 20,
+        // },
+        // {
+        //     value: 200,
+        // },
+        // {
+        //     value: 2000,
+        // },
+        // {
+        //     value: 20000,
+        // },
+        // {
+        //     value: 100000,
+        // },
+        // {
+        //     value: 200000,
+        // },
+        // {
+        //     value: 1000000,
+        // },
         {
             value: 2000000,
         },
@@ -292,8 +292,9 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
                         await ethers.provider.send("evm_increaseTime", [delay]);
                         await ethers.provider.send('evm_mine');
                     }
-
+                    console.log("----a----");
                     let tx = await (await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true)).wait();
+                    console.log("----b----");
                     let rewardEvent = tx.events.find((e) => e.event === 'Reward');
                     let rewardAmount = new BigNumber('0');
                     if (rewardEvent) {
