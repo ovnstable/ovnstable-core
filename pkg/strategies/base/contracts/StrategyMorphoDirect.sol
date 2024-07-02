@@ -4,6 +4,8 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/connectors/contracts/stuff/Morpho.sol";
 
 
+import "hardhat/console.sol";
+
 contract StrategyMorphoDirect is Strategy {
     using MathLib for uint128;
     using MathLib for uint256;
@@ -146,6 +148,8 @@ contract StrategyMorphoDirect is Strategy {
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
+        console.log("cur: ", usdcToken.balanceOf(address(this)) + currentDepositValue());
+        console.log("prev: ", balance);
         uint256 revenue = (usdcToken.balanceOf(address(this)) + currentDepositValue() - balance) * fee / 10000;
         
         if(revenue > 0) {   

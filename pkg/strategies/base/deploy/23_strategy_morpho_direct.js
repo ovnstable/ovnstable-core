@@ -27,6 +27,7 @@ async function getParams() {
             lltv: "770000000000000000"
         },
         treasury: COMMON.rewardWallet,
+        fee: 2000
     };
 }
 
