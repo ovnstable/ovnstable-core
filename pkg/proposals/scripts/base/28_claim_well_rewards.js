@@ -22,19 +22,26 @@ async function main() {
     let values = [];
     let abis = [];
 
-    await transferETH(10, "0x0000000000000000000000000000000000000000");
-    // let strategy = await getContract('StrategyMoonwellDai', 'base_dai');
-    let strategy = await getContract('StrategyMoonwellUsdc', 'base_usdc');
+    await transferETH(0.001, "0x0000000000000000000000000000000000000000");
+    let strategyDai = await getContract('StrategyMoonwellDai', 'base_dai');
+    let strategyUsdc = await getContract('StrategyMoonwellUsdc', 'base_usdc');
     let well = await getERC20ByAddress("0xA88594D404727625A9437C3f886C7643872296AE");
 
     let newImpl = "0x2684B920519C639E6fcF568cAc11bD9780954863";
-    addProposalItem(strategy, 'upgradeTo', [newImpl]);
-    addProposalItem(strategy, 'transferRewards', []);
+    addProposalItem(strategyDai, 'upgradeTo', [newImpl]);
+    addProposalItem(strategyUsdc, 'upgradeTo', [newImpl]);
+    addProposalItem(strategyDai, 'transferRewards', []);
+    addProposalItem(strategyUsdc, 'transferRewards', []);
 
-    let balanceOfBefore = await well.balanceOf(strategy.address);
+    let balanceBeforeDai = await well.balanceOf(strategyDai.address);
+    let balanceBeforeUsdc = await well.balanceOf(strategyUsdc.address);
+
     await testProposal(addresses, values, abis);
-    let balanceOfAfter = await well.balanceOf(strategy.address);
-    console.log("balanceOf", balanceOfBefore.toString(), balanceOfAfter.toString());
+
+    let balanceAfterDai = await well.balanceOf(strategyDai.address);
+    let balanceAfterUsdc = await well.balanceOf(strategyUsdc.address);
+    console.log("balance dai:", balanceBeforeDai.toString(), balanceAfterDai.toString());
+    console.log("balance usdc:", balanceBeforeUsdc.toString(), balanceAfterUsdc.toString());
     // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
