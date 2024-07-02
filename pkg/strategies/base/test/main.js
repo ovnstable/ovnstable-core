@@ -16,7 +16,8 @@ describe("BASE", function () {
     let params = {
         name: process.env.TEST_STRATEGY,
         enabledReward: true,
-        isRunStrategyLogic: true
+        isRunStrategyLogic: true,
+        unstakeDelay: 10000000,
     }
 
     console.log(`Strategy ID ${params.name}`);

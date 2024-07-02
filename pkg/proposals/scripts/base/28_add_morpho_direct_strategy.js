@@ -28,6 +28,8 @@ async function main() {
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('addStrategy', [strategy.address]));
 
+    // await createProposal(filename, addresses, values, abis);
+
     // await showM2M();
     // await testProposal(addresses, values, abis);
     // await testStrategy(filename, strategy, 'base');
@@ -35,7 +37,6 @@ async function main() {
     // await showM2M();
 
     await createProposal(filename, addresses, values, abis);
-
 }
 
 main()

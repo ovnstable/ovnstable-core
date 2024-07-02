@@ -1,5 +1,5 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const {BASE} = require('@overnight-contracts/common/utils/assets');
+const {BASE, COMMON} = require('@overnight-contracts/common/utils/assets');
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
 
 module.exports = async ({deployments}) => {
@@ -25,7 +25,8 @@ async function getParams() {
             oracle: "0x510A4C82f7eBf030aE2bcBDaC2504E59dF03b3E8",
             irm: "0x46415998764C29aB2a25CbeA6254146D50D22687",
             lltv: "770000000000000000"
-        }
+        },
+        treasury: COMMON.rewardWallet,
     };
 }
 

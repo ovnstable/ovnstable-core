@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-
 import "@overnight-contracts/connectors/contracts/stuff/Morpho.sol";
 
 
-
 contract StrategyMorphoDirect is Strategy {
+    using MathLib for uint128;
+    using MathLib for uint256;
+    using UtilsLib for uint256;
+    using SharesMathLib for uint256;
+
     
     // --- params
 
@@ -14,6 +17,11 @@ contract StrategyMorphoDirect is Strategy {
     IMorpho public morpho;
     Id public marketId;
     MarketParams public marketParams;
+
+    address treasury;
+    uint256 fee;
+    uint256 balance;
+
     
     // --- events
 
@@ -27,6 +35,8 @@ contract StrategyMorphoDirect is Strategy {
         address morpho;
         Id marketId;
         MarketParams marketParams;
+        address treasury;
+        uint256 fee; // in basis points
     }
 
 
@@ -47,6 +57,10 @@ contract StrategyMorphoDirect is Strategy {
         morpho = IMorpho(params.morpho);
         marketId = params.marketId;
         marketParams = params.marketParams;
+        treasury = params.treasury;
+        fee = params.fee;
+
+        balance = 0;
         
         emit StrategyUpdatedParams();
     }
@@ -60,11 +74,11 @@ contract StrategyMorphoDirect is Strategy {
     ) internal override {
 
         require(_asset == address(usdcToken), "Some token not compatible");
-        
+
         usdcToken.approve(address(morpho), _amount);
 
         morpho.supply(marketParams, _amount, 0, address(this), "");
-        
+        balance += _amount;
     }
 
     function _unstake(
@@ -73,10 +87,12 @@ contract StrategyMorphoDirect is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        require(_asset == address(usdcToken), "Some token not compatible");
+        require(_asset == address(usdcToken), "Some token not compatible");        
 
         morpho.withdraw(marketParams, _amount, 0, address(this), address(this));
-        
+
+        balance -= _amount;
+
         return usdcToken.balanceOf(address(this));
     }
 
@@ -89,18 +105,56 @@ contract StrategyMorphoDirect is Strategy {
 
         morpho.withdraw(marketParams, 0, morpho.position(marketId, address(this)).supplyShares, address(this), address(this));
 
+        balance = 0;
+
         return usdcToken.balanceOf(address(this));
     }
 
+    function currentDepositValue() internal view returns (uint256) {
+        Market memory market = morpho.market(marketId);
+        Position memory position = morpho.position(marketId, address(this));
+
+        uint256 elapsed = block.timestamp - market.lastUpdate;
+        if (elapsed == 0) return usdcToken.balanceOf(address(this)) + SharesMathLib.toAssetsDown(position.supplyShares, morpho.market(marketId).totalSupplyAssets, morpho.market(marketId).totalSupplyShares);
+
+        if (marketParams.irm != address(0)) {
+            uint256 borrowRate = IIrm(marketParams.irm).borrowRateView(marketParams, market);
+            uint256 interest = market.totalBorrowAssets.wMulDown(borrowRate.wTaylorCompounded(elapsed));
+            market.totalBorrowAssets += interest.toUint128();
+            market.totalSupplyAssets += interest.toUint128();
+
+            uint256 feeShares;
+            if (market.fee != 0) {
+                uint256 feeAmount = interest.wMulDown(market.fee);
+                // The fee amount is subtracted from the total supply in this calculation to compensate for the fact
+                // that total supply is already increased by the full interest (including the fee amount).
+                feeShares =
+                    feeAmount.toSharesDown(market.totalSupplyAssets - feeAmount, market.totalSupplyShares);
+                position.supplyShares += feeShares;
+                market.totalSupplyShares += feeShares.toUint128();
+            }
+        }
+
+        return SharesMathLib.toAssetsDown(position.supplyShares, market.totalSupplyAssets, market.totalSupplyShares);
+    }
+
     function netAssetValue() external view override returns (uint256) {
-        return usdcToken.balanceOf(address(this)) + SharesMathLib.toAssetsDown(morpho.position(marketId, address(this)).supplyShares, morpho.market(marketId).totalSupplyAssets, morpho.market(marketId).totalSupplyShares);
+        return usdcToken.balanceOf(address(this)) + currentDepositValue();
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return usdcToken.balanceOf(address(this)) + SharesMathLib.toAssetsDown(morpho.position(marketId, address(this)).supplyShares, morpho.market(marketId).totalSupplyAssets, morpho.market(marketId).totalSupplyShares);
+        return usdcToken.balanceOf(address(this)) + currentDepositValue();
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        return 0;
+        uint256 revenue = (usdcToken.balanceOf(address(this)) + currentDepositValue() - balance) * fee / 10000;
+        
+        if(revenue > 0) {   
+            morpho.withdraw(marketParams, revenue, 0, address(this), address(this));
+            usdcToken.transfer(treasury, revenue);
+            balance -= revenue;
+        }
+
+        return revenue;
     }
 }
