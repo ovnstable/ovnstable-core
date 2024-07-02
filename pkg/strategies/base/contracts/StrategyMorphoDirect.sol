@@ -18,6 +18,7 @@ contract StrategyMorphoDirect is Strategy {
     MarketParams public marketParams;
 
     address treasury;
+    uint256 fee;
     uint256 balance;
     
     // --- events
@@ -33,6 +34,7 @@ contract StrategyMorphoDirect is Strategy {
         Id marketId;
         MarketParams marketParams;
         address treasury;
+        uint256 fee; // in basis points
     }
 
 
@@ -54,6 +56,7 @@ contract StrategyMorphoDirect is Strategy {
         marketId = params.marketId;
         marketParams = params.marketParams;
         treasury = params.treasury;
+        fee = params.fee;
 
         balance = 0;
         
@@ -74,7 +77,7 @@ contract StrategyMorphoDirect is Strategy {
 
         morpho.supply(marketParams, _amount, 0, address(this), "");
         
-        balance = SharesMathLib.toAssetsDown(morpho.position(marketId, address(this)).supplyShares, morpho.market(marketId).totalSupplyAssets, morpho.market(marketId).totalSupplyShares);
+        balance += _amount;
     }
 
     function _unstake(
@@ -87,9 +90,7 @@ contract StrategyMorphoDirect is Strategy {
 
         morpho.withdraw(marketParams, _amount, 0, address(this), address(this));
 
-        Market memory market = morpho.market(marketId);
-
-        balance = SharesMathLib.toAssetsDown(morpho.position(marketId, address(this)).supplyShares, market.totalSupplyAssets, market.totalSupplyShares);
+        balance -= _amount;
 
         return usdcToken.balanceOf(address(this));
     }
@@ -103,9 +104,7 @@ contract StrategyMorphoDirect is Strategy {
 
         morpho.withdraw(marketParams, 0, morpho.position(marketId, address(this)).supplyShares, address(this), address(this));
 
-        Market memory market = morpho.market(marketId);
-
-        balance = SharesMathLib.toAssetsDown(morpho.position(marketId, address(this)).supplyShares, market.totalSupplyAssets, market.totalSupplyShares);
+        balance = 0;
 
         return usdcToken.balanceOf(address(this));
     }
@@ -147,13 +146,14 @@ contract StrategyMorphoDirect is Strategy {
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        uint256 revenue = (currentDepositValue() - balance) / 5;
+        uint256 revenue = (usdcToken.balanceOf(address(this)) + currentDepositValue() - balance) * fee / 10000;
         
         if(revenue > 0) {   
             morpho.withdraw(marketParams, revenue, 0, address(this), address(this));
             usdcToken.transfer(treasury, revenue);
+            balance -= revenue;
         }
-        
+
         return revenue;
     }
 }

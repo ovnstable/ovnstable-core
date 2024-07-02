@@ -15,9 +15,9 @@ const { Roles } = require("./roles");
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
     let values = [
-        // {
-        //     value: 0.02,
-        // },
+        {
+            value: 0.02,
+        },
         // {
         //     value: 0.2,
         // },
@@ -45,9 +45,9 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
         // {
         //     value: 1000000,
         // },
-        {
-            value: 2000000,
-        },
+        // {
+        //     value: 2000000,
+        // },
     ]
 
     describe(`${strategyParams.name}`, function () {
