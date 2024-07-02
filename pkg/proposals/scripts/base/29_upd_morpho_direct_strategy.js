@@ -14,8 +14,8 @@ filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
 
-    // let wallet = await initWallet();
-    // await transferETH(1, wallet.address);
+    let wallet = await initWallet();
+    await transferETH(1, wallet.address);
 
     let addresses = [];
     let values = [];
@@ -24,7 +24,7 @@ async function main() {
     let morpho = await getContract('StrategyMorphoDirect', 'base');
     let rm = await getContract('RoleManager', 'base');
 
-    let newMorphoImpl = "0x4036F75c7cE6BC74229DaF64Df5d67db6D485383";
+    let newMorphoImpl = "0x5D31e8e46A8c6cfC553DC046585F67d9C1322627";
     let timelock = "0x8ab9012d1bff1b62c2ad82ae0106593371e6b247";
 
 
@@ -50,7 +50,7 @@ async function main() {
     
 
     await testProposal(addresses, values, abis);
-    await testUsdPlus(filename, 'base');
+    // await testUsdPlus(filename, 'base');
     await testStrategy(filename, morpho, 'base');
     // await createProposal(filename, addresses, values, abis);
 
