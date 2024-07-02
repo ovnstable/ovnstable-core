@@ -28,8 +28,8 @@ async function main() {
     let well = await getERC20ByAddress("0xA88594D404727625A9437C3f886C7643872296AE");
     let timelock = await getContract('AgentTimelock');
 
-    let newImplDai = "0x2684B920519C639E6fcF568cAc11bD9780954863";
-    let newImplUsdc = "0x2684B920519C639E6fcF568cAc11bD9780954863";
+    let newImplDai = "0xd055e4581e997C6EE741Ad4d39172a7Cb941A270";
+    let newImplUsdc = "0x26Fe0bb0222Ca010aBe3ee016c2948B2Edbb88b9";
     addProposalItem(strategyDai, 'upgradeTo', [newImplDai]);
     addProposalItem(strategyUsdc, 'upgradeTo', [newImplUsdc]);
     addProposalItem(strategyDai, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock.address]);
