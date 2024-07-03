@@ -2,7 +2,7 @@ const BigNumber = require('bignumber.js');
 
 
 function toE18(value) {
-    return new BigNumber(value.toString()).times(new BigNumber(10).pow(18)).toFixed(0)
+    return new BigNumber(value.toString()).times(new BigNumber(10).pow(18)).toFixed(0);
 }
 
 /**
@@ -15,7 +15,7 @@ function fromE18(value) {
 }
 
 function toE6(value) {
-    return value * 10 ** 6;
+    return new BigNumber(value.toString()).times(new BigNumber(10).pow(6)).toFixed(0);
 }
 
 function fromE6(value) {

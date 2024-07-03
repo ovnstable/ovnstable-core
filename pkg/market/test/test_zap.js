@@ -496,8 +496,8 @@ describe(`Test ${params?.name}`, function () {
     sharedBeforeEach('deploy and setup', async () => {
         await hre.run("compile");
         await resetHardhatToLastBlock();
+        console.log(params.name);
         await deployments.fixture([params.name]);
-
         zap = await ethers.getContract(params.name);
 
         let setUpParams = await setUp(params);
@@ -510,19 +510,9 @@ describe(`Test ${params?.name}`, function () {
         token0Out = setUpParams.token0Out;
         token1Out = setUpParams.token1Out;
 
-
-        // console.log("token0", token0In.address);
         token0InDec = await token0In.decimals();
-        // console.log(token0InDec);
-
-        // console.log("token1", token1In.address);
         token1InDec = await token1In.decimals();
-
-        // console.log("token0", token0Out.address);
         token0OutDec = await token0Out.decimals();
-        // console.log("token0OutDec:", token0OutDec);
-
-        // console.log("token1", token1Out.address);
         token1OutDec = await token1Out.decimals();
 
         console.log(token0InDec, token1InDec, token0OutDec, token1OutDec);
@@ -591,6 +581,7 @@ describe(`Test ${params?.name}`, function () {
 
         let reserves;
         if ('priceRange' in params) {
+            console.log("params:", params);
             reserves = await zap.getProportion({amountsOut: [], ...params});
         } else if ('pair' in params) {
             reserves = await zap.getProportion(params.pair);
@@ -599,7 +590,7 @@ describe(`Test ${params?.name}`, function () {
         } else {
             reserves = await zap.getProportion(params.gauge);
         }
-        
+        console.log("GOAAAL!!");
         price = fromE6(await zap.getCurrentPrice(params.pair)).toFixed(0).toString();
         // console.log(price);
 
@@ -860,6 +851,8 @@ function calculateProportionForPool(
     const tokenOut1 = Number.parseFloat(new BigNumber(outputTokensAmounts[1].toString()).div(new BigNumber(10).pow(outputTokensDecimals[1])).toFixed(3).toString()) * outputTokensPrices[1];
     const sumInitialOut = tokenOut0 + tokenOut1;
     let sumInputs = 0;
+    console('GOAAAAAAAAL!');
+    console.log(inputTokensPrices, inputTokensDecimals, inputTokensAmounts);
     for (let i = 0; i < inputTokensAmounts.length; i++) {
         sumInputs += Number.parseFloat(
             new BigNumber(inputTokensAmounts[i].toString())
