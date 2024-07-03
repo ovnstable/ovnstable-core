@@ -5,6 +5,8 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/connectors/contracts/stuff/Morpho.sol";
 
 
+import "hardhat/console.sol";
+
 
 contract StrategyMorpho is Strategy {
 
@@ -81,9 +83,9 @@ contract StrategyMorpho is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        mUsdcToken.withdraw(_amount, address(this), address(this));
         
-        return usdcToken.balanceOf(address(this));
+        
+        return mUsdcToken.withdraw(_amount, address(this), address(this));
     }
 
     function _unstakeFull(
@@ -93,22 +95,16 @@ contract StrategyMorpho is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        uint256 _amount = mUsdcToken.balanceOf(address(this)) / 10 ** (mUsdcToken.decimals() - 6);
+        uint256 _amount = mUsdcToken.balanceOf(address(this));
 
-        mUsdcToken.withdraw(_amount, address(this), address(this));
-
-        return usdcToken.balanceOf(address(this));
+        return mUsdcToken.withdraw(_amount, address(this), address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
-        return usdcToken.balanceOf(address(this)) + mUsdcToken.balanceOf(address(this)) / 10 ** (mUsdcToken.decimals() - 6);
+        return usdcToken.balanceOf(address(this)) + mUsdcToken.balanceOf(address(this));
     }
 
     function liquidationValue() external view override returns (uint256) {
-        return usdcToken.balanceOf(address(this)) + mUsdcToken.balanceOf(address(this)) / 10 ** (mUsdcToken.decimals() - 6);
-    }
-
-    function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        return 0;
+        return usdcToken.balanceOf(address(this)) + mUsdcToken.balanceOf(address(this));
     }
 }

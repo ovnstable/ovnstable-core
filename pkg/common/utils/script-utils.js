@@ -905,7 +905,7 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x4bb6b2efe7036020ba6f02a05602546c9f25bf28';
                     break;
                 case BASE.usdc:
-                    from = '0x3304E22DDaa22bCdC5fCa2269b418046aE7b566A';
+                    from = '0x20fe51a9229eef2cf8ad9e89d91cab9312cf3b7a';
                     break;
                 case BASE.dai:
                     from = '0x428AB2BA90Eba0a4Be7aF34C9Ac451ab061AC010';
