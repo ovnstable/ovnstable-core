@@ -16,7 +16,8 @@ describe("BASE", function () {
     let params = {
         name: process.env.TEST_STRATEGY,
         enabledReward: true,
-        isRunStrategyLogic: true
+        isRunStrategyLogic: true,
+        unstakeDelay: 10000000,
     }
 
     console.log(`Strategy ID ${params.name}`);
@@ -26,11 +27,8 @@ describe("BASE", function () {
         case 'base_dai':
             strategyTest(params, 'BASE', 'dai', runStrategyLogic);
             break;
-        case 'base_usdc':
-            strategyTest(params, 'BASE', 'usdc', runStrategyLogic);
-            break;
         default:
-            strategyTest(params, 'BASE', 'usdbc', runStrategyLogic);
+            strategyTest(params, 'BASE', 'usdc', runStrategyLogic);
             break;
     }
 });

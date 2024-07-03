@@ -15,39 +15,39 @@ const { Roles } = require("./roles");
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
     let values = [
-        // {
-        //     value: 0.02,
-        // },
-        // {
-        //     value: 0.2,
-        // },
-        // {
-        //     value: 2,
-        // },
-        // {
-        //     value: 20,
-        // },
-        // {
-        //     value: 200,
-        // },
+        {
+            value: 0.02,
+        },
+        {
+            value: 0.2,
+        },
+        {
+            value: 2,
+        },
+        {
+            value: 20,
+        },
+        {
+            value: 200,
+        },
         {
             value: 2000,
         },
-        // {
-        //     value: 20000,
-        // },
-        // {
-        //     value: 100000,
-        // },
-        // {
-        //     value: 200000,
-        // },
-        // {
-        //     value: 1000000,
-        // },
-        // {
-        //     value: 2000000,
-        // },
+        {
+            value: 20000,
+        },
+        {
+            value: 100000,
+        },
+        {
+            value: 200000,
+        },
+        {
+            value: 1000000,
+        },
+        {
+            value: 2000000,
+        },
     ]
 
     describe(`${strategyParams.name}`, function () {
@@ -292,8 +292,9 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
                         await ethers.provider.send("evm_increaseTime", [delay]);
                         await ethers.provider.send('evm_mine');
                     }
-
+                    console.log("----a----");
                     let tx = await (await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true)).wait();
+                    console.log("----b----");
                     let rewardEvent = tx.events.find((e) => e.event === 'Reward');
                     let rewardAmount = new BigNumber('0');
                     if (rewardEvent) {
@@ -545,15 +546,14 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
 
     const strategy = await ethers.getContract(strategyName);
     await strategy.setStrategyParams(recipient.address, recipient.address);
-
-
+    
     if (strategyParams.isRunStrategyLogic) {
         console.log(`RunStrategyLogic: ${strategyName}`)
         await runStrategyLogic(strategyName, strategy.address);
     }
 
     let mainAddress = (await initWallet()).address;
-    await transferETH(100, mainAddress);
+    await transferETH(100, mainAddress);   
 
 
     // Support ETH+
@@ -563,9 +563,7 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     }
     const asset = await getERC20(assetName);
     await transferAsset(asset.address, mainAddress);
-
     console.log(`Balance [${assetName}]: [${fromAsset(await asset.balanceOf(mainAddress))}]`);
-
     let decimals = await asset.decimals();
     let toAsset;
     if (decimals === 18) {

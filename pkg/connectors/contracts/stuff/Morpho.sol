@@ -907,3 +907,214 @@ interface IUniversalRewardsDistributorStaticTyping is IUniversalRewardsDistribut
 interface IUniversalRewardsDistributor is IUniversalRewardsDistributorBase {
     function pendingRoot() external view returns (PendingRoot memory);
 }
+
+uint256 constant WAD = 1e18;
+
+/// @title MathLib
+/// @author Morpho Labs
+/// @custom:contact security@morpho.org
+/// @notice Library to manage fixed-point arithmetic.
+library MathLib {
+    /// @dev Returns (`x` * `y`) / `WAD` rounded down.
+    function wMulDown(uint256 x, uint256 y) internal pure returns (uint256) {
+        return mulDivDown(x, y, WAD);
+    }
+
+    /// @dev Returns (`x` * `WAD`) / `y` rounded down.
+    function wDivDown(uint256 x, uint256 y) internal pure returns (uint256) {
+        return mulDivDown(x, WAD, y);
+    }
+
+    /// @dev Returns (`x` * `WAD`) / `y` rounded up.
+    function wDivUp(uint256 x, uint256 y) internal pure returns (uint256) {
+        return mulDivUp(x, WAD, y);
+    }
+
+    /// @dev Returns (`x` * `y`) / `d` rounded down.
+    function mulDivDown(uint256 x, uint256 y, uint256 d) internal pure returns (uint256) {
+        return (x * y) / d;
+    }
+
+    /// @dev Returns (`x` * `y`) / `d` rounded up.
+    function mulDivUp(uint256 x, uint256 y, uint256 d) internal pure returns (uint256) {
+        return (x * y + (d - 1)) / d;
+    }
+
+    /// @dev Returns the sum of the first three non-zero terms of a Taylor expansion of e^(nx) - 1, to approximate a
+    /// continuous compound interest rate.
+    function wTaylorCompounded(uint256 x, uint256 n) internal pure returns (uint256) {
+        uint256 firstTerm = x * n;
+        uint256 secondTerm = mulDivDown(firstTerm, firstTerm, 2 * WAD);
+        uint256 thirdTerm = mulDivDown(secondTerm, firstTerm, 3 * WAD);
+
+        return firstTerm + secondTerm + thirdTerm;
+    }
+}
+
+/// @title SharesMathLib
+/// @author Morpho Labs
+/// @custom:contact security@morpho.org
+/// @notice Shares management library.
+/// @dev This implementation mitigates share price manipulations, using OpenZeppelin's method of virtual shares:
+/// https://docs.openzeppelin.com/contracts/4.x/erc4626#inflation-attack.
+library SharesMathLib {
+    using MathLib for uint256;
+
+    /// @dev The number of virtual shares has been chosen low enough to prevent overflows, and high enough to ensure
+    /// high precision computations.
+    /// @dev Virtual shares can never be redeemed for the assets they are entitled to, but it is assumed the share price
+    /// stays low enough not to inflate these assets to a significant value.
+    /// @dev Warning: The assets to which virtual borrow shares are entitled behave like unrealizable bad debt.
+    uint256 internal constant VIRTUAL_SHARES = 1e6;
+
+    /// @dev A number of virtual assets of 1 enforces a conversion rate between shares and assets when a market is
+    /// empty.
+    uint256 internal constant VIRTUAL_ASSETS = 1;
+
+    /// @dev Calculates the value of `assets` quoted in shares, rounding down.
+    function toSharesDown(uint256 assets, uint256 totalAssets, uint256 totalShares) internal pure returns (uint256) {
+        return assets.mulDivDown(totalShares + VIRTUAL_SHARES, totalAssets + VIRTUAL_ASSETS);
+    }
+
+    /// @dev Calculates the value of `shares` quoted in assets, rounding down.
+    function toAssetsDown(uint256 shares, uint256 totalAssets, uint256 totalShares) internal pure returns (uint256) {
+        return shares.mulDivDown(totalAssets + VIRTUAL_ASSETS, totalShares + VIRTUAL_SHARES);
+    }
+
+    /// @dev Calculates the value of `assets` quoted in shares, rounding up.
+    function toSharesUp(uint256 assets, uint256 totalAssets, uint256 totalShares) internal pure returns (uint256) {
+        return assets.mulDivUp(totalShares + VIRTUAL_SHARES, totalAssets + VIRTUAL_ASSETS);
+    }
+
+    /// @dev Calculates the value of `shares` quoted in assets, rounding up.
+    function toAssetsUp(uint256 shares, uint256 totalAssets, uint256 totalShares) internal pure returns (uint256) {
+        return shares.mulDivUp(totalAssets + VIRTUAL_ASSETS, totalShares + VIRTUAL_SHARES);
+    }
+}
+
+/// @title IIrm
+/// @author Morpho Labs
+/// @custom:contact security@morpho.org
+/// @notice Interface that Interest Rate Models (IRMs) used by Morpho must implement.
+interface IIrm {
+    /// @notice Returns the borrow rate per second (scaled by WAD) of the market `marketParams`.
+    /// @dev Assumes that `market` corresponds to `marketParams`.
+    function borrowRate(MarketParams memory marketParams, Market memory market) external returns (uint256);
+
+    /// @notice Returns the borrow rate per second (scaled by WAD) of the market `marketParams` without modifying any
+    /// storage.
+    /// @dev Assumes that `market` corresponds to `marketParams`.
+    function borrowRateView(MarketParams memory marketParams, Market memory market) external view returns (uint256);
+}
+
+/// @title UtilsLib
+/// @author Morpho Labs
+/// @custom:contact security@morpho.org
+/// @notice Library exposing helpers.
+/// @dev Inspired by https://github.com/morpho-org/morpho-utils.
+library UtilsLib {
+    /// @dev Returns true if there is exactly one zero among `x` and `y`.
+    function exactlyOneZero(uint256 x, uint256 y) internal pure returns (bool z) {
+        assembly {
+            z := xor(iszero(x), iszero(y))
+        }
+    }
+
+    /// @dev Returns the min of `x` and `y`.
+    function min(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        assembly {
+            z := xor(x, mul(xor(x, y), lt(y, x)))
+        }
+    }
+
+    /// @dev Returns `x` safely cast to uint128.
+    function toUint128(uint256 x) internal pure returns (uint128) {
+        require(x <= type(uint128).max, ErrorsLib.MAX_UINT128_EXCEEDED);
+        return uint128(x);
+    }
+
+    /// @dev Returns max(0, x - y).
+    function zeroFloorSub(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        assembly {
+            z := mul(gt(x, y), sub(x, y))
+        }
+    }
+}
+
+/// @title ErrorsLib
+/// @author Morpho Labs
+/// @custom:contact security@morpho.org
+/// @notice Library exposing error messages.
+library ErrorsLib {
+    /// @notice Thrown when the caller is not the owner.
+    string internal constant NOT_OWNER = "not owner";
+
+    /// @notice Thrown when the LLTV to enable exceeds the maximum LLTV.
+    string internal constant MAX_LLTV_EXCEEDED = "max LLTV exceeded";
+
+    /// @notice Thrown when the fee to set exceeds the maximum fee.
+    string internal constant MAX_FEE_EXCEEDED = "max fee exceeded";
+
+    /// @notice Thrown when the value is already set.
+    string internal constant ALREADY_SET = "already set";
+
+    /// @notice Thrown when the IRM is not enabled at market creation.
+    string internal constant IRM_NOT_ENABLED = "IRM not enabled";
+
+    /// @notice Thrown when the LLTV is not enabled at market creation.
+    string internal constant LLTV_NOT_ENABLED = "LLTV not enabled";
+
+    /// @notice Thrown when the market is already created.
+    string internal constant MARKET_ALREADY_CREATED = "market already created";
+
+    /// @notice Thrown when a token to transfer doesn't have code.
+    string internal constant NO_CODE = "no code";
+
+    /// @notice Thrown when the market is not created.
+    string internal constant MARKET_NOT_CREATED = "market not created";
+
+    /// @notice Thrown when not exactly one of the input amount is zero.
+    string internal constant INCONSISTENT_INPUT = "inconsistent input";
+
+    /// @notice Thrown when zero assets is passed as input.
+    string internal constant ZERO_ASSETS = "zero assets";
+
+    /// @notice Thrown when a zero address is passed as input.
+    string internal constant ZERO_ADDRESS = "zero address";
+
+    /// @notice Thrown when the caller is not authorized to conduct an action.
+    string internal constant UNAUTHORIZED = "unauthorized";
+
+    /// @notice Thrown when the collateral is insufficient to `borrow` or `withdrawCollateral`.
+    string internal constant INSUFFICIENT_COLLATERAL = "insufficient collateral";
+
+    /// @notice Thrown when the liquidity is insufficient to `withdraw` or `borrow`.
+    string internal constant INSUFFICIENT_LIQUIDITY = "insufficient liquidity";
+
+    /// @notice Thrown when the position to liquidate is healthy.
+    string internal constant HEALTHY_POSITION = "position is healthy";
+
+    /// @notice Thrown when the authorization signature is invalid.
+    string internal constant INVALID_SIGNATURE = "invalid signature";
+
+    /// @notice Thrown when the authorization signature is expired.
+    string internal constant SIGNATURE_EXPIRED = "signature expired";
+
+    /// @notice Thrown when the nonce is invalid.
+    string internal constant INVALID_NONCE = "invalid nonce";
+
+    /// @notice Thrown when a token transfer reverted.
+    string internal constant TRANSFER_REVERTED = "transfer reverted";
+
+    /// @notice Thrown when a token transfer returned false.
+    string internal constant TRANSFER_RETURNED_FALSE = "transfer returned false";
+
+    /// @notice Thrown when a token transferFrom reverted.
+    string internal constant TRANSFER_FROM_REVERTED = "transferFrom reverted";
+
+    /// @notice Thrown when a token transferFrom returned false
+    string internal constant TRANSFER_FROM_RETURNED_FALSE = "transferFrom returned false";
+
+    /// @notice Thrown when the maximum uint128 is exceeded.
+    string internal constant MAX_UINT128_EXCEEDED = "max uint128 exceeded";
+}
