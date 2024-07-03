@@ -18,36 +18,36 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
         {
             value: 0.02,
         },
-        // {
-        //     value: 0.2,
-        // },
-        // {
-        //     value: 2,
-        // },
-        // {
-        //     value: 20,
-        // },
-        // {
-        //     value: 200,
-        // },
-        // {
-        //     value: 2000,
-        // },
-        // {
-        //     value: 20000,
-        // },
-        // {
-        //     value: 100000,
-        // },
-        // {
-        //     value: 200000,
-        // },
-        // {
-        //     value: 1000000,
-        // },
-        // {
-        //     value: 2000000,
-        // },
+        {
+            value: 0.2,
+        },
+        {
+            value: 2,
+        },
+        {
+            value: 20,
+        },
+        {
+            value: 200,
+        },
+        {
+            value: 2000,
+        },
+        {
+            value: 20000,
+        },
+        {
+            value: 100000,
+        },
+        {
+            value: 200000,
+        },
+        {
+            value: 1000000,
+        },
+        {
+            value: 2000000,
+        },
     ]
 
     describe(`${strategyParams.name}`, function () {

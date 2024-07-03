@@ -24,7 +24,7 @@ async function main() {
     let morpho = await getContract('StrategyMorphoDirect', 'base');
     let rm = await getContract('RoleManager', 'base');
 
-    let newMorphoImpl = "0x5D31e8e46A8c6cfC553DC046585F67d9C1322627";
+    let newMorphoImpl = "0xd1dda42E81a0833f2440C177EA2B101E7dc0857C";
     let timelock = "0x8ab9012d1bff1b62c2ad82ae0106593371e6b247";
 
 
@@ -47,10 +47,10 @@ async function main() {
     addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock]);
     addProposalItem(morpho, 'upgradeTo', [newMorphoImpl]);
     addProposalItem(morpho, 'setParams', [morphoParams]);
-    
 
     await testProposal(addresses, values, abis);
-    // await testUsdPlus(filename, 'base');
+
+    await testUsdPlus(filename, 'base');
     await testStrategy(filename, morpho, 'base');
     // await createProposal(filename, addresses, values, abis);
 
