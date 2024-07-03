@@ -14,8 +14,8 @@ filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
 
-    let wallet = await initWallet();
-    await transferETH(1, wallet.address);
+    // let wallet = await initWallet();
+    // await transferETH(1, wallet.address);
 
     let addresses = [];
     let values = [];
@@ -45,22 +45,18 @@ async function main() {
         fee: 2000,
     }
 
-
     addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock]);
     addProposalItem(morpho, 'upgradeTo', [newMorphoImpl]);
     addProposalItem(morpho, 'setParams', [morphoParams]);
+    addProposalItem(pmUsdc, 'addStrategy', [morphoUsdc.address]);
 
-    addresses.push(pmUsdc.address);
-    values.push(0);
-    abis.push(pmUsdc.interface.encodeFunctionData('addStrategy', [morphoUsdc.address]));
+    // await testProposal(addresses, values, abis);
 
-    await testProposal(addresses, values, abis);
-
-    await testUsdPlus(filename, 'base');
-    await testStrategy(filename, morpho, 'base');
-    await testUsdPlus(filename, 'base_usdc');
-    await testStrategy(filename, morphoUsdc, 'base_usdc');
-    // await createProposal(filename, addresses, values, abis);
+    // await testUsdPlus(filename, 'base');
+    // await testStrategy(filename, morpho, 'base');
+    // await testUsdPlus(filename, 'base_usdc');
+    // await testStrategy(filename, morphoUsdc, 'base_usdc');
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
