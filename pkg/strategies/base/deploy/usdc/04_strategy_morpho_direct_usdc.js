@@ -31,4 +31,4 @@ async function getParams() {
     };
 }
 
-module.exports.tags = ['StrategyMorphoDirect'];
+module.exports.tags = ['StrategyMorphoDirectUsdc'];

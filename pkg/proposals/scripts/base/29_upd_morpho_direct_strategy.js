@@ -22,7 +22,7 @@ async function main() {
     let abis = [];
 
     let morpho = await getContract('StrategyMorphoDirect', 'base');
-    let morphoUsdc = await getContract('StrategyMorphoDirect', 'base_usdc');
+    let morphoUsdc = await getContract('StrategyMorphoDirectUsdc', 'base_usdc');
     let rm = await getContract('RoleManager', 'base');
     let pmUsdc = await getContract('PortfolioManager', 'base_usdc');
 
