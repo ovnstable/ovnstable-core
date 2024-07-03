@@ -251,25 +251,25 @@ let zaps_aerodrome = [
     //     token0Out: 'usdcCircle',
     //     token1Out: 'usdt',
     // },
-    {
-        name: 'AerodromeCLZap',
-        pair: '0x0c1A09d5D0445047DA3Ab4994262b22404288A3B',
-        token0Out: 'usdc',
-        token1Out: 'usdPlus',
-        token0In: 'sfrax',
-        token1In: 'dai',
-        priceRange: [4.5, 15],
-    },
     // {
     //     name: 'AerodromeCLZap',
-    //     pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
-    //     token0Out: 'dola',
+    //     pair: '0x0c1A09d5D0445047DA3Ab4994262b22404288A3B',
+    //     token0Out: 'usdc',
     //     token1Out: 'usdPlus',
     //     token0In: 'sfrax',
     //     token1In: 'dai',
-    //     priceRange: [0.5, 1.5],
-    //     tickDelta: '0'
+    //     priceRange: [4.5, 15],
     // },
+    {
+        name: 'AerodromeCLZap',
+        pair: '0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD',
+        token0Out: 'dola',
+        token1Out: 'usdPlus',
+        token0In: 'sfrax',
+        token1In: 'dai',
+        priceRange: [0.5, 1.5],
+        tickDelta: '0'
+    },
     // {
     //     name: 'AerodromeCLZap',
     //     pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
@@ -538,6 +538,8 @@ describe(`Test ${params?.name}`, function () {
     });
 
     it("swap and put nearly equal", async function () {
+
+
         console.log("price: ", await zap.getCurrentPrice(params.pair));
 
         const amountToken0In = toToken0In(1);
@@ -546,30 +548,6 @@ describe(`Test ${params?.name}`, function () {
         const amountToken1Out = toToken1Out(5);
 
         await check(amountToken0In, amountToken1In, amountToken0Out, amountToken1Out);
-
-        // let tickSpacing = (await zap.getTickSpacing(params.pair)).toString();
-        // console.log("tickSpacing:", tickSpacing);
-        // let currentTick = Number(await zap.getCurrentPoolTick(params.pair));
-        // console.log("currentTick:", currentTick);
-        //
-        // await (await token0Out.approve(zap.address, toE18(1000000))).wait();
-        // await (await token1Out.approve(zap.address, toE18(1000000))).wait();
-        // console.log("approved");
-        // await showBalances();
-        // let tx = await (await zap.connect(account).mintTest(
-        //     token0Out.address,
-        //     token1Out.address,
-        //     tickSpacing,
-        //     currentTick,
-        //     currentTick + 1,
-        //     1000000,
-        //     1000000
-        // )).wait();
-        // const mintTestEvent = tx.events.find((event) => event.event === "MintTest");
-        // console.log("tokenId:", mintTestEvent.args.tokenId.toString());
-        // console.log("liquidity:", mintTestEvent.args.liquidity.toString());
-        // console.log("amountOut0:", mintTestEvent.args.amountOut0.toString());
-        // console.log("amountOut1:", mintTestEvent.args.amountOut1.toString());
     });
 
     it("swap and disbalance on one asset", async function () {

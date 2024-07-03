@@ -283,7 +283,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
 
     tables.push(
         await testCase(async () => {
-            await strategy.liquidationValue();
+            await strategy.netAssetValue();
         }, 'strategy.liquidationValue'),
     );
 
@@ -319,6 +319,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(
         await testCase(async () => {
             await execTimelock(async timelock => {
+                console.log(asset.address, 0, walletAddress, true);
                 await strategy.connect(timelock).unstake(asset.address, 0, walletAddress, true, await getPrice());
             });
         }, 'strategy.unstakeFull'),
