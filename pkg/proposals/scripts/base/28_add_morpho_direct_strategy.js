@@ -28,6 +28,8 @@ async function main() {
     values.push(0);
     abis.push(pm.interface.encodeFunctionData('addStrategy', [strategy.address]));
 
+    // await createProposal(filename, addresses, values, abis);
+
     let mainAddress = (await initWallet()).address;
     await transferETH(100, mainAddress);   
     await showM2M();
@@ -39,7 +41,6 @@ async function main() {
     await showM2M();
 
     // await createProposal(filename, addresses, values, abis);
-
 }
 
 main()

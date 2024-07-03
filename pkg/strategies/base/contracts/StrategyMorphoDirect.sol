@@ -24,10 +24,19 @@ contract StrategyMorphoDirect is Strategy {
     uint256 balance;
     uint256 limit; // in basis points
 
+
+    address treasury;
+    uint256 fee; // in basis points
+    uint256 balance;
+    uint256 limit; // in basis points
+
     
     // --- events
 
     event StrategyUpdatedParams();
+    event StrategyUpdatedFee();
+    event StrategyUpdatedLimit();
+    event StrategyUpdatedTreasury();
     event StrategyUpdatedFee();
     event StrategyUpdatedLimit();
     event StrategyUpdatedTreasury();
@@ -40,6 +49,8 @@ contract StrategyMorphoDirect is Strategy {
         address morpho;
         Id marketId;
         MarketParams marketParams;
+        address treasury;
+        uint256 fee;
         address treasury;
         uint256 fee;
     }
@@ -67,6 +78,11 @@ contract StrategyMorphoDirect is Strategy {
 
         balance = 0;
         limit = 0; 
+        treasury = params.treasury;
+        fee = params.fee;
+
+        balance = 0;
+        limit = 0; 
         
         emit StrategyUpdatedParams();
     }
@@ -80,6 +96,7 @@ contract StrategyMorphoDirect is Strategy {
     ) internal override {
 
         require(_asset == address(usdcToken), "Some token not compatible");
+
 
         usdcToken.approve(address(morpho), _amount);
 
@@ -95,8 +112,12 @@ contract StrategyMorphoDirect is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(usdcToken), "Some token not compatible");        
+        require(_asset == address(usdcToken), "Some token not compatible");        
 
         morpho.withdraw(marketParams, _amount, 0, address(this), address(this));
+
+        balance -= _amount;
+
 
         balance -= _amount;
 
@@ -111,6 +132,8 @@ contract StrategyMorphoDirect is Strategy {
         require(_asset == address(usdcToken), "Some token not compatible");
 
         morpho.withdraw(marketParams, 0, morpho.position(marketId, address(this)).supplyShares, address(this), address(this));
+
+        balance = 0;
 
         balance = 0;
 
@@ -145,15 +168,74 @@ contract StrategyMorphoDirect is Strategy {
         return SharesMathLib.toAssetsDown(position.supplyShares, market.totalSupplyAssets, market.totalSupplyShares);
     }
 
+    function currentDepositValue() internal view returns (uint256) {
+        Market memory market = morpho.market(marketId);
+        Position memory position = morpho.position(marketId, address(this));
+
+        uint256 elapsed = block.timestamp - market.lastUpdate;
+        if (elapsed == 0) return SharesMathLib.toAssetsDown(position.supplyShares, morpho.market(marketId).totalSupplyAssets, morpho.market(marketId).totalSupplyShares);
+
+        if (marketParams.irm != address(0)) {
+            uint256 borrowRate = IIrm(marketParams.irm).borrowRateView(marketParams, market);
+            uint256 interest = market.totalBorrowAssets.wMulDown(borrowRate.wTaylorCompounded(elapsed));
+            market.totalBorrowAssets += interest.toUint128();
+            market.totalSupplyAssets += interest.toUint128();
+
+            uint256 feeShares;
+            if (market.fee != 0) {
+                uint256 feeAmount = interest.wMulDown(market.fee);
+                // The fee amount is subtracted from the total supply in this calculation to compensate for the fact
+                // that total supply is already increased by the full interest (including the fee amount).
+                feeShares =
+                    feeAmount.toSharesDown(market.totalSupplyAssets - feeAmount, market.totalSupplyShares);
+                position.supplyShares += feeShares;
+                market.totalSupplyShares += feeShares.toUint128();
+            }
+        }
+
+        return SharesMathLib.toAssetsDown(position.supplyShares, market.totalSupplyAssets, market.totalSupplyShares);
+    }
+
     function netAssetValue() external view override returns (uint256) {
+        return usdcToken.balanceOf(address(this)) + currentDepositValue();
         return usdcToken.balanceOf(address(this)) + currentDepositValue();
     }
 
     function liquidationValue() external view override returns (uint256) {
         return usdcToken.balanceOf(address(this)) + currentDepositValue();
+        return usdcToken.balanceOf(address(this)) + currentDepositValue();
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
+        uint256 curNetAssetValue = usdcToken.balanceOf(address(this)) + currentDepositValue();
+        uint256 revenue = (curNetAssetValue - balance) * fee / 10000;
+        
+        if(revenue > 0 && revenue * 10000 < curNetAssetValue * limit) {   
+            morpho.withdraw(marketParams, revenue, 0, address(this), address(this));
+            usdcToken.transfer(treasury, revenue);
+            balance -= revenue;
+        }
+
+        return revenue;
+    }
+
+    function setFee(uint256 _fee) onlyPortfolioManager public {
+        fee = _fee;
+
+        emit StrategyUpdatedFee();
+    }
+
+    function setTreasury(address _treasury) onlyPortfolioManager public {
+        treasury = _treasury;
+
+        emit StrategyUpdatedTreasury();
+    }
+
+    function setLimit(uint256 _limit) onlyPortfolioManager public {
+        limit = _limit;
+
+        emit StrategyUpdatedLimit();
+    }
         uint256 curNetAssetValue = usdcToken.balanceOf(address(this)) + currentDepositValue();
         uint256 revenue = (curNetAssetValue - balance) * fee / 10000;
         
