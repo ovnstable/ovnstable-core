@@ -22,7 +22,9 @@ async function main() {
     let abis = [];
 
     let morpho = await getContract('StrategyMorphoDirect', 'base');
+    let morphoUsdc = await getContract('StrategyMorphoDirect', 'base_usdc');
     let rm = await getContract('RoleManager', 'base');
+    let pmUsdc = await getContract('PortfolioManager', 'base_usdc');
 
     let newMorphoImpl = "0xd1dda42E81a0833f2440C177EA2B101E7dc0857C";
     let timelock = "0x8ab9012d1bff1b62c2ad82ae0106593371e6b247";
@@ -48,10 +50,16 @@ async function main() {
     addProposalItem(morpho, 'upgradeTo', [newMorphoImpl]);
     addProposalItem(morpho, 'setParams', [morphoParams]);
 
+    addresses.push(pmUsdc.address);
+    values.push(0);
+    abis.push(pmUsdc.interface.encodeFunctionData('addStrategy', [morphoUsdc.address]));
+
     await testProposal(addresses, values, abis);
 
     await testUsdPlus(filename, 'base');
     await testStrategy(filename, morpho, 'base');
+    await testUsdPlus(filename, 'base_usdc');
+    await testStrategy(filename, morphoUsdc, 'base_usdc');
     // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
