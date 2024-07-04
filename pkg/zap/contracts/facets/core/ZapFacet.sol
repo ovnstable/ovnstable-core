@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 
 import "../../interfaces/core/IChainFacet.sol";
 import "../../interfaces/core/IZapFacet.sol";
-import "../libraries/core/LibCoreStorage.sol";
+import "../../libraries/core/LibCoreStorage.sol";
 
 contract ZapFacet is IZapFacet, IChainFacet {
 
@@ -88,7 +88,7 @@ contract ZapFacet is IZapFacet, IChainFacet {
         prepareSwap(swapData);
         swap(swapData);
         address[] memory tokensOut = new address[](2);
-        (tokensOut[0], tokensOut[1]) = getPoolTokens(paramsData.pair);
+        (tokensOut[0], tokensOut[1]) = IChainFacet.getPoolTokens(paramsData.pair);
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
@@ -102,7 +102,7 @@ contract ZapFacet is IZapFacet, IChainFacet {
 
     function addLiquidity(ZapInParams memory paramsData) internal {
         address[] memory tokensOut = new address[](2);
-        (tokensOut[0], tokensOut[1]) = getPoolTokens(paramsData.pair);
+        (tokensOut[0], tokensOut[1]) = IChainFacet.getPoolTokens(paramsData.pair);
         ResultOfLiquidity memory result;
 
         IERC20 asset0 = IERC20(tokensOut[0]);
@@ -113,7 +113,7 @@ contract ZapFacet is IZapFacet, IChainFacet {
         result.amountAsset0Before = asset0.balanceOf(address(this));
         result.amountAsset1Before = asset1.balanceOf(address(this));
 
-        (uint256 tokenId,,,) = mintPosition(
+        (uint256 tokenId,,,) = IChainFacet.mintPosition(
             paramsData.pair,
             paramsData.tickRange[0],
             paramsData.tickRange[1],

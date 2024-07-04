@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import "../../interfaces/core/IChainFacet.sol";
-import "../libraries/core/LibCoreStorage.sol";
+import "../../libraries/core/LibCoreStorage.sol";
 
 contract BaseFacet is IChainFacet {
     function toUint160(uint256 y) internal pure returns (uint160) {

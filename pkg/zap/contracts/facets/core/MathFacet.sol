@@ -1,37 +1,37 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import {IMathFacet} from "../../interfaces/core/IMathFacet.sol";
-import "../../interfaces/core/IChainFacet.sol";
+import  "../../interfaces/core/IMathFacet.sol";
+import "../../interfaces/IMasterFacet.sol";
 
-contract MathFacet is IMathFacet, IChainFacet {
+contract MathFacet is IMathFacet {
 
     function getCurrentPrice(address pair) public view returns (uint256) {
-        (uint256 dec0,) = getPoolDecimals(pair);
-        (uint160 sqrtRatioX96,,,,,) = getPoolSqrtRatioX96(pair);
-        return mulDiv(uint256(sqrtRatioX96) * 10 ** dec0, uint256(sqrtRatioX96), 2 ** (96 + 96));
+        (uint256 dec0,) = IChainFacet.getPoolDecimals(pair);
+        (uint160 sqrtRatioX96,,,,,) = IChainFacet.getPoolSqrtRatioX96(pair);
+        return IChainFacet.mulDiv(uint256(sqrtRatioX96) * 10 ** dec0, uint256(sqrtRatioX96), 2 ** (96 + 96));
     }
 
     function getTickSpacing(address pair) public view returns (int24) {
-        return getPoolTickSpacing(pair);
+        return IChainFacet.getPoolTickSpacing(pair);
     }
 
     function tickToPrice(address pair, int24 tick) public view returns (uint256) {
-        (uint256 dec0,) = getPoolDecimals(pair);
+        (uint256 dec0,) = IChainFacet.getPoolDecimals(pair);
         uint256 dec = 10 ** dec0;
-        uint160 sqrtRatioX96 = getSqrtRatioAtTick(tick);
+        uint160 sqrtRatioX96 = IChainFacet.getSqrtRatioAtTick(tick);
         return getPriceBySqrtRatio(sqrtRatioX96, dec);
     }
 
     function priceToClosestTick(address pair, uint256[] memory prices) public view returns (int24[] memory) {
-        (uint256 dec0,) = getPoolDecimals(pair);
+        (uint256 dec0,) = IChainFacet.getPoolDecimals(pair);
         uint256 dec = 10 ** dec0;
-        int24 tickSpacing = getPoolTickSpacing(pair);
+        int24 tickSpacing = IChainFacet.getPoolTickSpacing(pair);
 
         int24[] memory closestTicks = new int24[](prices.length);
         for (uint256 i = 0; i < prices.length; i++) {
             uint160 sqrtRatioX96 = getSqrtRatioByPrice(prices[i], dec);
-            int24 currentTick = getTickAtSqrtRatio(sqrtRatioX96);
+            int24 currentTick = IChainFacet.getTickAtSqrtRatio(sqrtRatioX96);
             if (currentTick % tickSpacing >= 0) {
                 closestTicks[i] = currentTick - currentTick % tickSpacing;
             } else {
@@ -42,7 +42,7 @@ contract MathFacet is IMathFacet, IChainFacet {
     }
 
     function getCurrentPoolTick(address pair) public view returns (int24) {
-        return getPoolTick(pair);
+        return IChainFacet.getPoolTick(pair);
     }
 
     function closestTicksForCurrentTick(address pair) public view returns (int24 left, int24 right) {
@@ -58,16 +58,16 @@ contract MathFacet is IMathFacet, IChainFacet {
     }
 
     function getSqrtRatioByPrice(uint256 price, uint256 decimals) internal pure returns (uint160) {
-        return toUint160(sqrt(mulDiv(price, 2 ** 192, decimals)));
+        return IChainFacet.toUint160(sqrt(IChainFacet.mulDiv(price, 2 ** 192, decimals)));
     }
 
     function getPriceBySqrtRatio(uint160 sqrtRatio, uint256 decimals) internal pure returns (uint256) {
-        return mulDiv(uint256(sqrtRatio), uint256(sqrtRatio) * decimals, 2 ** 192);
+        return IChainFacet.mulDiv(uint256(sqrtRatio), uint256(sqrtRatio) * decimals, 2 ** 192);
     }
 
     function priceToTicks(uint256[] memory priceRange, uint256 dec0, int24 tickSpacing) internal pure returns (int24 lowerTick, int24 upperTick) {
-        lowerTick = getTickAtSqrtRatio(getSqrtRatioByPrice(priceRange[0], dec0));
-        upperTick = getTickAtSqrtRatio(getSqrtRatioByPrice(priceRange[1], dec0));
+        lowerTick = IChainFacet.getTickAtSqrtRatio(getSqrtRatioByPrice(priceRange[0], dec0));
+        upperTick = IChainFacet.getTickAtSqrtRatio(getSqrtRatioByPrice(priceRange[1], dec0));
 
         if (lowerTick % tickSpacing != 0) {
             lowerTick = lowerTick > 0 ? lowerTick - lowerTick % tickSpacing : lowerTick - tickSpacing - (lowerTick % tickSpacing);

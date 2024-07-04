@@ -8,7 +8,6 @@ library LibCoreStorage {
         address odosRouter;
         address npm;
         uint256 stakeSlippageBP;
-        address roleManager;
         address diamond;
     }
 

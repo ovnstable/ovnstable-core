@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@overnight-contracts/connectors/contracts/stuff/PancakeV3.sol";
 import "../../interfaces/core/IChainFacet.sol";
-import "../libraries/core/LibCoreStorage.sol";
+import "../../libraries/core/LibCoreStorage.sol";
 
 contract ArbitrumFacet is IChainFacet {
     function toUint160(uint256 y) internal pure returns (uint160 z) {
@@ -21,10 +21,6 @@ contract ArbitrumFacet is IChainFacet {
 
     function getSqrtRatioAtTick(int24 tick) internal pure returns (uint160) {
         return TickMath.getSqrtRatioAtTick(tick);
-    }
-
-    function getTickAtSqrtRatio(uint160 sqrtPriceX96) internal pure returns (int24 tick) {
-        return TickMath.getTickAtSqrtRatio(sqrtPriceX96);
     }
 
     function getPoolDecimals(address pair) internal view returns (uint256, uint256) {
