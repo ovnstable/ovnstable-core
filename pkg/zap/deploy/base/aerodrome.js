@@ -5,7 +5,7 @@ const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const { getContract, getPrice } = require("@overnight-contracts/common/utils/script-utils");
 const { Roles } = require("@overnight-contracts/common/utils/roles");
 const { BASE } = require("@overnight-contracts/common/utils/assets");
-const { deployDiamond, prepareCut, updateFacets } = require("@overnight-contracts/common/utils/deployDiamond");
+const { deployDiamond, deployFacets, prepareCut, updateFacets, updateAbi } = require("@overnight-contracts/common/utils/deployDiamond");
 
 const name = 'AerodromeCLZap';
 
@@ -13,20 +13,21 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const { save, deploy } = deployments;
     const { deployer } = await getNamedAccounts();
 
-    await deployDiamond(name, deployer);
+    let zap = await deployDiamond(name, deployer);
     const facetNames = [
         'AccessControlFacet',
-        'BaseFacet',
+        'AerodromeFacet',
         'MathFacet',
         'ProportionFacet',
         'SetUpFacet',
         'ZapFacet'
     ];
-    const cut = await prepareCut(facetNames, name, deployer);
-    await updateFacets(cut, name);
+    await deployFacets(facetNames, deployer);
+    const cut = await prepareCut(facetNames, zap.address, deployer);
+    await updateFacets(cut, zap.address);
+    await updateAbi(name, zap, facetNames);
 
-    let zap = await ethers.getContract(name);
-
+    zap = await ethers.getContract(name);
     let coreParams = {
         odosRouter: BASE.odosRouterV2,
         npm: BASE.aerodromeNpm,

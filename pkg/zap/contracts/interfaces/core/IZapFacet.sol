@@ -35,11 +35,5 @@ interface IZapFacet {
         uint[] amountsReturned;
     }
 
-    function prepareSwap(SwapData memory swapData) external;
-
-    function swap(SwapData memory swapData) external returns (address[] memory, uint256[] memory);
-
     function zapIn(SwapData memory swapData, ZapInParams memory paramsData) external;
-
-    function addLiquidity(ZapInParams memory paramsData) external;
 }

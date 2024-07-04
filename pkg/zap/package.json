@@ -1,5 +1,5 @@
 {
-  "name": "@overnight-contracts/diamond",
+  "name": "@overnight-contracts/zap",
   "version": "0.0.1",
   "description": "Diamond contracts",
   "main": "hardhat.config",

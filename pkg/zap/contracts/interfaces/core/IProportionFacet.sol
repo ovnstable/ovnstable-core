@@ -27,11 +27,6 @@ interface IProportionFacet {
         address token;
     }
 
-    function getProportion(
-        address pair,
-        int24[] memory tickRange
-    ) external view returns (uint256 token0Amount, uint256 token1Amount);
-
     function getProportionForZap(
         address pair,
         int24[] memory tickRange,
