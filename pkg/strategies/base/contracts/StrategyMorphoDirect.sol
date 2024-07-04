@@ -165,19 +165,19 @@ contract StrategyMorphoDirect is Strategy {
         return revenue;
     }
 
-    function setFee(uint256 _fee) onlyPortfolioManager public {
+    function setFee(uint256 _fee) onlyPortfolioAgent public {
         fee = _fee;
 
         emit StrategyUpdatedFee();
     }
 
-    function setTreasury(address _treasury) onlyPortfolioManager public {
+    function setTreasury(address _treasury) onlyPortfolioAgent public {
         treasury = _treasury;
 
         emit StrategyUpdatedTreasury();
     }
 
-    function setLimit(uint256 _limit) onlyPortfolioManager public {
+    function setLimit(uint256 _limit) onlyPortfolioAgent public {
         limit = _limit;
 
         emit StrategyUpdatedLimit();
