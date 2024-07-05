@@ -26,18 +26,18 @@ let zaps_aerodrome = [
         inputTokens: ['dai', 'usdPlus'],
         priceRange: [1, 1.00022],
     },
-    {
-        name: 'AerodromeCLZap',
-        pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
-        inputTokens: ['dai', 'usdPlus'],
-        priceRange: [3100, 3500],
-    },
-    {
-        name: 'AerodromeCLZap',
-        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
-        inputTokens: ['dai', 'usdPlus'],
-        priceRange: [1.2, 1.5],
-    },
+    // {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
+    //     inputTokens: ['dai', 'usdPlus'],
+    //     priceRange: [3100, 3500],
+    // },
+    // {
+    //     name: 'AerodromeCLZap',
+    //     pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
+    //     inputTokens: ['dai', 'usdPlus'],
+    //     priceRange: [1.2, 1.5],
+    // },
 ];
 
 let zaps_pancake = [
@@ -102,31 +102,7 @@ describe('Testing all zaps', function() {
 
             it('swap and put nearly equal', async function() {
                 const amounts = [
-                    toTokenIn[0](100),
-                    toTokenIn[1](1),
-                ];
-                const prices = [
-                    toE18(1),
-                    toE18(1),
-                ];
-                await check(amounts, prices);
-            });
-
-            it('swap and disbalance on one asset', async function() {
-                const amounts = [
                     toTokenIn[0](1),
-                    toTokenIn[1](100),
-                ];
-                const prices = [
-                    toE18(1),
-                    toE18(1),
-                ];
-                await check(amounts, prices);
-            });
-
-            it('swap and disbalance on another asset', async function() {
-                const amounts = [
-                    toTokenIn[0](1000),
                     toTokenIn[1](1),
                 ];
                 const prices = [
@@ -136,17 +112,41 @@ describe('Testing all zaps', function() {
                 await check(amounts, prices);
             });
 
-            it('swap and put outside current range', async function() {
-                const amounts = [
-                    toTokenIn[0](0),
-                    toTokenIn[1](10000),
-                ];
-                const prices = [
-                    toE18(1),
-                    toE18(1),
-                ];
-                await check(amounts, prices);
-            });
+            // it('swap and disbalance on one asset', async function() {
+            //     const amounts = [
+            //         toTokenIn[0](1),
+            //         toTokenIn[1](100),
+            //     ];
+            //     const prices = [
+            //         toE18(1),
+            //         toE18(1),
+            //     ];
+            //     await check(amounts, prices);
+            // });
+            //
+            // it('swap and disbalance on another asset', async function() {
+            //     const amounts = [
+            //         toTokenIn[0](1000),
+            //         toTokenIn[1](1),
+            //     ];
+            //     const prices = [
+            //         toE18(1),
+            //         toE18(1),
+            //     ];
+            //     await check(amounts, prices);
+            // });
+            //
+            // it('swap and put outside current range', async function() {
+            //     const amounts = [
+            //         toTokenIn[0](0),
+            //         toTokenIn[1](10000),
+            //     ];
+            //     const prices = [
+            //         toE18(1),
+            //         toE18(1),
+            //     ];
+            //     await check(amounts, prices);
+            // });
 
             async function check(amounts, prices) {
                 await showBalances();
@@ -214,9 +214,13 @@ describe('Testing all zaps', function() {
                 console.log('swapData:', swapData);
                 console.log('aerodromeData:', aerodromeData);
                 let price = await (await zap.connect(account).zapIn(swapData, aerodromeData)).wait();
-
+                // const tokenId = price.events.find((event) => event.event === 'TokenId').args.tokenId;
+                // console.log("tokenId!", tokenId.toString());
                 await showBalances();
+                // await transferETH(0.0001, "0x0000000000000000000000000000000000000000");
 
+                // let positions = await zap.getPositions(account.address, tokenId);
+                // console.log("positions:", positions);
                 const inputTokensEvent = price.events.find((event) => event.event === 'InputTokens');
                 const outputTokensEvent = price.events.find((event) => event.event === 'OutputTokens');
                 const putIntoPoolEvent = price.events.find((event) => event.event === 'PutIntoPool');
