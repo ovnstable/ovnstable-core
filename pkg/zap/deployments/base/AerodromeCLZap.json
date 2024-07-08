@@ -336,6 +336,60 @@
       ]
     },
     {
+      "type": "event",
+      "anonymous": false,
+      "name": "CollectRewards",
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "amount0",
+          "indexed": false
+        },
+        {
+          "type": "uint256",
+          "name": "amount1",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "checkForOwner",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        },
+        {
+          "type": "address",
+          "name": "sender"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "closePosition",
+      "constant": false,
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        },
+        {
+          "type": "address",
+          "name": "recipient"
+        }
+      ],
+      "outputs": []
+    },
+    {
       "type": "function",
       "name": "getPositions",
       "constant": true,
@@ -437,6 +491,36 @@
         {
           "type": "uint256",
           "name": "tokenId"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "sumPositionAmounts",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        },
+        {
+          "type": "uint256",
+          "name": "input0"
+        },
+        {
+          "type": "uint256",
+          "name": "input1"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256"
+        },
+        {
+          "type": "uint256"
         }
       ]
     },
@@ -564,6 +648,78 @@
       "outputs": [
         {
           "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getProportionForRebalance",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        },
+        {
+          "type": "address",
+          "name": "poolId"
+        },
+        {
+          "type": "int24[]",
+          "name": "tickRange"
+        },
+        {
+          "type": "tuple[]",
+          "name": "inputTokens",
+          "components": [
+            {
+              "type": "address",
+              "name": "tokenAddress"
+            },
+            {
+              "type": "uint256",
+              "name": "amount"
+            },
+            {
+              "type": "uint256",
+              "name": "price"
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "type": "tuple",
+          "name": "result",
+          "components": [
+            {
+              "type": "address[]",
+              "name": "inputTokenAddresses"
+            },
+            {
+              "type": "uint256[]",
+              "name": "inputTokenAmounts"
+            },
+            {
+              "type": "address[]",
+              "name": "outputTokenAddresses"
+            },
+            {
+              "type": "uint256[]",
+              "name": "outputTokenProportions"
+            },
+            {
+              "type": "uint256[]",
+              "name": "outputTokenAmounts"
+            },
+            {
+              "type": "uint256[]",
+              "name": "poolProportionsUsd"
+            }
+          ]
         }
       ]
     },
@@ -797,6 +953,76 @@
     },
     {
       "type": "function",
+      "name": "rebalance",
+      "constant": false,
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "tuple",
+          "name": "swapData",
+          "components": [
+            {
+              "type": "tuple[]",
+              "name": "inputs",
+              "components": [
+                {
+                  "type": "address",
+                  "name": "tokenAddress"
+                },
+                {
+                  "type": "uint256",
+                  "name": "amountIn"
+                }
+              ]
+            },
+            {
+              "type": "tuple[]",
+              "name": "outputs",
+              "components": [
+                {
+                  "type": "address",
+                  "name": "tokenAddress"
+                },
+                {
+                  "type": "address",
+                  "name": "receiver"
+                }
+              ]
+            },
+            {
+              "type": "bytes",
+              "name": "data"
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "name": "paramsData",
+          "components": [
+            {
+              "type": "address",
+              "name": "pair"
+            },
+            {
+              "type": "int24[]",
+              "name": "tickRange"
+            },
+            {
+              "type": "uint256[]",
+              "name": "amountsOut"
+            }
+          ]
+        },
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
       "name": "zapIn",
       "constant": false,
       "payable": false,
@@ -857,6 +1083,20 @@
               "name": "amountsOut"
             }
           ]
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "zapOut",
+      "constant": false,
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
         }
       ],
       "outputs": []

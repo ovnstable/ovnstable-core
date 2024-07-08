@@ -32,4 +32,11 @@ interface IProportionFacet {
         int24[] memory tickRange,
         InputSwapToken[] memory inputTokens
     ) external view returns (ResultOfProportion memory);
+
+    function getProportionForRebalance(
+        uint256 tokenId,
+        address poolId,
+        int24[] memory tickRange,
+        InputSwapToken[] memory inputTokens
+    ) external view returns (ResultOfProportion memory);
 }
