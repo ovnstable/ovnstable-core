@@ -12,7 +12,7 @@ filename = filename.substring(0, filename.indexOf(".js"));
 async function main() {
 
     let wallet = await initWallet();
-    await transferETH(1, wallet.address);
+    // await transferETH(1, wallet.address);
 
     let addresses = [];
     let values = [];
@@ -24,21 +24,21 @@ async function main() {
     const usdPlusTemporaryAddress = '0x40E21D9E3e6338c6dD0fb3D33340664219C0DE4C';
     const usdPlusPureAddress = '0xB0992A4108Bd1cf0f8e429Fc0A1D7073C7dD9Fd2';
 
-    console.log("from: ", (await usdPlus.balanceOf("0x8dAbf94c7Bdd771E448a4ae4794cd71F9F3d7a0d")).toString());
-    console.log("to: ", (await usdPlus.balanceOf("0xb187C5108120967C5b3f608FEF1C12671248f791")).toString());
+    // console.log("from: ", (await usdPlus.balanceOf("0x8dAbf94c7Bdd771E448a4ae4794cd71F9F3d7a0d")).toString());
+    // console.log("to: ", (await usdPlus.balanceOf("0xb187C5108120967C5b3f608FEF1C12671248f791")).toString());
 
     addProposalItem(usdPlus, "grantRole", [Roles.UPGRADER_ROLE, timelockAddress]);
     addProposalItem(usdPlus, "upgradeTo", [usdPlusTemporaryAddress]);
     addProposalItem(usdPlus, "_hotFix", []);
     addProposalItem(usdPlus, "upgradeTo", [usdPlusPureAddress]);
 
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
 
-    console.log("from: ", (await usdPlus.balanceOf("0x8dAbf94c7Bdd771E448a4ae4794cd71F9F3d7a0d")).toString());
-    console.log("to: ", (await usdPlus.balanceOf("0xb187C5108120967C5b3f608FEF1C12671248f791")).toString());
+    // console.log("from: ", (await usdPlus.balanceOf("0x8dAbf94c7Bdd771E448a4ae4794cd71F9F3d7a0d")).toString());
+    // console.log("to: ", (await usdPlus.balanceOf("0xb187C5108120967C5b3f608FEF1C12671248f791")).toString());
 
-    await testUsdPlus(filename, 'linea');
-    // await createProposal(filename, addresses, values, abis);
+    // await testUsdPlus(filename, 'linea');
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
