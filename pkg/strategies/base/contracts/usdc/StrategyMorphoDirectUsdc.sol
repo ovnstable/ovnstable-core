@@ -17,10 +17,10 @@ contract StrategyMorphoDirectUsdc is Strategy {
     Id public marketId;
     MarketParams public marketParams;
 
-    address treasury;
-    uint256 fee; // in basis points
-    uint256 balance;
-    uint256 limit; // in basis points
+    address public treasury;
+    uint256 public fee; // in basis points
+    uint256 public balance;
+    uint256 public limit; // in basis points
 
     
     // --- events

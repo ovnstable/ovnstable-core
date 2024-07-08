@@ -27,6 +27,7 @@ async function main() {
 
     let timelock = "0x8ab9012d1bff1b62c2ad82ae0106593371e6b247";
     let newMorphoImpl = "0x2F78BA841c611459Be4f321fA72d7963D66BED7c";
+    let newMorphoUsdcImpl = "0xccd1F924585fB6B3384C147E18c65d3B4b9F6F1c";
     
     let morphoParams = {
         usdc: BASE.usdc,
@@ -46,7 +47,7 @@ async function main() {
 
     addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock]);
 
-    addProposalItem(morphoUsdc, 'upgradeTo', [newMorphoImpl]);
+    addProposalItem(morphoUsdc, 'upgradeTo', [newMorphoUsdcImpl]);
     addProposalItem(morphoUsdc, 'setParams', [morphoParams]);
 
     addProposalItem(morpho, 'upgradeTo', [newMorphoImpl]);
