@@ -819,6 +819,4 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             }
         }
     }
-
-
 }
