@@ -159,7 +159,7 @@ contract StrategyMorphoDirectUsdc is Strategy {
         if(revenue > 0 && revenue * 10000 < curNetAssetValue * limit) {   
             morpho.withdraw(marketParams, revenue, 0, address(this), address(this));
             usdcToken.transfer(treasury, revenue);
-            balance -= revenue;
+            balance = usdcToken.balanceOf(address(this)) + currentDepositValue();
         }
 
         return revenue;
