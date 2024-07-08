@@ -36,7 +36,7 @@ async function main() {
 
 
     let names = [
-        'StrategyMorphoDirect'
+        'StrategyMorphoDirectUsdc'
     ]
     // let mainAddress = (await initWallet()).address;
     // await transferETH(100, mainAddress);   

@@ -375,7 +375,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     /**
-     * @dev Protect from flashloan attacks
+     * @dev Protect from flashloan attacksusdPlus.mint
      * Allow execute only one mint or redeem transaction in per block
      * ONLY if balance function triggered on PortfolioManager
      * in other cases: stake/unstake only from cash strategy is safe
