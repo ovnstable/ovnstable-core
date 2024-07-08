@@ -40,6 +40,7 @@ contract StrategyMorphoDirectUsdc is Strategy {
         MarketParams marketParams;
         address treasury;
         uint256 fee;
+        uint256 limit;
     }
 
 
@@ -62,9 +63,10 @@ contract StrategyMorphoDirectUsdc is Strategy {
         marketParams = params.marketParams;
         treasury = params.treasury;
         fee = params.fee;
-
-        balance = 0;
-        limit = 0; 
+        limit = params.limit;
+        
+        balance = usdcToken.balanceOf(address(this)) + currentDepositValue();
+         
         
         emit StrategyUpdatedParams();
     }

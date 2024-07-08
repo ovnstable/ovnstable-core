@@ -23,11 +23,9 @@ async function main() {
 
     let morpho = await getContract('StrategyMorphoDirect', 'base');
     let morphoUsdc = await getContract('StrategyMorphoDirectUsdc', 'base_usdc');
-    let rm = await getContract('RoleManager', 'base');
-
-    let timelock = "0x8ab9012d1bff1b62c2ad82ae0106593371e6b247";
-    let newMorphoImpl = "0x2F78BA841c611459Be4f321fA72d7963D66BED7c";
-    let newMorphoUsdcImpl = "0xccd1F924585fB6B3384C147E18c65d3B4b9F6F1c";
+    
+    let newMorphoImpl = "0xd46e93f2aad81FbcD0F6f15366EEa6C332d49AC0";
+    let newMorphoUsdcImpl = "0xF244B48D7f29E4448c1c0d1F69e3E4A7215A93Eb";
     
     let morphoParams = {
         usdc: BASE.usdc,
@@ -42,23 +40,15 @@ async function main() {
         },
         treasury: COMMON.rewardWallet,
         fee: 2000,
+        limit: 100
     }
     
-
-    addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock]);
-
+    addProposalItem(morpho, 'upgradeTo', [newMorphoImpl]);
+    addProposalItem(morpho, 'setParams', [morphoParams]);
     addProposalItem(morphoUsdc, 'upgradeTo', [newMorphoUsdcImpl]);
     addProposalItem(morphoUsdc, 'setParams', [morphoParams]);
 
-    addProposalItem(morpho, 'upgradeTo', [newMorphoImpl]);
-    addProposalItem(morpho, 'setParams', [morphoParams]);
-
-
-    // await testProposal(addresses, values, abis);
-    // await testUsdPlus(filename, 'base');
-    // await testUsdPlus(filename, 'base_usdc');
-    // await testStrategy(filename, morpho, 'base');
-    // await testStrategy(filename, morphoUsdc, 'base_usdc');
+    
     await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {

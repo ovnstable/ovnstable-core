@@ -18,9 +18,9 @@ contract StrategyMorphoDirect is Strategy {
     MarketParams public marketParams;
 
     address treasury;
-    uint256 fee; // in basis points
-    uint256 balance;
-    uint256 limit; // in basis points
+    uint256 public fee; // in basis points
+    uint256 public balance;
+    uint256 public limit; // in basis points
 
     
     // --- events
@@ -40,6 +40,7 @@ contract StrategyMorphoDirect is Strategy {
         MarketParams marketParams;
         address treasury;
         uint256 fee;
+        uint256 limit;
     }
 
 
@@ -62,10 +63,10 @@ contract StrategyMorphoDirect is Strategy {
         marketParams = params.marketParams;
         treasury = params.treasury;
         fee = params.fee;
-
-        balance = 0;
-        limit = 0; 
+        limit = params.limit;
         
+        balance = usdcToken.balanceOf(address(this)) + currentDepositValue();
+         
         emit StrategyUpdatedParams();
     }
 
