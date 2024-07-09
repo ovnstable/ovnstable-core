@@ -452,6 +452,10 @@
               "name": "tickUpper"
             },
             {
+              "type": "int24",
+              "name": "currentTick"
+            },
+            {
               "type": "uint256",
               "name": "apr"
             }
