@@ -154,6 +154,7 @@ describe('Testing all zaps', function() {
                     console.log("rewardAmount1:", positions[i].rewardAmount1.toString());
                     console.log("tickLower:", positions[i].tickLower.toString());
                     console.log("tickUpper:", positions[i].tickUpper.toString());
+                    console.log("currentTick:", positions[i].currentTick.toString());
                     console.log("apr:", positions[i].apr.toString());
                     console.log("----------------------------------");
                 }

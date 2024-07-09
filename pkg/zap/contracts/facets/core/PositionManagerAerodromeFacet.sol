@@ -53,6 +53,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
                 AERODROME_FACTORY,
                 PoolAddress.getPoolKey(result[i].token0, result[i].token1, getTickSpacing(result[i].tokenId))
             );
+            (, result[i].currentTick,,,,) = IUniswapV3Pool(result[i].poolId).slot0();
             (result[i].amount0, result[i].amount1) = getPositionAmounts(result[i].tokenId);
         }
     }

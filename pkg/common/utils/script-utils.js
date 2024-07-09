@@ -16,6 +16,7 @@ let ethers = require('hardhat').ethers;
 
 const DIAMOND_STRATEGY = require('./abi/DiamondStrategy.json');
 const { Roles } = require("./roles");
+const ERC20 = require('./abi/IERC20.json');
 
 let wallet = undefined;
 async function initWallet() {
@@ -370,6 +371,15 @@ async function getERC20(name, wallet) {
 
     return await ethers.getContractAt(ERC20, getAsset(name), wallet);
 
+}
+
+async function getERC721(name, wallet) {
+    let ethers = hre.ethers;
+    if (!wallet) {
+        wallet = await initWallet();
+    }
+    const ERC721 = require("./abi/IERC721.json");
+    return await ethers.getContractAt(ERC721, getAsset(name), wallet);
 }
 
 async function getERC20ByAddress(address, wallet) {
@@ -1313,6 +1323,7 @@ module.exports = {
     isContract: isContract,
     getImplementation: getImplementation,
     getERC20: getERC20,
+    getERC721: getERC721,
     getERC20ByAddress: getERC20ByAddress,
     getCoreAsset: getCoreAsset,
     getStrategy: getStrategy,

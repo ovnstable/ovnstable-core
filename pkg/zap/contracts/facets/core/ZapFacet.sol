@@ -29,15 +29,11 @@ contract ZapFacet is IZapFacet {
     }
 
     function zapOut(uint256 tokenId) external {
-        IMasterFacet master = IMasterFacet(address(this));
-        master.checkForOwner(tokenId, msg.sender);
-        master.closePosition(tokenId, msg.sender);
+        _zapOut(tokenId, msg.sender);
     }
 
     function rebalance(SwapData memory swapData, ZapInParams memory paramsData, uint256 tokenId) external {
-        IMasterFacet master = IMasterFacet(address(this));
-        master.checkForOwner(tokenId, msg.sender);
-        master.closePosition(tokenId, address(this));
+        _zapOut(tokenId, address(this));
         _zapIn(swapData, paramsData);
     }
 
@@ -56,6 +52,12 @@ contract ZapFacet is IZapFacet {
             paramsData.amountsOut[i] = asset.balanceOf(address(this));
         }
         addLiquidity(paramsData);
+    }
+
+    function _zapOut(uint256 tokenId, address recipient) internal {
+        IMasterFacet master = IMasterFacet(address(this));
+        master.checkForOwner(tokenId, msg.sender);
+        master.closePosition(tokenId, recipient);
     }
 
     function addLiquidity(ZapInParams memory paramsData) internal {

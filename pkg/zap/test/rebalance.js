@@ -7,7 +7,7 @@ const {
     initWallet,
     execTimelock,
     getContract,
-    getChainId,
+    getChainId, getERC721,
 } = require('@overnight-contracts/common/utils/script-utils');
 const { resetHardhat, greatLess, resetHardhatToLastBlock } = require('@overnight-contracts/common/utils/tests');
 const BN = require('bn.js');
@@ -20,18 +20,18 @@ const { getOdosAmountOut, getOdosSwapData } = require('@overnight-contracts/comm
 const { getOdosAmountOutOnly } = require('../../common/utils/odos-helper.js');
 
 let zaps_aerodrome = [
-    {
-        name: 'AerodromeCLZap',
-        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
-        inputTokens: ['dai', 'usdPlus'],
-        priceRange: [1, 1.00022],
-    },
     // {
     //     name: 'AerodromeCLZap',
-    //     pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
+    //     pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
     //     inputTokens: ['dai', 'usdPlus'],
-    //     priceRange: [3100, 3500],
+    //     priceRange: [1, 1.00022],
     // },
+    {
+        name: 'AerodromeCLZap',
+        pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
+        inputTokens: ['weth', 'usdPlus'],
+        priceRange: [2800, 3100],
+    },
     // {
     //     name: 'AerodromeCLZap',
     //     pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
@@ -101,7 +101,16 @@ describe('Testing all zaps', function() {
             });
 
             it('test dev wallet positions', async function() {
-                await check();
+                const amounts = [
+                    toTokenIn[0](0),
+                    toTokenIn[1](0),
+                ];
+                const prices = [
+                    toE18(2900),
+                    toE18(0),
+                ];
+                let tokenId = 43981;
+                await check(amounts, prices, tokenId);
             });
 
             // it('swap and disbalance on one asset', async function() {
@@ -140,8 +149,7 @@ describe('Testing all zaps', function() {
             //     await check(amounts, prices);
             // });
 
-            async function check() {
-                let tokenId = 43981;
+            async function check(amounts, prices, tokenId) {
                 let inputSwapTokens = [];
                 for (let i = 0; i < inputTokens.length; i++) {
                     await (await inputTokens[i].approve(zap.address, toE18(10000))).wait();
@@ -152,7 +160,7 @@ describe('Testing all zaps', function() {
                     });
                 }
                 console.log("inputSwapTokens:", inputSwapTokens);
-                let result = await zap.getProportionForZap(params.pair, params.tickRange, inputSwapTokens);
+                let result = await zap.getProportionForRebalance(tokenId, params.pair, params.tickRange, inputSwapTokens);
                 console.log("inputTokenAddresses:", result.inputTokenAddresses);
                 console.log("inputTokenAmounts:", result.inputTokenAmounts.map((x) => x.toString()));
                 console.log("outputTokenAddresses:", result.outputTokenAddresses);
@@ -205,7 +213,10 @@ describe('Testing all zaps', function() {
                 }
                 console.log('swapData:', swapData);
                 console.log('aerodromeData:', aerodromeData);
-                let price = await (await zap.connect(account).zapIn(swapData, aerodromeData)).wait();
+                let nftContract = (await getERC721("aerodromeNpm")).connect(account);
+                await (await nftContract.approve(zap.address, tokenId)).wait();
+
+                let price = await (await zap.connect(account).rebalance(swapData, aerodromeData, tokenId)).wait();
                 // const tokenId = price.events.find((event) => event.event === 'TokenId').args.tokenId;
                 // console.log("tokenId!", tokenId.toString());
                 await showBalances();
@@ -221,13 +232,75 @@ describe('Testing all zaps', function() {
                 console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
 
             }
+
+            async function showBalances() {
+                const items = [];
+                for (let i = 0; i < inputTokens.length; i++) {
+                    items.push({
+                        name: await inputTokens[i].symbol(),
+                        balance: fromTokenIn[i](await inputTokens[i].balanceOf(account.address)),
+                    });
+                }
+                console.table(items);
+            }
         });
     });
 });
 
+async function getOdosRequest(request) {
+    let swapParams = {
+        'chainId': await getChainId(),
+        'gasPrice': 1,
+        'inputTokens': request.inputTokens,
+        'outputTokens': request.outputTokens,
+        'userAddr': request.userAddr,
+        'slippageLimitPercent': 1,
+        'sourceBlacklist': ['Hashflow', 'Overnight Exchange'],
+        'sourceWhitelist': [],
+        'simulate': false,
+        'pathViz': false,
+        'disableRFQs': false,
+    };
+
+    // @ts-ignore
+    const urlQuote = 'https://api.overnight.fi/root/odos/sor/quote/v2';
+    const urlAssemble = 'https://api.overnight.fi/root/odos/sor/assemble';
+    let transaction;
+    try {
+        let quotaResponse = (await axios.post(urlQuote, swapParams, { headers: { 'Accept-Encoding': 'br' } }));
+
+        let assembleData = {
+            'userAddr': request.userAddr,
+            'pathId': quotaResponse.data.pathId,
+            'simulate': true,
+        };
+
+        // console.log("assembleData: ", assembleData)
+        transaction = (await axios.post(urlAssemble, assembleData, { headers: { 'Accept-Encoding': 'br' } }));
+        // console.log('trans: ', transaction, quotaResponse);
+        // console.log("odos transaction simulation: ", transaction.data.simulation)
+    } catch (e) {
+        console.log('[zap] getSwapTransaction: ', e);
+        return 0;
+    }
+
+    if (transaction.statusCode === 400) {
+        console.log(`[zap] ${transaction.description}`);
+        return 0;
+    }
+
+    if (transaction.data.transaction === undefined) {
+        console.log('[zap] transaction.tx is undefined');
+        return 0;
+    }
+
+    console.log('Success get data from Odos!');
+    return transaction.data.transaction;
+}
+
 async function setUp(params) {
     const signers = await ethers.getSigners();
-    const account = signers[0];
+    const account = await initWallet();
 
     let usdPlus = await getContract('UsdPlusToken', process.env.STAND);
     let usdc;
@@ -238,6 +311,7 @@ async function setUp(params) {
     }
     let dai = await getERC20('dai');
 
+    await transferETH(1000, account.address);
     await transferAsset(usdc.address, account.address);
     await transferAsset(dai.address, account.address);
 

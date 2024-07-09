@@ -14,6 +14,7 @@ interface IPositionManagerFacet {
         uint256 rewardAmount1;
         int24 tickLower;
         int24 tickUpper;
+        int24 currentTick;
         uint256 apr;
     }
 
