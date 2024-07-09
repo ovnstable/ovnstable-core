@@ -152,14 +152,31 @@ describe('Testing all zaps', function() {
             async function check(amounts, prices, tokenId) {
                 let inputSwapTokens = [];
                 for (let i = 0; i < inputTokens.length; i++) {
-                    await (await inputTokens[i].approve(zap.address, toE18(10000))).wait();
+                    // await (await inputTokens[i].approve(zap.address, toE18(10000))).wait();
                     inputSwapTokens.push({
                         "tokenAddress": inputTokens[i].address,
                         "amount": amounts[i],
                         "price": prices[i],
                     });
                 }
+
                 console.log("inputSwapTokens:", inputSwapTokens);
+
+                // let tokenId1 = 102914;
+                // let poolId1 = "0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606";
+                // let tickRange1 = [-197200,-194900];
+                // let inputTokens1 = [
+                //     {
+                //         tokenAddress: "0x4200000000000000000000000000000000000006",
+                //         amount: 0,
+                //         price: "3072520172653492400000"
+                //     },
+                //     {
+                //         tokenAddress: "0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376",
+                //         amount: 0,
+                //         price: "1001339157528039300"
+                //     }
+                // ];
                 let result = await zap.getProportionForRebalance(tokenId, params.pair, params.tickRange, inputSwapTokens);
                 console.log("inputTokenAddresses:", result.inputTokenAddresses);
                 console.log("inputTokenAmounts:", result.inputTokenAmounts.map((x) => x.toString()));
@@ -299,7 +316,6 @@ async function getOdosRequest(request) {
 }
 
 async function setUp(params) {
-    const signers = await ethers.getSigners();
     const account = await initWallet();
 
     let usdPlus = await getContract('UsdPlusToken', process.env.STAND);
