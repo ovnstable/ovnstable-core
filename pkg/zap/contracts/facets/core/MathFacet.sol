@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 import "../../interfaces/IMasterFacet.sol";
 
 contract MathFacet is IMathFacet, Modifiers {
-    function getCurrentPrice(address pair) external onlyDiamond view returns (uint256) {
+    function getCurrentPrice(address pair) external view returns (uint256) {
         IMasterFacet master = IMasterFacet(address(this));
         (uint256 dec0,) = master.getPoolDecimals(pair);
         uint160 sqrtRatioX96 = master.getPoolSqrtRatioX96(pair);

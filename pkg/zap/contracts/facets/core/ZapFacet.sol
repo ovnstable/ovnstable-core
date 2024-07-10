@@ -25,7 +25,7 @@ contract ZapFacet is IZapFacet {
     receive() external payable {}
 
     function zapIn(SwapData memory swapData, ZapInParams memory paramsData) external {
-        _zapIn(swapData, paramsData);
+        _zapIn(swapData, paramsData, true);
     }
 
     function zapOut(uint256 tokenId) external {
@@ -34,11 +34,11 @@ contract ZapFacet is IZapFacet {
 
     function rebalance(SwapData memory swapData, ZapInParams memory paramsData, uint256 tokenId) external {
         _zapOut(tokenId, address(this));
-        _zapIn(swapData, paramsData);
+        _zapIn(swapData, paramsData, false);
     }
 
-    function _zapIn(SwapData memory swapData, ZapInParams memory paramsData) internal {
-        prepareSwap(swapData);
+    function _zapIn(SwapData memory swapData, ZapInParams memory paramsData, bool needTransfer) internal {
+        prepareSwap(swapData, needTransfer);
         swap(swapData);
         IMasterFacet master = IMasterFacet(address(this));
         address[] memory tokensOut = new address[](2);
@@ -46,7 +46,7 @@ contract ZapFacet is IZapFacet {
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
             IERC20 asset = IERC20(tokensOut[i]);
-            if (paramsData.amountsOut[i] > 0) {
+            if (needTransfer && paramsData.amountsOut[i] > 0) {
                 asset.transferFrom(msg.sender, address(this), paramsData.amountsOut[i]);
             }
             paramsData.amountsOut[i] = asset.balanceOf(address(this));
@@ -104,7 +104,7 @@ contract ZapFacet is IZapFacet {
         emit ReturnedToUser(result.amountsReturned, tokensOut);
     }
 
-    function prepareSwap(SwapData memory swapData) internal {
+    function prepareSwap(SwapData memory swapData, bool needTransfer) internal {
         for (uint256 i = 0; i < swapData.outputs.length; i++) {
             for (uint256 j = 0; j < i; j++) {
                 require(
@@ -135,7 +135,9 @@ contract ZapFacet is IZapFacet {
             }
 
             IERC20 asset = IERC20(swapData.inputs[i].tokenAddress);
-            asset.transferFrom(msg.sender, address(this), swapData.inputs[i].amountIn);
+            if (needTransfer) {
+                asset.transferFrom(msg.sender, address(this), swapData.inputs[i].amountIn);
+            }
             asset.approve(LibCoreStorage.coreStorage().odosRouter, swapData.inputs[i].amountIn);
         }
     }

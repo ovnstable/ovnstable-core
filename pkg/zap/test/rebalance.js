@@ -30,7 +30,7 @@ let zaps_aerodrome = [
         name: 'AerodromeCLZap',
         pair: '0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606',
         inputTokens: ['weth', 'usdPlus'],
-        priceRange: [2800, 3100],
+        priceRange: [2800, 3200],
     },
     // {
     //     name: 'AerodromeCLZap',
@@ -155,7 +155,7 @@ describe('Testing all zaps', function() {
                     // await (await inputTokens[i].approve(zap.address, toE18(10000))).wait();
                     inputSwapTokens.push({
                         "tokenAddress": inputTokens[i].address,
-                        "amount": amounts[i],
+                        // "amount": amounts[i],
                         "price": prices[i],
                     });
                 }

@@ -8,6 +8,11 @@ interface IProportionFacet {
         uint256 price;
     }
 
+    struct PoolTokenPrices {
+        address tokenAddress;
+        uint256 price;
+    }
+
     struct ResultOfProportion {
         address[] inputTokenAddresses;
         uint256[] inputTokenAmounts;
@@ -19,6 +24,7 @@ interface IProportionFacet {
 
     struct OutTokenInfo {
         uint256 idx;
+        uint256 amount;
         uint256 amountUsd;
         uint256 prop;
         uint256 propAmount;
@@ -37,6 +43,6 @@ interface IProportionFacet {
         uint256 tokenId,
         address poolId,
         int24[] memory tickRange,
-        InputSwapToken[] memory inputTokens
+        PoolTokenPrices[] memory prices
     ) external view returns (ResultOfProportion memory);
 }

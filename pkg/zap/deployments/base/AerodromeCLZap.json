@@ -391,6 +391,28 @@
     },
     {
       "type": "function",
+      "name": "getPositionVolume",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint256"
+        },
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
       "name": "getPositions",
       "constant": true,
       "stateMutability": "view",
@@ -495,36 +517,6 @@
         {
           "type": "uint256",
           "name": "tokenId"
-        }
-      ]
-    },
-    {
-      "type": "function",
-      "name": "sumPositionAmounts",
-      "constant": true,
-      "stateMutability": "view",
-      "payable": false,
-      "gas": 20000000,
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "tokenId"
-        },
-        {
-          "type": "uint256",
-          "name": "input0"
-        },
-        {
-          "type": "uint256",
-          "name": "input1"
-        }
-      ],
-      "outputs": [
-        {
-          "type": "uint256"
-        },
-        {
-          "type": "uint256"
         }
       ]
     },
@@ -677,15 +669,11 @@
         },
         {
           "type": "tuple[]",
-          "name": "inputTokens",
+          "name": "prices",
           "components": [
             {
               "type": "address",
               "name": "tokenAddress"
-            },
-            {
-              "type": "uint256",
-              "name": "amount"
             },
             {
               "type": "uint256",

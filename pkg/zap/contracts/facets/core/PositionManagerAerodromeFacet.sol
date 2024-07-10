@@ -71,11 +71,11 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         getNpm().burn(tokenId);
     }
 
-    function sumPositionAmounts(uint256 tokenId, uint256 input0, uint256 input1) external view
+    function getPositionVolume(uint256 tokenId) external view
     returns (uint256, uint256) {
         (uint128 tokensOwed0, uint128 tokensOwed1) = getTokensOwed(tokenId);
         (uint256 amount0, uint256 amount1) = getPositionAmounts(tokenId);
-        return (input0 + amount0 + tokensOwed0, input1 + amount1 + tokensOwed1);
+        return (amount0 + tokensOwed0, amount1 + tokensOwed1);
     }
 
     function checkForOwner(uint256 tokenId, address sender) external view {
