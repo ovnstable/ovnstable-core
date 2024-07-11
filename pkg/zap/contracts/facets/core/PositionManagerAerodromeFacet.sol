@@ -66,7 +66,9 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
             amount1Min: 0,
             deadline: block.timestamp
         });
-        getNpm().decreaseLiquidity(params);
+        if (params.liquidity > 0) {
+            getNpm().decreaseLiquidity(params);
+        }
         collectRewards(tokenId, recipient);
         getNpm().burn(tokenId);
     }
