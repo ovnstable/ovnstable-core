@@ -25,7 +25,8 @@ async function main() {
     let account = await initWallet();
     // await transferETH(0.000001, "0x0000000000000000000000000000000000000000");
 
-    let positions = await zap.getPositions("0xEd446C56F89e84b3dC9ACec060154eC6BC6bB299");
+    let positions = await zap.getPositions("0x66BC0120b3287f08408BCC76ee791f0bad17Eeef");
+    console.log("length: ", positions.length);
     for (let i = 0; i < positions.length; i++) {
         console.log("platform:", positions[i].platform);
         console.log("tokenId:", positions[i].tokenId.toString());
@@ -43,10 +44,11 @@ async function main() {
         console.log("----------------------------------");
     }
 
-    let tokenId = 62390;
+    let tokenId = 62329;
     let poolId = "0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606";
-    let currentTick = await zap.getCurrentPoolTick(poolId);
-    let tickRange = [currentTick - 100, currentTick + 100];
+    let tickRange = await zap.closestTicksForCurrentTick(poolId);
+    tickRange = [tickRange.left, tickRange.right];
+    console.log("tickRange", tickRange);
     let inputTokens = [
         {
             tokenAddress: "0x4200000000000000000000000000000000000006",

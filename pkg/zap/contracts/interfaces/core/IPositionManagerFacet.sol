@@ -27,7 +27,7 @@ interface IPositionManagerFacet {
         address recipient
     ) external returns (uint256);
 
-    function closePosition(uint256 tokenId, address recipient) external;
+    function closePosition(uint256 tokenId, address recipient, address feeRecipient) external;
 
     function getPositions(address wallet) external view returns (PositionInfo[] memory);
 

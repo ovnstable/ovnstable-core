@@ -385,6 +385,10 @@
         {
           "type": "address",
           "name": "recipient"
+        },
+        {
+          "type": "address",
+          "name": "feeRecipient"
         }
       ],
       "outputs": []

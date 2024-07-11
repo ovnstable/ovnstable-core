@@ -42,7 +42,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
 
     function getPositions(address wallet) external view returns (PositionInfo[] memory result) {
         uint256 gaugePositionsLength = calculateGaugePositionsLength(wallet);
-        uint256 positionsLength = getNpm().balanceOf(wallet);
+        uint256 positionsLength = calculateUserPositionsLength(wallet);
         uint256 positionCount;
         result = new PositionInfo[](gaugePositionsLength + positionsLength);
         ICLFactory factory = ICLFactory(getNpm().factory());
@@ -56,20 +56,24 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
             ICLGauge gauge = ICLGauge(pool.gauge());
             uint256[] memory tokenIds = gauge.stakedValues(wallet);
             for (uint j = 0; j < tokenIds.length; j++) {
-                result[positionCount] = getPositionInfo(tokenIds[j]);
-                positionCount++;
+                if (getLiquidity(tokenIds[j]) > 0) {
+                    result[positionCount] = getPositionInfo(tokenIds[j]);
+                    positionCount++;
+                }
             }
         }
 
         for (uint256 i = 0; i < positionsLength; i++) {
             uint256 tokenId = getNpm().tokenOfOwnerByIndex(wallet, i);
-            result[positionCount] = getPositionInfo(tokenId);
-            positionCount++;
+            if (getLiquidity(tokenId) > 0) {
+                result[positionCount] = getPositionInfo(tokenId);
+                positionCount++;
+            }
         }
         return result;
     }
 
-    function closePosition(uint256 tokenId, address recipient) onlyDiamond external {
+    function closePosition(uint256 tokenId, address recipient, address feeRecipient) onlyDiamond external {
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
             tokenId: tokenId,
             liquidity: getLiquidity(tokenId),
@@ -77,6 +81,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
             amount1Min: 0,
             deadline: block.timestamp
         });
+        collectRewards(tokenId, feeRecipient);
         if (params.liquidity > 0) {
             getNpm().decreaseLiquidity(params);
         }
@@ -159,20 +164,19 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
     }
 
     function collectRewards(uint256 tokenId, address recipient) internal {
-        (uint128 tokensOwed0, uint128 tokensOwed1) = getTokensOwed(tokenId);
         INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
             tokenId: tokenId,
             recipient: recipient,
-            amount0Max: tokensOwed0,
-            amount1Max: tokensOwed1
+            amount0Max: type(uint128).max,
+            amount1Max: type(uint128).max
         });
         (uint256 amount0, uint256 amount1) = getNpm().collect(collectParams);
         emit CollectRewards(amount0, amount1);
     }
 
-    function calculateGaugePositionsLength(address wallet) internal view returns (uint256) {
+    function calculateGaugePositionsLength(address wallet) internal view returns (uint256 length) {
+        length = 0;
         ICLFactory factory = ICLFactory(getNpm().factory());
-        uint256 length;
         uint256 poolsLength = factory.allPoolsLength();
         for (uint256 i = 0; i < poolsLength; i++) {
             ICLPoolConstants pool = ICLPoolConstants(factory.allPools(i));
@@ -180,8 +184,24 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
                 continue;
             }
             ICLGauge gauge = ICLGauge(pool.gauge());
-            length = length + gauge.stakedLength(wallet);
+            uint256 gaugePositionsLength = gauge.stakedLength(wallet);
+            uint256[] memory tokenIds = gauge.stakedValues(wallet);
+            for (uint j = 0; j < gaugePositionsLength; j++) {
+                if (getLiquidity(tokenIds[j]) > 0) {
+                    length++;
+                }
+            }
         }
-        return length;
+    }
+
+    function calculateUserPositionsLength(address wallet) internal view returns (uint256 length) {
+        length = 0;
+        uint256 positionsLength = getNpm().balanceOf(wallet);
+        for (uint256 i = 0; i < positionsLength; i++) {
+            uint256 tokenId = getNpm().tokenOfOwnerByIndex(wallet, i);
+            if (getLiquidity(tokenId) > 0) {
+                length++;
+            }
+        }
     }
 }
