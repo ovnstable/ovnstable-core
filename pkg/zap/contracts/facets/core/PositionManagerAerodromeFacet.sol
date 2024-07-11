@@ -17,7 +17,8 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         int24 tickRange0,
         int24 tickRange1,
         uint256 amountOut0,
-        uint256 amountOut1
+        uint256 amountOut1,
+        address recipient
     ) external onlyDiamond returns (uint256 tokenId) {
         IUniswapV3Pool pool = IUniswapV3Pool(pair);
         address token0 = pool.token0();
@@ -32,7 +33,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
             amount1Desired: amountOut1,
             amount0Min: 0,
             amount1Min: 0,
-            recipient: msg.sender,
+            recipient: recipient,
             deadline: block.timestamp,
             sqrtPriceX96: 0
         });
@@ -40,22 +41,32 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
     }
 
     function getPositions(address wallet) external view returns (PositionInfo[] memory result) {
-        uint256 numPositions = getNpm().balanceOf(wallet);
-        result = new PositionInfo[](numPositions);
-        for (uint256 i = 0; i < numPositions; i++) {
-            result[i].tokenId = getNpm().tokenOfOwnerByIndex(wallet, i);
-            result[i].platform = "Aerodrome";
-            (result[i].token0, result[i].token1) = getTokens(result[i].tokenId);
-            (result[i].tickLower, result[i].tickUpper) = getTicks(result[i].tokenId);
-            (result[i].rewardAmount0, result[i].rewardAmount1) = getTokensOwed(result[i].tokenId);
+        uint256 gaugePositionsLength = calculateGaugePositionsLength(wallet);
+        uint256 positionsLength = getNpm().balanceOf(wallet);
+        uint256 positionCount;
+        result = new PositionInfo[](gaugePositionsLength + positionsLength);
+        ICLFactory factory = ICLFactory(getNpm().factory());
+        uint256 poolsLength = factory.allPoolsLength();
 
-            result[i].poolId = PoolAddress.computeAddress(
-                AERODROME_FACTORY,
-                PoolAddress.getPoolKey(result[i].token0, result[i].token1, getTickSpacing(result[i].tokenId))
-            );
-            (, result[i].currentTick,,,,) = IUniswapV3Pool(result[i].poolId).slot0();
-            (result[i].amount0, result[i].amount1) = getPositionAmounts(result[i].tokenId);
+        for (uint256 i = 0; i < poolsLength; i++) {
+            ICLPoolConstants pool = ICLPoolConstants(factory.allPools(i));
+            if (pool.gauge() == address(0)) {
+                continue;
+            }
+            ICLGauge gauge = ICLGauge(pool.gauge());
+            uint256[] memory tokenIds = gauge.stakedValues(wallet);
+            for (uint j = 0; j < tokenIds.length; j++) {
+                result[positionCount] = getPositionInfo(tokenIds[j]);
+                positionCount++;
+            }
         }
+
+        for (uint256 i = 0; i < positionsLength; i++) {
+            uint256 tokenId = getNpm().tokenOfOwnerByIndex(wallet, i);
+            result[positionCount] = getPositionInfo(tokenId);
+            positionCount++;
+        }
+        return result;
     }
 
     function closePosition(uint256 tokenId, address recipient) onlyDiamond external {
@@ -119,7 +130,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
 
     function getPositionAmounts(uint256 tokenId) internal view returns (uint256 amount0, uint256 amount1) {
         (address token0, address token1) = getTokens(tokenId);
-        address poolId = PoolAddress.computeAddress(AERODROME_FACTORY,
+        address poolId = PoolAddress.computeAddress(getNpm().factory(),
             PoolAddress.getPoolKey(token0, token1, getTickSpacing(tokenId)));
         (int24 tickLower, int24 tickUpper) = getTicks(tokenId);
         (uint160 sqrtRatioX96,,,,,) = IUniswapV3Pool(poolId).slot0();
@@ -129,6 +140,22 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
             TickMath.getSqrtRatioAtTick(tickUpper),
             getLiquidity(tokenId)
         );
+    }
+
+    function getPositionInfo(uint256 tokenId) internal view returns (PositionInfo memory) {
+        PositionInfo memory result;
+        result.platform = "Aerodrome";
+        result.tokenId = tokenId;
+        (result.token0, result.token1) = getTokens(tokenId);
+        (result.tickLower, result.tickUpper) = getTicks(tokenId);
+        (result.rewardAmount0, result.rewardAmount1) = getTokensOwed(tokenId);
+        result.poolId = PoolAddress.computeAddress(
+            getNpm().factory(),
+            PoolAddress.getPoolKey(result.token0, result.token1, getTickSpacing(tokenId))
+        );
+        (, result.currentTick,,,,) = IUniswapV3Pool(result.poolId).slot0();
+        (result.amount0, result.amount1) = getPositionAmounts(tokenId);
+        return result;
     }
 
     function collectRewards(uint256 tokenId, address recipient) internal {
@@ -141,5 +168,20 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         });
         (uint256 amount0, uint256 amount1) = getNpm().collect(collectParams);
         emit CollectRewards(amount0, amount1);
+    }
+
+    function calculateGaugePositionsLength(address wallet) internal view returns (uint256) {
+        ICLFactory factory = ICLFactory(getNpm().factory());
+        uint256 length;
+        uint256 poolsLength = factory.allPoolsLength();
+        for (uint256 i = 0; i < poolsLength; i++) {
+            ICLPoolConstants pool = ICLPoolConstants(factory.allPools(i));
+            if (pool.gauge() == address(0)) {
+                continue;
+            }
+            ICLGauge gauge = ICLGauge(pool.gauge());
+            length = length + gauge.stakedLength(wallet);
+        }
+        return length;
     }
 }

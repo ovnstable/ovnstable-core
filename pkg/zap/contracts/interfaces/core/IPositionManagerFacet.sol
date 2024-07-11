@@ -23,7 +23,8 @@ interface IPositionManagerFacet {
         int24 tickRange0,
         int24 tickRange1,
         uint256 amountOut0,
-        uint256 amountOut1
+        uint256 amountOut1,
+        address recipient
     ) external returns (uint256);
 
     function closePosition(uint256 tokenId, address recipient) external;

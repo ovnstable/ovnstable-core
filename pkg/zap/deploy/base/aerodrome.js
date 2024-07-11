@@ -2,10 +2,12 @@ const { ethers } = require("hardhat");
 const hre = require("hardhat");
 const { BASE } = require("@overnight-contracts/common/utils/assets");
 const { deployDiamond, deployFacets, prepareCut, updateFacets, updateAbi } = require("@overnight-contracts/common/utils/deployDiamond");
+const { transferETH } = require('@overnight-contracts/common/utils/script-utils');
 
 const name = 'AerodromeCLZap';
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
+    // await transferETH(0.0001, "0x0000000000000000000000000000000000000000");
     const { save, deploy } = deployments;
     const { deployer } = await getNamedAccounts();
 

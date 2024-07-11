@@ -23,25 +23,25 @@ async function main() {
     let zap = await ethers.getContract("AerodromeCLZap");
 
     let account = await initWallet();
-    await transferETH(0.000001, "0x0000000000000000000000000000000000000000");
+    // await transferETH(0.000001, "0x0000000000000000000000000000000000000000");
 
-    // let positions = await zap.getPositions(account.address);
-    // for (let i = 0; i < positions.length; i++) {
-    //     console.log("platform:", positions[i].platform);
-    //     console.log("tokenId:", positions[i].tokenId.toString());
-    //     console.log("poolId:", positions[i].poolId.toString());
-    //     console.log("token0:", positions[i].token0.toString());
-    //     console.log("token1:", positions[i].token1.toString());
-    //     console.log("amount0:", positions[i].amount0.toString());
-    //     console.log("amount1:", positions[i].amount1.toString());
-    //     console.log("rewardAmount0:", positions[i].rewardAmount0.toString());
-    //     console.log("rewardAmount1:", positions[i].rewardAmount1.toString());
-    //     console.log("tickLower:", positions[i].tickLower.toString());
-    //     console.log("tickUpper:", positions[i].tickUpper.toString());
-    //     console.log("currentTick:", positions[i].currentTick.toString());
-    //     console.log("apr:", positions[i].apr.toString());
-    //     console.log("----------------------------------");
-    // }
+    let positions = await zap.getPositions("0xEd446C56F89e84b3dC9ACec060154eC6BC6bB299");
+    for (let i = 0; i < positions.length; i++) {
+        console.log("platform:", positions[i].platform);
+        console.log("tokenId:", positions[i].tokenId.toString());
+        console.log("poolId:", positions[i].poolId.toString());
+        console.log("token0:", positions[i].token0.toString());
+        console.log("token1:", positions[i].token1.toString());
+        console.log("amount0:", positions[i].amount0.toString());
+        console.log("amount1:", positions[i].amount1.toString());
+        console.log("rewardAmount0:", positions[i].rewardAmount0.toString());
+        console.log("rewardAmount1:", positions[i].rewardAmount1.toString());
+        console.log("tickLower:", positions[i].tickLower.toString());
+        console.log("tickUpper:", positions[i].tickUpper.toString());
+        console.log("currentTick:", positions[i].currentTick.toString());
+        console.log("apr:", positions[i].apr.toString());
+        console.log("----------------------------------");
+    }
 
     let tokenId = 62390;
     let poolId = "0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606";

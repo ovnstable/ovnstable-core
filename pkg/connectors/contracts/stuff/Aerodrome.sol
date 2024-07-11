@@ -886,11 +886,87 @@ library AerodromeLibrary {
 
 }
 
+interface ICLGauge {
+    /// @notice Fetch all tokenIds staked by a given account
+    /// @param depositor The address of the user
+    /// @return The tokenIds of the staked positions
+    function stakedValues(address depositor) external view returns (uint256[] memory);
 
+    /// @notice Fetch a staked tokenId by index
+    /// @param depositor The address of the user
+    /// @param index The index of the staked tokenId
+    /// @return The tokenId of the staked position
+    function stakedByIndex(address depositor, uint256 index) external view returns (uint256);
 
+    /// @notice Check whether a position is staked in the gauge by a certain user
+    /// @param depositor The address of the user
+    /// @param tokenId The tokenId of the position
+    /// @return Whether the position is staked in the gauge
+    function stakedContains(address depositor, uint256 tokenId) external view returns (bool);
 
+    /// @notice The amount of positions staked in the gauge by a certain user
+    /// @param depositor The address of the user
+    /// @return The amount of positions staked in the gauge
+    function stakedLength(address depositor) external view returns (uint256);
+}
 
-interface INonfungiblePositionManager is IERC721Enumerable {
+/// @title Pool state that never changes
+/// @notice These parameters are not defined as immutable (due to proxy pattern) but are effectively immutable.
+/// @notice i.e., the methods will always return the same values
+interface ICLPoolConstants {
+    /// @notice The contract that deployed the pool, which must adhere to the ICLFactory interface
+    /// @return The contract address
+    function factory() external view returns (address);
+
+    /// @notice The first of the two tokens of the pool, sorted by address
+    /// @return The token contract address
+    function token0() external view returns (address);
+
+    /// @notice The second of the two tokens of the pool, sorted by address
+    /// @return The token contract address
+    function token1() external view returns (address);
+
+    /// @notice The gauge corresponding to this pool
+    /// @return The gauge contract address
+    function gauge() external view returns (address);
+}
+
+/// @title The interface for the CL Factory
+/// @notice The CL Factory facilitates creation of CL pools and control over the protocol fees
+interface ICLFactory {
+    /// @notice The address of the pool implementation contract used to deploy proxies / clones
+    /// @return The address of the pool implementation contract
+    function poolImplementation() external view returns (address);
+
+    /// @notice Returns the pool address for a given pair of tokens and a tick spacing, or address 0 if it does not exist
+    /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
+    /// @param tokenA The contract address of either token0 or token1
+    /// @param tokenB The contract address of the other token
+    /// @param tickSpacing The tick spacing of the pool
+    /// @return pool The pool address
+    function getPool(address tokenA, address tokenB, int24 tickSpacing) external view returns (address pool);
+
+    /// @notice Return address of pool created by this factory given its `index`
+    /// @param index Index of the pool
+    /// @return The pool address in the given index
+    function allPools(uint256 index) external view returns (address);
+
+    /// @notice Returns the number of pools created from this factory
+    /// @return Number of pools created from this factory
+    function allPoolsLength() external view returns (uint256);
+}
+
+/// @title Immutable state
+/// @notice Functions that return immutable state of the router
+interface IPeripheryImmutableState {
+    /// @return Returns the address of the CL factory
+    function factory() external view returns (address);
+
+    /// @return Returns the address of WETH9
+    function WETH9() external view returns (address);
+}
+
+interface INonfungiblePositionManager is IERC721Enumerable, IPeripheryImmutableState {
     /// @notice Emitted when liquidity is increased for a position NFT
     /// @dev Also emitted when a token is minted
     /// @param tokenId The ID of the token for which liquidity was increased
@@ -1069,14 +1145,6 @@ interface IUniswapV3SwapCallback {
         int256 amount1Delta,
         bytes calldata data
     ) external;
-}
-
-/// @title The interface for the CL Factory
-/// @notice The CL Factory facilitates creation of CL pools and control over the protocol fees
-interface ICLFactory {
-    /// @notice The address of the pool implementation contract used to deploy proxies / clones
-    /// @return The address of the pool implementation contract
-    function poolImplementation() external view returns (address);
 }
 
 /// @title Provides functions for deriving a pool address from the factory, tokens, and the fee

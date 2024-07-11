@@ -79,7 +79,8 @@ contract ZapFacet is IZapFacet {
             paramsData.tickRange[0],
             paramsData.tickRange[1],
             paramsData.amountsOut[0],
-            paramsData.amountsOut[1]
+            paramsData.amountsOut[1],
+            msg.sender
         );
         emit TokenId(tokenId);
 
