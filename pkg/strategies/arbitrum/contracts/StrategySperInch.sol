@@ -84,6 +84,11 @@ contract StrategySperInch is Strategy {
         uint256 _amount
     ) internal override {
         // swap asset to underlying to stake
+        if (address(underlyingAsset) == address(asset)) {
+            asset.transfer(address(sper), _amount);
+            sper.stake(address(asset), _amount);
+            return;
+        }
         asset.approve(address(inchSwapper), _amount);
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleAssetToUnderlying(_amount), swapSlippageBP);
         inchSwapper.swap(address(this), address(asset), address(underlyingAsset), _amount, amountOutMin);
@@ -98,6 +103,12 @@ contract StrategySperInch is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
+        
+        if (address(underlyingAsset) == address(asset)) {
+            sper.unstake(address(asset), _amount, address(this), false);
+            return asset.balanceOf(address(this));
+        }
+
         // convert asset to underlying with some addition
         uint256 amountToRedeem = OvnMath.addBasisPoints(_oracleAssetToUnderlying(_amount), swapSlippageBP);
 
@@ -118,6 +129,12 @@ contract StrategySperInch is Strategy {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
+
+                
+        if (address(underlyingAsset) == address(asset)) {
+            sper.unstake(address(asset), sper.netAssetValue(), address(this), true);
+            return asset.balanceOf(address(this));
+        }
 
         // get all underlying by full rebase
         sper.unstake(address(underlyingAsset), sper.netAssetValue(), address(this), true);
