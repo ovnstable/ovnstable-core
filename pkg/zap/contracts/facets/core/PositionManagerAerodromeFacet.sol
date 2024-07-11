@@ -42,9 +42,10 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
 
     function getPositions(address wallet) external view returns (PositionInfo[] memory result) {
         uint256 gaugePositionsLength = calculateGaugePositionsLength(wallet);
-        uint256 positionsLength = calculateUserPositionsLength(wallet);
+        uint256 validPositionsLength = calculateUserPositionsLength(wallet);
+        uint256 positionsLength = getNpm().balanceOf(wallet);
         uint256 positionCount;
-        result = new PositionInfo[](gaugePositionsLength + positionsLength);
+        result = new PositionInfo[](gaugePositionsLength + validPositionsLength);
         ICLFactory factory = ICLFactory(getNpm().factory());
         uint256 poolsLength = factory.allPoolsLength();
 
