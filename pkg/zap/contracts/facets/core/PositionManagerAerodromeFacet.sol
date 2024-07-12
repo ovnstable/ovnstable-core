@@ -50,7 +50,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         uint256 poolsLength = factory.allPoolsLength();
 
         for (uint256 i = 0; i < poolsLength; i++) {
-            ICLPoolConstants pool = ICLPoolConstants(factory.allPools(i));
+            ICLPool pool = ICLPool(factory.allPools(i));
             if (pool.gauge() == address(0)) {
                 continue;
             }
@@ -82,19 +82,13 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
             amount1Min: 0,
             deadline: block.timestamp
         });
-        collectRewards(tokenId, feeRecipient);
+        (uint256 fee0, uint256 fee1) = collectRewards(tokenId, feeRecipient);
+        emit CollectRewards(fee0, fee1);
         if (params.liquidity > 0) {
             getNpm().decreaseLiquidity(params);
         }
         collectRewards(tokenId, recipient);
         getNpm().burn(tokenId);
-    }
-
-    function getPositionVolume(uint256 tokenId) external view
-    returns (uint256, uint256) {
-        (uint128 tokensOwed0, uint128 tokensOwed1) = getTokensOwed(tokenId);
-        (uint256 amount0, uint256 amount1) = getPositionAmounts(tokenId);
-        return (amount0 + tokensOwed0, amount1 + tokensOwed1);
     }
 
     function checkForOwner(uint256 tokenId, address sender) external view {
@@ -108,6 +102,10 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
             }
         }
         require(ownerFound, "Caller doesn't own the token");
+    }
+
+    function getPositionAmounts(uint256 tokenId) external view returns (uint256, uint256) {
+        return _getPositionAmounts(tokenId);
     }
 
     function getNpm() internal view returns (INonfungiblePositionManager) {
@@ -130,11 +128,11 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         (,,,,,,, liquidity,,,,) = getNpm().positions(tokenId);
     }
 
-    function getTokensOwed(uint256 tokenId) internal view returns (uint128 tokensOwed0, uint128 tokensOwed1) {
-        (,,,,,,,,,, tokensOwed0, tokensOwed1) = getNpm().positions(tokenId);
+    function getFees(uint256 tokenId) internal view returns (uint256 fee0, uint256 fee1) {
+        (fee0, fee1) = PositionValue.fees(getNpm(), tokenId);
     }
 
-    function getPositionAmounts(uint256 tokenId) internal view returns (uint256 amount0, uint256 amount1) {
+    function _getPositionAmounts(uint256 tokenId) internal view returns (uint256 amount0, uint256 amount1) {
         (address token0, address token1) = getTokens(tokenId);
         address poolId = PoolAddress.computeAddress(getNpm().factory(),
             PoolAddress.getPoolKey(token0, token1, getTickSpacing(tokenId)));
@@ -154,25 +152,24 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         result.tokenId = tokenId;
         (result.token0, result.token1) = getTokens(tokenId);
         (result.tickLower, result.tickUpper) = getTicks(tokenId);
-        (result.rewardAmount0, result.rewardAmount1) = getTokensOwed(tokenId);
+        (result.rewardAmount0, result.rewardAmount1) = getFees(tokenId);
         result.poolId = PoolAddress.computeAddress(
             getNpm().factory(),
             PoolAddress.getPoolKey(result.token0, result.token1, getTickSpacing(tokenId))
         );
         (, result.currentTick,,,,) = IUniswapV3Pool(result.poolId).slot0();
-        (result.amount0, result.amount1) = getPositionAmounts(tokenId);
+        (result.amount0, result.amount1) = _getPositionAmounts(tokenId);
         return result;
     }
 
-    function collectRewards(uint256 tokenId, address recipient) internal {
+    function collectRewards(uint256 tokenId, address recipient) internal returns (uint256, uint256) {
         INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
             tokenId: tokenId,
             recipient: recipient,
             amount0Max: type(uint128).max,
             amount1Max: type(uint128).max
         });
-        (uint256 amount0, uint256 amount1) = getNpm().collect(collectParams);
-        emit CollectRewards(amount0, amount1);
+        return getNpm().collect(collectParams);
     }
 
     function calculateGaugePositionsLength(address wallet) internal view returns (uint256 length) {
@@ -180,7 +177,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         ICLFactory factory = ICLFactory(getNpm().factory());
         uint256 poolsLength = factory.allPoolsLength();
         for (uint256 i = 0; i < poolsLength; i++) {
-            ICLPoolConstants pool = ICLPoolConstants(factory.allPools(i));
+            ICLPool pool = ICLPool(factory.allPools(i));
             if (pool.gauge() == address(0)) {
                 continue;
             }

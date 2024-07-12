@@ -128,7 +128,7 @@ contract ProportionFacet is IProportionFacet {
         result.outputTokenAmounts = new uint256[](2);
         result.poolProportionsUsd = new uint256[](2);
 
-        (outTokens[0].amount, outTokens[1].amount) = master.getPositionVolume(tokenId);
+        (outTokens[0].amount, outTokens[1].amount) = master.getPositionAmounts(tokenId);
         for (uint256 i = 0; i < 2; i++) {
             decimals[i] = IERC20Metadata(prices[i].tokenAddress).decimals();
             uint256 amountUsd = master.mulDiv(prices[i].price, outTokens[i].amount, 10 ** decimals[i]);

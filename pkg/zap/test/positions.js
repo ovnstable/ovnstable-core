@@ -141,7 +141,7 @@ describe('Testing all zaps', function() {
             // });
 
             async function check() {
-                let positions = await zap.getPositions("0xa30b8deFcC9eDdf9E960ef810D89E194C1f65771");
+                let positions = await zap.getPositions("0x66BC0120b3287f08408BCC76ee791f0bad17Eeef");
                 for (let i = 0; i < positions.length; i++) {
                     console.log("platform:", positions[i].platform);
                     console.log("tokenId:", positions[i].tokenId.toString());

@@ -31,7 +31,7 @@ interface IPositionManagerFacet {
 
     function getPositions(address wallet) external view returns (PositionInfo[] memory);
 
-    function getPositionVolume(uint256 tokenId) external view returns (uint256, uint256);
+    function getPositionAmounts(uint256 tokenId) external view returns (uint256, uint256);
 
     function checkForOwner(uint256 tokenId, address sender) external view;
 }

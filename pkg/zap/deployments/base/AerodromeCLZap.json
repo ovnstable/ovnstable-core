@@ -395,7 +395,7 @@
     },
     {
       "type": "function",
-      "name": "getPositionVolume",
+      "name": "getPositionAmounts",
       "constant": true,
       "stateMutability": "view",
       "payable": false,
