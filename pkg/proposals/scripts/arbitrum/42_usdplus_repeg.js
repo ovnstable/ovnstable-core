@@ -16,8 +16,8 @@ filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
 
-  // let wallet = await initWallet();
-  // await transferETH(1, wallet.address);
+  let wallet = await initWallet();
+  await transferETH(10, wallet.address);
 
   let addresses = [];
   let values = [];
@@ -25,9 +25,9 @@ async function main() {
 
   let alpha = await getContract('StrategySperAlpha', 'arbitrum');
   let gamma = await getContract('StrategySperGamma', 'arbitrum');
-  let pm = await getContract('PortfolioManager', 'base');
-  let rm = await getContract('RoleManager', 'base');
-  let ex = await getContract('Exchange', 'base');
+  let pm = await getContract('PortfolioManager', 'arbitrum');
+  let rm = await getContract('RoleManager', 'arbitrum');
+  let ex = await getContract('Exchange', 'arbitrum');
 
   let newSperImpl = "0xE71fb5dAD6770838E5f25BAD3F3aA6B1A00586C2";
   let timelock = "0xa44dF8A8581C2cb536234E6640112fFf932ED2c4";
@@ -59,16 +59,16 @@ async function main() {
   // console.log(lol);
   // return;
 
-  addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock]);
-  addProposalItem(ex, 'setTokens', [ARBITRUM.usdPlus, ARBITRUM.usdcCircle]);
-  addProposalItem(pm, 'setAsset', [ARBITRUM.usdcCircle]);
-  addProposalItem(alpha, 'upgradeTo', [newSperImpl]);
-  addProposalItem(alpha, 'setParams', [alphaParams]);
-  addProposalItem(gamma, 'upgradeTo', [newSperImpl]);
-  addProposalItem(gamma, 'setParams', [gammaParams]);
+  // addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock]);
+  // addProposalItem(ex, 'setTokens', [ARBITRUM.usdPlus, ARBITRUM.usdcCircle]);
+  // addProposalItem(pm, 'setAsset', [ARBITRUM.usdcCircle]);
+  // addProposalItem(alpha, 'upgradeTo', [newSperImpl]);
+  // addProposalItem(alpha, 'setParams', [alphaParams]);
+  // addProposalItem(gamma, 'upgradeTo', [newSperImpl]);
+  // addProposalItem(gamma, 'setParams', [gammaParams]);
 
   // StrategySiloUsdc
-  addProposalItem(StrategySiloUsdc, 'upgradeTo', [siloimpl])
+  // addProposalItem(StrategySiloUsdc, 'upgradeTo', [siloimpl])
   addProposalItem(StrategySiloUsdc, 'setParams', [await strategySiloUsdc()])
   addProposalItem(StrategySiloUsdcArb, 'upgradeTo', [siloimpl])
   addProposalItem(StrategySiloUsdcArb, 'setParams', [await strategySiloUsdcArb()])
@@ -76,12 +76,15 @@ async function main() {
   addProposalItem(StrategySiloUsdcWbtc, 'setParams', [await strategySiloUsdcWbtc()])
 
 
-  // await testProposal(addresses, values, abis);
-  // await testUsdPlus(filename, 'base');
-  // await testStrategy(filename, alpha, 'base');
-  // await testStrategy(filename, rho, 'base');
-  // await testStrategy(filename, comp, 'base');
-  // await testStrategy(filename, aave, 'base');
+  addProposalItem(ex, 'setBuyFee', ['10', '100000']);
+  addProposalItem(ex, 'setRedeemFee', ['10', '100000']);
+
+
+  await testProposal(addresses, values, abis);
+  await testUsdPlus(filename, 'arbitrum');
+  // await testStrategy(filename, StrategySiloUsdc, 'arbitrum');
+  // await testStrategy(filename, StrategySiloUsdcArb, 'arbitrum');
+  // await testStrategy(filename, StrategySiloUsdcWbtc, 'arbitrum');
   // await createProposal(filename, addresses, values, abis);
 
   function addProposalItem(contract, methodName, params) {
