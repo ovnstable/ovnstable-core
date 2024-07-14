@@ -282,6 +282,19 @@
     },
     {
       "inputs": [],
+      "name": "assetDm",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "camelotRouter",
       "outputs": [
         {
@@ -375,6 +388,19 @@
     },
     {
       "inputs": [],
+      "name": "inchSwapper",
+      "outputs": [
+        {
+          "internalType": "contract IInchSwapper",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "initialize",
       "outputs": [],
       "stateMutability": "nonpayable",
@@ -414,6 +440,32 @@
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "oracleAsset",
+      "outputs": [
+        {
+          "internalType": "contract IPriceFeed",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "oracleUnderlyingAsset",
+      "outputs": [
+        {
+          "internalType": "contract IPriceFeed",
+          "name": "",
+          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -555,9 +607,29 @@
               "internalType": "address",
               "name": "camelotRouter",
               "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "underlyingAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "oracleAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "oracleUnderlyingAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "inchSwapper",
+              "type": "address"
             }
           ],
-          "internalType": "struct StrategySiloUsdc.StrategyParams",
+          "internalType": "struct StrategySiloUsdcInch.StrategyParams",
           "name": "params",
           "type": "tuple"
         }
@@ -713,6 +785,32 @@
     {
       "inputs": [],
       "name": "swapSlippageBP",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "underlyingAsset",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "underlyingAssetDm",
       "outputs": [
         {
           "internalType": "uint256",

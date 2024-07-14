@@ -6,6 +6,7 @@ import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Camelot.sol';
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol";
+import "hardhat/console.sol";
 
 contract StrategySiloUsdcInch is Strategy {
     // --- params
@@ -149,8 +150,12 @@ contract StrategySiloUsdcInch is Strategy {
     function netAssetValue() external view override returns (uint256) {
         ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
         uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(usdc), address(this));
+        console.log("balanceInCollateral", balanceInCollateral);
         uint256 balanceInCash = usdc.balanceOf(address(this));
+        console.log("balanceInCash", balanceInCash);
         uint256 underlyingBalanceInCash = underlyingAsset.balanceOf(address(this));
+
+        console.log("underlyingBalanceInCash", underlyingBalanceInCash);
 
         uint256 convertedBalance = _oracleUnderlyingToAsset(underlyingBalanceInCash + balanceInCollateral);
 
@@ -222,8 +227,11 @@ contract StrategySiloUsdcInch is Strategy {
     }
 
     function _oracleUnderlyingToAsset(uint256 underlyingAssetAmount) internal view returns (uint256) {
+        console.log("_oracleUnderlyingToAsset");
         uint256 priceAsset = ChainlinkLibrary.getPrice(oracleAsset);
+        console.log("priceAsset", priceAsset);
         uint256 priceUnderlyingAsset = ChainlinkLibrary.getPrice(oracleUnderlyingAsset);
+        console.log("priceUnderlyingAsset", priceUnderlyingAsset);
         return ChainlinkLibrary.convertTokenToToken(underlyingAssetAmount, underlyingAssetDm, assetDm, priceUnderlyingAsset, priceAsset);
     }
 }

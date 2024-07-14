@@ -59,16 +59,16 @@ async function main() {
   // console.log(lol);
   // return;
 
-  // addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock]);
-  // addProposalItem(ex, 'setTokens', [ARBITRUM.usdPlus, ARBITRUM.usdcCircle]);
-  // addProposalItem(pm, 'setAsset', [ARBITRUM.usdcCircle]);
-  // addProposalItem(alpha, 'upgradeTo', [newSperImpl]);
-  // addProposalItem(alpha, 'setParams', [alphaParams]);
-  // addProposalItem(gamma, 'upgradeTo', [newSperImpl]);
-  // addProposalItem(gamma, 'setParams', [gammaParams]);
+  addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock]);
+  addProposalItem(ex, 'setTokens', [ARBITRUM.usdPlus, ARBITRUM.usdcCircle]);
+  addProposalItem(pm, 'setAsset', [ARBITRUM.usdcCircle]);
+  addProposalItem(alpha, 'upgradeTo', [newSperImpl]);
+  addProposalItem(alpha, 'setParams', [alphaParams]);
+  addProposalItem(gamma, 'upgradeTo', [newSperImpl]);
+  addProposalItem(gamma, 'setParams', [gammaParams]);
 
   // StrategySiloUsdc
-  // addProposalItem(StrategySiloUsdc, 'upgradeTo', [siloimpl])
+  addProposalItem(StrategySiloUsdc, 'upgradeTo', [siloimpl])
   addProposalItem(StrategySiloUsdc, 'setParams', [await strategySiloUsdc()])
   addProposalItem(StrategySiloUsdcArb, 'upgradeTo', [siloimpl])
   addProposalItem(StrategySiloUsdcArb, 'setParams', [await strategySiloUsdcArb()])
@@ -81,10 +81,10 @@ async function main() {
 
 
   await testProposal(addresses, values, abis);
-  await testUsdPlus(filename, 'arbitrum');
-  // await testStrategy(filename, StrategySiloUsdc, 'arbitrum');
-  // await testStrategy(filename, StrategySiloUsdcArb, 'arbitrum');
-  // await testStrategy(filename, StrategySiloUsdcWbtc, 'arbitrum');
+  // await testUsdPlus(filename, 'arbitrum');
+  await testStrategy(filename, StrategySiloUsdc, 'arbitrum');
+  await testStrategy(filename, StrategySiloUsdcArb, 'arbitrum');
+  await testStrategy(filename, StrategySiloUsdcWbtc, 'arbitrum');
   // await createProposal(filename, addresses, values, abis);
 
   function addProposalItem(contract, methodName, params) {
