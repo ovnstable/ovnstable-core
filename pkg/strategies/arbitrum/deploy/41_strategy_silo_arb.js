@@ -7,7 +7,7 @@ module.exports = async ({ deployments }) => {
     const { save } = deployments;
 
     await deploySection(async (name) => {
-        await deployProxyMulti(name, 'StrategySiloUsdcInch', deployments, save);
+        await deployProxyMulti(name, 'StrategySiloUsdc', deployments, save);
     });
 
     await settingSection('Silo USDC/ARB', async (strategy) => {
@@ -32,7 +32,6 @@ async function getParams() {
         oracleUnderlyingAsset: ARBITRUM.oracleUsdc,
         inchSwapper: ARBITRUM.inchSwapper,
     }
-
 }
 
 module.exports.tags = ['StrategySiloUsdcArb'];

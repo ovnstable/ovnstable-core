@@ -4,6 +4,9 @@ pragma solidity >=0.8.0 <0.9.0;
 import '@overnight-contracts/core/contracts/Strategy.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Camelot.sol';
+import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import "@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol";
+import "hardhat/console.sol";
 
 contract StrategySiloUsdc is Strategy {
     // --- params
@@ -19,6 +22,12 @@ contract StrategySiloUsdc is Strategy {
 
     IERC20 public arbToken;
     address public rewardWallet;
+    IERC20 public underlyingAsset;
+    IPriceFeed public oracleAsset;
+    IPriceFeed public oracleUnderlyingAsset;
+    uint256 public assetDm;
+    uint256 public underlyingAssetDm;
+    IInchSwapper public inchSwapper;
 
     // --- events
 
@@ -36,6 +45,10 @@ contract StrategySiloUsdc is Strategy {
         address rewardWallet;
         address wethToken;
         address camelotRouter;
+        address underlyingAsset;
+        address oracleAsset;
+        address oracleUnderlyingAsset;
+        address inchSwapper;
     }
 
     // ---  constructor
@@ -59,18 +72,49 @@ contract StrategySiloUsdc is Strategy {
         wethToken = IERC20(params.wethToken);
         rewardWallet = params.rewardWallet;
         camelotRouter = ICamelotRouter(params.camelotRouter);
+        underlyingAsset = IERC20(params.underlyingAsset);
+        inchSwapper = IInchSwapper(params.inchSwapper);
+        oracleAsset = IPriceFeed(params.oracleAsset);
+        oracleUnderlyingAsset = IPriceFeed(params.oracleUnderlyingAsset);
+        assetDm = 10 ** IERC20Metadata(params.usdc).decimals();
+        underlyingAssetDm = 10 ** IERC20Metadata(params.underlyingAsset).decimals();
     }
 
     // --- logic
 
     function _stake(address _asset, uint256 _amount) internal override {
-        uint256 amount = usdc.balanceOf(address(this));
-        usdc.approve(address(silo), amount);
-        silo.deposit(address(usdc), amount, false);
+        if (address(underlyingAsset) == address(usdc)) {
+            uint256 amount = usdc.balanceOf(address(this));
+            usdc.approve(address(silo), amount);
+            silo.deposit(address(usdc), amount, false);
+            return;
+        }
+        usdc.approve(address(inchSwapper), _amount);
+        uint256 amountOutMin = OvnMath.subBasisPoints(_oracleAssetToUnderlying(_amount), swapSlippageBP);
+        inchSwapper.swap(address(this), address(usdc), address(underlyingAsset), _amount, amountOutMin);
+        // mint by underlying
+        uint256 underlyingBalance = underlyingAsset.balanceOf(address(this));
+        underlyingAsset.approve(address(silo), underlyingBalance);
+        silo.deposit(address(underlyingAsset), underlyingBalance, false);
     }
 
     function _unstake(address _asset, uint256 _amount, address _beneficiary) internal override returns (uint256) {
-        silo.withdraw(address(usdc), _amount, false);
+        
+        if (address(underlyingAsset) == address(usdc)) {
+            silo.withdraw(address(usdc), _amount, false);
+            return usdc.balanceOf(address(this));
+        }
+         // convert usdc to underlying with some addition
+        uint256 amountToRedeem = OvnMath.addBasisPoints(_oracleAssetToUnderlying(_amount), swapSlippageBP);
+
+        // redeem usdc
+        silo.withdraw(address(underlyingAsset), amountToRedeem, false);
+
+        // swap underlying to usdc
+        uint256 underlyingBalance = underlyingAsset.balanceOf(address(this));
+        underlyingAsset.approve(address(inchSwapper), underlyingBalance);
+        uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUnderlyingToAsset(underlyingBalance), swapSlippageBP);
+        inchSwapper.swap(address(this), address(underlyingAsset), address(usdc), underlyingBalance, amountOutMin);
 
         return usdc.balanceOf(address(this));
     }
@@ -80,24 +124,44 @@ contract StrategySiloUsdc is Strategy {
             return 0;
         }
 
+        console.log("unstake full after netassetvalue == 0");
+
         // Need to update internal cumulative rate for recalculating full nav.
         // If you don’t do this, you’ll have pennies in nav (0.000001 for example ) left after unstakeFull
-        silo.withdraw(address(usdc), 1, false);
-
+        silo.withdraw(address(underlyingAsset), 1, false);
+        console.log("withdraw 1");
         ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
-        uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(usdc), address(this));
+        
+        uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(underlyingAsset), address(this));
+        console.log("balanceInCollateral ", balanceInCollateral);
 
-        silo.withdraw(address(usdc), balanceInCollateral, false);
+        silo.withdraw(address(underlyingAsset), balanceInCollateral, false);  
+
+        if (address(underlyingAsset) == address(usdc)) {      
+            return usdc.balanceOf(address(this));
+        }
+
+        uint256 underlyingBalance = underlyingAsset.balanceOf(address(this));
+        underlyingAsset.approve(address(inchSwapper), underlyingBalance);
+        uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUnderlyingToAsset(underlyingBalance), swapSlippageBP);
+
+        console.log("underlyingBalance", underlyingBalance);
+        console.log("amountOutMin", amountOutMin);
+        inchSwapper.swap(address(this), address(underlyingAsset), address(usdc), underlyingBalance, amountOutMin);
 
         return usdc.balanceOf(address(this));
+
+
     }
 
     function netAssetValue() external view override returns (uint256) {
         ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
-        uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(usdc), address(this));
+        uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(underlyingAsset), address(this));
         uint256 balanceInCash = usdc.balanceOf(address(this));
+        uint256 underlyingBalanceInCash = underlyingAsset.balanceOf(address(this));
+        uint256 convertedBalance = _oracleUnderlyingToAsset(underlyingBalanceInCash + balanceInCollateral);
 
-        return balanceInCollateral + balanceInCash;
+        return convertedBalance + balanceInCash;
     }
 
     function liquidationValue() external view override returns (uint256) {
@@ -105,11 +169,16 @@ contract StrategySiloUsdc is Strategy {
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
-        uint256 baseBalanceBefore = usdc.balanceOf(address(this));
 
-        IShareToken collateralToken = silo.assetStorage(address(usdc)).collateralToken;
+        uint256 baseBalanceBefore = usdc.balanceOf(address(this));
+        uint256 underlyingBalanceBefore = underlyingAsset.balanceOf(address(this));
+        console.log("claimRewards");
+
+        IShareToken collateralToken = silo.assetStorage(address(underlyingAsset)).collateralToken;
+        console.log("before claim rewards");
         address[] memory assets = new address[](1);
         assets[0] = address(collateralToken);
+        console.log("before claim rewards2");
         siloIncentivesController.claimRewards(assets, type(uint256).max, address(this));
 
         uint256 siloBalance = siloToken.balanceOf(address(this));
@@ -118,13 +187,14 @@ contract StrategySiloUsdc is Strategy {
         if (arbBalance > 0) {
             arbToken.transfer(rewardWallet, arbBalance);
         }
+        console.log("if siloBalance > 0");
 
         if (siloBalance > 0) {
             uint256 siloAmount = CamelotLibrary.getAmountsOut(
                 camelotRouter,
                 address(siloToken),
                 address(wethToken),
-                address(usdc),
+                address(underlyingAsset),
                 siloBalance
             );
 
@@ -133,7 +203,7 @@ contract StrategySiloUsdc is Strategy {
                     camelotRouter,
                     address(siloToken),
                     address(wethToken),
-                    address(usdc),
+                    address(underlyingAsset),
                     siloBalance,
                     (siloAmount * 99) / 100,
                     address(this)
@@ -141,12 +211,35 @@ contract StrategySiloUsdc is Strategy {
             }
         }
 
+        
+        console.log("before swap to inchSwapper on claim rewards");
+
+        uint256 totalUsdce = underlyingAsset.balanceOf(address(this)) - underlyingBalanceBefore;
+        if(totalUsdce > 0){
+            underlyingAsset.approve(address(inchSwapper), totalUsdce);
+            uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUnderlyingToAsset(totalUsdce), swapSlippageBP);
+            console.log("before swap to inchSwapper1 on claimrewards");
+            inchSwapper.swap(address(this), address(underlyingAsset), address(usdc), totalUsdce, amountOutMin);
+        }
         uint256 totalUsdc = usdc.balanceOf(address(this)) - baseBalanceBefore;
+        
 
         if (totalUsdc > 0) {
             usdc.transfer(_to, totalUsdc);
         }
 
         return totalUsdc;
+    }
+
+    function _oracleAssetToUnderlying(uint256 assetAmount) internal view returns (uint256) {
+        uint256 priceAsset = ChainlinkLibrary.getPrice(oracleAsset);
+        uint256 priceUnderlyingAsset = ChainlinkLibrary.getPrice(oracleUnderlyingAsset);
+        return ChainlinkLibrary.convertTokenToToken(assetAmount, assetDm, underlyingAssetDm, priceAsset, priceUnderlyingAsset);
+    }
+
+    function _oracleUnderlyingToAsset(uint256 underlyingAssetAmount) internal view returns (uint256) {
+        uint256 priceAsset = ChainlinkLibrary.getPrice(oracleAsset);
+        uint256 priceUnderlyingAsset = ChainlinkLibrary.getPrice(oracleUnderlyingAsset);
+        return ChainlinkLibrary.convertTokenToToken(underlyingAssetAmount, underlyingAssetDm, assetDm, priceUnderlyingAsset, priceAsset);
     }
 }

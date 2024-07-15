@@ -20,15 +20,16 @@ async function main() {
 
     let strategy = await getContract('StrategySiloUsdcArb', 'arbitrum');
 
-    // console.log(await strategy.siloToken())
-    // console.log(await strategy.siloTower())
+    console.log(await strategy.silo())
+    console.log(await strategy.siloTower())
+    // console.log(await strate)
     // console.log(await strategy.inchSwapper())
     // console.log(await strategy.assetDm())
     // console.log(await strategy.underlyingAsset())
     // console.log(await strategy.underlyingAssetDm())
 
     console.log('NAV: ' + await strategy.netAssetValue());
-    // console.log('LIQ: ' + fromAsset(await strategy.liquidationValue()));
+    console.log('LIQ: ' + fromAsset(await strategy.liquidationValue()));
 }
 
 main()
