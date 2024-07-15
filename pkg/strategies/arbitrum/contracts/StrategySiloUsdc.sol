@@ -6,7 +6,6 @@ import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Camelot.sol';
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol";
-import "hardhat/console.sol";
 
 contract StrategySiloUsdc is Strategy {
     // --- params
@@ -124,16 +123,12 @@ contract StrategySiloUsdc is Strategy {
             return 0;
         }
 
-        console.log("unstake full after netassetvalue == 0");
-
         // Need to update internal cumulative rate for recalculating full nav.
         // If you don’t do this, you’ll have pennies in nav (0.000001 for example ) left after unstakeFull
         silo.withdraw(address(underlyingAsset), 1, false);
-        console.log("withdraw 1");
         ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
         
         uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(underlyingAsset), address(this));
-        console.log("balanceInCollateral ", balanceInCollateral);
 
         silo.withdraw(address(underlyingAsset), balanceInCollateral, false);  
 
@@ -144,9 +139,6 @@ contract StrategySiloUsdc is Strategy {
         uint256 underlyingBalance = underlyingAsset.balanceOf(address(this));
         underlyingAsset.approve(address(inchSwapper), underlyingBalance);
         uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUnderlyingToAsset(underlyingBalance), swapSlippageBP);
-
-        console.log("underlyingBalance", underlyingBalance);
-        console.log("amountOutMin", amountOutMin);
         inchSwapper.swap(address(this), address(underlyingAsset), address(usdc), underlyingBalance, amountOutMin);
 
         return usdc.balanceOf(address(this));
@@ -172,13 +164,10 @@ contract StrategySiloUsdc is Strategy {
 
         uint256 baseBalanceBefore = usdc.balanceOf(address(this));
         uint256 underlyingBalanceBefore = underlyingAsset.balanceOf(address(this));
-        console.log("claimRewards");
 
         IShareToken collateralToken = silo.assetStorage(address(underlyingAsset)).collateralToken;
-        console.log("before claim rewards");
         address[] memory assets = new address[](1);
         assets[0] = address(collateralToken);
-        console.log("before claim rewards2");
         siloIncentivesController.claimRewards(assets, type(uint256).max, address(this));
 
         uint256 siloBalance = siloToken.balanceOf(address(this));
@@ -187,7 +176,6 @@ contract StrategySiloUsdc is Strategy {
         if (arbBalance > 0) {
             arbToken.transfer(rewardWallet, arbBalance);
         }
-        console.log("if siloBalance > 0");
 
         if (siloBalance > 0) {
             uint256 siloAmount = CamelotLibrary.getAmountsOut(
@@ -211,14 +199,10 @@ contract StrategySiloUsdc is Strategy {
             }
         }
 
-        
-        console.log("before swap to inchSwapper on claim rewards");
-
         uint256 totalUsdce = underlyingAsset.balanceOf(address(this)) - underlyingBalanceBefore;
         if(totalUsdce > 0){
             underlyingAsset.approve(address(inchSwapper), totalUsdce);
             uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUnderlyingToAsset(totalUsdce), swapSlippageBP);
-            console.log("before swap to inchSwapper1 on claimrewards");
             inchSwapper.swap(address(this), address(underlyingAsset), address(usdc), totalUsdce, amountOutMin);
         }
         uint256 totalUsdc = usdc.balanceOf(address(this)) - baseBalanceBefore;
