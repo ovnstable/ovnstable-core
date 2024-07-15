@@ -34,6 +34,11 @@ module.exports = async () => {
         items.push(createSkimToWithFee('0x7Fb35b3967798cE8322cC50eF52553BC5Ee4c306', usdPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0x7Fb35b3967798cE8322cC50eF52553BC5Ee4c306', daiPlus.address, 'DAI+/USD+', dex, to, 20, COMMON.rewardWallet));
         items.push(createSkimToWithFee('0x696b4d181Eb58cD4B54a59d2Ce834184Cf7Ac31A', usdPlus.address, 'USD+/USDbC', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x273FDFE6018230F188741D7F93d4Ab589bD26197', usdPlus.address, 'USD+/USDC', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x806Eab3B2f63343Da07FE3C462A0B38a8BEC5fd9', usdPlus.address, 'USD+/wETH', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x44006a9288963b4551E93199A3B6D275A8Bb086e', usdPlus.address, 'USD+/AERO', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x9Cdf0bB48609eAB72FDA87036B98A8B6a41C428b', usdPlus.address, 'USD+/BRETT', dex, to, 20, COMMON.rewardWallet));
+        items.push(createSkimToWithFee('0x75A50f51d49045d7F00E660d0Ad7244CcfE4d372', usdPlus.address, 'USD+/USDbC', dex, to, 20, COMMON.rewardWallet));
 
         return items;
     }
