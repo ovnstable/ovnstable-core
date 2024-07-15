@@ -16,8 +16,8 @@ filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
 
-  let wallet = await initWallet();
-  await transferETH(10, wallet.address);
+  // let wallet = await initWallet();
+  // await transferETH(10, wallet.address);
 
   let addresses = [];
   let values = [];
@@ -162,7 +162,7 @@ async function main() {
 
 
   // await testProposal(addresses, values, abis);
-  await testUsdPlus(filename, 'arbitrum');
+  // await testUsdPlus(filename, 'arbitrum');
 
   let lol = await pm.getAllStrategyWeights();
   console.log(lol.map((el) => {
@@ -176,10 +176,10 @@ async function main() {
       enabledReward: el.enabledReward,
     }
   }));
-  await testStrategy(filename, StrategySiloUsdc, 'arbitrum');
-  await testStrategy(filename, StrategySiloUsdcArb, 'arbitrum');
-  await testStrategy(filename, StrategySiloUsdcWbtc, 'arbitrum');
-  // await createProposal(filename, addresses, values, abis);
+  // await testStrategy(filename, StrategySiloUsdc, 'arbitrum');
+  // await testStrategy(filename, StrategySiloUsdcArb, 'arbitrum');
+  // await testStrategy(filename, StrategySiloUsdcWbtc, 'arbitrum');
+  await createProposal(filename, addresses, values, abis);
 
   function addProposalItem(contract, methodName, params) {
     addresses.push(contract.address);
