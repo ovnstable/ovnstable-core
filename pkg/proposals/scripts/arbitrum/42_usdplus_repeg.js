@@ -31,7 +31,7 @@ async function main() {
 
   let newSperImpl = "0xE71fb5dAD6770838E5f25BAD3F3aA6B1A00586C2";
   let timelock = "0xa44dF8A8581C2cb536234E6640112fFf932ED2c4";
-  let siloimpl = "0x0FE8ab5Df905C0BEf5B2A985EcdDD106C5DB85b7";
+  let siloimpl = "0x9994fb902BfdB042EEaD5Ae76dD51F3443d94500";
 
   let alphaParams = {
     sper: '0x0Ce0262Dc2DF64991E3d5AF163175065c1000b86',
@@ -82,9 +82,9 @@ async function main() {
 
   await testProposal(addresses, values, abis);
   // await testUsdPlus(filename, 'arbitrum');
-  await testStrategy(filename, StrategySiloUsdc, 'arbitrum');
-  await testStrategy(filename, StrategySiloUsdcArb, 'arbitrum');
-  await testStrategy(filename, StrategySiloUsdcWbtc, 'arbitrum');
+  // await testStrategy(filename, StrategySiloUsdc, 'arbitrum');
+  // await testStrategy(filename, StrategySiloUsdcArb, 'arbitrum');
+  // await testStrategy(filename, StrategySiloUsdcWbtc, 'arbitrum');
   // await createProposal(filename, addresses, values, abis);
 
   function addProposalItem(contract, methodName, params) {

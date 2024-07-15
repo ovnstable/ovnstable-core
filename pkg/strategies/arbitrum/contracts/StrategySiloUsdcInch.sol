@@ -148,6 +148,7 @@ contract StrategySiloUsdcInch is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
+        console.log("netAssetValue");
         ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
         uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(usdc), address(this));
         console.log("balanceInCollateral", balanceInCollateral);
