@@ -109,7 +109,7 @@ describe('Testing all zaps', function() {
                     toE18(2900),
                     toE18(0),
                 ];
-                let tokenId = 43981;
+                let tokenId = 43898;
                 await check(amounts, prices, tokenId);
             });
 

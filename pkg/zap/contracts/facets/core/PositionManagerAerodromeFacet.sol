@@ -58,7 +58,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
             uint256[] memory tokenIds = gauge.stakedValues(wallet);
             for (uint j = 0; j < tokenIds.length; j++) {
                 if (getLiquidity(tokenIds[j]) > 0) {
-                    result[positionCount] = getPositionInfo(tokenIds[j]);
+                    result[positionCount] = getPositionInfo(wallet, tokenIds[j]);
                     positionCount++;
                 }
             }
@@ -67,7 +67,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         for (uint256 i = 0; i < positionsLength; i++) {
             uint256 tokenId = getNpm().tokenOfOwnerByIndex(wallet, i);
             if (getLiquidity(tokenId) > 0) {
-                result[positionCount] = getPositionInfo(tokenId);
+                result[positionCount] = getPositionInfo(wallet, tokenId);
                 positionCount++;
             }
         }
@@ -146,19 +146,27 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         );
     }
 
-    function getPositionInfo(uint256 tokenId) internal view returns (PositionInfo memory) {
+    function getPositionInfo(address wallet, uint256 tokenId) internal view returns (PositionInfo memory) {
         PositionInfo memory result;
         result.platform = "Aerodrome";
         result.tokenId = tokenId;
         (result.token0, result.token1) = getTokens(tokenId);
         (result.tickLower, result.tickUpper) = getTicks(tokenId);
-        (result.rewardAmount0, result.rewardAmount1) = getFees(tokenId);
         result.poolId = PoolAddress.computeAddress(
             getNpm().factory(),
             PoolAddress.getPoolKey(result.token0, result.token1, getTickSpacing(tokenId))
         );
-        (, result.currentTick,,,,) = IUniswapV3Pool(result.poolId).slot0();
+        ICLPool pool = ICLPool(result.poolId);
+        (, result.currentTick,,,,) = pool.slot0();
         (result.amount0, result.amount1) = _getPositionAmounts(tokenId);
+        (result.fee0, result.fee1) = getFees(tokenId);
+        if (pool.gauge() != address(0)) {
+            ICLGauge gauge = ICLGauge(pool.gauge());
+            if (gauge.stakedContains(wallet, tokenId)) {
+                result.emissions = gauge.earned(wallet, tokenId) + gauge.rewards(tokenId);
+            }
+        }
+
         return result;
     }
 

@@ -10,12 +10,12 @@ interface IPositionManagerFacet {
         address token1;
         uint256 amount0;
         uint256 amount1;
-        uint256 rewardAmount0;
-        uint256 rewardAmount1;
+        uint256 fee0;
+        uint256 fee1;
+        uint256 emissions;
         int24 tickLower;
         int24 tickUpper;
         int24 currentTick;
-        uint256 apr;
     }
 
     function mintPosition(

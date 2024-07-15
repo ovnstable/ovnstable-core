@@ -908,6 +908,17 @@ interface ICLGauge {
     /// @param depositor The address of the user
     /// @return The amount of positions staked in the gauge
     function stakedLength(address depositor) external view returns (uint256);
+
+    /// @notice Claimable rewards by tokenId
+    function rewards(uint256 tokenId) external view returns (uint256);
+
+    /// @notice Returns the claimable rewards for a given account and tokenId
+    /// @dev Throws if account is not the position owner
+    /// @dev pool.updateRewardsGrowthGlobal() needs to be called first, to return the correct claimable rewards
+    /// @param account The address of the user
+    /// @param tokenId The tokenId of the position
+    /// @return The amount of claimable reward
+    function earned(address account, uint256 tokenId) external view returns (uint256);
 }
 
 /// @title Pool state that never changes

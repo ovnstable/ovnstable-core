@@ -463,11 +463,15 @@
             },
             {
               "type": "uint256",
-              "name": "rewardAmount0"
+              "name": "fee0"
             },
             {
               "type": "uint256",
-              "name": "rewardAmount1"
+              "name": "fee1"
+            },
+            {
+              "type": "uint256",
+              "name": "emissions"
             },
             {
               "type": "int24",
@@ -480,10 +484,6 @@
             {
               "type": "int24",
               "name": "currentTick"
-            },
-            {
-              "type": "uint256",
-              "name": "apr"
             }
           ]
         }
