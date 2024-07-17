@@ -6,8 +6,9 @@ import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Camelot.sol';
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol";
+import "hardhat/console.sol";
 
-contract StrategySiloUsdc is Strategy {
+contract StrategySiloUsdcInch is Strategy {
     // --- params
 
     IERC20 public usdc;
@@ -125,10 +126,10 @@ contract StrategySiloUsdc is Strategy {
 
         // Need to update internal cumulative rate for recalculating full nav.
         // If you don’t do this, you’ll have pennies in nav (0.000001 for example ) left after unstakeFull
-        silo.withdraw(address(underlyingAsset), 1, false);
+        silo.withdraw(address(usdc), 1, false);
         ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
         
-        uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(underlyingAsset), address(this));
+        uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(usdc), address(this));
 
         silo.withdraw(address(underlyingAsset), balanceInCollateral, false);  
 
@@ -147,10 +148,16 @@ contract StrategySiloUsdc is Strategy {
     }
 
     function netAssetValue() external view override returns (uint256) {
+        console.log("netAssetValue");
         ISiloLens siloLens = ISiloLens(ISiloTower(siloTower).coordinates('SiloLens'));
-        uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(underlyingAsset), address(this));
+        uint256 balanceInCollateral = siloLens.collateralBalanceOfUnderlying(silo, address(usdc), address(this));
+        console.log("balanceInCollateral", balanceInCollateral);
         uint256 balanceInCash = usdc.balanceOf(address(this));
+        console.log("balanceInCash", balanceInCash);
         uint256 underlyingBalanceInCash = underlyingAsset.balanceOf(address(this));
+
+        console.log("underlyingBalanceInCash", underlyingBalanceInCash);
+
         uint256 convertedBalance = _oracleUnderlyingToAsset(underlyingBalanceInCash + balanceInCollateral);
 
         return convertedBalance + balanceInCash;
@@ -161,7 +168,6 @@ contract StrategySiloUsdc is Strategy {
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
-
         uint256 baseBalanceBefore = usdc.balanceOf(address(this));
         uint256 underlyingBalanceBefore = underlyingAsset.balanceOf(address(this));
 
@@ -200,11 +206,11 @@ contract StrategySiloUsdc is Strategy {
         }
 
         uint256 totalUsdce = underlyingAsset.balanceOf(address(this)) - underlyingBalanceBefore;
-        if(totalUsdce > 0){
-            underlyingAsset.approve(address(inchSwapper), totalUsdce);
-            uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUnderlyingToAsset(totalUsdce), swapSlippageBP);
-            inchSwapper.swap(address(this), address(underlyingAsset), address(usdc), totalUsdce, amountOutMin);
-        }
+        
+        underlyingAsset.approve(address(inchSwapper), totalUsdce);
+        uint256 amountOutMin = OvnMath.subBasisPoints(_oracleUnderlyingToAsset(totalUsdce), swapSlippageBP);
+        inchSwapper.swap(address(this), address(underlyingAsset), address(usdc), totalUsdce, amountOutMin);
+
         uint256 totalUsdc = usdc.balanceOf(address(this)) - baseBalanceBefore;
         
 
@@ -222,8 +228,11 @@ contract StrategySiloUsdc is Strategy {
     }
 
     function _oracleUnderlyingToAsset(uint256 underlyingAssetAmount) internal view returns (uint256) {
+        console.log("_oracleUnderlyingToAsset");
         uint256 priceAsset = ChainlinkLibrary.getPrice(oracleAsset);
+        console.log("priceAsset", priceAsset);
         uint256 priceUnderlyingAsset = ChainlinkLibrary.getPrice(oracleUnderlyingAsset);
+        console.log("priceUnderlyingAsset", priceUnderlyingAsset);
         return ChainlinkLibrary.convertTokenToToken(underlyingAssetAmount, underlyingAssetDm, assetDm, priceUnderlyingAsset, priceAsset);
     }
 }
