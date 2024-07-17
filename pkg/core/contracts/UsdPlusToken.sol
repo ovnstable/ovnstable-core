@@ -172,6 +172,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         paused = false;
     }
 
+    function isPaused() external view returns (bool) {
+        return paused;
+    }
+
     /**
      * @notice Returns the name of the token.
      */
