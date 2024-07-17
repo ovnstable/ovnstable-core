@@ -20,12 +20,12 @@ const { getOdosAmountOut, getOdosSwapData } = require('@overnight-contracts/comm
 const { getOdosAmountOutOnly } = require('@overnight-contracts/common/utils/odos-helper.js');
 
 async function main() {
-    let zap = await ethers.getContract("AerodromeCLZap");
+    let zap = await ethers.getContract("PancakeCLZap");
 
     let account = await initWallet();
     // await transferETH(0.000001, "0x0000000000000000000000000000000000000000");
 
-    let positions = await zap.getPositions("0xEd446C56F89e84b3dC9ACec060154eC6BC6bB299");
+    let positions = await zap.getPositions("0xab918d486c61ADd7c577F1af938117bBD422f088");
     console.log("length: ", positions.length);
     for (let i = 0; i < positions.length; i++) {
         console.log("platform:", positions[i].platform);
@@ -44,18 +44,18 @@ async function main() {
         console.log("----------------------------------");
     }
 
-    let tokenId = 62329;
-    let poolId = "0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606";
+    let tokenId = 57417;
+    let poolId = "0xe37304F7489ed253b2A46A1d9DabDcA3d311D22E";
     let tickRange = await zap.closestTicksForCurrentTick(poolId);
     tickRange = [tickRange.left, tickRange.right];
     console.log("tickRange", tickRange);
     let inputTokens = [
         {
-            tokenAddress: "0x4200000000000000000000000000000000000006",
+            tokenAddress: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
             price: "3094280172653492400000"
         },
         {
-            tokenAddress: "0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376",
+            tokenAddress: "0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65",
             price: "1001339157528039300"
         }
     ];
@@ -112,7 +112,7 @@ async function main() {
     }
     console.log('swapData:', swapData);
     console.log('aerodromeData:', aerodromeData);
-    let nftContract = (await getERC721("aerodromeNpm")).connect(account);
+    let nftContract = (await getERC721("pancakeNpm")).connect(account);
     await (await nftContract.approve(zap.address, tokenId)).wait();
     console.log("approved!");
     let price = await (await zap.connect(account).rebalance(swapData, aerodromeData, tokenId)).wait();

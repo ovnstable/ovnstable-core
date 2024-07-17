@@ -1,21 +1,21 @@
 const { ethers } = require("hardhat");
 const hre = require("hardhat");
-const { BASE } = require("@overnight-contracts/common/utils/assets");
+const { BASE, ARBITRUM } = require("@overnight-contracts/common/utils/assets");
 const { deployDiamond, deployFacets, prepareCut, updateFacets, updateAbi } = require("@overnight-contracts/common/utils/deployDiamond");
 const { transferETH } = require('@overnight-contracts/common/utils/script-utils');
 
-const name = 'AerodromeCLZap';
+const name = 'PancakeCLZap';
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
-    // await transferETH(0.00001, "0x0000000000000000000000000000000000000000");
+    await transferETH(0.00001, "0x0000000000000000000000000000000000000000");
     const { save, deploy } = deployments;
     const { deployer } = await getNamedAccounts();
 
     let zap = await deployDiamond(name, deployer);
     const facetNames = [
         'AccessControlFacet',
-        'PoolMathAerodromeFacet',
-        'PositionManagerAerodromeFacet',
+        'PoolMathPancakeFacet',
+        'PositionManagerPancakeFacet',
         'MathFacet',
         'ProportionFacet',
         'SetUpFacet',
@@ -28,8 +28,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     zap = await ethers.getContract(name);
     let coreParams = {
-        odosRouter: BASE.odosRouterV2,
-        npm: BASE.aerodromeNpm,
+        odosRouter: ARBITRUM.odosRouterV2,
+        npm: ARBITRUM.pancakeNpm,
     };
     await (await zap.setCoreParams(coreParams)).wait();
     console.log('setCoreParams done()');

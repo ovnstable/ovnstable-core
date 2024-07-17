@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import "../../libraries/core/LibCoreStorage.sol";
 import "../../interfaces/Modifiers.sol";
@@ -10,7 +9,6 @@ import "../../interfaces/Constants.sol";
 import "hardhat/console.sol";
 
 contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
-    event CollectRewards(uint256 amount0, uint256 amount1);
 
     function mintPosition(
         address pair,
@@ -21,11 +19,9 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         address recipient
     ) external onlyDiamond returns (uint256 tokenId) {
         IUniswapV3Pool pool = IUniswapV3Pool(pair);
-        address token0 = pool.token0();
-        address token1 = pool.token1();
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
-            token0: token0,
-            token1: token1,
+            token0: pool.token0(),
+            token1: pool.token1(),
             tickSpacing: pool.tickSpacing(),
             tickLower: tickRange0,
             tickUpper: tickRange1,
@@ -132,10 +128,14 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         (fee0, fee1) = PositionValue.fees(getNpm(), tokenId);
     }
 
-    function _getPositionAmounts(uint256 tokenId) internal view returns (uint256 amount0, uint256 amount1) {
+    function getPool(uint256 tokenId) internal view returns (address poolId) {
         (address token0, address token1) = getTokens(tokenId);
-        address poolId = PoolAddress.computeAddress(getNpm().factory(),
+        poolId = PoolAddress.computeAddress(getNpm().factory(),
             PoolAddress.getPoolKey(token0, token1, getTickSpacing(tokenId)));
+    }
+
+    function _getPositionAmounts(uint256 tokenId) internal view returns (uint256 amount0, uint256 amount1) {
+        address poolId = getPool(tokenId);
         (int24 tickLower, int24 tickUpper) = getTicks(tokenId);
         (uint160 sqrtRatioX96,,,,,) = IUniswapV3Pool(poolId).slot0();
         (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
@@ -152,10 +152,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         result.tokenId = tokenId;
         (result.token0, result.token1) = getTokens(tokenId);
         (result.tickLower, result.tickUpper) = getTicks(tokenId);
-        result.poolId = PoolAddress.computeAddress(
-            getNpm().factory(),
-            PoolAddress.getPoolKey(result.token0, result.token1, getTickSpacing(tokenId))
-        );
+        result.poolId = getPool(tokenId);
         ICLPool pool = ICLPool(result.poolId);
         (, result.currentTick,,,,) = pool.slot0();
         (result.amount0, result.amount1) = _getPositionAmounts(tokenId);
