@@ -638,7 +638,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return 0;
     }
 
-    function getAvailableSupply() external view returns(uint256 result, bool _paused, bool _deprecated) {
+    function getAvailabilityInfo() external view returns(uint256 _available, bool _paused, bool _deprecated) {
         _paused = paused() || usdPlus.isPaused();
         _deprecated = deprecated;
 
@@ -650,7 +650,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             IStrategy strategy = IStrategy(weight.strategy);
 
             if (weight.enabled) {
-                result += strategy.netAssetValue();
+                _available += strategy.netAssetValue();
             }
         }
     }
