@@ -18,33 +18,27 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let ex = await getContract('Exchange', 'base');
-    let usdPlus = await getContract('UsdPlusToken', 'base');
+    let ex = await getContract('Exchange', 'blast');
+    let usdPlus = await getContract('UsdPlusToken', 'blast');
 
-    let daiEx = await getContract('Exchange', 'base_dai');
-    let daiPlus = await getContract('UsdPlusToken', 'base_dai');
+    let usdcEx = await getContract('Exchange', 'blast_usdc');
+    let usdcPlus = await getContract('UsdPlusToken', 'blast_usdc');
 
+    const exNew = '0xC352822AFcE2aD256326b03ae797cc4F2ec25494';
+    const usdPlusNew = '0x6002054688d62275d80CC615f0F509d9b2FF520d';
 
-    const timelockAddress = '0x8ab9012D1BfF1b62c2ad82AE0106593371e6b247';
-
-    const exNew = '0xeC11E7F17C767CF54DB59C77C1902Ce75FBe25AE';
-    const usdPlusNew = '0x1F7e713B77dcE6b2Df41Bb2Bb0D44cA35D795ed8';
-
-    addProposalItem(ex, "grantRole", [Roles.UPGRADER_ROLE, timelockAddress]);
-    addProposalItem(usdPlus, "grantRole", [Roles.UPGRADER_ROLE, timelockAddress]);
     addProposalItem(ex, "upgradeTo", [exNew]);
     addProposalItem(usdPlus, "upgradeTo", [usdPlusNew]);
 
-    addProposalItem(daiEx, "grantRole", [Roles.UPGRADER_ROLE, timelockAddress]);
-    addProposalItem(daiPlus, "grantRole", [Roles.UPGRADER_ROLE, timelockAddress]);
-    addProposalItem(daiEx, "upgradeTo", [exNew]);
-    addProposalItem(daiPlus, "upgradeTo", [usdPlusNew]);
+    addProposalItem(usdcEx, "upgradeTo", [exNew]);
+    addProposalItem(usdcPlus, "upgradeTo", [usdPlusNew]);
 
     
     
     await testProposal(addresses, values, abis);
     console.log("CHECK: ", (await ex.getAvailableSupply()).toString());
-    await testUsdPlus(filename, 'base');
+    console.log("CHECK: ", (await usdcEx.getAvailableSupply()).toString());
+    await testUsdPlus(filename, 'blast');
     // await testUsdPlus(filename, 'base_dai');
     // await createProposal(filename, addresses, values, abis);
 

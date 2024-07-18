@@ -78,7 +78,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     uint256 private _reentrancyGuardStatus;
 
-    bool public DEPRECATED;
+    bool public deprecated;
 
     // ---  events
 
@@ -284,7 +284,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // ---  logic
     function setDeprecated(bool _deprecated) public onlyAdmin {
-        DEPRECATED = _deprecated;
+        deprecated = _deprecated;
     }  
 
     function pause() public onlyPortfolioAgent {
@@ -638,9 +638,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return 0;
     }
 
-    function getAvailableSupply() external view whenNotPaused returns(uint256 result) {
-        require(!usdPlus.isPaused(), "USD+ is paused");
-        require(!DEPRECATED, "Exchange for this token is deprecated");
+    function getAvailableSupply() external view returns(uint256 result, bool _paused, bool _deprecated) {
+        _paused = paused() || usdPlus.isPaused();
+        _deprecated = deprecated;
 
         IPortfolioManager.StrategyWeight[] memory weights = portfolioManager.getAllStrategyWeights();
         uint256 count = weights.length;
