@@ -27,7 +27,7 @@
         let usdcEx = await getContract('Exchange', 'base_usdc');
         let usdcPlus = await getContract('UsdPlusToken', 'base_usdc');
 
-        const exNew = '0x637Af2D27cd837aE36973aa856Fc208ad511eFE5';
+        const exNew = '0xde48c03B452ACba30d297dF21A5C8676FeA7b3D2';
         const usdPlusNew = '0x1F7e713B77dcE6b2Df41Bb2Bb0D44cA35D795ed8';
 
         addProposalItem(ex, "upgradeTo", [exNew]);
@@ -42,9 +42,9 @@
         
         
         await testProposal(addresses, values, abis);
-        console.log("CHECK: ", (await ex.getAvailableSupply()).toString());
-        console.log("CHECK: ", (await daiEx.getAvailableSupply()).toString());
-        console.log("CHECK: ", (await usdcEx.getAvailableSupply()).toString());
+        console.log("CHECK: ", (await ex.getAvailabilityInfo()).toString());
+        console.log("CHECK: ", (await daiEx.getAvailabilityInfo()).toString());
+        console.log("CHECK: ", (await usdcEx.getAvailabilityInfo()).toString());
         await testUsdPlus(filename, 'base');
         // await testUsdPlus(filename, 'base_dai');
         // await createProposal(filename, addresses, values, abis);

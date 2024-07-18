@@ -24,7 +24,7 @@ async function main() {
     let usdtEx = await getContract('Exchange', 'linea_usdt');
     let usdtPlus = await getContract('UsdPlusToken', 'linea_usdt');
 
-    const exNew = '0xAb54c628E85e7C59C2e62E4E3f7bCcD5d2874cef';
+    const exNew = '0x80212Fc2baa3782eC0B5384fFe6E1ED8306340b0';
     const usdPlusNew = '0xe49579d531e657Fe3a9EA36Fb11764F81909047E';
 
     addProposalItem(ex, "upgradeTo", [exNew]);
@@ -36,8 +36,8 @@ async function main() {
     
     
     await testProposal(addresses, values, abis);
-    console.log("CHECK: ", (await ex.getAvailableSupply()).toString());
-    console.log("CHECK: ", (await usdtEx.getAvailableSupply()).toString());
+    console.log("CHECK: ", (await ex.getAvailabilityInfo()).toString());
+    console.log("CHECK: ", (await usdtEx.getAvailabilityInfo()).toString());
     await testUsdPlus(filename, 'linea');
     // await testUsdPlus(filename, 'base_dai');
     // await createProposal(filename, addresses, values, abis);

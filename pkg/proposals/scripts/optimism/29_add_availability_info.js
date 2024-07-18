@@ -18,20 +18,14 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let ex = await getContract('Exchange', 'arbitrum');
-    let usdPlus = await getContract('UsdPlusToken', 'arbitrum');
+    let ex = await getContract('Exchange', 'optimism');
+    let usdPlus = await getContract('UsdPlusToken', 'optimism');
 
-    let daiEx = await getContract('Exchange', 'arbitrum_dai');
-    let daiPlus = await getContract('UsdPlusToken', 'arbitrum_dai');
+    let daiEx = await getContract('Exchange', 'optimism_dai');
+    let daiPlus = await getContract('UsdPlusToken', 'optimism_dai');
 
-    let ethEx = await getContract('Exchange', 'arbitrum_eth');
-    let ethPlus = await getContract('UsdPlusToken', 'arbitrum_eth');
-
-    let usdtEx = await getContract('Exchange', 'arbitrum_usdt');
-    let usdtPlus = await getContract('UsdPlusToken', 'arbitrum_usdt');
-
-    const exNew = '0x039A1a6A94204C11BE6B6811f1905F5aa9C6DFFD';
-    const usdPlusNew = '0x56a435dFA7d0C13F97C99303056797Cd46E97a2F';
+    const exNew = '0xC352822AFcE2aD256326b03ae797cc4F2ec25494';
+    const usdPlusNew = '0x6002054688d62275d80CC615f0F509d9b2FF520d';
 
     addProposalItem(ex, "upgradeTo", [exNew]);
     addProposalItem(usdPlus, "upgradeTo", [usdPlusNew]);
@@ -39,20 +33,13 @@ async function main() {
     addProposalItem(daiEx, "upgradeTo", [exNew]);
     addProposalItem(daiPlus, "upgradeTo", [usdPlusNew]);
 
-    addProposalItem(usdtEx, "upgradeTo", [exNew]);
-    addProposalItem(usdtPlus, "upgradeTo", [usdPlusNew]);
-
-    addProposalItem(ethEx, "upgradeTo", [exNew]);
-    addProposalItem(ethPlus, "upgradeTo", [usdPlusNew]);
     
     
     await testProposal(addresses, values, abis);
     console.log("CHECK: ", (await ex.getAvailabilityInfo()).toString());
     console.log("CHECK: ", (await daiEx.getAvailabilityInfo()).toString());
-    console.log("CHECK: ", (await usdtEx.getAvailabilityInfo()).toString());
-    console.log("CHECK: ", (await ethEx.getAvailabilityInfo()).toString());
-    await testUsdPlus(filename, 'arbitrum');
-    // await testUsdPlus(filename, 'arbitrum_dai');
+    await testUsdPlus(filename, 'optimism');
+    
     // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
