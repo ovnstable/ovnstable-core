@@ -37,7 +37,8 @@ let BASE = {
     // morpho
     morpho: '0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb',
     mwUsdc: '0xc1256Ae5FF1cf2719D4937adb3bbCCab2E00A2Ca',
-    
+    gcUsdc: '0xc0c5689e6f4D256E861F65465b691aeEcC0dEb12',
+
 
     // seamlesss
     seamlessProvider: '0x0E02EB705be325407707662C6f6d3466E939f3a0',
@@ -185,10 +186,14 @@ let ARBITRUM = {
     wstEth: '0x5979D7b546E38E414F7E9822514be443A4800529',
     vrtx: "0x95146881b86B3ee99e63705eC87AfE29Fcc044D9",
     usdtPlus: '0xb1084db8D3C05CEbd5FA9335dF95EE4b8a0edc30',
+    comp: "0x354A6dA3fcde098F8389cad84b0182725c6C91dE",
+    compoundUsdc: "0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf",
+    compoundRewards: "0x88730d254A2f7e6AC8388c3198aFd694bA9f7fae",
     // aave
     aaveProvider: "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
     rewardsController: "0x929EC64c34a17401F460460D4B9390518E5B473e",
     aUsdc: "0x625E7708f30cA75bfd92586e17077590C60eb4cD",
+    aUsdcCircle: "0x724dc807b04555b71ed48a6896b6F41593b8C637",
     aUsdt: "0x6ab707Aca953eDAeFBc4fD23bA73294241490620",
     aEth: "0xe50fA9b3c56FfB159cB0FCA61F5c9D750e8128c8",
     // dForce

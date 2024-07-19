@@ -161,7 +161,7 @@ async function testUsdPlus(id, stand = process.env.STAND) {
     tables.push(
         await testCase(async () => {
             let amountAsset = await asset.balanceOf(walletAddress);
-            amountAsset = "2000000000";
+            // amountAsset = 1000000000
             await (await asset.approve(exchange.address, amountAsset, await getPrice())).wait();
             await (await exchange.buy(asset.address, amountAsset, await getPrice())).wait();
         }, 'exchange.mint'),
@@ -270,6 +270,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     await execTimelock(async timelock => {
         if (isNewStrategy) {
             await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, await getPrice());
+            // await strategy.setStrategyParams(timelock.address, roleManager.address, await getPrice());
         } else {
             await strategy.connect(timelock).setPortfolioManager(timelock.address, await getPrice());
         }

@@ -14,6 +14,7 @@ import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IBlockGetter.sol";
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
+import "./interfaces/IStrategy.sol";
 import "./interfaces/IUsdPlusToken.sol";
 
 
@@ -76,6 +77,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     IRoleManager public roleManager;
 
     uint256 private _reentrancyGuardStatus;
+
+    bool public deprecated;
 
     // ---  events
 
@@ -280,6 +283,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     // ---  logic
+    function setDeprecated(bool _deprecated) public onlyAdmin {
+        deprecated = _deprecated;
+    }  
 
     function pause() public onlyPortfolioAgent {
         _pause();
@@ -630,5 +636,22 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         // If this is not a simulation, then we return the value is not used in any way
         return 0;
+    }
+
+    function getAvailabilityInfo() external view returns(uint256 _available, bool _paused, bool _deprecated) {
+        _paused = paused() || usdPlus.isPaused();
+        _deprecated = deprecated;
+
+        IPortfolioManager.StrategyWeight[] memory weights = portfolioManager.getAllStrategyWeights();
+        uint256 count = weights.length;
+
+        for (uint8 i = 0; i < count; i++) {
+            IPortfolioManager.StrategyWeight memory weight = weights[i];
+            IStrategy strategy = IStrategy(weight.strategy);
+
+            if (weight.enabled) {
+                _available += strategy.netAssetValue();
+            }
+        }
     }
 }

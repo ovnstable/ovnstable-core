@@ -17,10 +17,10 @@ contract StrategyMorphoDirectUsdc is Strategy {
     Id public marketId;
     MarketParams public marketParams;
 
-    address treasury;
-    uint256 fee; // in basis points
-    uint256 balance;
-    uint256 limit; // in basis points
+    address public treasury;
+    uint256 public fee; // in basis points
+    uint256 public balance;
+    uint256 public limit; // in basis points
 
     
     // --- events
@@ -40,6 +40,7 @@ contract StrategyMorphoDirectUsdc is Strategy {
         MarketParams marketParams;
         address treasury;
         uint256 fee;
+        uint256 limit;
     }
 
 
@@ -62,9 +63,10 @@ contract StrategyMorphoDirectUsdc is Strategy {
         marketParams = params.marketParams;
         treasury = params.treasury;
         fee = params.fee;
-
-        balance = 0;
-        limit = 0; 
+        limit = params.limit;
+        
+        balance = usdcToken.balanceOf(address(this)) + currentDepositValue();
+         
         
         emit StrategyUpdatedParams();
     }
@@ -159,25 +161,25 @@ contract StrategyMorphoDirectUsdc is Strategy {
         if(revenue > 0 && revenue * 10000 < curNetAssetValue * limit) {   
             morpho.withdraw(marketParams, revenue, 0, address(this), address(this));
             usdcToken.transfer(treasury, revenue);
-            balance -= revenue;
+            balance = usdcToken.balanceOf(address(this)) + currentDepositValue();
         }
 
         return revenue;
     }
 
-    function setFee(uint256 _fee) onlyPortfolioManager public {
+    function setFee(uint256 _fee) onlyPortfolioAgent public {
         fee = _fee;
 
         emit StrategyUpdatedFee();
     }
 
-    function setTreasury(address _treasury) onlyPortfolioManager public {
+    function setTreasury(address _treasury) onlyPortfolioAgent public {
         treasury = _treasury;
 
         emit StrategyUpdatedTreasury();
     }
 
-    function setLimit(uint256 _limit) onlyPortfolioManager public {
+    function setLimit(uint256 _limit) onlyPortfolioAgent public {
         limit = _limit;
 
         emit StrategyUpdatedLimit();
