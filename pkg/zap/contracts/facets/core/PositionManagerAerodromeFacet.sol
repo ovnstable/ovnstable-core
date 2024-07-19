@@ -55,6 +55,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
             for (uint j = 0; j < tokenIds.length; j++) {
                 if (getLiquidity(tokenIds[j]) > 0) {
                     result[positionCount] = getPositionInfo(wallet, tokenIds[j]);
+                    result[positionCount].isStaked = true;
                     positionCount++;
                 }
             }

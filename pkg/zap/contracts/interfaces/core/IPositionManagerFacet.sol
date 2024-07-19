@@ -18,6 +18,7 @@ interface IPositionManagerFacet {
         int24 tickLower;
         int24 tickUpper;
         int24 currentTick;
+        bool isStaked;
     }
 
     function mintPosition(

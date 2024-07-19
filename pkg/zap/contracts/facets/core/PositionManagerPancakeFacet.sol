@@ -49,6 +49,7 @@ contract PositionManagerPancakeFacet is IPositionManagerFacet, Modifiers {
             uint256 tokenId = masterChef.tokenOfOwnerByIndex(wallet, i);
             if (getLiquidity(tokenId) > 0) {
                 result[positionCount] = getPositionInfo(tokenId);
+                result[positionCount].isStaked = true;
                 positionCount++;
             }
         }

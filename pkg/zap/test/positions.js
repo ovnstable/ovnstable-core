@@ -156,6 +156,7 @@ describe('Testing all zaps', function() {
                     console.log("tickLower:", positions[i].tickLower.toString());
                     console.log("tickUpper:", positions[i].tickUpper.toString());
                     console.log("currentTick:", positions[i].currentTick.toString());
+                    console.log("isStaked:", positions[i].isStaked.toString());
                     console.log("----------------------------------");
                 }
             }
