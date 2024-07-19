@@ -7,7 +7,7 @@ const { transferETH } = require('@overnight-contracts/common/utils/script-utils'
 const name = 'PancakeCLZap';
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
-    await transferETH(0.00001, "0x0000000000000000000000000000000000000000");
+    // await transferETH(0.00001, "0x0000000000000000000000000000000000000000");
     const { save, deploy } = deployments;
     const { deployer } = await getNamedAccounts();
 
