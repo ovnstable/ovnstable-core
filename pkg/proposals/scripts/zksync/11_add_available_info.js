@@ -11,8 +11,8 @@ filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
 
-    let mainAddress = (await initWallet()).address;
-    await transferETH(100, mainAddress);   
+    // let mainAddress = (await initWallet()).address;
+    // await transferETH(100, mainAddress);   
 
     let addresses = [];
     let values = [];
@@ -35,14 +35,17 @@ async function main() {
     addProposalItem(usdtEx, "upgradeTo", [usdtExNew]);
     addProposalItem(usdtPlus, "upgradeTo", [usdPlusNew]);
 
+    addProposalItem(ex, "setDeprecated", [true]);
+    addProposalItem(usdtEx, "setDeprecated", [true]);
+
     
     
-    await testProposal(addresses, values, abis);
-    console.log("CHECK: ", (await ex.getAvailabilityInfo()).toString());
-    console.log("CHECK: ", (await usdtEx.getAvailabilityInfo()).toString());
-    await testUsdPlus(filename, 'zksync');
+    // await testProposal(addresses, values, abis);
+    // console.log("CHECK: ", (await ex.getAvailabilityInfo()).toString());
+    // console.log("CHECK: ", (await usdtEx.getAvailabilityInfo()).toString());
+    // await testUsdPlus(filename, 'zksync');
     // await testUsdPlus(filename, 'base_dai');
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);

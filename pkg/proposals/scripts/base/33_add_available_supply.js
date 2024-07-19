@@ -11,8 +11,8 @@
 
     async function main() {
 
-        let mainAddress = (await initWallet()).address;
-        await transferETH(100, mainAddress);   
+        // let mainAddress = (await initWallet()).address;
+        // await transferETH(100, mainAddress);   
 
         let addresses = [];
         let values = [];
@@ -39,15 +39,17 @@
         addProposalItem(usdcEx, "upgradeTo", [exNew]);
         addProposalItem(usdcPlus, "upgradeTo", [usdPlusNew]);
 
+        addProposalItem(daiEx, "setDeprecated", [true]);
+
         
         
-        await testProposal(addresses, values, abis);
-        console.log("CHECK: ", (await ex.getAvailabilityInfo()).toString());
-        console.log("CHECK: ", (await daiEx.getAvailabilityInfo()).toString());
-        console.log("CHECK: ", (await usdcEx.getAvailabilityInfo()).toString());
-        await testUsdPlus(filename, 'base');
+        // await testProposal(addresses, values, abis);
+        // console.log("CHECK: ", (await ex.getAvailabilityInfo()).toString());
+        // console.log("CHECK: ", (await daiEx.getAvailabilityInfo()).toString());
+        // console.log("CHECK: ", (await usdcEx.getAvailabilityInfo()).toString());
+        // await testUsdPlus(filename, 'base');
         // await testUsdPlus(filename, 'base_dai');
-        // await createProposal(filename, addresses, values, abis);
+        await createProposal(filename, addresses, values, abis);
 
         function addProposalItem(contract, methodName, params) {
             addresses.push(contract.address);

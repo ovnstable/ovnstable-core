@@ -11,8 +11,8 @@ filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
 
-    let mainAddress = (await initWallet()).address;
-    await transferETH(100, mainAddress);   
+    // let mainAddress = (await initWallet()).address;
+    // await transferETH(100, mainAddress);   
 
     let addresses = [];
     let values = [];
@@ -44,16 +44,19 @@ async function main() {
 
     addProposalItem(ethEx, "upgradeTo", [exNew]);
     addProposalItem(ethPlus, "upgradeTo", [usdPlusNew]);
+
+    addProposalItem(daiEx, "setDeprecated", [true]);
+    addProposalItem(ethEx, "setDeprecated", [true]);
     
     
-    await testProposal(addresses, values, abis);
-    console.log("CHECK: ", (await ex.getAvailabilityInfo()).toString());
-    console.log("CHECK: ", (await daiEx.getAvailabilityInfo()).toString());
-    console.log("CHECK: ", (await usdtEx.getAvailabilityInfo()).toString());
-    console.log("CHECK: ", (await ethEx.getAvailabilityInfo()).toString());
-    await testUsdPlus(filename, 'arbitrum');
+    // await testProposal(addresses, values, abis);
+    // console.log("CHECK: ", (await ex.getAvailabilityInfo()).toString());
+    // console.log("CHECK: ", (await daiEx.getAvailabilityInfo()).toString());
+    // console.log("CHECK: ", (await usdtEx.getAvailabilityInfo()).toString());
+    // console.log("CHECK: ", (await ethEx.getAvailabilityInfo()).toString());
+    // await testUsdPlus(filename, 'arbitrum');
     // await testUsdPlus(filename, 'arbitrum_dai');
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);

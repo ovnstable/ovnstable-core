@@ -11,8 +11,8 @@ filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
 
-    let mainAddress = (await initWallet()).address;
-    await transferETH(100, mainAddress);   
+    // let mainAddress = (await initWallet()).address;
+    // await transferETH(100, mainAddress);   
 
     let addresses = [];
     let values = [];
@@ -33,14 +33,16 @@ async function main() {
     addProposalItem(daiEx, "upgradeTo", [exNew]);
     addProposalItem(daiPlus, "upgradeTo", [usdPlusNew]);
 
+    addProposalItem(daiEx, "setDeprecated", [true]);
+
     
     
-    await testProposal(addresses, values, abis);
-    console.log("CHECK: ", (await ex.getAvailabilityInfo()).toString());
-    console.log("CHECK: ", (await daiEx.getAvailabilityInfo()).toString());
-    await testUsdPlus(filename, 'optimism');
+    // await testProposal(addresses, values, abis);
+    // console.log("CHECK: ", (await ex.getAvailabilityInfo()).toString());
+    // console.log("CHECK: ", (await daiEx.getAvailabilityInfo()).toString());
+    // await testUsdPlus(filename, 'optimism');
     
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
