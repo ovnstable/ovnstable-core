@@ -25,7 +25,7 @@ async function main() {
     let account = await initWallet();
     // await transferETH(0.000001, "0x0000000000000000000000000000000000000000");
 
-    let positions = await zap.getPositions("0xab918d486c61ADd7c577F1af938117bBD422f088");
+    let positions = await zap.getPositions("0x4473D652fb0b40b36d549545e5fF6A363c9cd686");
     console.log("length: ", positions.length);
     for (let i = 0; i < positions.length; i++) {
         console.log("platform:", positions[i].platform);
@@ -43,6 +43,7 @@ async function main() {
         console.log("currentTick:", positions[i].currentTick.toString());
         console.log("----------------------------------");
     }
+    return;
 
     let tokenId = 57417;
     let poolId = "0xe37304F7489ed253b2A46A1d9DabDcA3d311D22E";

@@ -47,22 +47,22 @@ let zaps_pancake = [
         inputTokens: ['dai', 'usdPlus'],
         priceRange: [0.9997, 1.0002],
     },
-    {
-        name: 'PancakeCLZap',
-        pair: '0xe37304f7489ed253b2a46a1d9dabdca3d311d22e',
-        inputTokens: ['dai', 'usdPlus'],
-        priceRange: [3100, 3500],
-    },
-    {
-        name: 'PancakeCLZap',
-        pair: '0x721F37495cD70383B0A77Bf1eB8f97eef29498Bb',
-        inputTokens: ['dai', 'usdPlus'],
-        priceRange: [1.2, 1.5],
-    },
+    // {
+    //     name: 'PancakeCLZap',
+    //     pair: '0xe37304f7489ed253b2a46a1d9dabdca3d311d22e',
+    //     inputTokens: ['dai', 'usdPlus'],
+    //     priceRange: [3100, 3500],
+    // },
+    // {
+    //     name: 'PancakeCLZap',
+    //     pair: '0x721F37495cD70383B0A77Bf1eB8f97eef29498Bb',
+    //     inputTokens: ['dai', 'usdPlus'],
+    //     priceRange: [1.2, 1.5],
+    // },
 ];
 
 // TODO: remove hardcode
-let zaps = zaps_aerodrome;
+let zaps = zaps_pancake;
 
 describe('Testing all zaps', function() {
     zaps.forEach((params) => {
@@ -89,15 +89,15 @@ describe('Testing all zaps', function() {
                 toTokenIn = tokensDec.map((dec) => dec === 6 ? toE6 : toE18);
                 fromTokenIn = tokensDec.map((dec) => dec === 6 ? fromE6 : fromE18);
 
-                let curPriceRange = [...params.priceRange];
-                curPriceRange[0] = Math.ceil(toE6(curPriceRange[0])).toString();
-                curPriceRange[1] = Math.ceil(toE6(curPriceRange[1])).toString();
-                let tickRange = await zap.priceToClosestTick(params.pair, curPriceRange);
-                let currentTick = await zap.getCurrentPoolTick(params.pair);
-                console.log("priceRange:", params.priceRange);
-                console.log("tickRange:", tickRange);
-                console.log("currentTick:", currentTick);
-                params.tickRange = [...tickRange];
+                // let curPriceRange = [...params.priceRange];
+                // curPriceRange[0] = Math.ceil(toE6(curPriceRange[0])).toString();
+                // curPriceRange[1] = Math.ceil(toE6(curPriceRange[1])).toString();
+                // let tickRange = await zap.priceToClosestTick(params.pair, curPriceRange);
+                // let currentTick = await zap.getCurrentPoolTick(params.pair);
+                // console.log("priceRange:", params.priceRange);
+                // console.log("tickRange:", tickRange);
+                // console.log("currentTick:", currentTick);
+                // params.tickRange = [...tickRange];
             });
 
             it('test dev wallet positions', async function() {
@@ -141,7 +141,7 @@ describe('Testing all zaps', function() {
             // });
 
             async function check() {
-                let positions = await zap.getPositions("0xEd446C56F89e84b3dC9ACec060154eC6BC6bB299");
+                let positions = await zap.getPositions("0x4473D652fb0b40b36d549545e5fF6A363c9cd686");
                 for (let i = 0; i < positions.length; i++) {
                     console.log("platform:", positions[i].platform);
                     console.log("tokenId:", positions[i].tokenId.toString());
