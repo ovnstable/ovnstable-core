@@ -36,7 +36,6 @@ async function main() {
         values.push(0);
         abis.push(contract.interface.encodeFunctionData(methodName, params));
     }
-
 }
 
 main()

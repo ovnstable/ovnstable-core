@@ -1,5 +1,5 @@
 {
-  "address": "0xAb54c628E85e7C59C2e62E4E3f7bCcD5d2874cef",
+  "address": "0x24C032f63Bd3De6AB47F4ADeE83D46A99a98a7F9",
   "abi": [
     {
       "type": "function",
@@ -487,6 +487,10 @@
             {
               "type": "int24",
               "name": "currentTick"
+            },
+            {
+              "type": "bool",
+              "name": "isStaked"
             }
           ]
         }
