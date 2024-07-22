@@ -3,6 +3,8 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/core/contracts/interfaces/IHedgeExchanger.sol";
+import "hardhat/console.sol";
+
 
 contract StrategyEts is Strategy {
 
@@ -49,7 +51,11 @@ contract StrategyEts is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
-
+        console.log("asset", _asset);
+        console.log("_amount", _amount);
+        console.log("address(hedgeExchanger)", address(hedgeExchanger));
+        console.log(address(this));
+        console.log(asset.balanceOf(address(this)));
         asset.approve(address(hedgeExchanger), _amount);
         hedgeExchanger.buy(_amount, "");
     }

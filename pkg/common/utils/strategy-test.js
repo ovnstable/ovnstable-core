@@ -10,6 +10,7 @@ const { evmCheckpoint, evmRestore, sharedBeforeEach } = require("./sharedBeforeE
 const { transferAsset, getERC20, transferETH, initWallet, execTimelock} = require("./script-utils");
 const ERC20 = require("./abi/IERC20.json");
 const { Roles } = require("./roles");
+const HedgeExchangerABI = require('./abi/HedgeExchanger.json');
 
 
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
@@ -122,6 +123,10 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
 
                     let amount = toAsset(stakeValue / 2);
                     await asset.connect(recipient).transfer(strategy.address, amount);
+                    let hedgeExchanger = await ethers.getContractAt(HedgeExchangerABI, await strategy.hedgeExchanger());
+                    console.log("???", hedgeExchanger.address);
+                    console.log("???", strategy.address);
+                    console.log("???", await hedgeExchanger.depositor());
                     await strategy.connect(recipient).stake(asset.address, amount);
 
                     await asset.connect(recipient).transfer(strategy.address, amount);
