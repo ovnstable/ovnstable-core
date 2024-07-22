@@ -24,44 +24,24 @@ async function main() {
     let zap = await ethers.getContract("AerodromeCLZap");
 
     let account = await initWallet();
+    console.log("init");
     // await transferETH(0.000001, "0x0000000000000000000000000000000000000000");
 
-    let positions = await zap.getPositions("0x4473D652fb0b40b36d549545e5fF6A363c9cd686");
-    console.log("length: ", positions.length);
-    for (let i = 0; i < positions.length; i++) {
-        console.log("platform:", positions[i].platform);
-        console.log("tokenId:", positions[i].tokenId.toString());
-        console.log("poolId:", positions[i].poolId.toString());
-        console.log("token0:", positions[i].token0.toString());
-        console.log("token1:", positions[i].token1.toString());
-        console.log("amount0:", positions[i].amount0.toString());
-        console.log("amount1:", positions[i].amount1.toString());
-        console.log("fee0:", positions[i].fee0.toString());
-        console.log("fee1:", positions[i].fee1.toString());
-        console.log("emissions:", positions[i].emissions.toString());
-        console.log("tickLower:", positions[i].tickLower.toString());
-        console.log("tickUpper:", positions[i].tickUpper.toString());
-        console.log("currentTick:", positions[i].currentTick.toString());
-        console.log("----------------------------------");
-    }
-    return;
-
-    let tokenId = 57417;
-    let poolId = "0xe37304F7489ed253b2A46A1d9DabDcA3d311D22E";
+    let poolId = "0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606";
     let tickRange = await zap.closestTicksForCurrentTick(poolId);
     tickRange = [tickRange.left, tickRange.right];
     console.log("tickRange", tickRange);
     let inputTokens = [
         {
-            tokenAddress: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
-            price: "3094280172653492400000"
-        },
-        {
-            tokenAddress: "0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65",
-            price: "1001339157528039300"
+            tokenAddress: "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
+            price: "1001339157528039300",
+            amount: toE6(0.0001),
         }
     ];
-    let result = await zap.getProportionForRebalance(tokenId, poolId, tickRange, inputTokens);
+    let token0 = await (await getERC20("usdbc")).connect(account);
+    await (await token0.approve(zap.address, toE18(10000))).wait();
+
+    let result = await zap.getProportionForZap(poolId, tickRange, inputTokens);
     console.log("inputTokenAddresses:", result.inputTokenAddresses);
     console.log("inputTokenAmounts:", result.inputTokenAmounts.map((x) => x.toString()));
     console.log("outputTokenAddresses:", result.outputTokenAddresses);
@@ -114,10 +94,7 @@ async function main() {
     }
     console.log('swapData:', swapData);
     console.log('aerodromeData:', aerodromeData);
-    let nftContract = (await getERC721("pancakeNpm")).connect(account);
-    await (await nftContract.approve(zap.address, tokenId)).wait();
-    console.log("approved!");
-    let price = await (await zap.connect(account).rebalance(swapData, aerodromeData, tokenId)).wait();
+    let price = await (await zap.connect(account).zapIn(swapData, aerodromeData)).wait();
 
     const inputTokensEvent = price.events.find((event) => event.event === 'InputTokens');
     const outputTokensEvent = price.events.find((event) => event.event === 'OutputTokens');
