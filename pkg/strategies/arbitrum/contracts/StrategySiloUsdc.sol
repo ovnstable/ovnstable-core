@@ -5,6 +5,7 @@ import '@overnight-contracts/core/contracts/Strategy.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Camelot.sol';
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Angle.sol";
 import "@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol";
 
 contract StrategySiloUsdc is Strategy {
@@ -28,6 +29,8 @@ contract StrategySiloUsdc is Strategy {
     uint256 public underlyingAssetDm;
     IInchSwapper public inchSwapper;
 
+    IDistributor public distributor;
+
     // --- events
 
     event StrategyUpdatedParams();
@@ -48,6 +51,7 @@ contract StrategySiloUsdc is Strategy {
         address oracleAsset;
         address oracleUnderlyingAsset;
         address inchSwapper;
+        address distributor;
     }
 
     // ---  constructor
@@ -77,6 +81,7 @@ contract StrategySiloUsdc is Strategy {
         oracleUnderlyingAsset = IPriceFeed(params.oracleUnderlyingAsset);
         assetDm = 10 ** IERC20Metadata(params.usdc).decimals();
         underlyingAssetDm = 10 ** IERC20Metadata(params.underlyingAsset).decimals();
+        distributor = IDistributor(params.distributor);
     }
 
     // --- logic
@@ -225,5 +230,9 @@ contract StrategySiloUsdc is Strategy {
         uint256 priceAsset = ChainlinkLibrary.getPrice(oracleAsset);
         uint256 priceUnderlyingAsset = ChainlinkLibrary.getPrice(oracleUnderlyingAsset);
         return ChainlinkLibrary.convertTokenToToken(underlyingAssetAmount, underlyingAssetDm, assetDm, priceUnderlyingAsset, priceAsset);
+    }
+
+    function claimRewardsWithToggleOperator(address operator) external onlyAdmin() {
+        distributor.toggleOperator(msg.sender, operator);
     }
 }

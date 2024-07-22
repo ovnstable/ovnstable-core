@@ -548,6 +548,10 @@ interface IAaveOracle {
     function getFallbackOracle() external view returns (address);
 }
 
+interface IDistributor {
+  function toggleOperator(address user, address operator) external;
+}
+
 abstract contract Distributor {
 
   struct Claim {
@@ -571,6 +575,5 @@ abstract contract Distributor {
     uint256[] calldata amounts,
     bytes32[][] calldata proofs
   ) external virtual;
-
 
 }
