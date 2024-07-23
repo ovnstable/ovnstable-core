@@ -57,7 +57,9 @@ contract StrategyEts is Strategy {
         console.log(address(this));
         console.log(asset.balanceOf(address(this)));
         asset.approve(address(hedgeExchanger), _amount);
+        console.log("7777");
         hedgeExchanger.buy(_amount, "");
+        console.log("8888");
     }
 
     function _unstake(
@@ -65,7 +67,6 @@ contract StrategyEts is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-
         rebaseToken.approve(address(hedgeExchanger), _amount);
         hedgeExchanger.redeem(_amount);
 
@@ -79,7 +80,10 @@ contract StrategyEts is Strategy {
 
         uint256 rebaseTokenAmount = rebaseToken.balanceOf(address(this));
         rebaseToken.approve(address(hedgeExchanger), rebaseTokenAmount);
+        console.log("eee");
+
         hedgeExchanger.redeem(rebaseTokenAmount);
+        console.log("ggg");
 
         return asset.balanceOf(address(this));
     }

@@ -103,14 +103,18 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         address _beneficiary,
         bool _targetIsZero
     ) external override onlyPortfolioManager returns (uint256) {
-
+        console.log("aaa");
         uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
+        console.log("bbb");
 
         uint256 withdrawAmount;
         uint256 rewardAmount;
         if (_targetIsZero) {
+            console.log("ccc");
+
             rewardAmount = _claimRewards(_beneficiary);
-            
+            console.log("ddd");
+
             withdrawAmount = _unstakeFull(_asset, _beneficiary);
         } else {
             withdrawAmount = _unstake(_asset, _amount, _beneficiary);
