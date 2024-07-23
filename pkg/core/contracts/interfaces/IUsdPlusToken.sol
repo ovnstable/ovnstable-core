@@ -139,4 +139,5 @@ interface IUsdPlusToken {
 
     function rebasingCreditsPerTokenHighres() external view returns (uint256);
 
+    function isPaused() external view returns (bool);
 }
