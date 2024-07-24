@@ -3,7 +3,6 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/core/contracts/interfaces/IHedgeExchanger.sol";
-import "hardhat/console.sol";
 
 
 contract StrategyEts is Strategy {
@@ -51,15 +50,8 @@ contract StrategyEts is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
-        console.log("asset", _asset);
-        console.log("_amount", _amount);
-        console.log("address(hedgeExchanger)", address(hedgeExchanger));
-        console.log(address(this));
-        console.log(asset.balanceOf(address(this)));
         asset.approve(address(hedgeExchanger), _amount);
-        console.log("7777");
         hedgeExchanger.buy(_amount, "");
-        console.log("8888");
     }
 
     function _unstake(
@@ -80,11 +72,7 @@ contract StrategyEts is Strategy {
 
         uint256 rebaseTokenAmount = rebaseToken.balanceOf(address(this));
         rebaseToken.approve(address(hedgeExchanger), rebaseTokenAmount);
-        console.log("eee");
-
         hedgeExchanger.redeem(rebaseTokenAmount);
-        console.log("ggg");
-
         return asset.balanceOf(address(this));
     }
 

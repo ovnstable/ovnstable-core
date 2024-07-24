@@ -25,18 +25,18 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
         // {
         //     value: 2,
         // },
-        // {
-        //     value: 20,
-        // },
+        {
+            value: 20,
+        },
         // {
         //     value: 200,
         // },
         // {
         //     value: 2000,
         // },
-        {
-            value: 20000,
-        },
+        // {
+        //     value: 20000,
+        // },
         // {
         //     value: 100000,
         // },
@@ -53,9 +53,9 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
     describe(`${strategyParams.name}`, function () {
 
-        stakeUnstake(strategyParams, network, assetName, values, runStrategyLogic);
+        // stakeUnstake(strategyParams, network, assetName, values, runStrategyLogic);
 
-        // unstakeFull(strategyParams, network, assetName, values, runStrategyLogic);
+        unstakeFull(strategyParams, network, assetName, values, runStrategyLogic);
 
         if (strategyParams.enabledReward) {
             // claimRewards(strategyParams, network, assetName, values, runStrategyLogic);

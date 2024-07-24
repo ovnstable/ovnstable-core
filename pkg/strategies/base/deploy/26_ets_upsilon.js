@@ -12,7 +12,7 @@ module.exports = async ({ deployments }) => {
         await deployProxyMulti(name, 'StrategyEts', deployments, save, null);
     });
 
-    await settingSection(async (strategy) => {
+    await settingSection('', async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
     });
 };
