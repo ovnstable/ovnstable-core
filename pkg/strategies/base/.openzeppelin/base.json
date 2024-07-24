@@ -266,6 +266,11 @@
       "address": "0xdE13b1f343Ad5EBC0C1F8a8694289feEf9c593C3",
       "txHash": "0x63f0a9c57283fe19914bd0d8bf7825e8f86a1790f71670c7d47b679da881c014",
       "kind": "uups"
+    },
+    {
+      "address": "0x389Dba309C7F6B0448Ca00012dB7a77cE30B48a1",
+      "txHash": "0x629210112afe6f78dd0ef2c2cd3c995bcf3aea04a0ed776208037020a9558700",
+      "kind": "uups"
     }
   ],
   "impls": {
