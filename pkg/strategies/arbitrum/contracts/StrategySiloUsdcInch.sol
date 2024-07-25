@@ -234,7 +234,7 @@ contract StrategySiloUsdcInch is Strategy {
         distributor.toggleOperator(address(this), operator);
     }
 
-    function withdrawERC20(address tokenAddress, address to, uint256 amount) external onlyAdmin {
-        require(IERC20(tokenAddress).transfer(to, amount), 'Transfer failed');
+    function withdrawArbRewards(address to, uint256 amount) external onlyPortfolioAgent  {
+        require(arbToken.transfer(to, amount), 'Transfer failed');
     }
 }
