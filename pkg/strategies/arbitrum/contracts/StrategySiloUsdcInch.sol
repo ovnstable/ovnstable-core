@@ -66,7 +66,6 @@ contract StrategySiloUsdcInch is Strategy {
     // --- Setters
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
-        console.log('param.distributor', params.distributor);
         usdc = IERC20(params.usdc);
         silo = ISilo(params.silo);
         siloIncentivesController = ISiloIncentivesController(params.siloIncentivesController);
