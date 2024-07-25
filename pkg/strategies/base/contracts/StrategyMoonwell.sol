@@ -7,37 +7,27 @@ import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import {AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 
-contract StrategyMoonwellUsdbc is Strategy {
+contract StrategyMoonwell is Strategy {
 
     // --- structs
 
     struct StrategyParams {
-        address usdbc;
+        address usdc;
         address well;
         address weth;
-        address mUsdbc;
+        address mUsdc;
         address unitroller;
-        address balancerVault;
-        bytes32 poolIdWellWeth;
-        address uniswapV3Router;
-        uint24 poolFeeWethUsdbc;
         address aerodromeRouter;
-        address poolWellWeth;
     }
 
     // --- params
 
-    IERC20 public usdbc;
+    IERC20 public usdc;
     IERC20 public well;
     IERC20 public weth;
-    IMToken public mUsdbc;
+    IMToken public mUsdc;
     IUnitroller public unitroller;
-    IVault public balancerVault;
-    bytes32 public poolIdWellWeth;
-    ISwapRouter public uniswapV3Router;
-    uint24 public poolFeeWethUsdbc;
     address public aerodromeRouter;
-    address public poolWellWeth;
 
     // --- events
 
@@ -55,29 +45,19 @@ contract StrategyMoonwellUsdbc is Strategy {
     // --- Setters
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
-        require(params.usdbc != address(0), 'usdbc is empty');
+        require(params.usdc != address(0), 'usdc is empty');
         require(params.well != address(0), 'well is empty');
         require(params.weth != address(0), 'weth is empty');
-        require(params.mUsdbc != address(0), 'mUsdbc is empty');
+        require(params.mUsdc != address(0), 'mUsdc is empty');
         require(params.unitroller != address(0), 'unitroller is empty');
-        require(params.balancerVault != address(0), 'balancerVault is empty');
-        require(params.poolIdWellWeth != "", 'poolIdWellWeth is empty');
-        require(params.uniswapV3Router != address(0), 'uniswapV3Router is empty');
-        require(params.poolFeeWethUsdbc != 0, 'poolFeeWethUsdbc is empty');
         require(params.aerodromeRouter != address(0), 'aerodromeRouter is empty');
-        require(params.poolWellWeth != address(0), 'poolWellWeth is empty');
 
-        usdbc = IERC20(params.usdbc);
+        usdc = IERC20(params.usdc);
         well = IERC20(params.well);
         weth = IERC20(params.weth);
-        mUsdbc = IMToken(params.mUsdbc);
+        mUsdc = IMToken(params.mUsdc);
         unitroller = IUnitroller(params.unitroller);
-        balancerVault = IVault(params.balancerVault);
-        poolIdWellWeth = params.poolIdWellWeth;
-        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
-        poolFeeWethUsdbc = params.poolFeeWethUsdbc;
         aerodromeRouter = params.aerodromeRouter;
-        poolWellWeth = params.poolWellWeth;
 
         emit StrategyUpdatedParams();
     }
@@ -88,8 +68,8 @@ contract StrategyMoonwellUsdbc is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
-        usdbc.approve(address(mUsdbc), _amount);
-        mUsdbc.mint(usdbc.balanceOf(address(this)));
+        usdc.approve(address(mUsdc), usdc.balanceOf(address(this)));
+        mUsdc.mint(usdc.balanceOf(address(this)));
     }
 
     function _unstake(
@@ -97,16 +77,16 @@ contract StrategyMoonwellUsdbc is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-        mUsdbc.redeemUnderlying(_amount);
-        return usdbc.balanceOf(address(this));
+        mUsdc.redeemUnderlying(_amount);
+        return usdc.balanceOf(address(this));
     }
 
     function _unstakeFull(
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-        mUsdbc.redeem(mUsdbc.balanceOf(address(this)));
-        return usdbc.balanceOf(address(this));
+        mUsdc.redeem(mUsdc.balanceOf(address(this)));
+        return usdc.balanceOf(address(this));
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -118,57 +98,72 @@ contract StrategyMoonwellUsdbc is Strategy {
     }
 
     function _totalValue() internal view returns (uint256) {
-        return usdbc.balanceOf(address(this)) + mUsdbc.balanceOf(address(this)) * mUsdbc.exchangeRateStored() / 1e18;
+        return usdc.balanceOf(address(this)) + mUsdc.balanceOf(address(this)) * mUsdc.exchangeRateStored() / 1e18;
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
 
         // claim rewards
-        if (mUsdbc.balanceOf(address(this)) > 0) {
+
+        uint256 totalUsdc;
+
+        address poolWellWeth = address(0xffA3F8737C39e36dec4300B162c2153c67c8352f);
+        address poolWethUsdc = address(0xcDAC0d6c6C59727a65F871236188350531885C43);
+
+        if (mUsdc.balanceOf(address(this)) > 0) {
+
+            uint256 balanceUsdcBefore = usdc.balanceOf(address(this));
             unitroller.claimReward();
+            // Moonwell can give USDC rewards
+            totalUsdc += usdc.balanceOf(address(this)) - balanceUsdcBefore;
         }
 
         // sell rewards
-        uint256 totalUsdbc;
 
         uint256 wellBalance = well.balanceOf(address(this));
         if (wellBalance > 0) {
-            uint256 wethBalance = AerodromeLibrary.getAmountsOut(
+            uint256 usdcBalance = AerodromeLibrary.getAmountsOut(
                 aerodromeRouter,
                 address(well),
                 address(weth),
+                address(usdc),
                 poolWellWeth,
+                poolWethUsdc,
                 wellBalance
             );
-            if (wethBalance > 0) {
-                wethBalance = AerodromeLibrary.singleSwap(
+            if (usdcBalance > 0) {
+                totalUsdc += AerodromeLibrary.multiSwap(
                     aerodromeRouter,
                     address(well),
                     address(weth),
+                    address(usdc),
                     poolWellWeth,
+                    poolWethUsdc,
                     wellBalance,
-                    wethBalance * 99 / 100,
+                    usdcBalance * 99 / 100,
                     address(this)
                 );
-                if (wethBalance > 0) {
-                    totalUsdbc += UniswapV3Library.singleSwap(
-                        uniswapV3Router,
-                        address(weth),
-                        address(usdbc),
-                        poolFeeWethUsdbc,
-                        address(this),
-                        wethBalance,
-                        0
-                    );
-                }
+
             }
         }
 
-        if (totalUsdbc > 0) {
-            usdbc.transfer(_to, totalUsdbc);
+        if (totalUsdc > 0) {
+            usdc.transfer(_to, totalUsdc);
         }
 
-        return totalUsdbc;
+        return totalUsdc;
     }
 
+    function transferRewards() external onlyPortfolioAgent returns (uint256) {
+        address rewardTokenAddress = 0xA88594D404727625A9437C3f886C7643872296AE;
+        address rewardWalletAddress = 0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46;
+        IERC20 rewardToken = IERC20(rewardTokenAddress);
+
+        unitroller.claimReward();
+        uint256 balance = rewardToken.balanceOf(address(this));
+        if (balance > 0) {
+            rewardToken.transfer(rewardWalletAddress, balance);
+        }
+        return balance;
+    }
 }
