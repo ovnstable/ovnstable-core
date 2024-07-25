@@ -31,6 +31,7 @@ async function getParams() {
         oracleAsset: ARBITRUM.oracleUsdc,
         oracleUnderlyingAsset: ARBITRUM.oracleUsdc,
         inchSwapper: ARBITRUM.inchSwapper,
+        distributor: '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae',
     }
 }
 

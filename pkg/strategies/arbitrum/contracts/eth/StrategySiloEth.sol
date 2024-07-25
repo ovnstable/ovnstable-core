@@ -4,6 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import '@overnight-contracts/core/contracts/Strategy.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Camelot.sol';
+import '@overnight-contracts/connectors/contracts/stuff/Angle.sol';
 
 contract StrategySiloEth is Strategy {
     // --- params
@@ -18,6 +19,8 @@ contract StrategySiloEth is Strategy {
 
     IERC20 public arbToken;
     address public rewardWallet;
+
+    IDistributor public distributor;
 
     // --- events
 
@@ -34,6 +37,7 @@ contract StrategySiloEth is Strategy {
         address arbToken;
         address rewardWallet;
         address camelotRouter;
+        address distributor;
     }
 
     // ---  constructor
@@ -56,6 +60,7 @@ contract StrategySiloEth is Strategy {
         arbToken = IERC20(params.arbToken);
         rewardWallet = params.rewardWallet;
         camelotRouter = ICamelotRouter(params.camelotRouter);
+        distributor = IDistributor(params.distributor);
     }
 
     // --- logic
@@ -143,5 +148,13 @@ contract StrategySiloEth is Strategy {
         }
 
         return totalEth;
+    }
+
+    function whitelistAngleOperator(address operator) external onlyAdmin {
+        distributor.toggleOperator(address(this), operator);
+    }
+
+    function withdrawERC20(address tokenAddress, address to, uint256 amount) external onlyAdmin {
+        require(IERC20(tokenAddress).transfer(to, amount), 'Transfer failed');
     }
 }
