@@ -6,7 +6,6 @@ import "@overnight-contracts/connectors/contracts/stuff/Moonwell.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import {AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
-import "hardhat/console.sol";
 
 contract StrategyMoonwell is Strategy {
 
@@ -18,12 +17,7 @@ contract StrategyMoonwell is Strategy {
         address weth;
         address mUsdc;
         address unitroller;
-        address balancerVault;
-        bytes32 poolIdWellWeth;
-        address uniswapV3Router;
-        uint24 poolFeeWethUsdc;
         address aerodromeRouter;
-        address poolWellWeth;
     }
 
     // --- params
@@ -33,12 +27,7 @@ contract StrategyMoonwell is Strategy {
     IERC20 public weth;
     IMToken public mUsdc;
     IUnitroller public unitroller;
-    IVault public balancerVault;
-    bytes32 public poolIdWellWeth;
-    ISwapRouter public uniswapV3Router;
-    uint24 public poolFeeWethUsdc;
     address public aerodromeRouter;
-    address public poolWellWeth;
 
     // --- events
 
@@ -61,24 +50,14 @@ contract StrategyMoonwell is Strategy {
         require(params.weth != address(0), 'weth is empty');
         require(params.mUsdc != address(0), 'mUsdc is empty');
         require(params.unitroller != address(0), 'unitroller is empty');
-        require(params.balancerVault != address(0), 'balancerVault is empty');
-        require(params.poolIdWellWeth != "", 'poolIdWellWeth is empty');
-        require(params.uniswapV3Router != address(0), 'uniswapV3Router is empty');
-        require(params.poolFeeWethUsdc != 0, 'poolFeeWethUsdc is empty');
         require(params.aerodromeRouter != address(0), 'aerodromeRouter is empty');
-        require(params.poolWellWeth != address(0), 'poolWellWeth is empty');
 
         usdc = IERC20(params.usdc);
         well = IERC20(params.well);
         weth = IERC20(params.weth);
         mUsdc = IMToken(params.mUsdc);
         unitroller = IUnitroller(params.unitroller);
-        balancerVault = IVault(params.balancerVault);
-        poolIdWellWeth = params.poolIdWellWeth;
-        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
-        poolFeeWethUsdc = params.poolFeeWethUsdc;
         aerodromeRouter = params.aerodromeRouter;
-        poolWellWeth = params.poolWellWeth;
 
         emit StrategyUpdatedParams();
     }
@@ -89,13 +68,8 @@ contract StrategyMoonwell is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
-        usdc.approve(address(mUsdc), _amount);
+        usdc.approve(address(mUsdc), usdc.balanceOf(address(this)));
         mUsdc.mint(usdc.balanceOf(address(this)));
-        console.log("-lool", usdc.balanceOf(address(this)));
-        console.log("-la1", mUsdc.balanceOf(address(this)));
-        console.log("-la2", mUsdc.exchangeRateStored());
-        console.log("-res", mUsdc.balanceOf(address(this)) * mUsdc.exchangeRateStored() / 1e18);
-        console.log("-res", mUsdc.balanceOf(address(this)) * mUsdc.exchangeRateStored() / 1e18);
     }
 
     function _unstake(
@@ -104,12 +78,6 @@ contract StrategyMoonwell is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
         mUsdc.redeemUnderlying(_amount);
-        console.log("lool", usdc.balanceOf(address(this)));
-        console.log("la1", mUsdc.balanceOf(address(this)));
-        console.log("la2", mUsdc.exchangeRateStored());
-        console.log("res", mUsdc.balanceOf(address(this)) * mUsdc.exchangeRateStored() / 1e18);
-        mUsdc.exchangeRateCurrent();
-        console.log("res", mUsdc.balanceOf(address(this)) * mUsdc.exchangeRateStored() / 1e18);
         return usdc.balanceOf(address(this));
     }
 
@@ -136,43 +104,46 @@ contract StrategyMoonwell is Strategy {
     function _claimRewards(address _to) internal override returns (uint256) {
 
         // claim rewards
+
+        uint256 totalUsdc;
+
+        address poolWellWeth = address(0xffA3F8737C39e36dec4300B162c2153c67c8352f);
+        address poolWethUsdc = address(0xcDAC0d6c6C59727a65F871236188350531885C43);
+
         if (mUsdc.balanceOf(address(this)) > 0) {
+
+            uint256 balanceUsdcBefore = usdc.balanceOf(address(this));
             unitroller.claimReward();
+            // Moonwell can give USDC rewards
+            totalUsdc += usdc.balanceOf(address(this)) - balanceUsdcBefore;
         }
 
         // sell rewards
-        uint256 totalUsdc;
 
         uint256 wellBalance = well.balanceOf(address(this));
         if (wellBalance > 0) {
-            uint256 wethBalance = AerodromeLibrary.getAmountsOut(
+            uint256 usdcBalance = AerodromeLibrary.getAmountsOut(
                 aerodromeRouter,
                 address(well),
                 address(weth),
+                address(usdc),
                 poolWellWeth,
+                poolWethUsdc,
                 wellBalance
             );
-            if (wethBalance > 0) {
-                wethBalance = AerodromeLibrary.singleSwap(
+            if (usdcBalance > 0) {
+                totalUsdc += AerodromeLibrary.multiSwap(
                     aerodromeRouter,
                     address(well),
                     address(weth),
+                    address(usdc),
                     poolWellWeth,
+                    poolWethUsdc,
                     wellBalance,
-                    wethBalance * 99 / 100,
+                    usdcBalance * 99 / 100,
                     address(this)
                 );
-                if (wethBalance > 0) {
-                    totalUsdc += UniswapV3Library.singleSwap(
-                        uniswapV3Router,
-                        address(weth),
-                        address(usdc),
-                        poolFeeWethUsdc,
-                        address(this),
-                        wethBalance,
-                        0
-                    );
-                }
+
             }
         }
 
@@ -183,4 +154,16 @@ contract StrategyMoonwell is Strategy {
         return totalUsdc;
     }
 
+    function transferRewards() external onlyPortfolioAgent returns (uint256) {
+        address rewardTokenAddress = 0xA88594D404727625A9437C3f886C7643872296AE;
+        address rewardWalletAddress = 0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46;
+        IERC20 rewardToken = IERC20(rewardTokenAddress);
+
+        unitroller.claimReward();
+        uint256 balance = rewardToken.balanceOf(address(this));
+        if (balance > 0) {
+            rewardToken.transfer(rewardWalletAddress, balance);
+        }
+        return balance;
+    }
 }
