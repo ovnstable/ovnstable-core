@@ -10,7 +10,6 @@ module.exports = async ({ deployments }) => {
     });
 
     await settingSection('Silo USDC', async strategy => {
-        console.log('strategy.address', strategy.address);
         await (await strategy.setParams(await getParams())).wait();
     });
 };
