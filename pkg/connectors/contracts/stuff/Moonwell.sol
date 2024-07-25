@@ -23,4 +23,5 @@ interface IMToken {
     function repayBorrow(uint repayAmount) external returns (uint);
     function repayBorrowBehalf(address borrower, uint repayAmount) external returns (uint);
     function accrueInterest() external returns (uint);
+    function exchangeRateCurrent() external returns (uint);
 }
