@@ -6,8 +6,8 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 
 
     if ((strategyName.indexOf('StrategyEts') !== -1) || (strategyName.indexOf('StrategySmm') !== -1)) {
-        let hedgeExchangerAddress = "0x4D15F20a06D1aB832995824f3ca81e5F77c4D9e1";
-        let ownerAddress = Wallets.DEV; // 0x66BC0120b3287f08408BCC76ee791f0bad17Eeef
+        let hedgeExchangerAddress = "0xce8CB94CB04D5E29926E8E8Db1431bbCc6B8A941";
+        let ownerAddress = Wallets.DEV; // 0xab918d486c61ADd7c577F1af938117bBD422f088
         await impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, strategyAddress);
     }
 }

@@ -53,12 +53,12 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
     describe(`${strategyParams.name}`, function () {
 
-        // stakeUnstake(strategyParams, network, assetName, values, runStrategyLogic);
+        stakeUnstake(strategyParams, network, assetName, values, runStrategyLogic);
 
         unstakeFull(strategyParams, network, assetName, values, runStrategyLogic);
 
         if (strategyParams.enabledReward) {
-            // claimRewards(strategyParams, network, assetName, values, runStrategyLogic);
+            claimRewards(strategyParams, network, assetName, values, runStrategyLogic);
         }
 
     });
@@ -124,21 +124,12 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
                     let amount = toAsset(stakeValue / 2);
                     await asset.connect(recipient).transfer(strategy.address, amount);
                     let hedgeExchanger = await ethers.getContractAt(HedgeExchangerABI, await strategy.hedgeExchanger());
-                    console.log("???", hedgeExchanger.address);
-                    console.log("???", strategy.address);
-                    console.log("???", await hedgeExchanger.depositor());
-                    console.log("donzo 0");
 
                     await strategy.connect(recipient).stake(asset.address, amount);
-                    console.log("donzo 1");
                     await asset.connect(recipient).transfer(strategy.address, amount);
-                    console.log("donzo 2");
-
                     await strategy.connect(recipient).stake(asset.address, amount);
-                    console.log("donzo 3");
 
                     let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
-                    console.log("donzo 4");
 
                     balanceAsset = balanceAssetBefore.minus(balanceAssetAfter);
                     netAssetValue = new BigNumber((await strategy.netAssetValue()).toString());
