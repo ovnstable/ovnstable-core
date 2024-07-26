@@ -107,6 +107,7 @@ async function impersonatingEtsGrantRole(hedgeExchangerAddress, ownerAddress, st
     await hedgeExchanger.connect(owner).grantRole(Roles.PORTFOLIO_AGENT_ROLE, ownerAddress);
     await hedgeExchanger.connect(owner).grantRole(Roles.WHITELIST_ROLE, strategyAddress);
     await hedgeExchanger.connect(owner).grantRole(Roles.FREE_RIDER_ROLE, strategyAddress);
+    await hedgeExchanger.connect(owner).setDepositor(strategyAddress);
     if (process.env.STAND.includes('arbitrum')) {
         await hedgeExchanger.connect(owner).setBlockGetter(ZERO_ADDRESS);
     }

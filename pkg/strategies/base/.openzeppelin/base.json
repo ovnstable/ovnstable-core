@@ -258,6 +258,31 @@
       "kind": "uups"
     },
     {
+      "address": "0x30E8C13a9D7F63113E556D352D4bF7eeeD49C155",
+      "txHash": "0xbaf670dfed57e6a22d49ebe856447925718a27641e24904994b17a3a58e87bec",
+      "kind": "uups"
+    },
+    {
+      "address": "0xdE13b1f343Ad5EBC0C1F8a8694289feEf9c593C3",
+      "txHash": "0x63f0a9c57283fe19914bd0d8bf7825e8f86a1790f71670c7d47b679da881c014",
+      "kind": "uups"
+    },
+    {
+      "address": "0x389Dba309C7F6B0448Ca00012dB7a77cE30B48a1",
+      "txHash": "0x629210112afe6f78dd0ef2c2cd3c995bcf3aea04a0ed776208037020a9558700",
+      "kind": "uups"
+    },
+    {
+      "address": "0x3d0C62691247C90A5fa036a0abCe80364F3D4635",
+      "txHash": "0x67d9ec04be9bd280661be83af7ec6306e008d384eefd7488d1868bf9e6cdd381",
+      "kind": "uups"
+    },
+    {
+      "address": "0xBDC31ccA4765c7925F789e4AD57E5018d4b95FFB",
+      "txHash": "0x58ae5afb2439c59c46ed65748356e284f6f404b836ae5c6b7fc685e1de4bbaaf",
+      "kind": "uups"
+    },
+    {
       "address": "0xA747B73B80efd86f2437024ee533E4fBC09472B7",
       "txHash": "0xf5166e842722ae11594125af9d22940b8710ed8240878b15e55462b961acdcd8",
       "kind": "uups"
@@ -16813,9 +16838,9 @@
         "namespaces": {}
       }
     },
-    "2ef29f60cad7479d0d09678c1f08706efeea50531670d7cd44022e659e1d179a": {
-      "address": "0x8C63f5716C647036Ca045cc77e62AE186831a971",
-      "txHash": "0xdfdf39a3360a7fa721e32749f24afd5e4a5e6dcf1263c8d024d4fb7ba599dfcd",
+    "5abdd7f34ab65f92ebd0dc241a58f629cd75f0b41dbd47e123ea836ddafb5e4a": {
+      "address": "0xbc3d8bEEbBb82dbd036f33791Ccf943BF12D86A5",
+      "txHash": "0xc618c0583be4b3276c69c08f7ed891bc42598cdf4ca51200a79bd0156a996314",
       "layout": {
         "solcVersion": "0.8.17",
         "storage": [
@@ -16890,7 +16915,7 @@
             "slot": "251",
             "type": "t_address",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:18"
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:19"
           },
           {
             "label": "swapSlippageBP",
@@ -16898,7 +16923,7 @@
             "slot": "252",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:19"
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:20"
           },
           {
             "label": "navSlippageBP",
@@ -16906,7 +16931,7 @@
             "slot": "253",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:20"
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:21"
           },
           {
             "label": "stakeSlippageBP",
@@ -16914,15 +16939,15 @@
             "slot": "254",
             "type": "t_uint256",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:21"
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
           },
           {
             "label": "roleManager",
             "offset": 0,
             "slot": "255",
-            "type": "t_contract(IRoleManager)14525",
+            "type": "t_contract(IRoleManager)3533",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:23"
           },
           {
             "label": "__gap",
@@ -16930,55 +16955,31 @@
             "slot": "256",
             "type": "t_array(t_uint256)45_storage",
             "contract": "Strategy",
-            "src": "@overnight-contracts/core/contracts/Strategy.sol:165"
+            "src": "@overnight-contracts/core/contracts/Strategy.sol:173"
           },
           {
-            "label": "usdc",
+            "label": "asset",
             "offset": 0,
             "slot": "301",
             "type": "t_contract(IERC20)2907",
-            "contract": "StrategyMoonwell",
-            "src": "contracts/StrategyMoonwell.sol:26"
+            "contract": "StrategyEts",
+            "src": "contracts/StrategyEts.sol:13"
           },
           {
-            "label": "well",
+            "label": "rebaseToken",
             "offset": 0,
             "slot": "302",
             "type": "t_contract(IERC20)2907",
-            "contract": "StrategyMoonwell",
-            "src": "contracts/StrategyMoonwell.sol:27"
+            "contract": "StrategyEts",
+            "src": "contracts/StrategyEts.sol:14"
           },
           {
-            "label": "weth",
+            "label": "hedgeExchanger",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IERC20)2907",
-            "contract": "StrategyMoonwell",
-            "src": "contracts/StrategyMoonwell.sol:28"
-          },
-          {
-            "label": "mUsdc",
-            "offset": 0,
-            "slot": "304",
-            "type": "t_contract(IMToken)11569",
-            "contract": "StrategyMoonwell",
-            "src": "contracts/StrategyMoonwell.sol:29"
-          },
-          {
-            "label": "unitroller",
-            "offset": 0,
-            "slot": "305",
-            "type": "t_contract(IUnitroller)11495",
-            "contract": "StrategyMoonwell",
-            "src": "contracts/StrategyMoonwell.sol:30"
-          },
-          {
-            "label": "aerodromeRouter",
-            "offset": 0,
-            "slot": "306",
-            "type": "t_address",
-            "contract": "StrategyMoonwell",
-            "src": "contracts/StrategyMoonwell.sol:31"
+            "type": "t_contract(IHedgeExchanger)3521",
+            "contract": "StrategyEts",
+            "src": "contracts/StrategyEts.sol:15"
           }
         ],
         "types": {
@@ -17060,9 +17061,9 @@
         "namespaces": {}
       }
     },
-    "12564aa28c4eb47cab2678fc5b868e1a80a35347b8a113a7b7ef3e0f72970826": {
-      "address": "0x832bed8831B1e1A0699cFcA673fd19d08242C5f6",
-      "txHash": "0xf20306220fd0e1d97949423f6ed21feeb9742b3d31f1e429e6a6ca3d852ff139",
+    "7de1f00af9fd73313a61a057c4ce3c4ced549a741608860ad8d8fdfaf2af367c": {
+      "address": "0xe7857eE9d5d4a23c3212C3691aE60332AcEe7d0A",
+      "txHash": "0xc080945ca4d509201a1dc7317de72739647ef35a013d2268d0f8bc8f2cd21c61",
       "layout": {
         "solcVersion": "0.8.17",
         "storage": [
@@ -17167,7 +17168,7 @@
             "label": "roleManager",
             "offset": 0,
             "slot": "255",
-            "type": "t_contract(IRoleManager)14525",
+            "type": "t_contract(IRoleManager)3490",
             "contract": "Strategy",
             "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
           },
