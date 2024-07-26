@@ -6,6 +6,7 @@ import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Camelot.sol';
 import '@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Chainlink.sol';
+import '@overnight-contracts/connectors/contracts/stuff/Angle.sol';
 
 contract StrategySiloUsdtUsdc is Strategy {
     // --- params
@@ -31,6 +32,8 @@ contract StrategySiloUsdtUsdc is Strategy {
     IERC20 public arbToken;
     address public rewardWallet;
 
+    IDistributor public distributor;
+
     // --- events
 
     event StrategyUpdatedParams();
@@ -51,6 +54,7 @@ contract StrategySiloUsdtUsdc is Strategy {
         address inchSwapper;
         address oracleUsdt;
         address oracleUsdc;
+        address distributor;
     }
 
     // ---  constructor
@@ -82,6 +86,8 @@ contract StrategySiloUsdtUsdc is Strategy {
         usdcDm = 10 ** IERC20Metadata(params.usdc).decimals();
 
         rewardWallet = params.rewardWallet;
+
+        distributor = IDistributor(params.distributor);
     }
 
     // --- logic
@@ -208,5 +214,13 @@ contract StrategySiloUsdtUsdc is Strategy {
         uint256 priceUsdc = ChainlinkLibrary.getPrice(oracleUsdc);
         uint256 priceUsdt = ChainlinkLibrary.getPrice(oracleUsdt);
         return ChainlinkLibrary.convertTokenToToken(usdcAmount, usdcDm, usdtDm, priceUsdc, priceUsdt);
+    }
+
+    function whitelistAngleOperator(address operator) external onlyAdmin {
+        distributor.toggleOperator(address(this), operator);
+    }
+
+    function withdrawArbRewards(address to, uint256 amount) external onlyPortfolioAgent  {
+        require(arbToken.transfer(to, amount), 'Transfer failed');
     }
 }

@@ -281,6 +281,11 @@
       "address": "0xBDC31ccA4765c7925F789e4AD57E5018d4b95FFB",
       "txHash": "0x58ae5afb2439c59c46ed65748356e284f6f404b836ae5c6b7fc685e1de4bbaaf",
       "kind": "uups"
+    },
+    {
+      "address": "0xA747B73B80efd86f2437024ee533E4fBC09472B7",
+      "txHash": "0xf5166e842722ae11594125af9d22940b8710ed8240878b15e55462b961acdcd8",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -17006,12 +17011,16 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IHedgeExchanger)3521": {
-            "label": "contract IHedgeExchanger",
+          "t_contract(IMToken)11569": {
+            "label": "contract IMToken",
             "numberOfBytes": "20"
           },
-          "t_contract(IRoleManager)3533": {
+          "t_contract(IRoleManager)14525": {
             "label": "contract IRoleManager",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUnitroller)11495": {
+            "label": "contract IUnitroller",
             "numberOfBytes": "20"
           },
           "t_mapping(t_address,t_bool)": {
@@ -17172,28 +17181,52 @@
             "src": "@overnight-contracts/core/contracts/Strategy.sol:165"
           },
           {
-            "label": "asset",
+            "label": "usdc",
             "offset": 0,
             "slot": "301",
             "type": "t_contract(IERC20)2907",
-            "contract": "StrategyEts",
-            "src": "contracts/StrategyEts.sol:12"
+            "contract": "StrategyMoonwell",
+            "src": "contracts/StrategyMoonwell.sol:25"
           },
           {
-            "label": "rebaseToken",
+            "label": "well",
             "offset": 0,
             "slot": "302",
             "type": "t_contract(IERC20)2907",
-            "contract": "StrategyEts",
-            "src": "contracts/StrategyEts.sol:13"
+            "contract": "StrategyMoonwell",
+            "src": "contracts/StrategyMoonwell.sol:26"
           },
           {
-            "label": "hedgeExchanger",
+            "label": "weth",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IHedgeExchanger)3478",
-            "contract": "StrategyEts",
-            "src": "contracts/StrategyEts.sol:14"
+            "type": "t_contract(IERC20)2907",
+            "contract": "StrategyMoonwell",
+            "src": "contracts/StrategyMoonwell.sol:27"
+          },
+          {
+            "label": "mUsdc",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_contract(IMToken)11569",
+            "contract": "StrategyMoonwell",
+            "src": "contracts/StrategyMoonwell.sol:28"
+          },
+          {
+            "label": "unitroller",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_contract(IUnitroller)11495",
+            "contract": "StrategyMoonwell",
+            "src": "contracts/StrategyMoonwell.sol:29"
+          },
+          {
+            "label": "aerodromeRouter",
+            "offset": 0,
+            "slot": "306",
+            "type": "t_address",
+            "contract": "StrategyMoonwell",
+            "src": "contracts/StrategyMoonwell.sol:30"
           }
         ],
         "types": {
@@ -17225,12 +17258,16 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IHedgeExchanger)3478": {
-            "label": "contract IHedgeExchanger",
+          "t_contract(IMToken)11569": {
+            "label": "contract IMToken",
             "numberOfBytes": "20"
           },
-          "t_contract(IRoleManager)3490": {
+          "t_contract(IRoleManager)14525": {
             "label": "contract IRoleManager",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IUnitroller)11495": {
+            "label": "contract IUnitroller",
             "numberOfBytes": "20"
           },
           "t_mapping(t_address,t_bool)": {
