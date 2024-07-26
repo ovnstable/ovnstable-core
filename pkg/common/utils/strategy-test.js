@@ -7,7 +7,7 @@ chai.use(require('chai-bignumber')());
 const { resetHardhat, greatLess } = require("./tests");
 const { toE6, toE18, fromAsset } = require("./decimals");
 const { evmCheckpoint, evmRestore, sharedBeforeEach } = require("./sharedBeforeEach");
-const { transferAsset, getERC20, transferETH, initWallet, execTimelock} = require("./script-utils");
+const { transferAsset, getERC20, transferETH, initWallet, execTimelock } = require("./script-utils");
 const ERC20 = require("./abi/IERC20.json");
 const { Roles } = require("./roles");
 const HedgeExchangerABI = require('./abi/HedgeExchanger.json');
@@ -16,39 +16,39 @@ const HedgeExchangerABI = require('./abi/HedgeExchanger.json');
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
     let values = [
-        // {
-        //     value: 0.02,
-        // },
-        // {
-        //     value: 0.2,
-        // },
-        // {
-        //     value: 2,
-        // },
+        {
+            value: 0.02,
+        },
+        {
+            value: 0.2,
+        },
+        {
+            value: 2,
+        },
         {
             value: 20,
         },
-        // {
-        //     value: 200,
-        // },
-        // {
-        //     value: 2000,
-        // },
-        // {
-        //     value: 20000,
-        // },
-        // {
-        //     value: 100000,
-        // },
-        // {
-        //     value: 200000,
-        // },
-        // {
-        //     value: 1000000,
-        // },
-        // {
-        //     value: 2000000,
-        // },
+        {
+            value: 200,
+        },
+        {
+            value: 2000,
+        },
+        {
+            value: 20000,
+        },
+        {
+            value: 100000,
+        },
+        {
+            value: 200000,
+        },
+        {
+            value: 1000000,
+        },
+        {
+            value: 2000000,
+        },
     ]
 
     describe(`${strategyParams.name}`, function () {
@@ -548,19 +548,19 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
 
     const strategy = await ethers.getContract(strategyName);
     await strategy.setStrategyParams(recipient.address, recipient.address);
-    
+
     if (strategyParams.isRunStrategyLogic) {
         console.log(`RunStrategyLogic: ${strategyName}`)
         await runStrategyLogic(strategyName, strategy.address);
     }
 
     let mainAddress = (await initWallet()).address;
-    await transferETH(100, mainAddress);   
+    await transferETH(100, mainAddress);
 
 
     // Support ETH+
     // Remove it -> throw error: ERC20 token not found.
-    if (assetName === 'eth'){
+    if (assetName === 'eth') {
         assetName = 'weth'
     }
     const asset = await getERC20(assetName);
