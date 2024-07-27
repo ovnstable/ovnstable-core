@@ -118,7 +118,7 @@ async function getOdosParams(exchange) {
     console.log("usdcBefore", (await asset.balanceOf(insurance.address)).toString());
 
     let odosSwapData = odosEmptyData;
-    let swapAmount = await exchange.callStatic.payout(true, odosEmptyData);
+    let swapAmount = await exchange.callStatic.payout(true, odosEmptyData, {gasLimit:15_000_000});
     console.log("[getOdosParams] SwapAmount", swapAmount.toString());
     swapAmount = Number.parseInt(swapAmount.toString());
     // 2.1. if premium then generates data to swap usdc to ovn

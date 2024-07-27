@@ -69,6 +69,8 @@ async function getOdosRequest(request) {
     // @ts-ignore
     const urlQuote = 'https://api.overnight.fi/root/odos/sor/quote/v2';
     const urlAssemble = 'https://api.overnight.fi/root/odos/sor/assemble';
+    // const urlQuote = 'https://api.odos.xyz/sor/quote/v2';
+    // const urlAssemble = 'https://api.odos.xyz/sor/assemble';
     let transaction;
     try {
         let quotaResponse = (await axios.post(urlQuote, swapParams, { headers: { "Accept-Encoding": "br" } }));
