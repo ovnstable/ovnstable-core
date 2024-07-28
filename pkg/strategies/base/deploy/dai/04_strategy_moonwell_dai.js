@@ -22,13 +22,11 @@ async function getParams() {
         weth: BASE.weth,
         mDai: BASE.moonwellDai,
         unitroller: BASE.moonwellUnitroller,
-        balancerVault: BASE.balancerVault,
-        poolIdWellWeth: '0xfab10dd71e11d0ad403cc31418b45d816f2f988200020000000000000000001d',
         uniswapV3Router: BASE.uniswapV3Router,
         poolFeeWethUsdbc: 500, // 0.05%
         poolFeeUsdbcDai: 100, // 0.01%
         aerodromeRouter: BASE.aerodromeRouter,
-        poolWellWeth: '0xffA3F8737C39e36dec4300B162c2153c67c8352f',
+        poolWellWeth: '0x89D0F320ac73dd7d9513FFC5bc58D1161452a657',
     }
 }
 

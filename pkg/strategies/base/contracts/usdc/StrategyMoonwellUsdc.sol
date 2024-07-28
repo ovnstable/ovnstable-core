@@ -107,7 +107,7 @@ contract StrategyMoonwellUsdc is Strategy {
 
         uint256 totalUsdc;
 
-        address poolWellWeth = address(0xffA3F8737C39e36dec4300B162c2153c67c8352f);
+        address poolWellWeth = address(0x89D0F320ac73dd7d9513FFC5bc58D1161452a657);
         address poolWethUsdc = address(0xcDAC0d6c6C59727a65F871236188350531885C43);
 
         if (mUsdc.balanceOf(address(this)) > 0) {
