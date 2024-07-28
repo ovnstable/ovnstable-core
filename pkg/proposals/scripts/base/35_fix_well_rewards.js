@@ -1,7 +1,9 @@
 const hre = require('hardhat');
-const { getContract, showM2M, execTimelock } = require('@overnight-contracts/common/utils/script-utils');
+const { getContract, showM2M, execTimelock, impersonateAccount, initWallet, getERC20ByAddress, transferETH } = require('@overnight-contracts/common/utils/script-utils');
 const { createProposal, testProposal, testUsdPlus, testStrategy } = require('@overnight-contracts/common/utils/governance');
 const { Roles } = require('@overnight-contracts/common/utils/roles');
+const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
+const {BASE} = require("@overnight-contracts/common/utils/assets");
 
 const path = require('path');
 const { prepareEnvironment } = require('@overnight-contracts/common/utils/tests');
@@ -19,9 +21,10 @@ async function main() {
     let moonwell = await getContract('StrategyMoonwell', 'base');
     let moonwellUsdc = await getContract('StrategyMoonwellUsdc', 'base_usdc');
     let moonwellDai = await getContract('StrategyMoonwellDai', 'base_dai');
-    let moonwellImpl = "";
-    let moonwellUsdcImpl = "";
-    let moonwellDaiImpl = "";
+
+    let moonwellImpl = "0x76DaF27c7A0c9eD2E8b1DD38C3aE62F62Ec91271";
+    let moonwellUsdcImpl = "0x76DaF27c7A0c9eD2E8b1DD38C3aE62F62Ec91271";
+    let moonwellDaiImpl = "0xdc7abeef414B8fe8487bB84C38C8B56ff71c5a2e";
 
     addProposalItem(moonwell, 'upgradeTo', [moonwellImpl]);
     addProposalItem(moonwell, 'setParams', [await strategyMoonwellParams()]);
@@ -32,14 +35,29 @@ async function main() {
     addProposalItem(moonwellDai, 'upgradeTo', [moonwellDaiImpl]);
     addProposalItem(moonwellDai, 'setParams', [await strategyMoonwellDaiParams()]);
 
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
 
-    // await testStrategy(filename, StrategySiloUsdtArb, 'arbitrum_usdt')
-    // await testStrategy(filename, StrategySiloUsdtWbtc, 'arbitrum_usdt')
+    // let wallet = await initWallet();
+    // let well = await getERC20ByAddress(BASE.well, wallet.address);
+    // console.log("moonwell well", (await well.balanceOf(moonwell.address)).toString());
+    // console.log("moonwellUsdc well", (await well.balanceOf(moonwellUsdc.address)).toString());
+    // console.log("moonwellDai well", (await well.balanceOf(moonwellDai.address)).toString());
 
-    // await testUsdPlus(filename, 'arbitrum');
-    // await testUsdPlus(filename, 'arbitrum_usdt');
-    // await testUsdPlus(filename, 'arbitrum_eth');
+    // await (await moonwell.claimRewards(wallet.address)).wait();
+    // await (await moonwellUsdc.claimRewards(wallet.address)).wait();
+    // await (await moonwellDai.claimRewards(wallet.address)).wait();
+
+    // console.log("moonwell well", (await well.balanceOf(moonwell.address)).toString());
+    // console.log("moonwellUsdc well", (await well.balanceOf(moonwellUsdc.address)).toString());
+    // console.log("moonwellDai well", (await well.balanceOf(moonwellDai.address)).toString());
+    
+    // await testStrategy(filename, moonwell, 'base');
+    // await testStrategy(filename, moonwellUsdc, 'base_usdc');
+    // await testStrategy(filename, moonwellDai, 'base_dai');
+
+    // await testUsdPlus(filename, 'base');
+    // await testUsdPlus(filename, 'base_usdc');
+    // await testUsdPlus(filename, 'base_dai');
 
     await createProposal(filename, addresses, values, abis);
 

@@ -6,7 +6,6 @@ import "@overnight-contracts/connectors/contracts/stuff/Moonwell.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import {AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
-import "hardhat/console.sol";
 
 contract StrategyMoonwellDai is Strategy {
 
