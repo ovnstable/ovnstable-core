@@ -4,6 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/core/contracts/interfaces/IHedgeExchanger.sol";
 
+
 contract StrategyEts is Strategy {
 
     // --- params
@@ -49,7 +50,6 @@ contract StrategyEts is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
-
         asset.approve(address(hedgeExchanger), _amount);
         hedgeExchanger.buy(_amount, "");
     }
@@ -59,7 +59,6 @@ contract StrategyEts is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-
         rebaseToken.approve(address(hedgeExchanger), _amount);
         hedgeExchanger.redeem(_amount);
 
@@ -74,7 +73,6 @@ contract StrategyEts is Strategy {
         uint256 rebaseTokenAmount = rebaseToken.balanceOf(address(this));
         rebaseToken.approve(address(hedgeExchanger), rebaseTokenAmount);
         hedgeExchanger.redeem(rebaseTokenAmount);
-
         return asset.balanceOf(address(this));
     }
 

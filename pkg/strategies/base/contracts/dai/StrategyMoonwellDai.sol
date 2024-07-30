@@ -6,7 +6,6 @@ import "@overnight-contracts/connectors/contracts/stuff/Moonwell.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import {AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
-import "hardhat/console.sol";
 
 contract StrategyMoonwellDai is Strategy {
 
@@ -19,8 +18,6 @@ contract StrategyMoonwellDai is Strategy {
         address weth;
         address mDai;
         address unitroller;
-        address balancerVault;
-        bytes32 poolIdWellWeth;
         address uniswapV3Router;
         uint24 poolFeeWethUsdbc;
         uint24 poolFeeUsdbcDai;
@@ -66,8 +63,6 @@ contract StrategyMoonwellDai is Strategy {
         require(params.weth != address(0), 'weth is empty');
         require(params.mDai != address(0), 'mDai is empty');
         require(params.unitroller != address(0), 'unitroller is empty');
-        require(params.balancerVault != address(0), 'balancerVault is empty');
-        require(params.poolIdWellWeth != "", 'poolIdWellWeth is empty');
         require(params.uniswapV3Router != address(0), 'uniswapV3Router is empty');
         require(params.poolFeeWethUsdbc != 0, 'poolFeeWethUsdbc is empty');
         require(params.poolFeeUsdbcDai != 0, 'poolFeeUsdbcDai is empty');
@@ -80,8 +75,6 @@ contract StrategyMoonwellDai is Strategy {
         weth = IERC20(params.weth);
         mDai = IMToken(params.mDai);
         unitroller = IUnitroller(params.unitroller);
-        balancerVault = IVault(params.balancerVault);
-        poolIdWellWeth = params.poolIdWellWeth;
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         poolFeeWethUsdbc = params.poolFeeWethUsdbc;
         poolFeeUsdbcDai = params.poolFeeUsdbcDai;

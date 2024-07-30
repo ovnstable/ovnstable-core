@@ -17,6 +17,7 @@ let ethers = require('hardhat').ethers;
 const DIAMOND_STRATEGY = require('./abi/DiamondStrategy.json');
 const { Roles } = require("./roles");
 const ERC20 = require('./abi/IERC20.json');
+const WRAPPER_DIAMOND_STRATEGY = require('./abi/WrapperDiamondStrategy.json');
 
 let wallet = undefined;
 async function initWallet() {
