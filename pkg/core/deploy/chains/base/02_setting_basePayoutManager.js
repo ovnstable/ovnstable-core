@@ -106,6 +106,8 @@ module.exports = async () => {
         items.push(createSkim('0xa01A2513E95263b9BaCe60B573ce874E1e7a5246', usdPlus.address, 'CL200-USD+/wstETH', dex));
         items.push(createSkim('0xa19acc3B4f11c46c2b1Fc36B5f592AF422Ee338c', usdPlus.address, 'CL200-DEGEN/USD+', dex));
         items.push(createBribeWithFee('0x3FF5bfE3ff5e1877664Fe25862871554e632b9C9', usdPlus.address, 'sAMM-USD+/MAI', dex, '0xDA50fC7185703FAE4B113d1d4fca57D13B30f9a2', 20, COMMON.rewardWallet));
+        items.push(createSkim('0xFAD14c545E464e04c737d00643296144eb20c7F8', usdPlus.address, 'CL200-BRETT/USD+', dex));
+        items.push(createSkim('0xE9C137071861fbA0359eEcCB5865C2588D1Be2BE', usdPlus.address, 'CL1-USD+/USDT', dex));
       
         return items;
     }
