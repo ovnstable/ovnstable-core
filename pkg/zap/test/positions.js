@@ -62,7 +62,7 @@ let zaps_pancake = [
 ];
 
 // TODO: remove hardcode
-let zaps = zaps_pancake;
+let zaps = zaps_aerodrome;
 
 describe('Testing all zaps', function() {
     zaps.forEach((params) => {
