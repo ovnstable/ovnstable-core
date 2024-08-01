@@ -20,7 +20,7 @@ async function main() {
     let values = [];
     let abis = [];
 
-    await transferETH(0.0001, "0x0000000000000000000000000000000000000000");
+    // await transferETH(0.0001, "0x0000000000000000000000000000000000000000");
 
     const facetNames = ['PositionManagerAerodromeFacet'];
 
