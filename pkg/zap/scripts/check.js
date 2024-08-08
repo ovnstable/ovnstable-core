@@ -20,13 +20,15 @@ const { getOdosAmountOut, getOdosSwapData } = require('@overnight-contracts/comm
 const { getOdosAmountOutOnly } = require('@overnight-contracts/common/utils/odos-helper.js');
 
 async function main() {
-    // let zap = await ethers.getContract("PancakeCLZap");
-    let zap = await ethers.getContract("AerodromeCLZap");
+    let zap = await ethers.getContract("PancakeCLZap");
+    // let zap = await ethers.getContract("AerodromeCLZap");
 
     let account = await initWallet();
     // await transferETH(0.000001, "0x0000000000000000000000000000000000000000");
+    // let price1 = await zap.getCurrentPrice("0xa01A2513E95263b9BaCe60B573ce874E1e7a5246");
+    // console.log(price1.toString());
 
-    let positions = await zap.getPositions("0x4473D652fb0b40b36d549545e5fF6A363c9cd686");
+    let positions = await zap.getPositions("0xa30b8deFcC9eDdf9E960ef810D89E194C1f65771");
     console.log("length: ", positions.length);
     for (let i = 0; i < positions.length; i++) {
         console.log("platform:", positions[i].platform);
@@ -42,6 +44,7 @@ async function main() {
         console.log("tickLower:", positions[i].tickLower.toString());
         console.log("tickUpper:", positions[i].tickUpper.toString());
         console.log("currentTick:", positions[i].currentTick.toString());
+        console.log("isStaked:", positions[i].isStaked.toString());
         console.log("----------------------------------");
     }
     return;

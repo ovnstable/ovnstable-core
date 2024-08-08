@@ -36,6 +36,22 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         (tokenId,,,) = getNpm().mint(params);
     }
 
+    function increaseLiquidity(
+        uint256 tokenId,
+        uint256 amount0,
+        uint256 amount1
+    ) external onlyDiamond returns (uint128 liquidity) {
+        INonfungiblePositionManager.IncreaseLiquidityParams memory params = INonfungiblePositionManager.IncreaseLiquidityParams({
+            tokenId: tokenId,
+            amount0Desired: amount0,
+            amount1Desired: amount1,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: block.timestamp
+        });
+        (liquidity,,) = getNpm().increaseLiquidity(params);
+    }
+
     function getPositions(address wallet) external view returns (PositionInfo[] memory result) {
         uint256 gaugePositionsLength = calculateGaugePositionsLength(wallet);
         uint256 validPositionsLength = calculateUserPositionsLength(wallet);
@@ -105,20 +121,38 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         return _getPositionAmounts(tokenId);
     }
 
+    function getTokens(uint256 tokenId) external onlyDiamond view returns (address, address) {
+       return _getTokens(tokenId);
+    }
+
+    function getTicks(uint256 tokenId) external onlyDiamond view returns (int24, int24) {
+        return _getTicks(tokenId);
+    }
+
+    function getPool(uint256 tokenId) external onlyDiamond view returns (address) {
+        return _getPool(tokenId);
+    }
+
     function getNpm() internal view returns (INonfungiblePositionManager) {
         return INonfungiblePositionManager(LibCoreStorage.coreStorage().npm);
     }
 
-    function getTokens(uint256 tokenId) internal view returns (address token0, address token1) {
+    function _getTokens(uint256 tokenId) internal view returns (address token0, address token1) {
         (,, token0, token1,,,,,,,,) = getNpm().positions(tokenId);
+    }
+
+    function _getTicks(uint256 tokenId) internal view returns (int24 tickLower, int24 tickUpper) {
+        (,,,,, tickLower, tickUpper,,,,,) = getNpm().positions(tokenId);
+    }
+
+    function _getPool(uint256 tokenId) internal view returns (address poolId) {
+        (address token0, address token1) = _getTokens(tokenId);
+        poolId = PoolAddress.computeAddress(getNpm().factory(),
+            PoolAddress.getPoolKey(token0, token1, getTickSpacing(tokenId)));
     }
 
     function getTickSpacing(uint256 tokenId) internal view returns (int24 tickSpacing) {
         (,,,, tickSpacing,,,,,,,) = getNpm().positions(tokenId);
-    }
-
-    function getTicks(uint256 tokenId) internal view returns (int24 tickLower, int24 tickUpper) {
-        (,,,,, tickLower, tickUpper,,,,,) = getNpm().positions(tokenId);
     }
 
     function getLiquidity(uint256 tokenId) internal view returns (uint128 liquidity) {
@@ -129,15 +163,9 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         (fee0, fee1) = PositionValue.fees(getNpm(), tokenId);
     }
 
-    function getPool(uint256 tokenId) internal view returns (address poolId) {
-        (address token0, address token1) = getTokens(tokenId);
-        poolId = PoolAddress.computeAddress(getNpm().factory(),
-            PoolAddress.getPoolKey(token0, token1, getTickSpacing(tokenId)));
-    }
-
     function _getPositionAmounts(uint256 tokenId) internal view returns (uint256 amount0, uint256 amount1) {
-        address poolId = getPool(tokenId);
-        (int24 tickLower, int24 tickUpper) = getTicks(tokenId);
+        address poolId = _getPool(tokenId);
+        (int24 tickLower, int24 tickUpper) = _getTicks(tokenId);
         (uint160 sqrtRatioX96,,,,,) = IUniswapV3Pool(poolId).slot0();
         (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtRatioX96,
@@ -151,9 +179,9 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         PositionInfo memory result;
         result.platform = "Aerodrome";
         result.tokenId = tokenId;
-        (result.token0, result.token1) = getTokens(tokenId);
-        (result.tickLower, result.tickUpper) = getTicks(tokenId);
-        result.poolId = getPool(tokenId);
+        (result.token0, result.token1) = _getTokens(tokenId);
+        (result.tickLower, result.tickUpper) = _getTicks(tokenId);
+        result.poolId = _getPool(tokenId);
         ICLPool pool = ICLPool(result.poolId);
         (, result.currentTick,,,,) = pool.slot0();
         (result.amount0, result.amount1) = _getPositionAmounts(tokenId);

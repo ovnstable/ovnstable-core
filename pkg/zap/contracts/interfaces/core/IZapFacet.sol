@@ -40,4 +40,8 @@ interface IZapFacet {
     function zapOut(uint256 tokenId) external;
 
     function rebalance(SwapData memory swapData, ZapInParams memory paramsData, uint256 tokenId) external;
+
+    function increase(SwapData memory swapData, ZapInParams memory paramsData, uint256 tokenId) external;
+
+    function merge(uint256 tokenIn, uint256[] memory tokensOut) external;
 }

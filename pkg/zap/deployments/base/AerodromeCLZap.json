@@ -1,5 +1,5 @@
 {
-  "address": "0x0E6273D9d54d29B4103e33078F90041D8DD7e2EB",
+  "address": "0xb63F93A8020d0495fE9EDfE23Da3b7833F632c49",
   "abi": [
     {
       "type": "function",
@@ -484,6 +484,10 @@
             {
               "type": "int24",
               "name": "currentTick"
+            },
+            {
+              "type": "bool",
+              "name": "isStaked"
             }
           ]
         }
@@ -950,6 +954,94 @@
           "indexed": false
         }
       ]
+    },
+    {
+      "type": "function",
+      "name": "increase",
+      "constant": false,
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "tuple",
+          "name": "swapData",
+          "components": [
+            {
+              "type": "tuple[]",
+              "name": "inputs",
+              "components": [
+                {
+                  "type": "address",
+                  "name": "tokenAddress"
+                },
+                {
+                  "type": "uint256",
+                  "name": "amountIn"
+                }
+              ]
+            },
+            {
+              "type": "tuple[]",
+              "name": "outputs",
+              "components": [
+                {
+                  "type": "address",
+                  "name": "tokenAddress"
+                },
+                {
+                  "type": "address",
+                  "name": "receiver"
+                }
+              ]
+            },
+            {
+              "type": "bytes",
+              "name": "data"
+            }
+          ]
+        },
+        {
+          "type": "tuple",
+          "name": "paramsData",
+          "components": [
+            {
+              "type": "address",
+              "name": "pair"
+            },
+            {
+              "type": "int24[]",
+              "name": "tickRange"
+            },
+            {
+              "type": "uint256[]",
+              "name": "amountsOut"
+            }
+          ]
+        },
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "merge",
+      "constant": false,
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenIn"
+        },
+        {
+          "type": "uint256[]",
+          "name": "tokensOut"
+        }
+      ],
+      "outputs": []
     },
     {
       "type": "function",

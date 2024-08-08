@@ -26,13 +26,13 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     await updateFacets(cut, zap.address);
     await updateAbi(name, zap, facetNames);
 
-    zap = await ethers.getContract(name);
-    let coreParams = {
-        odosRouter: ARBITRUM.odosRouterV2,
-        npm: ARBITRUM.pancakeNpm,
-    };
-    await (await zap.setCoreParams(coreParams)).wait();
-    console.log('setCoreParams done()');
+    // zap = await ethers.getContract(name);
+    // let coreParams = {
+    //     odosRouter: ARBITRUM.odosRouterV2,
+    //     npm: ARBITRUM.pancakeNpm,
+    // };
+    // await (await zap.setCoreParams(coreParams)).wait();
+    // console.log('setCoreParams done()');
 };
 
 module.exports.tags = [name];

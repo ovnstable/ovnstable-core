@@ -36,6 +36,22 @@ contract PositionManagerPancakeFacet is IPositionManagerFacet, Modifiers {
         (tokenId,,,) = getNpm().mint(params);
     }
 
+    function increaseLiquidity(
+        uint256 tokenId,
+        uint256 amount0,
+        uint256 amount1
+    ) external onlyDiamond returns (uint128 liquidity) {
+        IncreaseLiquidityParams memory params = IncreaseLiquidityParams({
+            tokenId: tokenId,
+            amount0Desired: amount0,
+            amount1Desired: amount1,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: block.timestamp
+        });
+        (liquidity,,) = getNpm().increaseLiquidity(params);
+    }
+
     function getPositions(address wallet) external view returns (PositionInfo[] memory result) {
         uint256 validChefPositionsLength = calculateChefPositionsLength(wallet);
         uint256 validUserPositionsLength = calculateUserPositionsLength(wallet);
@@ -98,21 +114,40 @@ contract PositionManagerPancakeFacet is IPositionManagerFacet, Modifiers {
         return _getPositionAmounts(tokenId);
     }
 
+    function getTokens(uint256 tokenId) external onlyDiamond view returns (address, address) {
+        return _getTokens(tokenId);
+    }
+
+    function getTicks(uint256 tokenId) external onlyDiamond view returns (int24, int24) {
+        return _getTicks(tokenId);
+    }
+
+    function getPool(uint256 tokenId) external onlyDiamond view returns (address) {
+        return _getPool(tokenId);
+    }
+
     function getNpm() internal view returns (INonfungiblePositionManager) {
         return INonfungiblePositionManager(LibCoreStorage.coreStorage().npm);
     }
 
-    function getTokens(uint256 tokenId) internal view returns (address token0, address token1) {
+    function _getTokens(uint256 tokenId) internal view returns (address token0, address token1) {
         (,, token0, token1,,,,,,,,) = getNpm().positions(tokenId);
     }
 
-    function getTickSpacing(uint256 tokenId) internal view returns (int24 tickSpacing) {
-        IPancakeV3Pool pool = IPancakeV3Pool(getPool(tokenId));
-        tickSpacing = pool.tickSpacing();
+    function _getTicks(uint256 tokenId) internal view returns (int24 tickLower, int24 tickUpper) {
+        (,,,,, tickLower, tickUpper,,,,,) = getNpm().positions(tokenId);
     }
 
-    function getTicks(uint256 tokenId) internal view returns (int24 tickLower, int24 tickUpper) {
-        (,,,,, tickLower, tickUpper,,,,,) = getNpm().positions(tokenId);
+    function _getPool(uint256 tokenId) internal view returns (address poolId) {
+        (address token0, address token1) = _getTokens(tokenId);
+        (,,,, uint24 fee,,,,,,,) = getNpm().positions(tokenId);
+        IPancakeV3Factory factory = IPancakeV3Factory(getNpm().factory());
+        poolId = factory.getPool(token0, token1, fee);
+    }
+
+    function getTickSpacing(uint256 tokenId) internal view returns (int24 tickSpacing) {
+        IPancakeV3Pool pool = IPancakeV3Pool(_getPool(tokenId));
+        tickSpacing = pool.tickSpacing();
     }
 
     function getLiquidity(uint256 tokenId) internal view returns (uint128 liquidity) {
@@ -128,16 +163,9 @@ contract PositionManagerPancakeFacet is IPositionManagerFacet, Modifiers {
         reward = masterChef.pendingCake(tokenId);
     }
 
-    function getPool(uint256 tokenId) internal view returns (address poolId) {
-        (address token0, address token1) = getTokens(tokenId);
-        (,,,, uint24 fee,,,,,,,) = getNpm().positions(tokenId);
-        IPancakeV3Factory factory = IPancakeV3Factory(getNpm().factory());
-        poolId = factory.getPool(token0, token1, fee);
-    }
-
     function _getPositionAmounts(uint256 tokenId) internal view returns (uint256 amount0, uint256 amount1) {
-        address poolId = getPool(tokenId);
-        (int24 tickLower, int24 tickUpper) = getTicks(tokenId);
+        address poolId = _getPool(tokenId);
+        (int24 tickLower, int24 tickUpper) = _getTicks(tokenId);
         (uint160 sqrtRatioX96,,,,,,) = IPancakeV3Pool(poolId).slot0();
         (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtRatioX96,
@@ -151,9 +179,9 @@ contract PositionManagerPancakeFacet is IPositionManagerFacet, Modifiers {
         PositionInfo memory result;
         result.platform = "PCS";
         result.tokenId = tokenId;
-        (result.token0, result.token1) = getTokens(tokenId);
-        (result.tickLower, result.tickUpper) = getTicks(tokenId);
-        result.poolId = getPool(tokenId);
+        (result.token0, result.token1) = _getTokens(tokenId);
+        (result.tickLower, result.tickUpper) = _getTicks(tokenId);
+        result.poolId = _getPool(tokenId);
         IPancakeV3Pool pool = IPancakeV3Pool(result.poolId);
         (, result.currentTick,,,,,) = pool.slot0();
         (result.amount0, result.amount1) = _getPositionAmounts(tokenId);

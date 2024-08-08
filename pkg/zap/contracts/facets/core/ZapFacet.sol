@@ -25,7 +25,7 @@ contract ZapFacet is IZapFacet {
     receive() external payable {}
 
     function zapIn(SwapData memory swapData, ZapInParams memory paramsData) external {
-        _zapIn(swapData, paramsData, true);
+        _zapIn(swapData, paramsData, true, 0);
     }
 
     function zapOut(uint256 tokenId) external {
@@ -34,10 +34,45 @@ contract ZapFacet is IZapFacet {
 
     function rebalance(SwapData memory swapData, ZapInParams memory paramsData, uint256 tokenId) external {
         _zapOut(tokenId, address(this), msg.sender);
-        _zapIn(swapData, paramsData, false);
+        _zapIn(swapData, paramsData, false, 0);
     }
 
-    function _zapIn(SwapData memory swapData, ZapInParams memory paramsData, bool needTransfer) internal {
+    function increase(SwapData memory swapData, ZapInParams memory paramsData, uint256 tokenId) external {
+        _zapIn(swapData, paramsData, true, tokenId);
+    }
+
+    function merge(uint256 tokenIn, uint256[] memory tokensOut) external {
+        IMasterFacet master = IMasterFacet(address(this));
+        (address token0In, address token1In) = master.getTokens(tokenIn);
+
+        for (uint256 i = 0; i < tokensOut.length; i++) {
+            (address token0, address token1) = master.getTokens(tokensOut[i]);
+            require(token0In == token0 && token1In == token1, 'different pools');
+        }
+
+        for (uint256 i = 0; i < tokensOut.length; i++) {
+            _zapOut(tokensOut[i], address(this), address(this));
+        }
+
+        ZapInParams memory params;
+        params.tickRange = new int24[](2);
+        params.amountsOut = new uint256[](2);
+
+        params.pair = master.getPool(tokenIn);
+        (params.tickRange[0], params.tickRange[1]) = master.getTicks(tokenIn);
+        IERC20 asset0 = IERC20(token0In);
+        IERC20 asset1 = IERC20(token1In);
+        params.amountsOut[0] = asset0.balanceOf(address(this));
+        params.amountsOut[1] = asset1.balanceOf(address(this));
+        manageLiquidity(params, tokenIn);
+    }
+
+    function _zapIn(
+        SwapData memory swapData,
+        ZapInParams memory paramsData,
+        bool needTransfer,
+        uint256 tokenId
+    ) internal {
         prepareSwap(swapData, needTransfer);
         swap(swapData);
         IMasterFacet master = IMasterFacet(address(this));
@@ -51,7 +86,7 @@ contract ZapFacet is IZapFacet {
             }
             paramsData.amountsOut[i] = asset.balanceOf(address(this));
         }
-        addLiquidity(paramsData);
+        manageLiquidity(paramsData, tokenId);
     }
 
     function _zapOut(uint256 tokenId, address recipient, address feeRecipient) internal {
@@ -60,7 +95,7 @@ contract ZapFacet is IZapFacet {
         master.closePosition(tokenId, recipient, feeRecipient);
     }
 
-    function addLiquidity(ZapInParams memory paramsData) internal {
+    function manageLiquidity(ZapInParams memory paramsData, uint256 tokenId) internal {
         address[] memory tokensOut = new address[](2);
         IMasterFacet master = IMasterFacet(address(this));
         (tokensOut[0], tokensOut[1]) = master.getPoolTokens(paramsData.pair);
@@ -74,15 +109,19 @@ contract ZapFacet is IZapFacet {
         result.amountAsset0Before = asset0.balanceOf(address(this));
         result.amountAsset1Before = asset1.balanceOf(address(this));
 
-        uint256 tokenId = master.mintPosition(
-            paramsData.pair,
-            paramsData.tickRange[0],
-            paramsData.tickRange[1],
-            paramsData.amountsOut[0],
-            paramsData.amountsOut[1],
-            msg.sender
-        );
-        emit TokenId(tokenId);
+        if (tokenId == 0) {
+            tokenId = master.mintPosition(
+                paramsData.pair,
+                paramsData.tickRange[0],
+                paramsData.tickRange[1],
+                paramsData.amountsOut[0],
+                paramsData.amountsOut[1],
+                msg.sender
+            );
+            emit TokenId(tokenId);
+        } else {
+            master.increaseLiquidity(tokenId, paramsData.amountsOut[0], paramsData.amountsOut[1]);
+        }
 
         result.amountAsset0After = asset0.balanceOf(address(this));
         result.amountAsset1After = asset1.balanceOf(address(this));

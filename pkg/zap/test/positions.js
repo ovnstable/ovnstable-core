@@ -63,6 +63,7 @@ let zaps_pancake = [
 
 // TODO: remove hardcode
 let zaps = zaps_aerodrome;
+// let zaps = zaps_pancake;
 
 describe('Testing all zaps', function() {
     zaps.forEach((params) => {
@@ -141,7 +142,7 @@ describe('Testing all zaps', function() {
             // });
 
             async function check() {
-                let positions = await zap.getPositions("0x4473D652fb0b40b36d549545e5fF6A363c9cd686");
+                let positions = await zap.getPositions("0xa30b8deFcC9eDdf9E960ef810D89E194C1f65771");
                 for (let i = 0; i < positions.length; i++) {
                     console.log("platform:", positions[i].platform);
                     console.log("tokenId:", positions[i].tokenId.toString());
