@@ -20,7 +20,7 @@ async function main() {
     let values = [];
     let abis = [];
 
-    await transferETH(0.0001, "0x0000000000000000000000000000000000000000");
+    // await transferETH(0.0001, "0x0000000000000000000000000000000000000000");
 
     const facetNames = [
         'PositionManagerPancakeFacet',
@@ -30,8 +30,8 @@ async function main() {
     let cut = await prepareCut(facetNames, zap.address);
     addProposalItem(zap, 'diamondCut', [cut, ethers.constants.AddressZero, '0x']);
 
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
