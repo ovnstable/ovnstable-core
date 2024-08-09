@@ -1,0 +1,13 @@
+{
+  "name": "@overnight-contracts/zap",
+  "version": "0.0.1",
+  "description": "Diamond contracts",
+  "main": "hardhat.config",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test"
+  }
+}

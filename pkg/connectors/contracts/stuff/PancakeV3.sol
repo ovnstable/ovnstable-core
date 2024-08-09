@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
 struct MintParams {
     address token0;
@@ -43,7 +43,14 @@ struct CollectParams {
     uint128 amount1Max;
 }
 
-interface INonfungiblePositionManager is IERC721 {
+/// @title Immutable state
+/// @notice Functions that return immutable state of the router
+interface IPeripheryImmutableState {
+    /// @return Returns the address of the PancakeSwap V3 factory
+    function factory() external view returns (address);
+}
+
+interface INonfungiblePositionManager is IERC721Enumerable, IPeripheryImmutableState {
 
     /// @notice Returns the position information associated with a given token ID.
     /// @dev Throws if the token ID is not valid.
@@ -164,6 +171,35 @@ interface INonfungiblePositionManager is IERC721 {
         uint256 amountMinimum,
         address recipient
     ) external payable;
+
+    function balanceOf(address account) external view returns (uint256);
+}
+
+interface ILMPool {
+    function updatePosition(int24 tickLower, int24 tickUpper, int128 liquidityDelta) external;
+
+    function getRewardGrowthInside(
+        int24 tickLower,
+        int24 tickUpper
+    ) external view returns (uint256 rewardGrowthInsideX128);
+
+    function accumulateReward(uint32 currTimestamp) external;
+}
+
+/// @title The interface for the PancakeSwap V3 Factory
+/// @notice The PancakeSwap V3 Factory facilitates creation of PancakeSwap V3 pools and control over the protocol fees
+interface IPancakeV3Factory {
+    /// @notice Returns the pool address for a given pair of tokens and a fee, or address 0 if it does not exist
+    /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
+    /// @param tokenA The contract address of either token0 or token1
+    /// @param tokenB The contract address of the other token
+    /// @param fee The fee collected upon every swap in the pool, denominated in hundredths of a bip
+    /// @return pool The pool address
+    function getPool(
+        address tokenA,
+        address tokenB,
+        uint24 fee
+    ) external view returns (address pool);
 }
 
 interface IMasterChefV3 {
@@ -301,6 +337,9 @@ interface IMasterChefV3 {
     /// @param _tokenId The ID of the token that is being burned
     function burn(uint256 _tokenId) external;
 
+    function balanceOf(address account) external view returns (uint256);
+
+    function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256);
 }
 
 /// @title Liquidity amount functions
@@ -698,48 +737,50 @@ library FullMath {
         // Factor powers of two out of denominator
         // Compute largest power of two divisor of denominator.
         // Always >= 1.
-        uint256 twos = (type(uint256).max - denominator + 1) & denominator;
-        // Divide denominator by power of two
-        assembly {
-            denominator := div(denominator, twos)
-        }
+        unchecked {
+            uint256 twos = (type(uint256).max - denominator + 1) & denominator;
+            // Divide denominator by power of two
+            assembly {
+                denominator := div(denominator, twos)
+            }
 
-        // Divide [prod1 prod0] by the factors of two
-        assembly {
-            prod0 := div(prod0, twos)
-        }
-        // Shift in bits from prod1 into prod0. For this we need
-        // to flip `twos` such that it is 2**256 / twos.
-        // If twos is zero, then it becomes one
-        assembly {
-            twos := add(div(sub(0, twos), twos), 1)
-        }
-        prod0 |= prod1 * twos;
+            // Divide [prod1 prod0] by the factors of two
+            assembly {
+                prod0 := div(prod0, twos)
+            }
+            // Shift in bits from prod1 into prod0. For this we need
+            // to flip `twos` such that it is 2**256 / twos.
+            // If twos is zero, then it becomes one
+            assembly {
+                twos := add(div(sub(0, twos), twos), 1)
+            }
+            prod0 |= prod1 * twos;
 
-        // Invert denominator mod 2**256
-        // Now that denominator is an odd number, it has an inverse
-        // modulo 2**256 such that denominator * inv = 1 mod 2**256.
-        // Compute the inverse by starting with a seed that is correct
-        // correct for four bits. That is, denominator * inv = 1 mod 2**4
-        uint256 inv = (3 * denominator) ^ 2;
-        // Now use Newton-Raphson iteration to improve the precision.
-        // Thanks to Hensel's lifting lemma, this also works in modular
-        // arithmetic, doubling the correct bits in each step.
-        inv *= 2 - denominator * inv; // inverse mod 2**8
-        inv *= 2 - denominator * inv; // inverse mod 2**16
-        inv *= 2 - denominator * inv; // inverse mod 2**32
-        inv *= 2 - denominator * inv; // inverse mod 2**64
-        inv *= 2 - denominator * inv; // inverse mod 2**128
-        inv *= 2 - denominator * inv; // inverse mod 2**256
+            // Invert denominator mod 2**256
+            // Now that denominator is an odd number, it has an inverse
+            // modulo 2**256 such that denominator * inv = 1 mod 2**256.
+            // Compute the inverse by starting with a seed that is correct
+            // correct for four bits. That is, denominator * inv = 1 mod 2**4
+                uint256 inv = (3 * denominator) ^ 2;
+            // Now use Newton-Raphson iteration to improve the precision.
+            // Thanks to Hensel's lifting lemma, this also works in modular
+            // arithmetic, doubling the correct bits in each step.
+            inv *= 2 - denominator * inv; // inverse mod 2**8
+            inv *= 2 - denominator * inv; // inverse mod 2**16
+            inv *= 2 - denominator * inv; // inverse mod 2**32
+            inv *= 2 - denominator * inv; // inverse mod 2**64
+            inv *= 2 - denominator * inv; // inverse mod 2**128
+            inv *= 2 - denominator * inv; // inverse mod 2**256
 
-        // Because the division is now exact we can divide by multiplying
-        // with the modular inverse of denominator. This will give us the
-        // correct result modulo 2**256. Since the precoditions guarantee
-        // that the outcome is less than 2**256, this is the final result.
-        // We don't need to compute the high bits of the result and prod1
-        // is no longer required.
-        result = prod0 * inv;
-        return result;
+            // Because the division is now exact we can divide by multiplying
+            // with the modular inverse of denominator. This will give us the
+            // correct result modulo 2**256. Since the precoditions guarantee
+            // that the outcome is less than 2**256, this is the final result.
+            // We don't need to compute the high bits of the result and prod1
+            // is no longer required.
+            result = prod0 * inv;
+            return result;
+        }
     }
 
     /// @notice Calculates ceil(a×b÷denominator) with full precision. Throws if result overflows a uint256 or denominator == 0
@@ -1067,6 +1108,12 @@ library UnsafeMath {
             z := add(div(x, y), gt(mod(x, y), 0))
         }
     }
+
+    function unsafe_sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        unchecked {
+            return a - b;
+        }
+    }
 }
 
 library Util {
@@ -1378,6 +1425,123 @@ interface IPancakeV3Pool {
     /// the input observationCardinalityNext.
     /// @param observationCardinalityNext The desired minimum number of observations for the pool to store
     function increaseObservationCardinalityNext(uint16 observationCardinalityNext) external;
+}
+
+/// @title FixedPoint128
+/// @notice A library for handling binary fixed point numbers, see https://en.wikipedia.org/wiki/Q_(number_format)
+library FixedPoint128 {
+    uint256 internal constant Q128 = 0x100000000000000000000000000000000;
+}
+
+/// @title Returns information about the token value held in a CL NFT
+library PositionValue {
+    struct FeeParams {
+        address token0;
+        address token1;
+        uint24 fee;
+        int24 tickLower;
+        int24 tickUpper;
+        uint128 liquidity;
+        uint256 positionFeeGrowthInside0LastX128;
+        uint256 positionFeeGrowthInside1LastX128;
+        uint256 tokensOwed0;
+        uint256 tokensOwed1;
+    }
+
+    /// @notice Calculates the total fees owed to the token owner
+    /// @param positionManager The CL NonfungiblePositionManager
+    /// @param tokenId The tokenId of the token for which to get the total fees owed
+    /// @return amount0 The amount of fees owed in token0
+    /// @return amount1 The amount of fees owed in token1
+    function fees(INonfungiblePositionManager positionManager, uint256 tokenId)
+    internal
+    view
+    returns (uint256 amount0, uint256 amount1)
+    {
+        (
+            ,
+            ,
+            address token0,
+            address token1,
+            uint24 fee,
+            int24 tickLower,
+            int24 tickUpper,
+            uint128 liquidity,
+            uint256 positionFeeGrowthInside0LastX128,
+            uint256 positionFeeGrowthInside1LastX128,
+            uint256 tokensOwed0,
+            uint256 tokensOwed1
+        ) = positionManager.positions(tokenId);
+
+        return _fees(
+            positionManager,
+            FeeParams({
+                token0: token0,
+                token1: token1,
+                fee: fee,
+                tickLower: tickLower,
+                tickUpper: tickUpper,
+                liquidity: liquidity,
+                positionFeeGrowthInside0LastX128: positionFeeGrowthInside0LastX128,
+                positionFeeGrowthInside1LastX128: positionFeeGrowthInside1LastX128,
+                tokensOwed0: tokensOwed0,
+                tokensOwed1: tokensOwed1
+            })
+        );
+    }
+
+    function _fees(INonfungiblePositionManager positionManager, FeeParams memory feeParams)
+    private
+    view
+    returns (uint256 amount0, uint256 amount1)
+    {
+        amount0 = feeParams.tokensOwed0;
+        amount1 = feeParams.tokensOwed1;
+        (uint256 poolFeeGrowthInside0LastX128, uint256 poolFeeGrowthInside1LastX128) = _getFeeGrowthInside(
+            IPancakeV3Pool(
+                IPancakeV3Factory(positionManager.factory()).getPool(
+                    feeParams.token0,
+                    feeParams.token1,
+                    feeParams.fee
+                )
+            ),
+            feeParams.tickLower,
+            feeParams.tickUpper
+        );
+        amount0 = amount0 + FullMath.mulDiv(
+            UnsafeMath.unsafe_sub(poolFeeGrowthInside0LastX128, feeParams.positionFeeGrowthInside0LastX128),
+            feeParams.liquidity,
+            FixedPoint128.Q128
+        );
+
+        amount1 = amount1 + FullMath.mulDiv(
+            UnsafeMath.unsafe_sub(poolFeeGrowthInside1LastX128, feeParams.positionFeeGrowthInside1LastX128),
+            feeParams.liquidity,
+            FixedPoint128.Q128
+        );
+    }
+
+    function _getFeeGrowthInside(IPancakeV3Pool pool, int24 tickLower, int24 tickUpper)
+    private
+    view
+    returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)
+    {
+        (, int24 tickCurrent,,,,,) = pool.slot0();
+        (,, uint256 lowerFeeGrowthOutside0X128, uint256 lowerFeeGrowthOutside1X128,,,,) = pool.ticks(tickLower);
+        (,, uint256 upperFeeGrowthOutside0X128, uint256 upperFeeGrowthOutside1X128,,,,) = pool.ticks(tickUpper);
+        if (tickCurrent < tickLower) {
+            feeGrowthInside0X128 = UnsafeMath.unsafe_sub(lowerFeeGrowthOutside0X128, upperFeeGrowthOutside0X128);
+            feeGrowthInside1X128 = UnsafeMath.unsafe_sub(lowerFeeGrowthOutside1X128, upperFeeGrowthOutside1X128);
+        } else if (tickCurrent < tickUpper) {
+            uint256 feeGrowthGlobal0X128 = pool.feeGrowthGlobal0X128();
+            uint256 feeGrowthGlobal1X128 = pool.feeGrowthGlobal1X128();
+            feeGrowthInside0X128 = UnsafeMath.unsafe_sub(UnsafeMath.unsafe_sub(feeGrowthGlobal0X128, lowerFeeGrowthOutside0X128), upperFeeGrowthOutside0X128);
+            feeGrowthInside1X128 = UnsafeMath.unsafe_sub(UnsafeMath.unsafe_sub(feeGrowthGlobal1X128, lowerFeeGrowthOutside1X128),  upperFeeGrowthOutside1X128);
+        } else {
+            feeGrowthInside0X128 = UnsafeMath.unsafe_sub(upperFeeGrowthOutside0X128, lowerFeeGrowthOutside0X128);
+            feeGrowthInside1X128 = UnsafeMath.unsafe_sub(upperFeeGrowthOutside1X128, lowerFeeGrowthOutside1X128);
+        }
+    }
 }
 
 /// @title Router token swapping functionality
