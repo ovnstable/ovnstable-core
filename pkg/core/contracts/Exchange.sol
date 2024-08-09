@@ -80,6 +80,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     bool public deprecated;
 
+    uint256 public profitFee;
+    uint256 public profitFeeDenominator;
+
     // ---  events
 
     event TokensUpdated(address usdPlus, address asset);
@@ -88,6 +91,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event PortfolioManagerUpdated(address portfolioManager);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
     event RedeemFeeUpdated(uint256 fee, uint256 feeDenominator);
+    event ProfitFeeUpdated(uint256 fee, uint256 feeDenominator);
     event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
     event PayoutManagerUpdated(address payoutManager);
     event InsuranceUpdated(address insurance);
@@ -130,7 +134,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _;
     }
 
-
     modifier onlyUnit(){
         require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
@@ -169,6 +172,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         oracleLossDenominator = 100000;
         compensateLossDenominator = 100000;
+
+        profitFee = 20000; // 20%
+        profitFeeDenominator = 100000;
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -247,6 +253,13 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
     }
 
+    function setProfitFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
+        require(_feeDenominator != 0, "Zero denominator not allowed");
+        require(_feeDenominator >= _fee, "fee > denominator");
+        profitFee = _fee;
+        profitFeeDenominator = _feeDenominator;
+        emit ProfitFeeUpdated(profitFee, profitFeeDenominator);
+    }
 
     function setOracleLoss(uint256 _oracleLoss,  uint256 _denominator) external onlyPortfolioAgent {
         require(_denominator != 0, "Zero denominator not allowed");
@@ -552,8 +565,17 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
             // Positive rebase
             // USD+ have profit and we need to execute next steps:
-            // 1. Pay premium to Insurance
-            // 2. If profit more max delta then transfer excess profit to OVN wallet
+            // 1. Pay premium to profitRecipient
+            // 2. Pay premium to Insurance
+            // 3. If profit more max delta then transfer excess profit to OVN wallet
+
+            if(profitFee > 0) {
+                require(profitRecipient != address(0), 'profitRecipient address is zero');
+                uint256 profitRecipientAmount = (totalNav - totalUsdPlus) * profitFee / profitFeeDenominator;
+                portfolioManager.withdraw(profitRecipientAmount);
+                SafeERC20.safeTransfer(usdc, profitRecipient, profitRecipientAmount);                
+                totalNav = totalNav - _assetToRebase(profitRecipientAmount);
+            }
 
             premium = _rebaseToAsset((totalNav - totalUsdPlus) * portfolioManager.getTotalRiskFactor() / FISK_FACTOR_DM);
 
