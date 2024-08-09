@@ -9,7 +9,6 @@ import "../../interfaces/Constants.sol";
 import "hardhat/console.sol";
 
 contract PositionManagerPancakeFacet is IPositionManagerFacet, Modifiers {
-    address constant private MASTER_CHEF_V3 = 0x5e09ACf80C0296740eC5d6F643005a4ef8DaA694;
 
     function mintPosition(
         address pair,

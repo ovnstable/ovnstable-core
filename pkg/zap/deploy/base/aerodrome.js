@@ -16,6 +16,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         'AccessControlFacet',
         'PoolMathAerodromeFacet',
         'PositionManagerAerodromeFacet',
+        'PoolFetcherAerodromeFacet',
         'MathFacet',
         'ProportionFacet',
         'SetUpFacet',
