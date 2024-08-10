@@ -142,9 +142,15 @@ describe('Testing all zaps', function() {
             // });
 
             async function check() {
-                let pools = await zap.getPools(5, 0);
+                let pools = await zap.fetchPools(5, 0);
                 for (let i = 0; i < pools.length; i++) {
                     console.log("poolId:", pools[i].poolId);
+                    console.log("----------------------------------");
+                }
+
+                let tokens = await zap.fetchTokens();
+                for (let i = 0; i < tokens.length; i++) {
+                    console.log("tokenId:", tokens[i].tokenId);
                     console.log("----------------------------------");
                 }
             }

@@ -19,10 +19,14 @@ interface IPoolFetcherFacet {
         address gauge;
     }
 
-    function getPools(
+    function fetchPools(
         uint256 limit,
         uint256 offset
     ) external view returns (PoolInfo[] memory);
+
+    function fetchTokens() external view returns (TokenInfo[] memory);
+
+    function getTokensAmount() external view returns (uint256);
 
     function getPoolsAmount() external view returns (uint256);
 }

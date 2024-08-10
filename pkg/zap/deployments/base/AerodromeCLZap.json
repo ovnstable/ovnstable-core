@@ -395,6 +395,25 @@
     },
     {
       "type": "function",
+      "name": "getPool",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "function",
       "name": "getPositionAmounts",
       "constant": true,
       "stateMutability": "view",
@@ -495,6 +514,77 @@
     },
     {
       "type": "function",
+      "name": "getTicks",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "int24"
+        },
+        {
+          "type": "int24"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getTokens",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "address"
+        },
+        {
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "increaseLiquidity",
+      "constant": false,
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        },
+        {
+          "type": "uint256",
+          "name": "amount0"
+        },
+        {
+          "type": "uint256",
+          "name": "amount1"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "uint128",
+          "name": "liquidity"
+        }
+      ]
+    },
+    {
+      "type": "function",
       "name": "mintPosition",
       "constant": false,
       "payable": false,
@@ -529,6 +619,157 @@
         {
           "type": "uint256",
           "name": "tokenId"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "fetchPools",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "limit"
+        },
+        {
+          "type": "uint256",
+          "name": "offset"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "tuple[]",
+          "name": "result",
+          "components": [
+            {
+              "type": "address",
+              "name": "poolId"
+            },
+            {
+              "type": "tuple",
+              "name": "token0",
+              "components": [
+                {
+                  "type": "address",
+                  "name": "tokenId"
+                },
+                {
+                  "type": "uint8",
+                  "name": "decimals"
+                },
+                {
+                  "type": "string",
+                  "name": "name"
+                },
+                {
+                  "type": "string",
+                  "name": "symbol"
+                }
+              ]
+            },
+            {
+              "type": "tuple",
+              "name": "token1",
+              "components": [
+                {
+                  "type": "address",
+                  "name": "tokenId"
+                },
+                {
+                  "type": "uint8",
+                  "name": "decimals"
+                },
+                {
+                  "type": "string",
+                  "name": "name"
+                },
+                {
+                  "type": "string",
+                  "name": "symbol"
+                }
+              ]
+            },
+            {
+              "type": "uint256",
+              "name": "amount0"
+            },
+            {
+              "type": "uint256",
+              "name": "amount1"
+            },
+            {
+              "type": "int24",
+              "name": "tickSpacing"
+            },
+            {
+              "type": "address",
+              "name": "gauge"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "fetchTokens",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "tuple[]",
+          "name": "result",
+          "components": [
+            {
+              "type": "address",
+              "name": "tokenId"
+            },
+            {
+              "type": "uint8",
+              "name": "decimals"
+            },
+            {
+              "type": "string",
+              "name": "name"
+            },
+            {
+              "type": "string",
+              "name": "symbol"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getPoolsAmount",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getTokensAmount",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
         }
       ]
     },

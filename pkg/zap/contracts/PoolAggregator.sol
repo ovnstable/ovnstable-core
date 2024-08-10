@@ -8,6 +8,8 @@ import "./interfaces/core/IPoolFetcherFacet.sol";
 import "hardhat/console.sol";
 
 contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+    bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
+
     address[] public zaps;
     string[] public protocols;
 
@@ -19,18 +21,23 @@ contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradea
     }
 
     modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "!Admin");
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admin");
+        _;
+    }
+
+    modifier onlyUnit() {
+        require(hasRole(UNIT_ROLE, msg.sender), "Restricted to unit");
         _;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
-    function addProtocol(address addr, string memory name) onlyAdmin external {
+    function addProtocol(address addr, string memory name) onlyUnit external {
         zaps.push(addr);
         protocols.push(name);
     }
 
-    function removeProtocol(address addr) onlyAdmin external {
+    function removeProtocol(address addr) onlyUnit external {
         for (uint256 i = 0; i < zaps.length; i++) {
             if (zaps[i] == addr) {
                 zaps[i] = zaps[zaps.length - 1];
@@ -44,19 +51,20 @@ contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradea
     function aggregatePools(address[] memory protocolFilter, uint256 limit, uint256 offset)
         external view returns (IPoolFetcherFacet.PoolInfo[] memory result) {
         uint256 totalPoolsAmount;
+        uint256 resultSize;
+        uint256 resultPoolsCounter;
+
         for (uint256 c = 0; c < zaps.length; c++) {
             if (!checkProtocolFilter(protocolFilter, zaps[c])) continue;
             totalPoolsAmount += IPoolFetcherFacet(zaps[c]).getPoolsAmount();
         }
-        uint256 size;
         if (offset < totalPoolsAmount) {
-            size = offset + limit > totalPoolsAmount ? totalPoolsAmount - offset : limit;
+            resultSize = offset + limit > totalPoolsAmount ? totalPoolsAmount - offset : limit;
         }
-        result = new IPoolFetcherFacet.PoolInfo[](size);
-        if (size == 0) {
+        result = new IPoolFetcherFacet.PoolInfo[](resultSize);
+        if (resultSize == 0) {
             return result;
         }
-        uint256 i;
 
         for (uint256 q = 0; q < zaps.length; q++) {
             if (!checkProtocolFilter(protocolFilter, zaps[q])) continue;
@@ -66,16 +74,51 @@ contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradea
                 offset -= poolsAmount;
                 continue;
             }
-            IPoolFetcherFacet.PoolInfo[] memory currentPools = fetcher.getPools(limit, offset);
-            for (uint256 j = 0; j < zaps.length; j++) {
-                result[i] = currentPools[j];
-                i++;
+            IPoolFetcherFacet.PoolInfo[] memory currentPools = fetcher.fetchPools(limit, offset);
+            for (uint256 j = 0; j < currentPools.length; j++) {
+                result[resultPoolsCounter] = currentPools[j];
+                resultPoolsCounter++;
             }
             if (currentPools.length >= limit) {
                 break;
             }
             limit -= currentPools.length;
             offset = 0;
+        }
+    }
+
+    function aggregateTokens(address[] memory protocolFilter)
+    external view returns (IPoolFetcherFacet.TokenInfo[] memory result) {
+        uint256 maxTokenAmount;
+        for (uint256 c = 0; c < zaps.length; c++) {
+            if (!checkProtocolFilter(protocolFilter, zaps[c])) continue;
+            maxTokenAmount += IPoolFetcherFacet(zaps[c]).getPoolsAmount() * 2;
+        }
+        IPoolFetcherFacet.TokenInfo[] memory mergedTokens = new IPoolFetcherFacet.TokenInfo[](maxTokenAmount);
+        uint256 tokenCounter;
+
+        for (uint256 q = 0; q < zaps.length; q++) {
+            if (!checkProtocolFilter(protocolFilter, zaps[q])) continue;
+            IPoolFetcherFacet fetcher = IPoolFetcherFacet(zaps[q]);
+            IPoolFetcherFacet.TokenInfo[] memory currentTokens = fetcher.fetchTokens();
+            for (uint256 i = 0; i < currentTokens.length; i++) {
+                bool isNewToken = true;
+                for (uint256 j = 0; j < tokenCounter; j++) {
+                    if (currentTokens[i].tokenId == mergedTokens[j].tokenId) {
+                        isNewToken = false;
+                        break;
+                    }
+                }
+                if (isNewToken) {
+                    mergedTokens[tokenCounter] = currentTokens[i];
+                    tokenCounter++;
+                }
+            }
+        }
+
+        result = new IPoolFetcherFacet.TokenInfo[](tokenCounter);
+        for (uint256 i = 0; i < tokenCounter; i++) {
+            result[i] = mergedTokens[i];
         }
     }
 
