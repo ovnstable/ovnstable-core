@@ -2,7 +2,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 
 interface IWETH is IERC20 {
     function deposit() external payable;
@@ -884,11 +886,280 @@ library AerodromeLibrary {
 
 }
 
+interface ICLGauge {
+    /// @notice Fetch all tokenIds staked by a given account
+    /// @param depositor The address of the user
+    /// @return The tokenIds of the staked positions
+    function stakedValues(address depositor) external view returns (uint256[] memory);
 
+    /// @notice Fetch a staked tokenId by index
+    /// @param depositor The address of the user
+    /// @param index The index of the staked tokenId
+    /// @return The tokenId of the staked position
+    function stakedByIndex(address depositor, uint256 index) external view returns (uint256);
 
+    /// @notice Check whether a position is staked in the gauge by a certain user
+    /// @param depositor The address of the user
+    /// @param tokenId The tokenId of the position
+    /// @return Whether the position is staked in the gauge
+    function stakedContains(address depositor, uint256 tokenId) external view returns (bool);
 
+    /// @notice The amount of positions staked in the gauge by a certain user
+    /// @param depositor The address of the user
+    /// @return The amount of positions staked in the gauge
+    function stakedLength(address depositor) external view returns (uint256);
 
-interface INonfungiblePositionManager {
+    /// @notice Claimable rewards by tokenId
+    function rewards(uint256 tokenId) external view returns (uint256);
+
+    /// @notice Returns the claimable rewards for a given account and tokenId
+    /// @dev Throws if account is not the position owner
+    /// @dev pool.updateRewardsGrowthGlobal() needs to be called first, to return the correct claimable rewards
+    /// @param account The address of the user
+    /// @param tokenId The tokenId of the position
+    /// @return The amount of claimable reward
+    function earned(address account, uint256 tokenId) external view returns (uint256);
+}
+
+/// @title Pool state that never changes
+/// @notice These parameters are not defined as immutable (due to proxy pattern) but are effectively immutable.
+/// @notice i.e., the methods will always return the same values
+interface ICLPoolConstants {
+    /// @notice The contract that deployed the pool, which must adhere to the ICLFactory interface
+    /// @return The contract address
+    function factory() external view returns (address);
+
+    /// @notice The first of the two tokens of the pool, sorted by address
+    /// @return The token contract address
+    function token0() external view returns (address);
+
+    /// @notice The second of the two tokens of the pool, sorted by address
+    /// @return The token contract address
+    function token1() external view returns (address);
+
+    /// @notice The gauge corresponding to this pool
+    /// @return The gauge contract address
+    function gauge() external view returns (address);
+
+    /// @notice The pool tick spacing
+    /// @dev Ticks can only be used at multiples of this value, minimum of 1 and always positive
+    /// e.g.: a tickSpacing of 3 means ticks can be initialized every 3rd tick, i.e., ..., -6, -3, 0, 3, 6, ...
+    /// This value is an int24 to avoid casting even though it is always positive.
+    /// @return The tick spacing
+    function tickSpacing() external view returns (int24);
+}
+
+/// @title Pool state that can change
+/// @notice These methods compose the pool's state, and can change with any frequency including multiple times
+/// per transaction
+interface ICLPoolState {
+    /// @notice The 0th storage slot in the pool stores many values, and is exposed as a single method to save gas
+    /// when accessed externally.
+    /// @return sqrtPriceX96 The current price of the pool as a sqrt(token1/token0) Q64.96 value
+    /// tick The current tick of the pool, i.e. according to the last tick transition that was run.
+    /// This value may not always be equal to SqrtTickMath.getTickAtSqrtRatio(sqrtPriceX96) if the price is on a tick
+    /// boundary.
+    /// observationIndex The index of the last oracle observation that was written,
+    /// observationCardinality The current maximum number of observations stored in the pool,
+    /// observationCardinalityNext The next maximum number of observations, to be updated when the observation.
+    /// unlocked Whether the pool is currently locked to reentrancy
+    function slot0()
+    external
+    view
+    returns (
+        uint160 sqrtPriceX96,
+        int24 tick,
+        uint16 observationIndex,
+        uint16 observationCardinality,
+        uint16 observationCardinalityNext,
+        bool unlocked
+    );
+
+    /// @notice The pool's swap & flash fee in pips, i.e. 1e-6
+    /// @dev Can be modified in PoolFactory on a pool basis or upgraded to be dynamic.
+    /// @return The swap & flash fee
+    function fee() external view returns (uint24);
+
+    /// @notice The pool's unstaked fee in pips, i.e. 1e-6
+    /// @dev Can be modified in PoolFactory on a pool basis or upgraded to be dynamic.
+    /// @return The unstaked fee
+    function unstakedFee() external view returns (uint24);
+
+    /// @notice The fee growth as a Q128.128 fees of token0 collected per unit of liquidity for the entire life of the pool
+    /// @dev This value can overflow the uint256
+    function feeGrowthGlobal0X128() external view returns (uint256);
+
+    /// @notice The fee growth as a Q128.128 fees of token1 collected per unit of liquidity for the entire life of the pool
+    /// @dev This value can overflow the uint256
+    function feeGrowthGlobal1X128() external view returns (uint256);
+
+    /// @notice The reward growth as a Q128.128 rewards of emission collected per unit of liquidity for the entire life of the pool
+    /// @dev This value can overflow the uint256
+    function rewardGrowthGlobalX128() external view returns (uint256);
+
+    /// @notice The amounts of token0 and token1 that are owed to the gauge
+    /// @dev Gauge fees will never exceed uint128 max in either token
+    function gaugeFees() external view returns (uint128 token0, uint128 token1);
+
+    /// @notice the emission rate of time-based farming
+    function rewardRate() external view returns (uint256);
+
+    /// @notice acts as a virtual reserve that holds information on how many rewards are yet to be distributed
+    function rewardReserve() external view returns (uint256);
+
+    /// @notice timestamp of the end of the current epoch's rewards
+    function periodFinish() external view returns (uint256);
+
+    /// @notice last time the rewardReserve and rewardRate were updated
+    function lastUpdated() external view returns (uint32);
+
+    /// @notice tracks total rewards distributed when no staked liquidity in active tick for epoch ending at periodFinish
+    /// @notice this amount is rolled over on the next call to notifyRewardAmount
+    /// @dev rollover will always be smaller than the rewards distributed that epoch
+    function rollover() external view returns (uint256);
+
+    /// @notice The currently in range liquidity available to the pool
+    /// @dev This value has no relationship to the total liquidity across all ticks
+    /// @dev This value includes staked liquidity
+    function liquidity() external view returns (uint128);
+
+    /// @notice The currently in range staked liquidity available to the pool
+    /// @dev This value has no relationship to the total staked liquidity across all ticks
+    function stakedLiquidity() external view returns (uint128);
+
+    /// @notice Look up information about a specific tick in the pool
+    /// @param tick The tick to look up
+    /// @return liquidityGross the total amount of position liquidity that uses the pool either as tick lower or
+    /// tick upper,
+    /// liquidityNet how much liquidity changes when the pool price crosses the tick,
+    /// stakedLiquidityNet how much staked liquidity changes when the pool price crosses the tick,
+    /// feeGrowthOutside0X128 the fee growth on the other side of the tick from the current tick in token0,
+    /// feeGrowthOutside1X128 the fee growth on the other side of the tick from the current tick in token1,
+    /// rewardGrowthOutsideX128 the reward growth on the other side of the tick from the current tick in emission token
+    /// tickCumulativeOutside the cumulative tick value on the other side of the tick from the current tick
+    /// secondsPerLiquidityOutsideX128 the seconds spent per liquidity on the other side of the tick from the current tick,
+    /// secondsOutside the seconds spent on the other side of the tick from the current tick,
+    /// initialized Set to true if the tick is initialized, i.e. liquidityGross is greater than 0, otherwise equal to false.
+    /// Outside values can only be used if the tick is initialized, i.e. if liquidityGross is greater than 0.
+    /// In addition, these values are only relative and must be used only in comparison to previous snapshots for
+    /// a specific position.
+    function ticks(int24 tick)
+    external
+    view
+    returns (
+        uint128 liquidityGross,
+        int128 liquidityNet,
+        int128 stakedLiquidityNet,
+        uint256 feeGrowthOutside0X128,
+        uint256 feeGrowthOutside1X128,
+        uint256 rewardGrowthOutsideX128,
+        int56 tickCumulativeOutside,
+        uint160 secondsPerLiquidityOutsideX128,
+        uint32 secondsOutside,
+        bool initialized
+    );
+
+    /// @notice Returns 256 packed tick initialized boolean values. See TickBitmap for more information
+    function tickBitmap(int16 wordPosition) external view returns (uint256);
+
+    /// @notice Returns the information about a position by the position's key
+    /// @param key The position's key is a hash of a preimage composed by the owner, tickLower and tickUpper
+    /// @return _liquidity The amount of liquidity in the position,
+    /// Returns feeGrowthInside0LastX128 fee growth of token0 inside the tick range as of the last mint/burn/poke,
+    /// Returns feeGrowthInside1LastX128 fee growth of token1 inside the tick range as of the last mint/burn/poke,
+    /// Returns tokensOwed0 the computed amount of token0 owed to the position as of the last mint/burn/poke,
+    /// Returns tokensOwed1 the computed amount of token1 owed to the position as of the last mint/burn/poke
+    function positions(bytes32 key)
+    external
+    view
+    returns (
+        uint128 _liquidity,
+        uint256 feeGrowthInside0LastX128,
+        uint256 feeGrowthInside1LastX128,
+        uint128 tokensOwed0,
+        uint128 tokensOwed1
+    );
+
+    /// @notice Returns data about a specific observation index
+    /// @param index The element of the observations array to fetch
+    /// @dev You most likely want to use #observe() instead of this method to get an observation as of some amount of time
+    /// ago, rather than at a specific index in the array.
+    /// @return blockTimestamp The timestamp of the observation,
+    /// Returns tickCumulative the tick multiplied by seconds elapsed for the life of the pool as of the observation timestamp,
+    /// Returns secondsPerLiquidityCumulativeX128 the seconds per in range liquidity for the life of the pool as of the observation timestamp,
+    /// Returns initialized whether the observation has been initialized and the values are safe to use
+    function observations(uint256 index)
+    external
+    view
+    returns (
+        uint32 blockTimestamp,
+        int56 tickCumulative,
+        uint160 secondsPerLiquidityCumulativeX128,
+        bool initialized
+    );
+
+    /// @notice Returns data about reward growth within a tick range.
+    /// RewardGrowthGlobalX128 can be supplied as a parameter for claimable reward calculations.
+    /// @dev Used in gauge reward/earned calculations
+    /// @param tickLower The lower tick of the range
+    /// @param tickUpper The upper tick of the range
+    /// @param _rewardGrowthGlobalX128 a calculated rewardGrowthGlobalX128 or 0 (in case of 0 it means we use the rewardGrowthGlobalX128 from state)
+    /// @return rewardGrowthInsideX128 The reward growth in the range
+    function getRewardGrowthInside(int24 tickLower, int24 tickUpper, uint256 _rewardGrowthGlobalX128)
+    external
+    view
+    returns (uint256 rewardGrowthInsideX128);
+}
+
+/// @title The interface for a CL Pool
+/// @notice A CL pool facilitates swapping and automated market making between any two assets that strictly conform
+/// to the ERC20 specification
+/// @dev The pool interface is broken up into many smaller pieces
+interface ICLPool is ICLPoolConstants, ICLPoolState
+{}
+
+/// @title FixedPoint128
+/// @notice A library for handling binary fixed point numbers, see https://en.wikipedia.org/wiki/Q_(number_format)
+library FixedPoint128 {
+    uint256 internal constant Q128 = 0x100000000000000000000000000000000;
+}
+
+/// @title The interface for the CL Factory
+/// @notice The CL Factory facilitates creation of CL pools and control over the protocol fees
+interface ICLFactory {
+    /// @notice The address of the pool implementation contract used to deploy proxies / clones
+    /// @return The address of the pool implementation contract
+    function poolImplementation() external view returns (address);
+
+    /// @notice Returns the pool address for a given pair of tokens and a tick spacing, or address 0 if it does not exist
+    /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
+    /// @param tokenA The contract address of either token0 or token1
+    /// @param tokenB The contract address of the other token
+    /// @param tickSpacing The tick spacing of the pool
+    /// @return pool The pool address
+    function getPool(address tokenA, address tokenB, int24 tickSpacing) external view returns (address pool);
+
+    /// @notice Return address of pool created by this factory given its `index`
+    /// @param index Index of the pool
+    /// @return The pool address in the given index
+    function allPools(uint256 index) external view returns (address);
+
+    /// @notice Returns the number of pools created from this factory
+    /// @return Number of pools created from this factory
+    function allPoolsLength() external view returns (uint256);
+}
+
+/// @title Immutable state
+/// @notice Functions that return immutable state of the router
+interface IPeripheryImmutableState {
+    /// @return Returns the address of the CL factory
+    function factory() external view returns (address);
+
+    /// @return Returns the address of WETH9
+    function WETH9() external view returns (address);
+}
+
+interface INonfungiblePositionManager is IERC721Enumerable, IPeripheryImmutableState {
     /// @notice Emitted when liquidity is increased for a position NFT
     /// @dev Also emitted when a token is minted
     /// @param tokenId The ID of the token for which liquidity was increased
@@ -917,7 +1188,7 @@ interface INonfungiblePositionManager {
     /// @return operator The address that is approved for spending
     /// @return token0 The address of the token0 for a specific pool
     /// @return token1 The address of the token1 for a specific pool
-    /// @return fee The fee associated with the pool
+    /// @return tickSpacing The tick spacing associated with the pool
     /// @return tickLower The lower end of the tick range for the position
     /// @return tickUpper The higher end of the tick range for the position
     /// @return liquidity The liquidity of the position
@@ -933,7 +1204,7 @@ interface INonfungiblePositionManager {
         address operator,
         address token0,
         address token1,
-        uint24 fee,
+        int24 tickSpacing,
         int24 tickLower,
         int24 tickUpper,
         uint128 liquidity,
@@ -1069,7 +1340,152 @@ interface IUniswapV3SwapCallback {
     ) external;
 }
 
+/// @title Provides functions for deriving a pool address from the factory, tokens, and the fee
+library PoolAddress {
+    /// @notice The identifying key of the pool
+    struct PoolKey {
+        address token0;
+        address token1;
+        int24 tickSpacing;
+    }
 
+    /// @notice Returns PoolKey: the ordered tokens with the matched fee levels
+    /// @param tokenA The first token of a pool, unsorted
+    /// @param tokenB The second token of a pool, unsorted
+    /// @param tickSpacing The tick spacing of the pool
+    /// @return Poolkey The pool details with ordered token0 and token1 assignments
+    function getPoolKey(address tokenA, address tokenB, int24 tickSpacing) internal pure returns (PoolKey memory) {
+        if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
+        return PoolKey({token0: tokenA, token1: tokenB, tickSpacing: tickSpacing});
+    }
+
+    /// @notice Deterministically computes the pool address given the factory and PoolKey
+    /// @param factory The CL factory contract address
+    /// @param key The PoolKey
+    /// @return pool The contract address of the V3 pool
+    function computeAddress(address factory, PoolKey memory key) internal view returns (address pool) {
+        require(key.token0 < key.token1);
+        pool = Clones.predictDeterministicAddress(
+            ICLFactory(factory).poolImplementation(),
+            keccak256(abi.encode(key.token0, key.token1, key.tickSpacing)),
+            factory
+        );
+    }
+}
+
+/// @title Returns information about the token value held in a CL NFT
+library PositionValue {
+    struct FeeParams {
+        address token0;
+        address token1;
+        int24 tickSpacing;
+        int24 tickLower;
+        int24 tickUpper;
+        uint128 liquidity;
+        uint256 positionFeeGrowthInside0LastX128;
+        uint256 positionFeeGrowthInside1LastX128;
+        uint256 tokensOwed0;
+        uint256 tokensOwed1;
+    }
+
+    /// @notice Calculates the total fees owed to the token owner
+    /// @param positionManager The CL NonfungiblePositionManager
+    /// @param tokenId The tokenId of the token for which to get the total fees owed
+    /// @return amount0 The amount of fees owed in token0
+    /// @return amount1 The amount of fees owed in token1
+    function fees(INonfungiblePositionManager positionManager, uint256 tokenId)
+    internal
+    view
+    returns (uint256 amount0, uint256 amount1)
+    {
+        (
+            ,
+            ,
+            address token0,
+            address token1,
+            int24 tickSpacing,
+            int24 tickLower,
+            int24 tickUpper,
+            uint128 liquidity,
+            uint256 positionFeeGrowthInside0LastX128,
+            uint256 positionFeeGrowthInside1LastX128,
+            uint256 tokensOwed0,
+            uint256 tokensOwed1
+        ) = positionManager.positions(tokenId);
+
+        return _fees(
+            positionManager,
+            FeeParams({
+                token0: token0,
+                token1: token1,
+                tickSpacing: tickSpacing,
+                tickLower: tickLower,
+                tickUpper: tickUpper,
+                liquidity: liquidity,
+                positionFeeGrowthInside0LastX128: positionFeeGrowthInside0LastX128,
+                positionFeeGrowthInside1LastX128: positionFeeGrowthInside1LastX128,
+                tokensOwed0: tokensOwed0,
+                tokensOwed1: tokensOwed1
+            })
+        );
+    }
+
+    function _fees(INonfungiblePositionManager positionManager, FeeParams memory feeParams)
+    private
+    view
+    returns (uint256 amount0, uint256 amount1)
+    {
+        amount0 = feeParams.tokensOwed0;
+        amount1 = feeParams.tokensOwed1;
+        (uint256 poolFeeGrowthInside0LastX128, uint256 poolFeeGrowthInside1LastX128) = _getFeeGrowthInside(
+            ICLPool(
+                PoolAddress.computeAddress(
+                    positionManager.factory(),
+                    PoolAddress.PoolKey({
+                        token0: feeParams.token0,
+                        token1: feeParams.token1,
+                        tickSpacing: feeParams.tickSpacing
+                    })
+                )
+            ),
+            feeParams.tickLower,
+            feeParams.tickUpper
+        );
+        amount0 = amount0 + FullMath.mulDiv(
+            UnsafeMath.unsafe_sub(poolFeeGrowthInside0LastX128, feeParams.positionFeeGrowthInside0LastX128),
+            feeParams.liquidity,
+            FixedPoint128.Q128
+        );
+
+        amount1 = amount1 + FullMath.mulDiv(
+            UnsafeMath.unsafe_sub(poolFeeGrowthInside1LastX128, feeParams.positionFeeGrowthInside1LastX128),
+            feeParams.liquidity,
+            FixedPoint128.Q128
+        );
+    }
+
+    function _getFeeGrowthInside(ICLPool pool, int24 tickLower, int24 tickUpper)
+    private
+    view
+    returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)
+    {
+        (, int24 tickCurrent,,,,) = pool.slot0();
+        (,,, uint256 lowerFeeGrowthOutside0X128, uint256 lowerFeeGrowthOutside1X128,,,,,) = pool.ticks(tickLower);
+        (,,, uint256 upperFeeGrowthOutside0X128, uint256 upperFeeGrowthOutside1X128,,,,,) = pool.ticks(tickUpper);
+        if (tickCurrent < tickLower) {
+            feeGrowthInside0X128 = UnsafeMath.unsafe_sub(lowerFeeGrowthOutside0X128, upperFeeGrowthOutside0X128);
+            feeGrowthInside1X128 = UnsafeMath.unsafe_sub(lowerFeeGrowthOutside1X128, upperFeeGrowthOutside1X128);
+        } else if (tickCurrent < tickUpper) {
+            uint256 feeGrowthGlobal0X128 = pool.feeGrowthGlobal0X128();
+            uint256 feeGrowthGlobal1X128 = pool.feeGrowthGlobal1X128();
+            feeGrowthInside0X128 = UnsafeMath.unsafe_sub(UnsafeMath.unsafe_sub(feeGrowthGlobal0X128, lowerFeeGrowthOutside0X128), upperFeeGrowthOutside0X128);
+            feeGrowthInside1X128 = UnsafeMath.unsafe_sub(UnsafeMath.unsafe_sub(feeGrowthGlobal1X128, lowerFeeGrowthOutside1X128),  upperFeeGrowthOutside1X128);
+        } else {
+            feeGrowthInside0X128 = UnsafeMath.unsafe_sub(upperFeeGrowthOutside0X128, lowerFeeGrowthOutside0X128);
+            feeGrowthInside1X128 = UnsafeMath.unsafe_sub(upperFeeGrowthOutside1X128, lowerFeeGrowthOutside1X128);
+        }
+    }
+}
 
 /// @title Router token swapping functionality
 /// @notice Functions for swapping tokens via Uniswap V3
@@ -1862,6 +2278,18 @@ library UnsafeMath {
     function divRoundingUp(uint256 x, uint256 y) internal pure returns (uint256 z) {
         assembly {
             z := add(div(x, y), gt(mod(x, y), 0))
+        }
+    }
+
+    function unsafe_add(uint256 a, uint256 b) internal pure returns (uint256) {
+        unchecked {
+            return a + b;
+        }
+    }
+
+    function unsafe_sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        unchecked {
+            return a - b;
         }
     }
 }
