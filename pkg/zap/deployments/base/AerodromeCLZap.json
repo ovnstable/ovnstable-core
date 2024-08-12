@@ -645,6 +645,10 @@
           "name": "result",
           "components": [
             {
+              "type": "string",
+              "name": "platform"
+            },
+            {
               "type": "address",
               "name": "poolId"
             },
@@ -693,6 +697,14 @@
               ]
             },
             {
+              "type": "int24",
+              "name": "tickSpacing"
+            },
+            {
+              "type": "uint24",
+              "name": "fee"
+            },
+            {
               "type": "uint256",
               "name": "amount0"
             },
@@ -701,8 +713,8 @@
               "name": "amount1"
             },
             {
-              "type": "int24",
-              "name": "tickSpacing"
+              "type": "uint256",
+              "name": "price"
             },
             {
               "type": "address",
@@ -714,54 +726,7 @@
     },
     {
       "type": "function",
-      "name": "fetchTokens",
-      "constant": true,
-      "stateMutability": "view",
-      "payable": false,
-      "gas": 20000000,
-      "inputs": [],
-      "outputs": [
-        {
-          "type": "tuple[]",
-          "name": "result",
-          "components": [
-            {
-              "type": "address",
-              "name": "tokenId"
-            },
-            {
-              "type": "uint8",
-              "name": "decimals"
-            },
-            {
-              "type": "string",
-              "name": "name"
-            },
-            {
-              "type": "string",
-              "name": "symbol"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "function",
       "name": "getPoolsAmount",
-      "constant": true,
-      "stateMutability": "view",
-      "payable": false,
-      "gas": 20000000,
-      "inputs": [],
-      "outputs": [
-        {
-          "type": "uint256"
-        }
-      ]
-    },
-    {
-      "type": "function",
-      "name": "getTokensAmount",
       "constant": true,
       "stateMutability": "view",
       "payable": false,

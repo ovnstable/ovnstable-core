@@ -10,12 +10,15 @@ interface IPoolFetcherFacet {
     }
 
     struct PoolInfo {
+        string platform;
         address poolId;
         TokenInfo token0;
         TokenInfo token1;
+        int24 tickSpacing;
+        uint24 fee;
         uint256 amount0;
         uint256 amount1;
-        int24 tickSpacing;
+        uint256 price;
         address gauge;
     }
 
@@ -23,10 +26,6 @@ interface IPoolFetcherFacet {
         uint256 limit,
         uint256 offset
     ) external view returns (PoolInfo[] memory);
-
-    function fetchTokens() external view returns (TokenInfo[] memory);
-
-    function getTokensAmount() external view returns (uint256);
 
     function getPoolsAmount() external view returns (uint256);
 }

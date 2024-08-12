@@ -33,6 +33,14 @@ contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradea
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
     function addProtocol(address addr, string memory name) onlyUnit external {
+        bool protocolExists = false;
+        for (uint256 i = 0; i < zaps.length; i++) {
+            if (zaps[i] == addr) {
+                protocolExists = true;
+                break;
+            }
+        }
+        require(!protocolExists, "Protocol already exists");
         zaps.push(addr);
         protocols.push(name);
     }
@@ -44,18 +52,18 @@ contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradea
                 protocols[i] = protocols[protocols.length - 1];
                 zaps.pop();
                 protocols.pop();
+                return;
             }
         }
     }
 
-    function aggregatePools(address[] memory protocolFilter, uint256 limit, uint256 offset)
+    function aggregatePools(uint256 limit, uint256 offset)
         external view returns (IPoolFetcherFacet.PoolInfo[] memory result) {
         uint256 totalPoolsAmount;
         uint256 resultSize;
         uint256 resultPoolsCounter;
 
         for (uint256 c = 0; c < zaps.length; c++) {
-            if (!checkProtocolFilter(protocolFilter, zaps[c])) continue;
             totalPoolsAmount += IPoolFetcherFacet(zaps[c]).getPoolsAmount();
         }
         if (offset < totalPoolsAmount) {
@@ -67,7 +75,6 @@ contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradea
         }
 
         for (uint256 q = 0; q < zaps.length; q++) {
-            if (!checkProtocolFilter(protocolFilter, zaps[q])) continue;
             IPoolFetcherFacet fetcher = IPoolFetcherFacet(zaps[q]);
             uint256 poolsAmount = fetcher.getPoolsAmount();
             if (offset >= poolsAmount) {
@@ -85,49 +92,5 @@ contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradea
             limit -= currentPools.length;
             offset = 0;
         }
-    }
-
-    function aggregateTokens(address[] memory protocolFilter)
-    external view returns (IPoolFetcherFacet.TokenInfo[] memory result) {
-        uint256 maxTokenAmount;
-        for (uint256 c = 0; c < zaps.length; c++) {
-            if (!checkProtocolFilter(protocolFilter, zaps[c])) continue;
-            maxTokenAmount += IPoolFetcherFacet(zaps[c]).getPoolsAmount() * 2;
-        }
-        IPoolFetcherFacet.TokenInfo[] memory mergedTokens = new IPoolFetcherFacet.TokenInfo[](maxTokenAmount);
-        uint256 tokenCounter;
-
-        for (uint256 q = 0; q < zaps.length; q++) {
-            if (!checkProtocolFilter(protocolFilter, zaps[q])) continue;
-            IPoolFetcherFacet fetcher = IPoolFetcherFacet(zaps[q]);
-            IPoolFetcherFacet.TokenInfo[] memory currentTokens = fetcher.fetchTokens();
-            for (uint256 i = 0; i < currentTokens.length; i++) {
-                bool isNewToken = true;
-                for (uint256 j = 0; j < tokenCounter; j++) {
-                    if (currentTokens[i].tokenId == mergedTokens[j].tokenId) {
-                        isNewToken = false;
-                        break;
-                    }
-                }
-                if (isNewToken) {
-                    mergedTokens[tokenCounter] = currentTokens[i];
-                    tokenCounter++;
-                }
-            }
-        }
-
-        result = new IPoolFetcherFacet.TokenInfo[](tokenCounter);
-        for (uint256 i = 0; i < tokenCounter; i++) {
-            result[i] = mergedTokens[i];
-        }
-    }
-
-    function checkProtocolFilter(address[] memory protocolFilter, address protocol) internal pure returns (bool) {
-        for (uint256 i = 0; i < protocolFilter.length; i++) {
-            if (protocolFilter[i] == protocol) {
-                return true;
-            }
-        }
-        return protocolFilter.length == 0;
     }
 }
