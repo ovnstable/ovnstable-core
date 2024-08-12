@@ -1,15 +1,13 @@
-const { ethers, upgrades } = require("hardhat");
-const hre = require("hardhat");
+const { ethers, upgrades } = require('hardhat');
+const hre = require('hardhat');
 const { getImplementationAddress } = require('@openzeppelin/upgrades-core');
 const sampleModule = require('@openzeppelin/hardhat-upgrades/dist/utils/deploy-impl');
-const { getContract, checkTimeLockBalance, initWallet, sleep, getPrice } = require("./script-utils");
-const { Deployer } = require("@matterlabs/hardhat-zksync-deploy");
-const { isZkSync } = require("./network");
+const { getContract, checkTimeLockBalance, initWallet, sleep, getPrice } = require('./script-utils');
+const { Deployer } = require('@matterlabs/hardhat-zksync-deploy');
+const { isZkSync } = require('./network');
 
 async function deployProxy(contractName, deployments, save, params) {
-
     if (isZkSync()) {
-
         params = params ? params : {};
 
         return deployProxyZkSync(contractName, contractName, deployments, save, params);
@@ -19,9 +17,7 @@ async function deployProxy(contractName, deployments, save, params) {
 }
 
 async function deployProxyMulti(contractName, factoryName, deployments, save, params) {
-
     if (isZkSync()) {
-
         params = params ? params : {};
 
         return deployProxyZkSync(contractName, factoryName, deployments, save, params);
@@ -29,7 +25,6 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
         return deployProxyEth(contractName, factoryName, deployments, save, params);
     }
 }
-
 
 /**
  * Chain ZkSync not support by OpenZeppelin plugin for deploy proxy contracts.
@@ -49,12 +44,9 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
  */
 
 async function deployProxyZkSync(contractName, factoryName, deployments, save, params) {
-
-    if (hre.ovn === undefined)
-        hre.ovn = {};
+    if (hre.ovn === undefined) hre.ovn = {};
 
     const deployer = new Deployer(hre, await initWallet());
-
 
     let proxyExist = true;
 
@@ -67,7 +59,6 @@ async function deployProxyZkSync(contractName, factoryName, deployments, save, p
     }
 
     if (proxyExist) {
-
         console.log(`${contractName}: Proxy found at` + proxy.address);
 
         let implArtifact = await deployer.loadArtifact(factoryName);
@@ -80,28 +71,25 @@ async function deployProxyZkSync(contractName, factoryName, deployments, save, p
         // let price = await getPrice();
         // Execute this method can be not working when test it on local node
 
-
         if (!hre.ovn.impl) {
             await (await proxy.upgradeTo(implContract.address)).wait();
             console.log(`${contractName}: Proxy ${proxy.address} upgradeTo ${implContract.address}`);
         }
 
-
         await save(contractName, {
             address: proxy.address,
             implementation: implContract.address,
-            ...implArtifact
+            ...implArtifact,
         });
 
         console.log(`${contractName}: Update deployments`);
-
     } else {
         let implArtifact = await deployer.loadArtifact(factoryName);
 
         const implContract = await deployer.deploy(implArtifact, []);
         console.log(`${contractName} deployed at ${implContract.address}`);
 
-        await sleep(30000)
+        await sleep(30000);
 
         let proxyArtifact = await deployer.loadArtifact('ERC1967Proxy');
 
@@ -118,20 +106,15 @@ async function deployProxyZkSync(contractName, factoryName, deployments, save, p
         await save(contractName, {
             address: proxy.address,
             implementation: implAddress,
-            ...implArtifact
+            ...implArtifact,
         });
 
         console.log(`Save ${implArtifact.contractName} to deployments`);
     }
-
-
-
 }
 
 async function deployProxyEth(contractName, factoryName, deployments, save, params) {
-
-    if (hre.ovn === undefined)
-        hre.ovn = {};
+    if (hre.ovn === undefined) hre.ovn = {};
 
     let factoryOptions;
     let unsafeAllow;
@@ -153,19 +136,18 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
     let proxy;
     try {
         proxy = await getContract(contractName);
-    } catch (e) {
-    }
+    } catch (e) {}
 
     if (!proxy) {
-        console.log(`Proxy ${contractName} not found`)
+        console.log(`Proxy ${contractName} not found`);
         proxy = await upgrades.deployProxy(contractFactory, args, {
             kind: 'uups',
-            unsafeAllow: unsafeAllow
+            unsafeAllow: unsafeAllow,
         });
-        console.log(`Deploy ${contractName} Proxy progress -> ` + proxy.address + " tx: " + proxy.deployTransaction.hash);
+        console.log(`Deploy ${contractName} Proxy progress -> ` + proxy.address + ' tx: ' + proxy.deployTransaction.hash);
         await proxy.deployTransaction.wait();
     } else {
-        console.log(`Proxy ${contractName} found -> ` + proxy.address)
+        console.log(`Proxy ${contractName} found -> ` + proxy.address);
     }
 
     let impl;
@@ -177,47 +159,49 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         try {
             impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow });
         } catch (e) {
-            impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow })
+            impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow });
         }
         implAddress = await getImplementationAddress(ethers.provider, proxy.address);
-        console.log(`Deploy ${contractName} Impl  done -> proxy [` + proxy.address + "] impl [" + implAddress + "]");
+        console.log(`Deploy ${contractName} Impl  done -> proxy [` + proxy.address + '] impl [' + implAddress + ']');
     } else {
-
         //Deploy only a new implementation without call upgradeTo
         //For system with Governance
         console.log('Try to deploy impl ...');
-        impl = await sampleModule.deployProxyImpl(hre, contractFactory, {
-            kind: 'uups',
-            unsafeAllow: unsafeAllow,
-            // unsafeSkipStorageCheck: true,
-            // unsafeAllowRenames: true
-        }, proxy.address);
+
+        // impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow });
+        impl = await sampleModule.deployProxyImpl(
+            hre,
+            contractFactory,
+            {
+                kind: 'uups',
+                unsafeAllow: unsafeAllow,
+                // unsafeSkipStorageCheck: true,
+                // unsafeAllowRenames: true
+            },
+            proxy.address,
+        );
 
         implAddress = impl.impl;
-        console.log('Deploy impl done without upgradeTo -> impl [' + implAddress + "]");
+        console.log('Deploy impl done without upgradeTo -> impl [' + implAddress + ']');
     }
 
-
-    if (impl && impl.deployTransaction)
-        await impl.deployTransaction.wait();
+    if (impl && impl.deployTransaction) await impl.deployTransaction.wait();
 
     const artifact = await deployments.getExtendedArtifact(factoryName);
     artifact.implementation = implAddress;
     let proxyDeployments = {
         address: proxy.address,
-        ...artifact
-    }
+        ...artifact,
+    };
 
     await save(contractName, proxyDeployments);
 
-
     // Enable verification contract after deploy
     if (hre.ovn.verify) {
-
         console.log(`Verify proxy [${proxy.address}] ....`);
 
         try {
-            await hre.run("verify:verify", {
+            await hre.run('verify:verify', {
                 address: proxy.address,
                 constructorArguments: args,
             });
@@ -225,25 +209,23 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
             console.log(e);
         }
 
-
         console.log(`Verify impl [${implAddress}] ....`);
 
-        await hre.run("verify:verify", {
+        await hre.run('verify:verify', {
             address: implAddress,
             constructorArguments: [],
         });
     }
 
     if (hre.ovn.gov) {
-
         let timelock = await getContract('AgentTimelock');
         // if (isZkSync()) {
         //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         // } else {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
         // }
         await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
+            method: 'hardhat_impersonateAccount',
             params: [timelock.address],
         });
 
@@ -254,13 +236,11 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         let contract = await getContract(contractName);
         await contract.connect(timelockAccount).upgradeTo(impl.impl);
 
-        console.log(`[Gov] upgradeTo completed `)
+        console.log(`[Gov] upgradeTo completed `);
     }
-
 
     return proxyDeployments;
 }
-
 
 module.exports = {
     deployProxy: deployProxy,
