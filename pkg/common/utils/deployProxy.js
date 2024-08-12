@@ -159,6 +159,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         try {
             impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow });
         } catch (e) {
+            console.log(e);
             impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow });
         }
         implAddress = await getImplementationAddress(ethers.provider, proxy.address);

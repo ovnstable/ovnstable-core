@@ -5,7 +5,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/core/IPoolFetcherFacet.sol";
-import "hardhat/console.sol";
 
 contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
