@@ -11,7 +11,6 @@ contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradea
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
     address[] public zaps;
-    string[] public protocols;
 
     function initialize() public initializer {
         __AccessControl_init();
@@ -32,7 +31,7 @@ contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradea
 
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
-    function addProtocol(address addr, string memory name) onlyUnit external {
+    function addProtocol(address addr) onlyUnit external {
         bool protocolExists = false;
         for (uint256 i = 0; i < zaps.length; i++) {
             if (zaps[i] == addr) {
@@ -42,16 +41,13 @@ contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradea
         }
         require(!protocolExists, "Protocol already exists");
         zaps.push(addr);
-        protocols.push(name);
     }
 
     function removeProtocol(address addr) onlyUnit external {
         for (uint256 i = 0; i < zaps.length; i++) {
             if (zaps[i] == addr) {
                 zaps[i] = zaps[zaps.length - 1];
-                protocols[i] = protocols[protocols.length - 1];
                 zaps.pop();
-                protocols.pop();
                 return;
             }
         }

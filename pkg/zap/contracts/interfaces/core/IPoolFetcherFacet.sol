@@ -22,6 +22,8 @@ interface IPoolFetcherFacet {
         address gauge;
     }
 
+    function protocolName() external pure returns (string memory);
+
     function fetchPools(
         uint256 limit,
         uint256 offset

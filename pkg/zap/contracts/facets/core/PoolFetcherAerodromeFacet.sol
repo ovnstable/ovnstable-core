@@ -8,6 +8,11 @@ import "../../interfaces/core/IPoolFetcherFacet.sol";
 import "../../interfaces/Constants.sol";
 
 contract PoolFetcherAerodromeFacet is IPoolFetcherFacet {
+
+    function protocolName() external pure returns (string memory) {
+        return "Aerodrome";
+    }
+
     function fetchPools(
         uint256 limit,
         uint256 offset

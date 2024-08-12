@@ -740,6 +740,20 @@
     },
     {
       "type": "function",
+      "name": "protocolName",
+      "constant": true,
+      "stateMutability": "pure",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "type": "function",
       "name": "closestTicksForCurrentTick",
       "constant": true,
       "stateMutability": "view",
