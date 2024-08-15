@@ -22,6 +22,7 @@ module.exports = async () => {
     items.push(...curve());
     items.push(...pancakeswap());
     items.push(...traderjoe());
+    items.push(...uniswap());
     await (await payoutManager.addItems(items)).wait();
 
     console.log('ArbitrumPayoutManager setting done');
@@ -87,6 +88,19 @@ module.exports = async () => {
         let items = [];
         items.push(createSkim('0xa8A502ACF4084B8D38362E9F620C689CB4D2EB89', usdPlus.address, 'USD+/ETH', dex));
         items.push(createSkim('0x37570DB173beF23F6924beaE3CD960b41AB6AD74', usdPlus.address, 'USD+/USDT', dex));
+
+        return items;
+    }
+
+    function uniswap() {
+
+        let dex = 'Uniswap';
+
+        let items = [];
+        items.push(createSkim('0x3dD2FdBA71282083D440687cce9e4231AAAc534E', usdPlus.address, 'ETH/USD+', dex));
+        items.push(createSkim('0x7548BD60CB8f627A9b8ed94f8ca174348DbE6A05', usdPlus.address, 'USDC/USD+', dex));
+        items.push(createSkim('0x67ab7DC903A10838a0de8861dfDFF3287cF98e5c', usdPlus.address, 'USDT/USD+', dex));
+        items.push(createSkim('0x421803dA50d3932Caa36bD1731d36a0E2AF93542', usdPlus.address, 'ETH/USD+', dex));
 
         return items;
     }
