@@ -547,7 +547,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Mints new tokens, increasing totalSupply.
      */
-    function mint(address _account, uint256 _amount) external notPaused onlyExchanger {
+    function mint(address _account, uint256 _amount) external notPaused onlyAdmin {
         _mint(_account, _amount);
     }
 

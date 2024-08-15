@@ -97,7 +97,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event InsuranceUpdated(address insurance);
     event BlockGetterUpdated(address blockGetter);
 
-    event EventExchange(string label, uint256 amount, uint256 fee, address sender, string referral);
+    event EventExchange(string label, uint256 amount, address sender);
     event PayoutEvent(
         uint256 profit
     );
@@ -306,32 +306,18 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // Minting USD+ in exchange for an asset
 
-    function mint(MintParams calldata params) external whenNotPaused nonReentrant returns (uint256) {
-        return _buy(params.asset, params.amount, params.referral);
-    }
+    // function mint(MintParams calldata params) external whenNotPaused nonReentrant returns (uint256) {
+    //     return _buy(params.asset, params.amount, params.referral);
+    // }
 
-    // Deprecated method - not recommended for use
-    function buy(address _asset, uint256 _amount) external whenNotPaused nonReentrant returns (uint256) {
-        return _buy(_asset, _amount, "");
-    }
-
-
-    /**
-     * @param _asset Asset to spend
-     * @param _amount Amount of asset to spend
-     * @param _referral Referral code
-     * @return Amount of minted USD+ to caller
-     */
-    function _buy(address _asset, uint256 _amount, string memory _referral) internal returns (uint256) {
+    
+    function deposit(address _asset, uint256 _amount) external whenNotPaused nonReentrant onlyAdmin { // for depositor
         require(_asset == address(usdc), "Only asset available for buy");
 
         uint256 currentBalance = usdc.balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
 
         require(_amount > 0, "Amount of asset is zero");
-
-        uint256 usdPlusAmount = _assetToRebase(_amount);
-        require(usdPlusAmount > 0, "Amount of USD+ is zero");
 
         uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
         SafeERC20.safeTransferFrom(usdc, msg.sender, address(portfolioManager), _amount);
@@ -340,16 +326,69 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         portfolioManager.deposit();
         _requireOncePerBlock(false);
 
-        uint256 buyFeeAmount;
-        uint256 buyAmount;
-        (buyAmount, buyFeeAmount) = _takeFee(usdPlusAmount, true);
 
-        usdPlus.mint(msg.sender, buyAmount);
-
-        emit EventExchange("mint", buyAmount, buyFeeAmount, msg.sender, _referral);
-
-        return buyAmount;
     }
+
+    function withdraw(address _asset, uint256 _amount) external whenNotPaused nonReentrant onlyAdmin returns (uint256) { // for depositor
+        require(_asset == address(usdc), "Only asset available for redeem");
+        require(_amount > 0, "Amount of USD+ is zero");
+        require(usdPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
+
+        uint256 redeemAmount = _rebaseToAsset(_amount);
+        require(redeemAmount > 0, "Amount of asset is zero");
+
+        
+
+        (, bool isBalanced) = portfolioManager.withdraw(redeemAmount);
+        _requireOncePerBlock(isBalanced);
+
+        // Or just burn from sender
+        usdPlus.burn(msg.sender, _amount);
+
+        require(usdc.balanceOf(address(this)) >= redeemAmount, "Not enough for transfer redeemAmount");
+        SafeERC20.safeTransfer(usdc, msg.sender, redeemAmount);
+
+        emit EventExchange("redeem", redeemAmount, msg.sender);
+
+        return redeemAmount;
+
+
+    }
+
+    /**
+     * @param _asset Asset to spend
+     * @param _amount Amount of asset to spend
+     * @param _referral Referral code
+     * @return Amount of minted USD+ to caller
+     */
+    // function _buy(address _asset, uint256 _amount, string memory _referral) internal returns (uint256) {
+    //     require(_asset == address(usdc), "Only asset available for buy");
+
+    //     uint256 currentBalance = usdc.balanceOf(msg.sender);
+    //     require(currentBalance >= _amount, "Not enough tokens to buy");
+
+    //     require(_amount > 0, "Amount of asset is zero");
+
+    //     uint256 usdPlusAmount = _assetToRebase(_amount);
+    //     require(usdPlusAmount > 0, "Amount of USD+ is zero");
+
+    //     uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
+    //     SafeERC20.safeTransferFrom(usdc, msg.sender, address(portfolioManager), _amount);
+    //     require(usdc.balanceOf(address(portfolioManager)) == _targetBalance, 'pm balance != target');
+
+    //     portfolioManager.deposit();
+    //     _requireOncePerBlock(false);
+
+    //     uint256 buyFeeAmount;
+    //     uint256 buyAmount;
+    //     (buyAmount, buyFeeAmount) = _takeFee(usdPlusAmount, true);
+
+    //     usdPlus.mint(msg.sender, buyAmount);
+
+    //     emit EventExchange("mint", buyAmount, buyFeeAmount, msg.sender, _referral);
+
+    //     return buyAmount;
+    // }
 
     /**
      * @param _asset Asset to redeem
@@ -374,11 +413,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         // Or just burn from sender
         usdPlus.burn(msg.sender, _amount);
+        usdPlus.mint(msg.sender, _amount);
 
         require(usdc.balanceOf(address(this)) >= redeemAmount, "Not enough for transfer redeemAmount");
         SafeERC20.safeTransfer(usdc, msg.sender, redeemAmount);
 
-        emit EventExchange("redeem", redeemAmount, redeemFeeAmount, msg.sender, "");
+        emit EventExchange("redeem", redeemAmount, msg.sender);
 
         return redeemAmount;
     }
