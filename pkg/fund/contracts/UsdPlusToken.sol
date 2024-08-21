@@ -30,10 +30,13 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     uint256 private constant _ENTERED = 2;
 
     mapping(address => uint256) private _creditBalances;
+    
+    mapping(address => uint256) private _sharesBalances;
 
     mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
+    uint256 private _totalShares;
 
     string private _name;
     string private _symbol;
@@ -43,15 +46,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     uint256 public nonRebasingSupply;
 
-    EnumerableSet.AddressSet private _owners;
-
     address public exchange;
     uint8 private _decimals;
     address public payoutManager;
-
-    mapping(address => uint256) public nonRebasingCreditsPerToken;
-    mapping(address => RebaseOptions) public rebaseState;
-    EnumerableSet.AddressSet _nonRebaseOwners;
 
     uint256 private _status; // ReentrancyGuard
     bool public paused;
@@ -196,66 +193,25 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return _decimals;
     }
 
-    function ownerLength() external view returns (uint256) {
-        return _owners.length();
-    }
-
-    function nonRebaseOwnersLength() external view returns (uint256) {
-        return _nonRebaseOwners.length();
-    }
-
-    function ownerAt(uint256 index) external view returns (address) {
-        return _owners.at(index);
-    }
-
-    function ownerBalanceAt(uint256 index) external view returns (uint256) {
-        return balanceOf(_owners.at(index));
-    }
-
-    function totalSupplyOwners() external view returns (uint256){
-
-        uint256 owners = this.ownerLength();
-
-        uint256 total = 0;
-        for(uint256 index = 0; index < owners; index++){
-            total += this.balanceOf(_owners.at(index));
-        }
-
-        return total;
-    }
 
     /**
      * @return The total supply of USD+.
      */
     function totalSupply() public view override returns (uint256) {
-        return _totalSupply;
-    }
-
-    /**
-     * @return Low resolution rebasingCreditsPerToken
-     */
-    function rebasingCreditsPerToken() public view returns (uint256) {
-        return _rebasingCreditsPerToken / RESOLUTION_INCREASE;
-    }
-
-    /**
-     * @return Low resolution total number of rebasing credits
-     */
-    function rebasingCredits() public view returns (uint256) {
-        return _rebasingCredits / RESOLUTION_INCREASE;
+        return _totalSupply - _totalShares;
     }
 
     /**
      * @return High resolution rebasingCreditsPerToken
      */
-    function rebasingCreditsPerTokenHighres() public view returns (uint256) {
+    function rebasingCreditsPerToken() public view returns (uint256) {
         return _rebasingCreditsPerToken;
     }
 
     /**
      * @return High resolution total number of rebasing credits
      */
-    function rebasingCreditsHighres() public view returns (uint256) {
+    function rebasingCredits() public view returns (uint256) {
         return _rebasingCredits;
     }
 
@@ -271,7 +227,18 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         override
         returns (uint256)
     {
-        return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
+        if (_sharesBalances[_account] != 0) {
+            return creditToAsset(_creditBalances[_account]) - _sharesBalances[_account]; 
+        }
+        return 0;
+    }
+
+    function sharesBalanceOf(address _account) 
+        public
+        view
+        returns (uint256)
+    {
+        return _sharesBalances[_account];
     }
 
     /**
@@ -346,32 +313,30 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     /**
      * @dev Converts usd+ balance value to credits
-     * @param owner The address which owns the funds.
      * @param amount The amount for conversion in usd+
      * @return credit The number of tokens in credits
      */
-    function assetToCredit(address owner, uint256 amount) public view returns(uint256 credit) {
+    function assetToCredit(uint256 amount) public view returns(uint256 credit) {
         if (amount > MAX_SUPPLY / 10 ** 45) {
             return MAX_SUPPLY;
         }
         uint256 amountRay = WadRayMath.wadToRay(amount);
-        uint256 creditsPerTokenRay = WadRayMath.wadToRay(_creditsPerToken(owner));
+        uint256 creditsPerTokenRay = WadRayMath.wadToRay(_rebasingCreditsPerToken);
         uint256 creditRay = WadRayMath.rayMul(amountRay, creditsPerTokenRay);
         return WadRayMath.rayToWad(creditRay);
     }
 
     /**
      * @dev Converts credits balance value to usd+
-     * @param owner The address which owns the funds.
      * @param credit The amount for conversion in credits
      * @return asset The number of tokens in credits
      */
-    function creditToAsset(address owner, uint256 credit) public view returns(uint256 asset) {
+    function creditToAsset(uint256 credit) public view returns(uint256 asset) {
         if (credit >= MAX_SUPPLY / 10 ** 36) {
             return MAX_SUPPLY;
         }
         uint256 creditBalancesRay = WadRayMath.wadToRay(credit);
-        uint256 creditsPerTokenRay = WadRayMath.wadToRay(_creditsPerToken(owner));
+        uint256 creditsPerTokenRay = WadRayMath.wadToRay(_rebasingCreditsPerToken);
         uint256 balanceOfRay = WadRayMath.rayDiv(creditBalancesRay, creditsPerTokenRay);
         return WadRayMath.rayToWad(balanceOfRay);
     }
@@ -380,15 +345,14 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * @dev This method subtracts credits. Due to the fact that credits
      * are stored with increased accuracy (1e9), we consider as
      * the same number everything that equal like amounts.
-     * @param owner The address which owns the funds.
      * @param credit1 The minuend number in credits (increased accuracy)
      * @param credit2 The subtrahend number in credits (increased accuracy)
      * @param errorText Text for error if the subtrahend is much greater than the minuend
      * @return resultCredit The number of tokens in credits
      */
-    function subCredits(address owner, uint256 credit1, uint256 credit2, string memory errorText) public view returns(uint256 resultCredit) {
-        uint256 amount1 = creditToAsset(owner, credit1);
-        uint256 amount2 = creditToAsset(owner, credit2);
+    function subCredits(uint256 credit1, uint256 credit2, string memory errorText) public view returns(uint256 resultCredit) {
+        uint256 amount1 = creditToAsset(credit1);
+        uint256 amount2 = creditToAsset(credit2);
         if (amount1 == MAX_SUPPLY || amount1 + 1 >= amount2) {
             return credit1 >= credit2 ? credit1 - credit2 : 0;
         } else {
@@ -410,9 +374,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         require(_to != address(0), "Transfer to zero address");
         require(_value <= balanceOf(_from), "Transfer greater than balance");
 
-        uint256 scaledAmount = assetToCredit(_from, _value);
+        uint256 scaledAmount = assetToCredit(_value);
 
-        _allowances[_from][msg.sender] = subCredits(_from, _allowances[_from][msg.sender], scaledAmount, "Allowance amount exceeds balance");
+        _allowances[_from][msg.sender] = subCredits(_allowances[_from][msg.sender], scaledAmount, "Allowance amount exceeds balance");
 
         _executeTransfer(_from, _to, _value);
 
@@ -435,32 +399,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         _beforeTokenTransfer(_from, _to, _value);
 
-        bool isNonRebasingTo = _isNonRebasingAccount(_to);
-        bool isNonRebasingFrom = _isNonRebasingAccount(_from);
+        uint256 creditsCredited = assetToCredit(_value);
+        uint256 creditsDeducted = assetToCredit(_value);
 
-        // Credits deducted and credited might be different due to the
-        // differing creditsPerToken used by each account
-        uint256 creditsCredited = assetToCredit(_to, _value);
-        uint256 creditsDeducted = assetToCredit(_from, _value);
-
-        _creditBalances[_from] = subCredits(_from, _creditBalances[_from], creditsDeducted, "Transfer amount exceeds balance");
+        _creditBalances[_from] = subCredits(_creditBalances[_from], creditsDeducted, "Transfer amount exceeds balance");
         _creditBalances[_to] = _creditBalances[_to].add(creditsCredited);
-
-        if (isNonRebasingTo && !isNonRebasingFrom) {
-            // Transfer to non-rebasing account from rebasing account, credits
-            // are removed from the non rebasing tally
-            nonRebasingSupply = nonRebasingSupply.add(_value);
-            // Update rebasingCredits by subtracting the deducted amount
-            _rebasingCredits = _rebasingCredits.sub(creditsDeducted);
-        } else if (!isNonRebasingTo && isNonRebasingFrom) {
-            // Transfer to rebasing account from non-rebasing account
-            // Decreasing non-rebasing credits by the amount that was sent
-            nonRebasingSupply = nonRebasingSupply.sub(_value);
-            // Update rebasingCredits by adding the credited amount
-            _rebasingCredits = _rebasingCredits.add(creditsCredited);
-        }
-
-        _afterTokenTransfer(_from, _to, _value);
     }
 
     /**
@@ -478,7 +421,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     {
         uint256 currentAllowance = _allowances[_owner][_spender];
 
-        return creditToAsset(_owner, currentAllowance);
+        return creditToAsset(currentAllowance);
     }
 
     /**
@@ -500,7 +443,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         notPaused
         returns (bool)
     {
-        uint256 scaledAmount = assetToCredit(msg.sender, _value);
+        uint256 scaledAmount = assetToCredit(_value);
         _allowances[msg.sender][_spender] = scaledAmount;
         emit Approval(msg.sender, _spender, scaledAmount);
         return true;
@@ -519,7 +462,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         notPaused
         returns (bool)
     {
-        uint256 scaledAmount = assetToCredit(msg.sender, _addedValue);
+        uint256 scaledAmount = assetToCredit(_addedValue);
         _allowances[msg.sender][_spender] = _allowances[msg.sender][_spender]
             .add(scaledAmount);
         emit Approval(msg.sender, _spender, _allowances[msg.sender][_spender]);
@@ -538,7 +481,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         notPaused
         returns (bool)
     {
-        uint256 scaledAmount = assetToCredit(msg.sender, _subtractedValue);
+        uint256 scaledAmount = assetToCredit(_subtractedValue);
         _allowances[msg.sender][_spender] = (_allowances[msg.sender][_spender] >= scaledAmount) ? _allowances[msg.sender][_spender] - scaledAmount: 0;
         emit Approval(msg.sender, _spender, _allowances[msg.sender][_spender]);
         return true;
@@ -564,28 +507,37 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function _mint(address _account, uint256 _amount) internal nonReentrant {
         require(_account != address(0), "Mint to the zero address");
 
-        _beforeTokenTransfer(address(0), _account, _amount);
+        _sharesBalances[_account] += _amount;
 
-        bool isNonRebasingAccount = _isNonRebasingAccount(_account);
-
-        uint256 creditAmount = assetToCredit(_account, _amount);
+        uint256 creditAmount = assetToCredit(_amount);
         _creditBalances[_account] = _creditBalances[_account].add(creditAmount);
 
         // If the account is non rebasing and doesn't have a set creditsPerToken
         // then set it i.e. this is a mint from a fresh contract
-        if (isNonRebasingAccount) {
-            nonRebasingSupply = nonRebasingSupply.add(_amount);
-        } else {
-            _rebasingCredits = _rebasingCredits.add(creditAmount);
-        }
-
+        
+        _rebasingCredits = _rebasingCredits.add(creditAmount);
+        
         _totalSupply = _totalSupply.add(_amount);
+        _totalShares = _totalShares.add(_amount);
 
         require(_totalSupply <= MAX_SUPPLY, "Max supply");
 
-        _afterTokenTransfer(address(0), _account, _amount);
 
         emit Transfer(address(0), _account, _amount);
+    }
+
+    function burnShares(address _account) external notPaused onlyExchanger {
+        require(_account != address(0));
+
+        _totalShares -= _sharesBalances[_account];
+
+        _creditBalances[_account] = 0;
+
+        _rebasingCredits = _rebasingCredits.sub(_creditBalances[_account]);
+        
+        _totalSupply = _totalSupply.sub(creditToAsset(_creditBalances[_account]));
+
+        _sharesBalances[_account] = 0;
     }
 
     /**
@@ -608,27 +560,19 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      */
     function _burn(address _account, uint256 _amount) internal nonReentrant {
         require(_account != address(0), "Burn from the zero address");
+        require(_amount <= balanceOf(_account)); // shares number shant be included 
         if (_amount == 0) {
             emit Transfer(_account, address(0), _amount);
             return;
         }
 
-        _beforeTokenTransfer(_account, address(0), _amount);
+        uint256 creditAmount = assetToCredit(_amount);
+        _creditBalances[_account] = subCredits(_creditBalances[_account], creditAmount, "Burn amount exceeds balance");
 
-        bool isNonRebasingAccount = _isNonRebasingAccount(_account);
-        uint256 creditAmount = assetToCredit(_account, _amount);
-        _creditBalances[_account] = subCredits(_account, _creditBalances[_account], creditAmount, "Burn amount exceeds balance");
-
-        // Remove from the credit tallies and non-rebasing supply
-        if (isNonRebasingAccount) {
-            nonRebasingSupply = nonRebasingSupply.sub(_amount);
-        } else {
-            _rebasingCredits = _rebasingCredits.sub(creditAmount);
-        }
-
+        _rebasingCredits = _rebasingCredits.sub(creditAmount);
+        
         _totalSupply = _totalSupply.sub(_amount);
 
-        _afterTokenTransfer(_account, address(0), _amount);
 
         emit Transfer(_account, address(0), _amount);
     }
@@ -642,68 +586,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         internal
         view
         returns (uint256)
-    {
-        if (nonRebasingCreditsPerToken[_account] != 0) {
-            return nonRebasingCreditsPerToken[_account];
-        } else {
-            return _rebasingCreditsPerToken;
-        }
+    {    
+        return _rebasingCreditsPerToken;
     }
 
-    function _isNonRebasingAccount(address _account) internal returns (bool) {
-        return rebaseState[_account] == RebaseOptions.OptOut;
-    }
-
-    /**
-     * @dev Add a contract address to the non-rebasing exception list. The
-     * address's balance will be part of rebases and the account will be exposed
-     * to upside and downside.
-     */
-    function rebaseOptIn(address _address) public onlyPayoutManager notPaused nonReentrant {
-        require(_isNonRebasingAccount(_address), "Account has not opted out");
-
-        // Convert balance into the same amount at the current exchange rate
-        uint256 newCreditBalance = _creditBalances[_address]
-            .mul(_rebasingCreditsPerToken)
-            .div(_creditsPerToken(_address));
-
-        // Decreasing non rebasing supply
-        nonRebasingSupply = nonRebasingSupply.sub(balanceOf(_address));
-
-        _creditBalances[_address] = newCreditBalance;
-
-        // Increase rebasing credits, totalSupply remains unchanged so no
-        // adjustment necessary
-        _rebasingCredits = _rebasingCredits.add(newCreditBalance);
-
-        rebaseState[_address] = RebaseOptions.OptIn;
-
-        // Delete any fixed credits per token
-        delete nonRebasingCreditsPerToken[_address];
-
-        _nonRebaseOwners.remove(_address);
-    }
-
-    /**
-     * @dev Explicitly mark that an address is non-rebasing.
-     */
-    function rebaseOptOut(address _address) public onlyPayoutManager notPaused nonReentrant {
-        require(!_isNonRebasingAccount(_address), "Account has not opted in");
-
-        // Increase non rebasing supply
-        nonRebasingSupply = nonRebasingSupply.add(balanceOf(_address));
-        // Set fixed credits per token
-        nonRebasingCreditsPerToken[_address] = _rebasingCreditsPerToken;
-
-        // Decrease rebasing credits, total supply remains unchanged so no
-        // adjustment necessary
-        _rebasingCredits = _rebasingCredits.sub(_creditBalances[_address]);
-
-        // Mark explicitly opted out of rebasing
-        rebaseState[_address] = RebaseOptions.OptOut;
-
-        _nonRebaseOwners.add(_address);
-    }
 
     function changeNegativeSupply(uint256 _newTotalSupply) external onlyExchanger {
         _rebasingCreditsPerToken = _rebasingCredits.divPrecisely(_newTotalSupply);
@@ -721,7 +607,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         onlyExchanger
         nonReentrant
         notPaused
-        returns (NonRebaseInfo [] memory, uint256)
+        
     {
         require(_totalSupply > 0, "Cannot increase 0 supply");
         require(_newTotalSupply >= _totalSupply, 'negative rebase');
@@ -732,37 +618,25 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
                 _rebasingCredits,
                 _rebasingCreditsPerToken
             );
-            return (new NonRebaseInfo[](0), 0);
+            return;
         }
 
         uint256 delta = _newTotalSupply - _totalSupply;
-        uint256 deltaNR = delta * nonRebasingSupply / _totalSupply;
-        uint256 deltaR = delta - deltaNR;
+        
 
-        _totalSupply = _totalSupply + deltaR > MAX_SUPPLY
+        _totalSupply = _totalSupply + delta > MAX_SUPPLY
             ? MAX_SUPPLY
-            : _totalSupply + deltaR;
+            : _totalSupply + delta;
 
-        if (_totalSupply.sub(nonRebasingSupply) != 0) {
-            _rebasingCreditsPerToken = _rebasingCredits.divPrecisely( // TODO: remove depositor's supply from fraction
-                _totalSupply.sub(nonRebasingSupply)
-            );
-        }
+        _rebasingCreditsPerToken = _rebasingCredits.divPrecisely( 
+            _totalSupply
+        );
+        
 
         require(_rebasingCreditsPerToken > 0, "Invalid change in supply");
 
-        _totalSupply = _rebasingCredits
-            .divPrecisely(_rebasingCreditsPerToken)
-            .add(nonRebasingSupply);
 
-        NonRebaseInfo [] memory nonRebaseInfo = new NonRebaseInfo[](_nonRebaseOwners.length());
-        for (uint256 i = 0; i < nonRebaseInfo.length; i++) {
-            address userAddress = _nonRebaseOwners.at(i);
-            uint256 userBalance = balanceOf(userAddress);
-            uint256 userPart = (nonRebasingSupply != 0) ? userBalance * deltaNR / nonRebasingSupply : 0;
-            nonRebaseInfo[i].pool = userAddress;
-            nonRebaseInfo[i].amount = userPart;
-        }
+        
 
         emit TotalSupplyUpdatedHighres(
             _totalSupply,
@@ -770,7 +644,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             _rebasingCreditsPerToken
         );
 
-        return (nonRebaseInfo, deltaNR);
+
+        return;
     }
 
     function _beforeTokenTransfer(
@@ -782,34 +657,5 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     }
 
 
-    function _afterTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal {
-
-        if (from == to) {
-            return;
-        }
-
-        if (from == address(0)) {
-            // mint
-            _owners.add(to);
-        } else if (to == address(0)) {
-            // burn
-            if (balanceOf(from) == 0) {
-                _owners.remove(from);
-            }
-        } else {
-            // transfer
-            if (balanceOf(from) == 0) {
-                _owners.remove(from);
-            } else if (amount > 0) {
-                _owners.add(to);
-            }
-            if (amount > 0) {
-                _owners.add(to);
-            }
-        }
-    }
+    
 }

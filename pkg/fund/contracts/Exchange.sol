@@ -36,6 +36,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     IPortfolioManager public portfolioManager; //portfolio manager contract
     IMark2Market public mark2market;
 
+    uint256 totalDeposit;
+
     uint256 public buyFee;
     uint256 public buyFeeDenominator; // ~ 100 %
 
@@ -323,10 +325,10 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         SafeERC20.safeTransferFrom(usdc, msg.sender, address(portfolioManager), _amount);
         require(usdc.balanceOf(address(portfolioManager)) == _targetBalance, 'pm balance != target');
 
+        totalDeposit += _amount;
+
         portfolioManager.deposit();
         _requireOncePerBlock(false);
-
-
     }
 
     function withdraw(address _asset, uint256 _amount) external whenNotPaused nonReentrant onlyAdmin returns (uint256) { // for depositor
@@ -337,22 +339,17 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 redeemAmount = _rebaseToAsset(_amount);
         require(redeemAmount > 0, "Amount of asset is zero");
 
-        
-
         (, bool isBalanced) = portfolioManager.withdraw(redeemAmount);
         _requireOncePerBlock(isBalanced);
-
-        // Or just burn from sender
-        usdPlus.burn(msg.sender, _amount);
 
         require(usdc.balanceOf(address(this)) >= redeemAmount, "Not enough for transfer redeemAmount");
         SafeERC20.safeTransfer(usdc, msg.sender, redeemAmount);
 
-        emit EventExchange("redeem", redeemAmount, msg.sender);
+        totalDeposit -= _amount;
+
+        emit EventExchange("Withdraw", redeemAmount, msg.sender);
 
         return redeemAmount;
-
-
     }
 
     /**
@@ -512,14 +509,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return _amount;
     }
 
-    function negativeRebase() external onlyAdmin {
-        uint256 totalUsdPlus = usdPlus.totalSupply();
-        uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
-        require(totalUsdPlus > totalNav, 'supply > nav');        
-        usdPlus.changeNegativeSupply(totalNav);
-        require(usdPlus.totalSupply() == totalNav,'total != nav');
-    }
-
     /**
      * @dev Payout
      * The root method of protocol USD+
@@ -557,7 +546,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         portfolioManager.claimAndBalance();
 
-        uint256 totalUsdPlus = usdPlus.totalSupply();
+        uint256 totalUsdPlus = usdPlus.totalSupply() + totalDeposit;
         uint256 previousUsdPlus = totalUsdPlus;
 
         uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
@@ -607,7 +596,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
                 return int256(premium);
             }
 
-            delta = totalNav * LIQ_DELTA_DM / usdPlus.totalSupply();
+            delta = totalNav * LIQ_DELTA_DM / (usdPlus.totalSupply() + totalDeposit);
 
 
         }
@@ -617,7 +606,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         // - totalUsdPlus
         // - totalNav
 
-        totalUsdPlus = usdPlus.totalSupply();
+        totalUsdPlus = usdPlus.totalSupply() + totalDeposit;
         totalNav = _assetToRebase(mark2market.totalNetAssets());
 
         require(totalNav >= totalUsdPlus, 'negative rebase');
@@ -627,16 +616,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 expectedTotalUsdPlus = previousUsdPlus + profit;
 
-        (NonRebaseInfo [] memory nonRebaseInfo, uint256 nonRebaseDelta) = usdPlus.changeSupply(totalNav);
+        usdPlus.changeSupply(totalNav);
 
-        // notify listener about payout done
-        if (address(payoutManager) != address(0)) {
-            usdPlus.mint(address(payoutManager), nonRebaseDelta);
-            payoutManager.payoutDone(address(usdPlus), nonRebaseInfo);
-        }
+        
 
-        require(usdPlus.totalSupply() == totalNav, 'total != nav');
-        require(usdPlus.totalSupply() == expectedTotalUsdPlus, 'total != expected');
+        require(usdPlus.totalSupply() + totalDeposit == totalNav, 'total != nav');
+        require(usdPlus.totalSupply() + totalDeposit == expectedTotalUsdPlus, 'total != expected');
 
         emit PayoutEvent(
             profit
