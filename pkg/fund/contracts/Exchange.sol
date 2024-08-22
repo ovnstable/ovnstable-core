@@ -400,24 +400,19 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 assetAmount = _rebaseToAsset(_amount);
         require(assetAmount > 0, "Amount of asset is zero");
 
-        uint256 redeemFeeAmount;
-        uint256 redeemAmount;
-
-        (redeemAmount, redeemFeeAmount) = _takeFee(assetAmount, false);
-
-        (, bool isBalanced) = portfolioManager.withdraw(redeemAmount);
+        (, bool isBalanced) = portfolioManager.withdraw(assetAmount);
         _requireOncePerBlock(isBalanced);
 
         // Or just burn from sender
         usdPlus.burn(msg.sender, _amount);
         usdPlus.mint(msg.sender, _amount);
 
-        require(usdc.balanceOf(address(this)) >= redeemAmount, "Not enough for transfer redeemAmount");
-        SafeERC20.safeTransfer(usdc, msg.sender, redeemAmount);
+        require(usdc.balanceOf(address(this)) >= assetAmount, "Not enough for transfer assetAmount");
+        SafeERC20.safeTransfer(usdc, msg.sender, assetAmount);
 
-        emit EventExchange("redeem", redeemAmount, msg.sender);
+        emit EventExchange("redeem", assetAmount, msg.sender);
 
-        return redeemAmount;
+        return assetAmount;
     }
 
     /**
@@ -461,25 +456,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         }
 
         lastBlockNumber = blockNumber;
-    }
-
-    function _takeFee(uint256 _amount, bool isBuy) internal view returns (uint256, uint256){
-
-        uint256 fee;
-        uint256 feeDenominator;
-
-        if (isBuy) {
-            fee = buyFee;
-            feeDenominator = buyFeeDenominator;
-        } else {
-            fee = redeemFee;
-            feeDenominator = redeemFeeDenominator;
-        }
-
-        uint256 feeAmount = (_amount * fee) / feeDenominator;
-        uint256 resultAmount = _amount - feeAmount;
-
-        return (resultAmount, feeAmount);
     }
 
 
@@ -528,8 +504,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      * @param simulate - allow to get amount loss/premium for prepare swapData (call.static)
      * @param swapData - Odos swap data for swapping OVN->asset or asset->OVN in Insurance
      */
-
-
     function payout(bool simulate, IInsuranceExchange.SwapData memory swapData) external whenNotPaused onlyUnit nonReentrant returns (int256 swapAmount) {
         
         require(address(payoutManager) != address(0) || usdPlus.nonRebaseOwnersLength() == 0, "Need to specify payoutManager address");
@@ -550,7 +524,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 previousUsdPlus = totalUsdPlus;
 
         uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
-        uint256 excessProfit;
         uint256 premium;
         uint256 loss;
 
@@ -566,9 +539,9 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             loss = totalUsdPlus - totalNav;
             uint256 oracleLossAmount = totalUsdPlus * oracleLoss / oracleLossDenominator;
 
-            if(loss <= oracleLossAmount) {
+            if (loss <= oracleLossAmount) {
                 revert('OracleLoss');
-            }else {
+            } else {
                 loss += totalUsdPlus * compensateLoss / compensateLossDenominator;
                 loss = _rebaseToAsset(loss);
                 if (simulate) {
@@ -588,17 +561,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
             // 2. Pay premium to Insurance
             // 3. If profit more max delta then transfer excess profit to OVN wallet
 
-            
-
-            
-
-            if (simulate) {
-                return int256(premium);
-            }
-
             delta = totalNav * LIQ_DELTA_DM / (usdPlus.totalSupply() + totalDeposit);
-
-
         }
 
 
@@ -616,7 +579,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         uint256 expectedTotalUsdPlus = previousUsdPlus + profit;
 
-        usdPlus.changeSupply(totalNav);
+        usdPlus.changeSupply(totalNav, totalDeposit);
 
         
 

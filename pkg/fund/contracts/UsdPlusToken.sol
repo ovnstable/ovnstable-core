@@ -30,7 +30,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     uint256 private constant _ENTERED = 2;
 
     mapping(address => uint256) private _creditBalances;
-    
     mapping(address => uint256) private _sharesBalances;
 
     mapping(address => mapping(address => uint256)) private _allowances;
@@ -38,11 +37,14 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     uint256 private _totalSupply;
     uint256 private _totalShares;
 
+    EnumerableSet.AddressSet owners;
+
     string private _name;
     string private _symbol;
 
     uint256 private _rebasingCredits;
     uint256 private _rebasingCreditsPerToken;
+
 
     uint256 public nonRebasingSupply;
 
@@ -149,7 +151,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         emit RoleManagerUpdated(_roleManager);
     }
 
-
     function pause() public onlyPortfolioAgent {
         paused = true;
     }
@@ -198,7 +199,16 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * @return The total supply of USD+.
      */
     function totalSupply() public view override returns (uint256) {
-        return _totalSupply - _totalShares;
+        return _totalSupply;
+    }
+
+    function ownersLength() public view returns (uint256) {
+        return owners.length();
+    }
+
+
+    function ownerAt(uint256 index) external view returns (address) {
+        return owners.at(index);
     }
 
     /**
@@ -228,7 +238,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         returns (uint256)
     {
         if (_sharesBalances[_account] != 0) {
-            return creditToAsset(_creditBalances[_account]) - _sharesBalances[_account]; 
+            return creditToAsset(_creditBalances[_account]); 
         }
         return 0;
     }
@@ -253,7 +263,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         view
         returns (uint256, uint256)
     {
-        uint256 cpt = _creditsPerToken(_account);
+        uint256 cpt = _creditsPerToken();
         if (cpt == 1e27) {
             // For a period before the resolution upgrade, we created all new
             // contract accounts at high resolution. Since they are not changing
@@ -282,7 +292,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     {
         return (
             _creditBalances[_account],
-            _creditsPerToken(_account)
+            _creditsPerToken()
         );
     }
 
@@ -397,8 +407,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         uint256 _value
     ) internal {
 
-        _beforeTokenTransfer(_from, _to, _value);
-
         uint256 creditsCredited = assetToCredit(_value);
         uint256 creditsDeducted = assetToCredit(_value);
 
@@ -494,20 +502,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _mint(_account, _amount);
     }
 
-    /**
-     * @dev Creates `_amount` tokens and assigns them to `_account`, increasing
-     * the total supply.
-     *
-     * Emits a {Transfer} event with `from` set to the zero address.
-     *
-     * Requirements
-     *
-     * - `to` cannot be the zero address.
-     */
     function _mint(address _account, uint256 _amount) internal nonReentrant {
         require(_account != address(0), "Mint to the zero address");
-
-        _sharesBalances[_account] += _amount;
 
         uint256 creditAmount = assetToCredit(_amount);
         _creditBalances[_account] = _creditBalances[_account].add(creditAmount);
@@ -518,26 +514,42 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _rebasingCredits = _rebasingCredits.add(creditAmount);
         
         _totalSupply = _totalSupply.add(_amount);
-        _totalShares = _totalShares.add(_amount);
 
         require(_totalSupply <= MAX_SUPPLY, "Max supply");
 
+        _afterTokenTransfer(address(0), _account, _amount);
 
         emit Transfer(address(0), _account, _amount);
     }
 
-    function burnShares(address _account) external notPaused onlyExchanger {
+    /**
+     * @dev Creates `_amount` tokens and assigns them to `_account`, increasing
+     * the total supply.
+     *
+     * Emits a {Transfer} event with `from` set to the zero address.
+     *
+     * Requirements
+     *
+     * - `to` cannot be the zero address.
+     */
+    function giveShares(address _account, uint256 _amount) internal nonReentrant {
+        require(_account != address(0), "Mint to the zero address");
+
+        _sharesBalances[_account] += _amount;
+        
+        _totalShares = _totalShares.add(_amount);
+
+        _afterTokenTransfer(address(0), _account, _amount);
+
+        emit Transfer(address(0), _account, _amount);
+    }
+
+    function burnShares(address _account, uint256 _amount) external notPaused onlyExchanger {
         require(_account != address(0));
 
-        _totalShares -= _sharesBalances[_account];
+        _totalShares -= _amount;       
 
-        _creditBalances[_account] = 0;
-
-        _rebasingCredits = _rebasingCredits.sub(_creditBalances[_account]);
-        
-        _totalSupply = _totalSupply.sub(creditToAsset(_creditBalances[_account]));
-
-        _sharesBalances[_account] = 0;
+        _sharesBalances[_account] -= _amount;
     }
 
     /**
@@ -573,6 +585,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         
         _totalSupply = _totalSupply.sub(_amount);
 
+        _afterTokenTransfer(_account, address(0), _amount);
 
         emit Transfer(_account, address(0), _amount);
     }
@@ -580,9 +593,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Get the credits per token for an account. Returns a fixed amount
      *      if the account is non-rebasing.
-     * @param _account Address of the account.
      */
-    function _creditsPerToken(address _account)
+    function _creditsPerToken()
         internal
         view
         returns (uint256)
@@ -590,19 +602,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return _rebasingCreditsPerToken;
     }
 
-
-    function changeNegativeSupply(uint256 _newTotalSupply) external onlyExchanger {
-        _rebasingCreditsPerToken = _rebasingCredits.divPrecisely(_newTotalSupply);
-        require(_rebasingCreditsPerToken > 0, "Invalid change in supply");
-        _totalSupply = _rebasingCredits.divPrecisely(_rebasingCreditsPerToken);
-    }
-
     /**
      * @dev Modify the supply without minting new tokens. This uses a change in
      *      the exchange rate between "credits" and USD+ tokens to change balances.
      * @param _newTotalSupply New total supply of USD+.
      */
-    function changeSupply(uint256 _newTotalSupply)
+    function changeSupply(uint256 _newTotalSupply, uint256 _totalDeposit)
         external
         onlyExchanger
         nonReentrant
@@ -610,7 +615,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         
     {
         require(_totalSupply > 0, "Cannot increase 0 supply");
-        require(_newTotalSupply >= _totalSupply, 'negative rebase');
+        require(_newTotalSupply >= _totalSupply + _totalDeposit, 'negative rebase');
 
         if (_totalSupply == _newTotalSupply) {
             emit TotalSupplyUpdatedHighres(
@@ -621,12 +626,21 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             return;
         }
 
-        uint256 delta = _newTotalSupply - _totalSupply;
-        
+        uint256 delta = _newTotalSupply - _totalSupply - _totalDeposit;
 
-        _totalSupply = _totalSupply + delta > MAX_SUPPLY
+        uint256 baseDelta = delta * _totalDeposit / (_totalSupply + _totalDeposit);
+        uint256 teamDelta = delta - baseDelta;
+        
+        uint256 ownersCount = ownersLength();
+
+        for(uint256 i = 0; i < ownersCount; i++) {
+            address curOwner = owners.at(i); 
+            _mint(curOwner, _sharesBalances[curOwner] * baseDelta / _totalShares);
+        }
+
+        _totalSupply = _totalSupply + teamDelta > MAX_SUPPLY
             ? MAX_SUPPLY
-            : _totalSupply + delta;
+            : _totalSupply + teamDelta;
 
         _rebasingCreditsPerToken = _rebasingCredits.divPrecisely( 
             _totalSupply
@@ -636,26 +650,44 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         require(_rebasingCreditsPerToken > 0, "Invalid change in supply");
 
 
-        
-
         emit TotalSupplyUpdatedHighres(
             _totalSupply,
             _rebasingCredits,
             _rebasingCreditsPerToken
         );
 
-
         return;
     }
 
-    function _beforeTokenTransfer(
+    function _afterTokenTransfer(
         address from,
         address to,
         uint256 amount
     ) internal {
 
+        if (from == to) {
+            return;
+        }
+
+        if (from == address(0)) {
+            // mint
+            owners.add(to);
+        } else if (to == address(0)) {
+            // burn
+            if (balanceOf(from) == 0) {
+                owners.remove(from);
+            }
+        } else {
+            // transfer
+            if (balanceOf(from) == 0) {
+                owners.remove(from);
+            } else if (amount > 0) {
+                owners.add(to);
+            }
+            if (amount > 0) {
+                owners.add(to);
+            }
+        }
     }
-
-
     
 }
