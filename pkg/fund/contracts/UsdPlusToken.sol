@@ -2,9 +2,10 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
@@ -16,7 +17,7 @@ import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
 
 
-contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract UsdPlusToken is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeMath for uint256;
@@ -26,9 +27,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     uint256 private constant MAX_SUPPLY = type(uint256).max;
     uint256 private constant RESOLUTION_INCREASE = 1e9;
-    uint256 private constant _NOT_ENTERED = 1;
-    uint256 private constant _ENTERED = 2;
-
+    
     mapping(address => uint256) private _creditBalances;
     mapping(address => uint256) private _sharesBalances;
 
@@ -45,23 +44,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     uint256 private _rebasingCredits;
     uint256 private _rebasingCreditsPerToken;
 
-
-    uint256 public nonRebasingSupply;
-
     address public exchange;
     uint8 private _decimals;
     address public payoutManager;
-
-    uint256 private _status; // ReentrancyGuard
-    bool public paused;
+    
     IRoleManager public roleManager;
-
-    modifier nonReentrant() {
-        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
-        _status = _ENTERED;
-        _;
-        _status = _NOT_ENTERED;
-    }
 
     event TotalSupplyUpdatedHighres(
         uint256 totalSupply,
@@ -69,15 +56,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         uint256 rebasingCreditsPerToken
     );
 
-    enum RebaseOptions {
-        OptIn,
-        OptOut
-    }
-
     event ExchangerUpdated(address exchanger);
     event PayoutManagerUpdated(address payoutManager);
     event RoleManagerUpdated(address roleManager);
-
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -105,6 +86,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     override
     {}
 
+    // ==========================================================================
+    // ============================MODIFIERS=====================================
+    // ==========================================================================
+
     /**
      * @dev Verifies that the caller is the Exchanger contract
      */
@@ -128,10 +113,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _;
     }
 
-    modifier notPaused() {
-        require(!paused, "pause");
-        _;
-    }
+    // ==========================================================================
+    // ==============================SETTERS=====================================
+    // ==========================================================================
+
 
     function setExchanger(address _exchanger) external onlyAdmin {
         require(_exchanger != address(0), 'exchange is zero');
@@ -151,17 +136,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         emit RoleManagerUpdated(_roleManager);
     }
 
-    function pause() public onlyPortfolioAgent {
-        paused = true;
-    }
-
-    function unpause() public onlyPortfolioAgent {
-        paused = false;
-    }
-
-    function isPaused() external view returns (bool) {
-        return paused;
-    }
+    // ==========================================================================
+    // ==============================ERC-20 DATA=================================
+    // ==========================================================================
 
     /**
      * @notice Returns the name of the token.
@@ -202,14 +179,28 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return _totalSupply;
     }
 
+
+    /**
+     * @dev Gets the balance of the specified address.
+     * @param _account Address to query the balance of.
+     * @return A uint256 representing the amount of base units owned by the
+     *         specified address.
+     */
+    function balanceOf(address _account)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _creditBalances[_account] != 0 ? creditToAsset(_creditBalances[_account]) : 0;
+    }
+
+
     function ownersLength() public view returns (uint256) {
         return owners.length();
     }
 
 
-    function ownerAt(uint256 index) external view returns (address) {
-        return owners.at(index);
-    }
 
     /**
      * @return High resolution rebasingCreditsPerToken
@@ -225,23 +216,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return _rebasingCredits;
     }
 
-    /**
-     * @dev Gets the balance of the specified address.
-     * @param _account Address to query the balance of.
-     * @return A uint256 representing the amount of base units owned by the
-     *         specified address.
-     */
-    function balanceOf(address _account)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        if (_sharesBalances[_account] != 0) {
-            return creditToAsset(_creditBalances[_account]); 
-        }
-        return 0;
-    }
+    
 
     function sharesBalanceOf(address _account) 
         public
@@ -305,7 +280,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function transfer(address _to, uint256 _value)
         public
         override
-        notPaused
+        whenNotPaused
         returns (bool)
     {
         require(_to != address(0), "Transfer to zero address");
@@ -380,7 +355,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         address _from,
         address _to,
         uint256 _value
-    ) public override notPaused returns (bool) {
+    ) public override whenNotPaused returns (bool) {
         require(_to != address(0), "Transfer to zero address");
         require(_value <= balanceOf(_from), "Transfer greater than balance");
 
@@ -448,7 +423,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function approve(address _spender, uint256 _value)
         public
         override
-        notPaused
+        whenNotPaused
         returns (bool)
     {
         uint256 scaledAmount = assetToCredit(_value);
@@ -467,7 +442,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      */
     function increaseAllowance(address _spender, uint256 _addedValue)
         public
-        notPaused
+        whenNotPaused
         returns (bool)
     {
         uint256 scaledAmount = assetToCredit(_addedValue);
@@ -486,7 +461,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      */
     function decreaseAllowance(address _spender, uint256 _subtractedValue)
         public
-        notPaused
+        whenNotPaused
         returns (bool)
     {
         uint256 scaledAmount = assetToCredit(_subtractedValue);
@@ -498,7 +473,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Mints new tokens, increasing totalSupply.
      */
-    function mint(address _account, uint256 _amount) external notPaused onlyAdmin {
+    function mint(address _account, uint256 _amount) external whenNotPaused onlyAdmin {
         _mint(_account, _amount);
     }
 
@@ -544,7 +519,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         emit Transfer(address(0), _account, _amount);
     }
 
-    function burnShares(address _account, uint256 _amount) external notPaused onlyExchanger {
+    function burnShares(address _account, uint256 _amount) external whenNotPaused onlyExchanger {
         require(_account != address(0));
 
         _totalShares -= _amount;       
@@ -555,7 +530,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Burns tokens, decreasing totalSupply.
      */
-    function burn(address account, uint256 amount) external notPaused onlyExchanger {
+    function burn(address account, uint256 amount) external whenNotPaused onlyExchanger {
         _burn(account, amount);
     }
 
@@ -611,7 +586,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         external
         onlyExchanger
         nonReentrant
-        notPaused
+        whenNotPaused
         
     {
         require(_totalSupply > 0, "Cannot increase 0 supply");

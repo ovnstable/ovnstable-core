@@ -7,42 +7,31 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import "./interfaces/IInsuranceExchange.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IBlockGetter.sol";
-import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IUsdPlusToken.sol";
 
 
-contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
+contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
     uint256 public constant LIQ_DELTA_DM   = 1e6;
-    uint256 public constant FISK_FACTOR_DM = 1e5;
-
-    uint256 private constant _NOT_ENTERED = 1;
-    uint256 private constant _ENTERED = 2;
 
     // ---  fields
 
     IUsdPlusToken public usdPlus;
     IERC20 public usdc; // asset name
 
-    IPortfolioManager public portfolioManager; //portfolio manager contract
+    IPortfolioManager public portfolioManager; // portfolio manager contract
     IMark2Market public mark2market;
 
     uint256 totalDeposit;
-
-    uint256 public buyFee;
-    uint256 public buyFeeDenominator; // ~ 100 %
-
-    uint256 public redeemFee;
-    uint256 public redeemFeeDenominator; // ~ 100 %
 
     // next payout time in epoch seconds
     uint256 public nextPayoutTime;
@@ -57,33 +46,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     //    then payouts started by any next buy/redeem
     uint256 public payoutTimeRange;
 
-    IPayoutManager public payoutManager;
-
     // last block number when buy/redeem was executed
     uint256 public lastBlockNumber;
 
-    uint256 public abroadMin; // deprecated and not used in current version
-    uint256 public abroadMax;
-
-    address public insurance;
-
-    uint256 public oracleLoss;
-    uint256 public oracleLossDenominator;
-
-    uint256 public compensateLoss;
-    uint256 public compensateLossDenominator;
-
-    address public profitRecipient;
-
     address public blockGetter;
     IRoleManager public roleManager;
-
-    uint256 private _reentrancyGuardStatus;
-
-    bool public deprecated;
-
-    uint256 public profitFee;
-    uint256 public profitFeeDenominator;
 
     // ---  events
 
@@ -115,13 +82,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // ---  modifiers
 
-    modifier nonReentrant() {
-        require(_reentrancyGuardStatus != _ENTERED, "ReentrancyGuard: reentrant call");
-        _reentrancyGuardStatus = _ENTERED;
-        _;
-        _reentrancyGuardStatus = _NOT_ENTERED;
-    }
-
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
         _;
@@ -151,28 +111,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        buyFee = 40;
-        // ~ 100 %
-        buyFeeDenominator = 100000;
-
-        redeemFee = 40;
-        // ~ 100 %
-        redeemFeeDenominator = 100000;
-
         // 1637193600 = 2021-11-18T00:00:00Z
-        nextPayoutTime = 1637193600;
+        nextPayoutTime = 1637193600; // TODO: change
 
-        payoutPeriod = 24 * 60 * 60;
+        payoutPeriod = 24 * 60 * 60 * 30;
 
-        payoutTimeRange = 24 * 60 * 60; // 24 hours
-
-        abroadMax = 1000350;
-
-        oracleLossDenominator = 100000;
-        compensateLossDenominator = 100000;
-
-        profitFee = 20000; // 20%
-        profitFeeDenominator = 100000;
+        payoutTimeRange = 24 * 60 * 60 * 30; // 24 hours * 30
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -210,68 +154,13 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         emit RoleManagerUpdated(_roleManager);
     }
 
-    function setPayoutManager(address _payoutManager) external onlyAdmin {
-        payoutManager = IPayoutManager(_payoutManager);
-        emit PayoutManagerUpdated(_payoutManager);
-    }
-
     function setBlockGetter(address _blockGetter) external onlyAdmin {
         // blockGetter can be empty
         blockGetter = _blockGetter;
         emit BlockGetterUpdated(_blockGetter);
     }
 
-    function setProfitRecipient(address _profitRecipient) external onlyAdmin {
-        require(_profitRecipient != address(0), "Zero address not allowed");
-        profitRecipient = _profitRecipient;
-        emit ProfitRecipientUpdated(_profitRecipient);
-    }
-
     // ---  setters Portfolio Manager
-
-    function setBuyFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
-        require(_feeDenominator != 0, "Zero denominator not allowed");
-        require(_feeDenominator >= _fee, "fee > denominator");
-        buyFee = _fee;
-        buyFeeDenominator = _feeDenominator;
-        emit BuyFeeUpdated(buyFee, buyFeeDenominator);
-    }
-
-    function setRedeemFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
-        require(_feeDenominator != 0, "Zero denominator not allowed");
-        require(_feeDenominator >= _fee, "fee > denominator");
-        redeemFee = _fee;
-        redeemFeeDenominator = _feeDenominator;
-        emit RedeemFeeUpdated(redeemFee, redeemFeeDenominator);
-    }
-
-    function setProfitFee(uint256 _fee, uint256 _feeDenominator) external onlyPortfolioAgent {
-        require(_feeDenominator != 0, "Zero denominator not allowed");
-        require(_feeDenominator >= _fee, "fee > denominator");
-        profitFee = _fee;
-        profitFeeDenominator = _feeDenominator;
-        emit ProfitFeeUpdated(profitFee, profitFeeDenominator);
-    }
-
-    function setOracleLoss(uint256 _oracleLoss,  uint256 _denominator) external onlyPortfolioAgent {
-        require(_denominator != 0, "Zero denominator not allowed");
-        oracleLoss = _oracleLoss;
-        oracleLossDenominator = _denominator;
-        emit OracleLossUpdate(_oracleLoss, _denominator);
-    }
-
-    function setCompensateLoss(uint256 _compensateLoss,  uint256 _denominator) external onlyPortfolioAgent {
-        require(_denominator != 0, "Zero denominator not allowed");
-        compensateLoss = _compensateLoss;
-        compensateLossDenominator = _denominator;
-        emit CompensateLossUpdate(_compensateLoss, _denominator);
-    }
-
-
-    function setMaxAbroad(uint256 _max) external onlyPortfolioAgent {
-        abroadMax = _max;
-        emit MaxAbroad(abroadMax);
-    }
 
     function setPayoutTimes(
         uint256 _nextPayoutTime,
@@ -288,9 +177,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     // ---  logic
-    function setDeprecated(bool _deprecated) public onlyAdmin {
-        deprecated = _deprecated;
-    }  
 
     function pause() public onlyPortfolioAgent {
         _pause();
@@ -499,24 +385,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
      * What the Insurance to do?
      * If USD+ has Loss then Exchange coverts the loss through Insurance
      * if USD+ has profit then Exchange send premium amount to Insurance
-     *
-     * Explain params:
-     * @param simulate - allow to get amount loss/premium for prepare swapData (call.static)
-     * @param swapData - Odos swap data for swapping OVN->asset or asset->OVN in Insurance
      */
-    function payout(bool simulate, IInsuranceExchange.SwapData memory swapData) external whenNotPaused onlyUnit nonReentrant returns (int256 swapAmount) {
-        
-        require(address(payoutManager) != address(0) || usdPlus.nonRebaseOwnersLength() == 0, "Need to specify payoutManager address");
+    function payout() external whenNotPaused onlyUnit nonReentrant returns (int256 swapAmount) {
 
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return 0;
         }
-
-        // 0. call claiming reward and balancing on PM
-        // 1. get current amount of USD+
-        // 2. get total sum of asset we can get from any source
-        // 3. calc difference between total count of USD+ and asset
-        // 4. update USD+ liquidity index
 
         portfolioManager.claimAndBalance();
 
@@ -524,43 +398,14 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 previousUsdPlus = totalUsdPlus;
 
         uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
-        uint256 premium;
         uint256 loss;
 
         uint256 delta;
 
         if (totalUsdPlus > totalNav) {
-
-            // Negative rebase
-            // USD+ have loss and we need to execute next steps:
-            // 1. Loss may be related to oracles: we wait
-            // 2. Loss is real then compensate all loss + [1] bps
-
             loss = totalUsdPlus - totalNav;
-            uint256 oracleLossAmount = totalUsdPlus * oracleLoss / oracleLossDenominator;
-
-            if (loss <= oracleLossAmount) {
-                revert('OracleLoss');
-            } else {
-                loss += totalUsdPlus * compensateLoss / compensateLossDenominator;
-                loss = _rebaseToAsset(loss);
-                if (simulate) {
-                    return -int256(loss);
-                }
-                if (swapData.amountIn != 0) {
-                    // IInsuranceExchange(insurance).compensate(swapData, loss, address(portfolioManager));
-                    portfolioManager.deposit();
-                }
-            }
-
+            revert();
         } else {
-
-            // Positive rebase
-            // USD+ have profit and we need to execute next steps:
-            // 1. Pay premium to profitRecipient
-            // 2. Pay premium to Insurance
-            // 3. If profit more max delta then transfer excess profit to OVN wallet
-
             delta = totalNav * LIQ_DELTA_DM / (usdPlus.totalSupply() + totalDeposit);
         }
 
@@ -610,7 +455,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     function getAvailabilityInfo() external view returns(uint256 _available, bool _paused, bool _deprecated) {
         _paused = paused() || usdPlus.isPaused();
-        _deprecated = deprecated;
 
         IPortfolioManager.StrategyWeight[] memory weights = portfolioManager.getAllStrategyWeights();
         uint256 count = weights.length;
