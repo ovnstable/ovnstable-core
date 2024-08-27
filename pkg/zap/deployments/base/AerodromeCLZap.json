@@ -942,6 +942,10 @@
             {
               "type": "uint256[]",
               "name": "poolProportionsUsd"
+            },
+            {
+              "type": "uint256[]",
+              "name": "outputSwapExpected"
             }
           ]
         }
@@ -980,6 +984,20 @@
               "name": "price"
             }
           ]
+        },
+        {
+          "type": "tuple[]",
+          "name": "prices",
+          "components": [
+            {
+              "type": "address",
+              "name": "tokenAddress"
+            },
+            {
+              "type": "uint256",
+              "name": "price"
+            }
+          ]
         }
       ],
       "outputs": [
@@ -1010,6 +1028,10 @@
             {
               "type": "uint256[]",
               "name": "poolProportionsUsd"
+            },
+            {
+              "type": "uint256[]",
+              "name": "outputSwapExpected"
             }
           ]
         }
@@ -1211,6 +1233,10 @@
                 {
                   "type": "address",
                   "name": "receiver"
+                },
+                {
+                  "type": "uint256",
+                  "name": "amountMin"
                 }
               ]
             },
@@ -1299,6 +1325,10 @@
                 {
                   "type": "address",
                   "name": "receiver"
+                },
+                {
+                  "type": "uint256",
+                  "name": "amountMin"
                 }
               ]
             },
@@ -1369,6 +1399,10 @@
                 {
                   "type": "address",
                   "name": "receiver"
+                },
+                {
+                  "type": "uint256",
+                  "name": "amountMin"
                 }
               ]
             },

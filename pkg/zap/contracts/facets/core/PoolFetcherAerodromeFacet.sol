@@ -35,6 +35,7 @@ contract PoolFetcherAerodromeFacet is IPoolFetcherFacet {
             result[j].tickSpacing = pool.tickSpacing();
             result[j].fee = pool.fee();
             result[j].gauge = pool.gauge();
+
             (result[j].amount0, result[j].amount1) = getPoolAmounts(pool);
             result[j].price = master.getCurrentPrice(result[j].poolId);
         }
@@ -55,9 +56,10 @@ contract PoolFetcherAerodromeFacet is IPoolFetcherFacet {
         });
     }
 
-    function getPoolAmounts(ICLPool pool) internal view returns (uint256, uint256) {
-        (uint160 sqrtRatioX96,,,,,) = pool.slot0();
-        uint128 liquidity = pool.liquidity();
-        return LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, TickMath.MIN_SQRT_RATIO, TickMath.MAX_SQRT_RATIO, liquidity);
+    function getPoolAmounts(ICLPool pool) internal view returns (uint256 amount0, uint256 amount1) {
+        IERC20 token0 = IERC20(pool.token0());
+        IERC20 token1 = IERC20(pool.token1());
+        amount0 = token0.balanceOf(address(pool));
+        amount1 = token1.balanceOf(address(pool));
     }
 }

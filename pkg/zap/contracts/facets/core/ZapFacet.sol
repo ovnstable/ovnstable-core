@@ -187,20 +187,23 @@ contract ZapFacet is IZapFacet {
         require(success, "router swap invalid");
 
         // Emit events
-        address[] memory tokensIn = new address[](swapData.inputs.length);
-        uint256[] memory amountsIn = new uint256[](swapData.inputs.length);
-        for (uint256 i = 0; i < swapData.inputs.length; i++) {
-            tokensIn[i] = swapData.inputs[i].tokenAddress;
-            amountsIn[i] = swapData.inputs[i].amountIn;
-        }
-        emit InputTokens(amountsIn, tokensIn);
 
         address[] memory tokensOut = new address[](swapData.outputs.length);
         uint256[] memory amountsOut = new uint256[](swapData.outputs.length);
         for (uint256 i = 0; i < swapData.outputs.length; i++) {
             tokensOut[i] = swapData.outputs[i].tokenAddress;
             amountsOut[i] = IERC20(tokensOut[i]).balanceOf(swapData.outputs[i].receiver);
+            require(amountsOut[i] < swapData.outputs[i].amountMin, "below min swap amount");
         }
+
+        address[] memory tokensIn = new address[](swapData.inputs.length);
+        uint256[] memory amountsIn = new uint256[](swapData.inputs.length);
+        for (uint256 i = 0; i < swapData.inputs.length; i++) {
+            tokensIn[i] = swapData.inputs[i].tokenAddress;
+            amountsIn[i] = swapData.inputs[i].amountIn;
+        }
+
+        emit InputTokens(amountsIn, tokensIn);
         emit OutputTokens(amountsOut, tokensOut);
         return (tokensOut, amountsOut);
     }

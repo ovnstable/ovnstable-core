@@ -11,6 +11,7 @@ interface IZapFacet {
     struct OutputToken {
         address tokenAddress;
         address receiver;
+        uint256 amountMin;
     }
 
     struct InputToken {

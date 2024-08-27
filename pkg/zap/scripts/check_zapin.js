@@ -33,20 +33,32 @@ async function main() {
     console.log("tickRange", tickRange);
     let inputTokens = [
         {
-            tokenAddress: "0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA",
-            price: "1001339157528039300",
-            amount: toE6(0.0001),
+            tokenAddress: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+            price: toE18(1),
+            amount: toE6(1000),
+        }
+    ];
+    let prices = [
+        {
+            tokenAddress: "0x4200000000000000000000000000000000000006",
+            price: toE18(2400),
+        },
+        {
+            tokenAddress: "0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376",
+            price: toE18(1),
         }
     ];
     let token0 = await (await getERC20("usdbc")).connect(account);
     await (await token0.approve(zap.address, toE18(10000))).wait();
 
-    let result = await zap.getProportionForZap(poolId, tickRange, inputTokens);
+    let result = await zap.getProportionForZap(poolId, tickRange, inputTokens, prices);
     console.log("inputTokenAddresses:", result.inputTokenAddresses);
     console.log("inputTokenAmounts:", result.inputTokenAmounts.map((x) => x.toString()));
     console.log("outputTokenAddresses:", result.outputTokenAddresses);
     console.log("outputTokenProportions:", result.outputTokenProportions.map((x) => x.toString()));
     console.log("outputTokenAmounts:", result.outputTokenAmounts.map((x) => x.toString()));
+    console.log("outputSwapExpected:", result.outputSwapExpected.map((x) => x.toString()));
+    return;
 
     let proportions = {
         "inputTokens": result.inputTokenAddresses.map((e, i) => ({
