@@ -193,7 +193,7 @@ contract ZapFacet is IZapFacet {
         for (uint256 i = 0; i < swapData.outputs.length; i++) {
             tokensOut[i] = swapData.outputs[i].tokenAddress;
             amountsOut[i] = IERC20(tokensOut[i]).balanceOf(swapData.outputs[i].receiver);
-            require(amountsOut[i] < swapData.outputs[i].amountMin, "below min swap amount");
+            require(amountsOut[i] >= swapData.outputs[i].amountMin, "below min swap amount");
         }
 
         address[] memory tokensIn = new address[](swapData.inputs.length);
