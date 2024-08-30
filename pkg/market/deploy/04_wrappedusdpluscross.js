@@ -8,9 +8,9 @@ module.exports = async ({deployments}) => {
     const {save} = deployments;
 
     let roleManager = {address:ZERO_ADDRESS};//await getContract('RoleManager');
-    let params = {args: [ZERO_ADDRESS, "Wrapped USDx", "wUSDx", 6, roleManager.address]};
+    let params = {args: [ZERO_ADDRESS, "Wrapped xUSD", "wxUSD", 6, roleManager.address]};
 
-    // await deployProxy('WrappedCrossUsdPlusToken', deployments, save, params);
+    await deployProxy('WrappedCrossUsdPlusToken', deployments, save, params);
     console.log("WrappedCrossUsdPlusToken created");
 
     let wrappedCrossUsdPlusToken = await ethers.getContract('WrappedCrossUsdPlusToken');
