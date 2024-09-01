@@ -24,6 +24,9 @@ contract ZapFacet is IZapFacet {
 
     receive() external payable {}
 
+    error BelowAmountMin(address tokenAddress, uint256 amountMin, uint256 amountReceived);
+
+
     function zapIn(SwapData memory swapData, ZapInParams memory paramsData) external {
         _zapIn(swapData, paramsData, true, 0);
     }
@@ -193,7 +196,13 @@ contract ZapFacet is IZapFacet {
         for (uint256 i = 0; i < swapData.outputs.length; i++) {
             tokensOut[i] = swapData.outputs[i].tokenAddress;
             amountsOut[i] = IERC20(tokensOut[i]).balanceOf(swapData.outputs[i].receiver);
-            require(amountsOut[i] >= swapData.outputs[i].amountMin, "below min swap amount");
+            if (amountsOut[i] < swapData.outputs[i].amountMin) {
+                revert BelowAmountMin({
+                    tokenAddress: tokensOut[i],
+                    amountMin: swapData.outputs[i].amountMin,
+                    amountReceived: amountsOut[i]
+                });
+            }
         }
 
         address[] memory tokensIn = new address[](swapData.inputs.length);

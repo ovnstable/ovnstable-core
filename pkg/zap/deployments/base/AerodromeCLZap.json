@@ -1118,6 +1118,24 @@
       ]
     },
     {
+      "type": "error",
+      "name": "BelowAmountMin",
+      "inputs": [
+        {
+          "type": "address",
+          "name": "tokenAddress"
+        },
+        {
+          "type": "uint256",
+          "name": "amountMin"
+        },
+        {
+          "type": "uint256",
+          "name": "amountReceived"
+        }
+      ]
+    },
+    {
       "type": "event",
       "anonymous": false,
       "name": "InputTokens",
