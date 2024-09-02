@@ -2,7 +2,7 @@ const {
     getContract,
     showM2M,
     showRewardsFromPayout, execTimelock, findEvent, showPoolOperationsFromPayout, showPayoutEvent, transferETH,
-    getWalletAddress, showProfitOnRewardWallet, getPrice
+    getWalletAddress, showProfitOnRewardWallet, getPrice, impersonateAccount
 } = require("@overnight-contracts/common/utils/script-utils");
 const {fromE6, fromAsset, fromUsdPlus} = require("@overnight-contracts/common/utils/decimals");
 const {COMMON} = require("@overnight-contracts/common/utils/assets");
@@ -38,9 +38,15 @@ async function main() {
     let exchange = await getContract('Exchange');
     let typePayout = getTypePayout();
 
-    if (hre.network.name === 'localhost'){
+    if (hre.network.name === 'localhost') {
         await transferETH(1, await getWalletAddress());
-    } 
+
+        let addr = "0xa44dF8A8581C2cb536234E6640112fFf932ED2c4";
+        const signer = await impersonateAccount(addr);
+        let rm = await getContract('RoleManager');
+        // dev
+        await rm.connect(signer).grantRole(Roles.UNIT_ROLE, await getWalletAddress());
+    }
 
     // await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
 
