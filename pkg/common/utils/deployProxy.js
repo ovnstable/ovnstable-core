@@ -157,13 +157,13 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         // You need have permission for role UPGRADER_ROLE;
 
         try {
-            impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow });
+            impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: 'always' });
         } catch (e) {
             console.log(e);
             impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow });
         }
         implAddress = await getImplementationAddress(ethers.provider, proxy.address);
-        console.log(`Deploy ${contractName} Impl  done -> proxy [` + proxy.address + '] impl [' + implAddress + ']');
+        console.log(`Deploy ${contractName} Impl done -> proxy [` + proxy.address + '] impl [' + implAddress + ']');
     } else {
         //Deploy only a new implementation without call upgradeTo
         //For system with Governance

@@ -267,8 +267,9 @@ function getChainFromNetwork(network) {
 let namedAccounts = {
     deployer: {
         default: 0,
-        polygon: '0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD',
-        ganache: "0xa0df350d2637096571F7A701CBc1C5fdE30dF76A"
+        polygon: '0xab918d486c61ADd7c577F1af938117bBD422f088',
+        ganache: "0xa0df350d2637096571F7A701CBc1C5fdE30dF76A",
+        arbitrum: '0xab918d486c61ADd7c577F1af938117bBD422f088',
     },
 
     recipient: {

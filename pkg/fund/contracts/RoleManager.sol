@@ -31,15 +31,15 @@ contract RoleManager is Initializable, AccessControlEnumerableUpgradeable, UUPSU
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
 
-        _grantRole(UNIT_ROLE, 0xb8f55cdd8330b9bf9822137Bc8A6cCB89bc0f055); // Payout
-        _grantRole(UNIT_ROLE, 0x05129E3CE8C566dE564203B0fd85111bBD84C424); // Dev
+        _grantRole(UNIT_ROLE, 0xab918d486c61ADd7c577F1af938117bBD422f088); // Payout
+        _grantRole(UNIT_ROLE, 0xab918d486c61ADd7c577F1af938117bBD422f088); // Dev
 
         _setRoleAdmin(FREE_RIDER_ROLE, PORTFOLIO_AGENT_ROLE);
         _setRoleAdmin(UNIT_ROLE, PORTFOLIO_AGENT_ROLE);
 
-        _grantRole(PORTFOLIO_AGENT_ROLE, 0x0bE3f37201699F00C21dCba18861ed4F60288E1D); // PM Agent
-        _grantRole(PORTFOLIO_AGENT_ROLE, 0xe497285e466227F4E8648209E34B465dAA1F90a0); // OVN Treasure
-        _grantRole(PORTFOLIO_AGENT_ROLE, 0x05129E3CE8C566dE564203B0fd85111bBD84C424); // Dev
+        _grantRole(PORTFOLIO_AGENT_ROLE, 0x4B2B3175Ec1b21d9E2404b623b65b3C5549EDCd5); // PM Agent
+        // _grantRole(PORTFOLIO_AGENT_ROLE, 0xe497285e466227F4E8648209E34B465dAA1F90a0); // OVN Treasure
+        _grantRole(PORTFOLIO_AGENT_ROLE, 0xab918d486c61ADd7c577F1af938117bBD422f088); // Dev
     }
 
     function _authorizeUpgrade(address newImplementation)
