@@ -718,7 +718,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     function changeNegativeSupply(uint256 _newTotalSupply) external onlyExchanger {
         _rebasingCreditsPerToken = _rebasingCredits.divPrecisely(_newTotalSupply);
-        require(_rebasingCreditsPerToken > 0, "Invalid change in supply");
+        require(_rebasingCreditsPerToken > 0, "Invalid change in supply"); // TODO: remove require, _rebasingCreditsPerToken is uint
         _totalSupply = _rebasingCredits.divPrecisely(_rebasingCreditsPerToken);
     }
 

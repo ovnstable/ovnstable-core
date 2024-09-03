@@ -186,17 +186,10 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _unpause();
     }
 
-    struct MintParams {
+    struct MutabilityParams {
         address asset;   // USDC | BUSD depends at chain
         uint256 amount;  // amount asset
-        string referral; // code from Referral Program -> if not have -> set empty
     }
-
-    // Minting USD+ in exchange for an asset
-
-    // function mint(MintParams calldata params) external whenNotPaused nonReentrant returns (uint256) {
-    //     return _buy(params.asset, params.amount, params.referral);
-    // }
 
     
     function deposit(address _asset, uint256 _amount) external whenNotPaused nonReentrant onlyAdmin { // for depositor
@@ -217,7 +210,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _requireOncePerBlock(false);
     }
 
-    function withdraw(address _asset, uint256 _amount) external whenNotPaused nonReentrant onlyAdmin returns (uint256) { // for depositor
+    function withdrawDeposit(address _asset, uint256 _amount) external whenNotPaused nonReentrant onlyAdmin returns (uint256) { // for depositor
         require(_asset == address(usdc), "Only asset available for redeem");
         require(_amount > 0, "Amount of USD+ is zero");
         require(usdPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
@@ -238,47 +231,17 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         return redeemAmount;
     }
 
-    /**
-     * @param _asset Asset to spend
-     * @param _amount Amount of asset to spend
-     * @param _referral Referral code
-     * @return Amount of minted USD+ to caller
-     */
-    // function _buy(address _asset, uint256 _amount, string memory _referral) internal returns (uint256) {
-    //     require(_asset == address(usdc), "Only asset available for buy");
+    function withdraw(MutabilityParams calldata params) external whenNotPaused nonReentrant returns (uint256) {
+        _withdraw(params.asset, params.amount);
+    }
 
-    //     uint256 currentBalance = usdc.balanceOf(msg.sender);
-    //     require(currentBalance >= _amount, "Not enough tokens to buy");
-
-    //     require(_amount > 0, "Amount of asset is zero");
-
-    //     uint256 usdPlusAmount = _assetToRebase(_amount);
-    //     require(usdPlusAmount > 0, "Amount of USD+ is zero");
-
-    //     uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
-    //     SafeERC20.safeTransferFrom(usdc, msg.sender, address(portfolioManager), _amount);
-    //     require(usdc.balanceOf(address(portfolioManager)) == _targetBalance, 'pm balance != target');
-
-    //     portfolioManager.deposit();
-    //     _requireOncePerBlock(false);
-
-    //     uint256 buyFeeAmount;
-    //     uint256 buyAmount;
-    //     (buyAmount, buyFeeAmount) = _takeFee(usdPlusAmount, true);
-
-    //     usdPlus.mint(msg.sender, buyAmount);
-
-    //     emit EventExchange("mint", buyAmount, buyFeeAmount, msg.sender, _referral);
-
-    //     return buyAmount;
-    // }
 
     /**
      * @param _asset Asset to redeem
      * @param _amount Amount of USD+ to burn
      * @return Amount of asset unstacked and transferred to caller
      */
-    function redeem(address _asset, uint256 _amount) external whenNotPaused nonReentrant returns (uint256) {
+    function _withdraw(address _asset, uint256 _amount) internal whenNotPaused nonReentrant returns (uint256) {
         require(_asset == address(usdc), "Only asset available for redeem");
         require(_amount > 0, "Amount of USD+ is zero");
         require(usdPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
@@ -291,7 +254,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         // Or just burn from sender
         usdPlus.burn(msg.sender, _amount);
-        usdPlus.mint(msg.sender, _amount);
 
         require(usdc.balanceOf(address(this)) >= assetAmount, "Not enough for transfer assetAmount");
         SafeERC20.safeTransfer(usdc, msg.sender, assetAmount);
@@ -300,6 +262,41 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         return assetAmount;
     }
+
+    function mint(MutabilityParams calldata params) external whenNotPaused nonReentrant returns (uint256) {
+        return _mint(params.asset, params.amount);
+    }
+
+    /**
+     * @param _asset Asset to spend
+     * @param _amount Amount of asset to spend
+     * @return Amount of minted USD+ to caller
+     */
+    function _mint(address _asset, uint256 _amount) internal returns (uint256) {
+        require(_asset == address(usdc), "Only asset available for buy");
+
+        uint256 currentBalance = usdc.balanceOf(msg.sender);
+        require(currentBalance >= _amount, "Not enough tokens to buy");
+
+        require(_amount > 0, "Amount of asset is zero");
+
+        uint256 usdPlusAmount = _assetToRebase(_amount);
+        require(usdPlusAmount > 0, "Amount of USD+ is zero");
+
+        uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
+        SafeERC20.safeTransferFrom(usdc, msg.sender, address(portfolioManager), _amount);
+        require(usdc.balanceOf(address(portfolioManager)) == _targetBalance, 'pm balance != target');
+
+        portfolioManager.deposit();
+        _requireOncePerBlock(false);
+
+        usdPlus.mint(msg.sender, usdPlusAmount);
+
+        emit EventExchange("mint", usdPlusAmount, msg.sender);
+
+        return usdPlusAmount;
+    }
+
 
     /**
      * @dev Protect from flashloan attacks
@@ -394,7 +391,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         portfolioManager.claimAndBalance();
 
-        uint256 totalUsdPlus = usdPlus.totalSupply() + totalDeposit;
+        uint256 usdPlusSupply = usdPlus.totalSupply(); 
+        uint256 totalUsdPlus = usdPlusSupply + totalDeposit;
         uint256 previousUsdPlus = totalUsdPlus;
 
         uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
@@ -404,7 +402,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         if (totalUsdPlus > totalNav) {
             loss = totalUsdPlus - totalNav;
-            revert();
+            if (usdPlusSupply > loss) {
+                usdPlus.changeNegativeSupply(usdPlusSupply - loss);
+                return 0;
+            } else {
+                revert("This rebase will remove all team funds");
+            }
         } else {
             delta = totalNav * LIQ_DELTA_DM / (usdPlus.totalSupply() + totalDeposit);
         }

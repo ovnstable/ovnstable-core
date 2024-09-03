@@ -345,6 +345,16 @@ contract UsdPlusToken is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20
         }
     }
 
+    function transferShares(address _account, uint256 _amount) public {
+        require(_account != address(0), "Mint to the zero address");
+        require(_sharesBalances[msg.sender] >= _amount, "Transfer amount exceeds msg.sender balance");
+
+        _sharesBalances[_account] += _amount;
+        _sharesBalances[msg.sender] += _amount;
+        
+        _afterTokenTransfer(address(0), _account, _amount);
+    }
+
     /**
      * @dev Transfer tokens from one address to another.
      * @param _from The address you want to send tokens from.
@@ -387,6 +397,8 @@ contract UsdPlusToken is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20
 
         _creditBalances[_from] = subCredits(_creditBalances[_from], creditsDeducted, "Transfer amount exceeds balance");
         _creditBalances[_to] = _creditBalances[_to].add(creditsCredited);
+
+        _afterTokenTransfer(address(0), _to, 1);
     }
 
     /**
@@ -473,7 +485,7 @@ contract UsdPlusToken is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20
     /**
      * @dev Mints new tokens, increasing totalSupply.
      */
-    function mint(address _account, uint256 _amount) external whenNotPaused onlyAdmin {
+    function mint(address _account, uint256 _amount) external whenNotPaused onlyExchanger {
         _mint(_account, _amount);
     }
 
@@ -507,7 +519,7 @@ contract UsdPlusToken is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20
      *
      * - `to` cannot be the zero address.
      */
-    function giveShares(address _account, uint256 _amount) internal nonReentrant {
+    function giveShares(address _account, uint256 _amount) external whenNotPaused onlyAdmin { // TODO: mb change modifier
         require(_account != address(0), "Mint to the zero address");
 
         _sharesBalances[_account] += _amount;
@@ -519,7 +531,7 @@ contract UsdPlusToken is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20
         emit Transfer(address(0), _account, _amount);
     }
 
-    function burnShares(address _account, uint256 _amount) external whenNotPaused onlyExchanger {
+    function burnShares(address _account, uint256 _amount) external whenNotPaused onlyAdmin {
         require(_account != address(0));
 
         _totalShares -= _amount;       
@@ -575,6 +587,11 @@ contract UsdPlusToken is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20
         returns (uint256)
     {    
         return _rebasingCreditsPerToken;
+    }
+
+    function changeNegativeSupply(uint256 _newTotalSupply) external onlyExchanger {
+        _rebasingCreditsPerToken = _rebasingCredits.divPrecisely(_newTotalSupply);
+        _totalSupply = _rebasingCredits.divPrecisely(_rebasingCreditsPerToken);
     }
 
     /**
