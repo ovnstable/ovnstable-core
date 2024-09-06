@@ -423,7 +423,10 @@ let BLAST = {
     z0USDB: "0x23A58cbe25E36e26639bdD969B0531d3aD5F9c34",
     zerolendPoolUsdb: "0xa70B0F3C2470AbBE104BdB3F3aaa9C7C54BEA7A8",
     zerolandRewardsController: "0x94dc19a5bd17e84d90e63ff3fba9c3b76e5e4012",
-    earlyZERO: "0x81b3184A3B5d4612F2c26A53Da8D99474B91B2D2"
+    earlyZERO: "0x81b3184A3B5d4612F2c26A53Da8D99474B91B2D2",
+    // oracles
+    oracleApi3Usdb: "0x1f41f26933e83ef6178E3368BD01662882c06677",
+    oracleApi3Eth: "0xa47Fd122b11CdD7aad7c3e8B740FB91D83Ce43D1"
 }
 
 function getAsset(name) {
