@@ -9,6 +9,7 @@ library LibCoreStorage {
         address npm;
         uint256 stakeSlippageBP;
         address diamond;
+        uint256 maxSwapIterations;
     }
 
     function coreStorage() internal pure returns (CoreStorage storage ds) {

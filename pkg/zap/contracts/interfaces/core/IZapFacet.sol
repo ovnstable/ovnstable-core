@@ -25,16 +25,16 @@ interface IZapFacet {
         bytes data;
     }
 
-    struct ResultOfLiquidity {
-        uint amountAsset0Before;
-        uint amountAsset1Before;
-
-        uint amountAsset0After;
-        uint amountAsset1After;
-
-        uint[] amountsPut;
-        uint[] amountsReturned;
-    }
+//    struct ResultOfLiquidity {
+//        uint amountAsset0Before;
+//        uint amountAsset1Before;
+//
+//        uint amountAsset0After;
+//        uint amountAsset1After;
+//
+//        uint[] amountsPut;
+//        uint[] amountsReturned;
+//    }
 
     function zapIn(SwapData memory swapData, ZapInParams memory paramsData) external;
 

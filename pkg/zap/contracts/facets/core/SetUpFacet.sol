@@ -22,6 +22,10 @@ contract SetUpFacet is Modifiers {
         LibCoreStorage.coreStorage().stakeSlippageBP = stakeSlippage;
     }
 
+    function setMaxSwaps(uint256 stakeSlippage) external onlyAdmin {
+        LibCoreStorage.coreStorage().stakeSlippageBP = stakeSlippage;
+    }
+
     function stakeSlippageBP() external view returns (uint256) {
         return LibCoreStorage.coreStorage().stakeSlippageBP;
     }

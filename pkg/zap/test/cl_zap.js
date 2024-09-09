@@ -22,9 +22,10 @@ const { getOdosAmountOutOnly } = require('../../common/utils/odos-helper.js');
 let zaps_aerodrome = [
     {
         name: 'AerodromeCLZap',
-        pair: '0x20086910E220D5f4c9695B784d304A72a0de403B',
-        inputTokens: ['dai', 'usdPlus'],
-        priceRange: [1, 1.00022],
+        pair: '0xDEfE76cd3c5c25728Fd45De93b000C23048c992f',
+        inputTokens: ['rgusd', 'usdc'],
+        // priceRange: [1, 1.00022],
+        tickRange: [276390, 276391]
     },
     // {
     //     name: 'AerodromeCLZap',
