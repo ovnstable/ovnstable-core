@@ -16,6 +16,7 @@ import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
 
+import "hardhat/console.sol";
 
 contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -77,7 +78,7 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
 
         _decimals = decimals;
-        _rebasingCreditsPerToken = WadRayMath.RAY;
+        _rebasingCreditsPerToken = WadRayMath.RAY; // TODO: check resolution
     }
 
     function _authorizeUpgrade(address newImplementation)
@@ -239,36 +240,7 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
         returns (uint256, uint256)
     {
         uint256 cpt = _creditsPerToken();
-        if (cpt == 1e27) {
-            // For a period before the resolution upgrade, we created all new
-            // contract accounts at high resolution. Since they are not changing
-            // as a result of this upgrade, we will return their true values
-            return (_creditBalances[_account], cpt);
-        } else {
-            return (
-                _creditBalances[_account] / RESOLUTION_INCREASE,
-                cpt / RESOLUTION_INCREASE
-            );
-        }
-    }
-
-    /**
-     * @dev Gets the credits balance of the specified address.
-     * @param _account The address to query the balance of.
-     * @return (uint256, uint256) Credit balance, credits per token of the address
-     */
-    function creditsBalanceOfHighres(address _account)
-        public
-        view
-        returns (
-            uint256,
-            uint256
-        )
-    {
-        return (
-            _creditBalances[_account],
-            _creditsPerToken()
-        );
+        return (_creditBalances[_account], cpt);
     }
 
     /**
@@ -350,7 +322,7 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
         require(_sharesBalances[msg.sender] >= _amount, "Transfer amount exceeds msg.sender balance");
 
         _sharesBalances[_account] += _amount;
-        _sharesBalances[msg.sender] += _amount;
+        _sharesBalances[msg.sender] -= _amount;
         
         _afterTokenTransfer(address(0), _account, _amount); // TODO: remove comment
     }
@@ -485,18 +457,15 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
     /**
      * @dev Mints new tokens, increasing totalSupply.
      */
-    function mint(address _account, uint256 _amount) external whenNotPaused onlyExchanger {
+    function mint(address _account, uint256 _amount) external whenNotPaused onlyExchanger nonReentrant {
         _mint(_account, _amount);
     }
 
-    function _mint(address _account, uint256 _amount) internal nonReentrant {
+    function _mint(address _account, uint256 _amount) internal {
         require(_account != address(0), "Mint to the zero address");
 
         uint256 creditAmount = assetToCredit(_amount);
         _creditBalances[_account] = _creditBalances[_account].add(creditAmount);
-
-        // If the account is non rebasing and doesn't have a set creditsPerToken
-        // then set it i.e. this is a mint from a fresh contract
         
         _rebasingCredits = _rebasingCredits.add(creditAmount);
         
@@ -604,7 +573,6 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
         onlyExchanger
         nonReentrant
         whenNotPaused
-        
     {
         require(_totalSupply > 0, "Cannot increase 0 supply");
         require(_newTotalSupply >= _totalSupply + _totalDeposit, 'negative rebase');
@@ -620,15 +588,15 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
 
         uint256 delta = _newTotalSupply - _totalSupply - _totalDeposit;
 
-        uint256 baseDelta = delta * _totalDeposit / (_totalSupply + _totalDeposit);
+        
+        
+
+        uint256 baseDelta = delta * _totalDeposit / (_totalSupply + _totalDeposit); // TODO: check zero case
+        
         uint256 teamDelta = delta - baseDelta;
         
+        
         uint256 ownersCount = ownersLength();
-
-        for(uint256 i = 0; i < ownersCount; i++) {
-            address curOwner = owners.at(i); 
-            _mint(curOwner, _sharesBalances[curOwner] * baseDelta / _totalShares);
-        }
 
         _totalSupply = _totalSupply + teamDelta > MAX_SUPPLY
             ? MAX_SUPPLY
@@ -637,10 +605,15 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
         _rebasingCreditsPerToken = _rebasingCredits.divPrecisely( 
             _totalSupply
         );
-        
+
+        if (_totalShares > 0) {
+            for(uint256 i = 0; i < ownersCount; i++) {
+                address curOwner = owners.at(i); 
+                _mint(curOwner, _sharesBalances[curOwner] * baseDelta / _totalShares);
+            }
+        }     
 
         require(_rebasingCreditsPerToken > 0, "Invalid change in supply");
-
 
         emit TotalSupplyUpdatedHighres(
             _totalSupply,
@@ -681,5 +654,4 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
             }
         }
     }
-    
 }

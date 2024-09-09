@@ -1,12 +1,13 @@
 const {expect} = require("chai");
-const {utils, BigNumber} = require("ethers");
+const {utils, BigNumber, providers} = require("ethers");
 const hre = require('hardhat');
 const {getNamedAccounts, deployments, ethers} = require("hardhat");
 const {createRandomWallet} = require("@overnight-contracts/common/utils/tests");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const {fromE18, fromE6, toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
-const { initWallet } = require("@overnight-contracts/common/utils/script-utils");
+const { initWallet, transferAsset, getERC20, transferETH } = require("@overnight-contracts/common/utils/script-utils");
+const { ARBITRUM } = require("@overnight-contracts/common/utils/assets");
 
 
 describe("Token", function () {
@@ -25,22 +26,30 @@ describe("Token", function () {
     let toAsset;
 
     sharedBeforeEach(async () => {
-        // need to run inside IDEA via node script running
         await hre.run("compile");
 
         const wallet = await initWallet();
 
         const {deployer} = await getNamedAccounts();
-        await deployments.fixture(["OvnFund"]);
+        await deployments.fixture(["Exchange", "OvnFund"]);
         account = deployer;
-        console.log(account)
+        
         user1 = await createRandomWallet();
         user2 = await createRandomWallet();
         user3 = await createRandomWallet();
         nonRebaseUser1 = await createRandomWallet();
         nonRebaseUser2 = await createRandomWallet();
         usdPlus = await ethers.getContract("OvnFund", deployer);
+        exchange = await ethers.getContract("Exchange", deployer);
+        
+        await transferAsset(ARBITRUM.usdcCircle, deployer);
+        await transferETH(100, wallet.address);
+        
+        let usdcCircle = await getERC20("usdcCircle");
+        await usdcCircle.approve(deployer, toE6(10000000));
+
         await usdPlus.setExchanger(account);
+        await exchange.setTokens(ARBITRUM.usdPlus, ARBITRUM.usdcCircle);
 
         let decimals = await usdPlus.decimals();
         fromAsset = decimals === 18 ? fromE18 : fromE6;
@@ -50,6 +59,10 @@ describe("Token", function () {
     // async function transfer(from, to, amount) {
     //     await usdPlus.connect(from).transfer(to.address, toAsset(amount));
     // }
+
+    async function deposit(amount) {
+        await exchange.deposit(ARBITRUM.usdcCircle, toE6(amount)); 
+    }
 
     async function mint(user, amount) {
         await usdPlus.mint(user.address, toAsset(amount));
@@ -61,6 +74,16 @@ describe("Token", function () {
         expect(balance).to.eq(amount);
     }
 
+    async function sharesOf(user, amount) {
+        let sharesValue = await usdPlus.sharesBalanceOf(user.address);
+        // let shares = Math.ceil(sharesValue);
+        expect(sharesValue).to.eq(amount);
+    }
+
+    async function giveShares(amount) {
+        await usdPlus.giveShares(user.address, toAsset(amount));
+    }
+
     async function totalSupply(amount) {
         let totalSupply = await usdPlus.totalSupply();
         expect(fromAsset(totalSupply)).to.eq(amount);
@@ -70,19 +93,6 @@ describe("Token", function () {
         await usdPlus.changeSupply(toAsset(amount), 0);
     }
 
-    async function validateTotalSupply() {
-
-        // Validate rebasing and non rebasing credit accounting by calculating'
-        // total supply manually
-        const calculatedTotalSupply = (await usdPlus.rebasingCreditsHighres())
-            .mul(utils.parseUnits("1", 18))
-            .div(await usdPlus.rebasingCreditsPerTokenHighres())
-            .add(await usdPlus.nonRebasingSupply());
-
-
-        const totalSupply = Math.ceil(fromAsset(await usdPlus.totalSupply()));
-        await expect(Math.ceil(fromAsset(calculatedTotalSupply))).to.eq(totalSupply);
-    }
 
     it("Should return the token name and symbol", async () => {
         console.log(usdPlus.name());
@@ -103,6 +113,19 @@ describe("Token", function () {
     it("Should not allow anyone to mint USD+ directly", async () => {
         await expectRevert(
             usdPlus.connect(user1).mint(user1.address, toAsset(100)), "Caller is not the EXCHANGER")
+    });
+
+    it("Should allow deposit", async () => {
+        await deposit(100);
+    });
+
+    it("Should allow a simple transfer of 1 share", async () => {
+        await usdPlus.giveShares(user2.address, 100);
+        await sharesOf(user1, 0);
+        await sharesOf(user2, 100);
+        await usdPlus.connect(user2).transferShares(user1.address, 1);
+        await sharesOf(user1, 1);
+        await sharesOf(user2, 99);
     });
 
     it("Should allow a simple transfer of 1 USD+", async () => {
@@ -140,6 +163,19 @@ describe("Token", function () {
 
     });
 
+    it('Should return correct shares balance for small amounts at give/burn shares', async ()=>{
+
+        let amounts = ['100000000000', '10000000000', '1000000000', '100000000', '10000000', '1000000', '100000', '10000', '1000', '100', '10', '1'];
+
+        for (const amount of amounts) {
+            await usdPlus.giveShares(user1.address, amount);
+            await sharesOf(user1, amount);
+            await usdPlus.burnShares(user1.address, amount);
+            await sharesOf(user1, 0);
+        }
+
+    });
+
     it('Should return correct balance for small amounts at mint/burn after shifted rebasingCreditsPerToken', async ()=>{
 
         let amounts = ['100000000000', '10000000000', '1000000000', '100000000', '10000000', '1000000', '100000', '10000', '1000', '100', '10', '1'];
@@ -153,8 +189,8 @@ describe("Token", function () {
             await usdPlus.burn(user1.address, amount);
             expect(usdPlus.balanceOf(user1.address), '0');
         }
-
     });
+
 
     it('Should return correct balance for small amounts at transfer', async ()=>{
 
@@ -172,6 +208,22 @@ describe("Token", function () {
         }
 
     });
+
+    it('Should return correct shares balance for small amounts at transfer shares', async ()=>{
+
+        let amounts = ['100000000000', '10000000000', '1000000000', '100000000', '10000000', '1000000', '100000', '10000', '1000', '100', '10', '1'];
+
+        for (const amount of amounts) {
+            await usdPlus.giveShares(user1.address, amount);
+            await sharesOf(user1, amount);
+            await usdPlus.connect(user1).transferShares(user2.address, amount);
+            await sharesOf(user2, amount);
+            await sharesOf(user1, '0');
+            await usdPlus.burnShares(user2.address, amount);
+            await sharesOf(user1, '0');
+        }
+    });
+
 
     it('Should return correct balance for small amounts at transfer after shifted rebasingCreditsPerToken', async ()=>{
 
@@ -193,28 +245,47 @@ describe("Token", function () {
 
     });
 
-    // it("Should transfer the correct amount from a rebasing account to a non-rebasing account and set creditsPerToken", async () => {
+    it("Should return correct balance for shares user and for base user", async () => {
 
-    //     await usdPlus.mint(nonRebaseUser1.address, toAsset(100));
-    //     await usdPlus.mint(user1.address, toAsset(100));
+        await usdPlus.mint(user1.address, toAsset(100));
+        await usdPlus.giveShares(user2.address, 100);
 
-    //     await balanceOf(user1, 100);
-    //     await balanceOf(nonRebaseUser1, 100);
+        await balanceOf(user1, 100);
+        await balanceOf(user2, 0);
 
-    //     const creditsBalanceOf = await usdPlus.creditsBalanceOf(
-    //         nonRebaseUser1.address
-    //     );
+        await sharesOf(user1, 0);
+        await sharesOf(user2, 100);
 
-    //     // Make rebase
-    //     await usdPlus.changeSupply(toAsset(250));
+        // Make rebase
+        await usdPlus.changeSupply(toAsset(250), toAsset(100));
 
-    //     // Credits per token should be the same for the contract
-    //     let creditsBalanceOfNew = await usdPlus.creditsBalanceOf(nonRebaseUser1.address);
-    //     expect(creditsBalanceOf[0]).to.eq(creditsBalanceOfNew[0]);
-    //     expect(creditsBalanceOf[1]).to.eq(creditsBalanceOfNew[1]);
+        await balanceOf(user1, 125);
+        await balanceOf(user2, 25);
+    });
 
-    //     await validateTotalSupply();
-    // });
+    
+    it("Should return correct balance for shares user and for base user v2", async () => {
+
+        await usdPlus.mint(user1.address, toAsset(100));
+        await usdPlus.giveShares(user2.address, 100);
+
+        await balanceOf(user1, 100);
+        await balanceOf(user2, 0);
+
+        await sharesOf(user1, 0);
+        await sharesOf(user2, 100);
+
+        // Make rebase
+        await usdPlus.changeSupply(toAsset(250), toAsset(100));
+
+        await balanceOf(user1, 125);
+        await balanceOf(user2, 25);
+
+        await usdPlus.changeSupply(toAsset(500), toAsset(100));
+
+        await balanceOf(user1, 250);
+        await balanceOf(user2, 150);
+    });
 
     // it("Should transfer the correct amount from a rebasing account to a non-rebasing account with previously set creditsPerToken", async () => {
 
