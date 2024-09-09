@@ -112,6 +112,8 @@ module.exports = async () => {
         items.push(createSkim('0xE9C137071861fbA0359eEcCB5865C2588D1Be2BE', usdPlus.address, 'CL1-USD+/USDT', dex));
         items.push(createSkim('0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147', usdcPlus.address, 'CL1-USDC/USDC+', dex));
         items.push(createSkim('0x8f72e491E293ecB223E77123A046521d6d7cAd49', usdPlus.address, 'vAMM-TKN/USD+', dex));
+        items.push(createSkim('0x2DcBed774baC201D3C2f69564041E70c05437962', usdPlus.address, 'sAMM-EURC/USD+', dex));
+        items.push(createSkim('0xA51C7A5a121aD3d73E2E9888Bb016e07bdd5BA94', usdPlus.address, 'CL50-EURC/USD+', dex));
       
         return items;
     }
