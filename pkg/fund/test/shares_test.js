@@ -226,9 +226,7 @@ describe("Token", function () {
             expect(ovnPlus.balanceOf(user1.address), '0');
             await ovnPlus.burn(user2.address, amount);
             expect(ovnPlus.balanceOf(user2.address), '0');
-
         }
-
     });
 
     it('Should return correct shares balance for small amounts at transfer shares', async ()=>{
