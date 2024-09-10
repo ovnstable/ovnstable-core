@@ -110,7 +110,6 @@ contract StrategyMorpho is Strategy {
 
     function _claimRewards(address _beneficiary, bytes[] memory data) public onlyPortfolioManager {
         address chainAgnosticBundler = address(0x23055618898e202386e6c13955a58D3C68200BFB);
-        
 
         IChainAgnosticBundlerV2 bundler = IChainAgnosticBundlerV2(chainAgnosticBundler);
 

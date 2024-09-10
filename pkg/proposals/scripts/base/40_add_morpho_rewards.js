@@ -16,6 +16,7 @@ async function main() {
 
     // let wallet = await initWallet();
     // await transferETH(1, wallet.address);
+    // TODO: test it again
 
     let addresses = [];
     let values = [];
