@@ -218,12 +218,20 @@ contract ZapFacet is IZapFacet {
     function adjustLiquidity(
         address pair,
         int24[] tickRange,
+        uint256 tokenId,
         uint256[] amounts
     ) internal {
         IMasterFacet master = IMasterFacet(address(this));
         uint160 sqrtRatio = master.getPoolSqrtRatioX96(pair);
-        uint160 sqrtRatioAX96 = master.getSqrtRatioAtTick(tickRange[0]);
-        uint160 sqrtRatioBX96 = master.getSqrtRatioAtTick(tickRange[1]);
+        uint128 liquidity = master.getLiquidity(pair);
 
+        (uint i, uint j) = amounts[0] > amounts[1] ? (0, 1) : (1, 0);
+        
+        uint256 swapAmount0 = amounts[i] / 2;
+        uint256 swapAmount1 = i < j ? 
+            master.estimateAmount1(swapAmount0, liquidity, sqrtRatio, tickRange[0], tickRange[1]) : 
+            master.estimateAmount0(swapAmount0, liquidity, sqrtRatio, tickRange[0], tickRange[1]);
+
+        uint160 nextSqrtPriceX96 = master.getNextSqrtPriceFromAmounts(sqrtRatio, liquidity, swapAmount0, swapAmount1, i < j);
     }
 }

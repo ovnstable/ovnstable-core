@@ -2510,6 +2510,46 @@ library SqrtPriceMath {
                 ? -getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(-liquidity), false).toInt256()
                 : getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(liquidity), true).toInt256();
     }
+
+    function estimateAmount0(uint256 amount1, uint128 liquidity, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
+        internal
+        pure
+        returns (uint256 amount0)
+    {
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLow);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickHigh);
+
+        if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
+
+        if (sqrtRatioX96 <= sqrtRatioAX96 && sqrtRatioX96 >= sqrtRatioBX96) {
+            return 0;
+        }
+
+        if (liquidity == 0) {
+            liquidity = LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioX96, amount1);
+        }
+        amount0 = getAmount0Delta(sqrtRatioX96, sqrtRatioBX96, liquidity, false);
+    }
+
+    function estimateAmount1(uint256 amount0, uint128 liquidity, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
+        internal
+        pure
+        returns (uint256 amount1)
+    {
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLow);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickHigh);
+
+        if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
+
+        if (sqrtRatioX96 <= sqrtRatioAX96 && sqrtRatioX96 >= sqrtRatioBX96) {
+            return 0;
+        }
+
+        if (liquidity == 0) {
+            liquidity = LiquidityAmounts.getLiquidityForAmount0(sqrtRatioX96, sqrtRatioBX96, amount0);
+        }
+        amount1 = getAmount1Delta(sqrtRatioAX96, sqrtRatioX96, liquidity, false);
+    }
 }
 
 library UniswapV3Library {
