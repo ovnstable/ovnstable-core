@@ -47,4 +47,9 @@ interface IProportionFacet {
         int24[] memory tickRange,
         PoolTokenPrices[] memory prices
     ) external view returns (ResultOfProportion memory);
+
+    function getProportion(
+        address pair,
+        int24[] memory tickRange
+    ) external view returns (uint256, uint256);
 }

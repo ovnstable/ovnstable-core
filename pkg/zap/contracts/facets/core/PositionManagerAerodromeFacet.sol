@@ -18,7 +18,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         uint256 amountOut1,
         address recipient
     ) external onlyDiamond returns (uint256 tokenId) {
-        IUniswapV3Pool pool = IUniswapV3Pool(pair);
+        ICLPool pool = ICLPool(pair);
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: pool.token0(),
             token1: pool.token1(),
@@ -50,6 +50,15 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
             deadline: block.timestamp
         });
         (liquidity,,) = getNpm().increaseLiquidity(params);
+    }
+
+    function swap(
+        address pair,
+        uint256 amountIn,
+        uint160 sqrtPriceLimitX96,
+        bool zeroForOne
+    ) external onlyDiamond returns (int256 amountOut0, int256 amountOut1) {
+        (amountOut0, amountOut1) = ICLPool(pair).swap(address(this), zeroForOne, int256(amountIn), sqrtPriceLimitX96, "");
     }
 
     function getPositions(address wallet) external view returns (PositionInfo[] memory result) {

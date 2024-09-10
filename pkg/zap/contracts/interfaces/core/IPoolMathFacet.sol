@@ -20,7 +20,7 @@ interface IPoolMathFacet {
 
     function getPoolTokens(address pair) external view returns (address, address);
 
-    function getLiquidity(address pair) external view returns (uint128);
+    // function getLiquidity(address pair) external view returns (uint128);
 
     function getLiquidityForAmounts(
         uint160 sqrtRatioX96,
@@ -37,27 +37,27 @@ interface IPoolMathFacet {
         uint128 liquidity
     ) external view returns (uint256, uint256);
 
-    function estimateAmount0(
-        uint256 amount1,
-        uint128 liquidity,
-        uint160 sqrtRatioX96,
-        int24 tickLow,
-        int24 tickHigh
-    ) external pure returns (uint256);
+    // function estimateAmount0(
+    //     uint256 amount1,
+    //     uint128 liquidity,
+    //     uint160 sqrtRatioX96,
+    //     int24 tickLow,
+    //     int24 tickHigh
+    // ) external pure returns (uint256);
 
-    function estimateAmount1(
-        uint256 amount0,
-        uint128 liquidity,
-        uint160 sqrtRatioX96,
-        int24 tickLow,
-        int24 tickHigh
-    ) external pure returns (uint256);
+    // function estimateAmount1(
+    //     uint256 amount0,
+    //     uint128 liquidity,
+    //     uint160 sqrtRatioX96,
+    //     int24 tickLow,
+    //     int24 tickHigh
+    // ) external pure returns (uint256);
 
-    function getNextSqrtPriceFromAmounts(
-        uint160 sqrtPriceX96,
-        uint128 liquidity,
-        uint256 amount0,
-        uint256 amount1,
-        bool direction // true = add amount0, remove amount1, false = remove amount0, add amount1
-    ) external pure returns (uint160);
+    // function getNextSqrtPriceFromAmounts(
+    //     uint160 sqrtPriceX96,
+    //     uint128 liquidity,
+    //     uint256 amount0,
+    //     uint256 amount1,
+    //     bool direction // true = add amount0, remove amount1, false = remove amount0, add amount1
+    // ) external pure returns (uint160);
 }

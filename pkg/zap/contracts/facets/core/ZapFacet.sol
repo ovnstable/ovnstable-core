@@ -13,13 +13,10 @@ contract ZapFacet is IZapFacet {
     // - Сколько вернули пользователю
 
     event InputTokens(uint256[] amountsIn, address[] tokensIn);
-
     event OutputTokens(uint256[] amountsOut, address[] tokensOut);
-
     event PutIntoPool(uint256[] amountsPut, address[] tokensPut);
-
     event ReturnedToUser(uint256[] amountsReturned, address[] tokensReturned);
-
+    event AdjustedSwap(uint256 amount0, uint256 amount1);
     event TokenId(uint256 tokenId); // name..?
 
     receive() external payable {}
@@ -44,29 +41,16 @@ contract ZapFacet is IZapFacet {
         _zapIn(swapData, paramsData, true, tokenId);
     }
 
-    function merge(uint256 tokenIn, uint256[] memory tokensOut) external {
-        IMasterFacet master = IMasterFacet(address(this));
-        (address token0In, address token1In) = master.getTokens(tokenIn);
-
+    function merge(
+        SwapData memory swapData, 
+        ZapInParams memory paramsData, 
+        uint256 tokenIn, 
+        uint256[] memory tokensOut
+    ) external {
         for (uint256 i = 0; i < tokensOut.length; i++) {
-            (address token0, address token1) = master.getTokens(tokensOut[i]);
-            require(token0In == token0 && token1In == token1, 'different pools');
+            _zapOut(tokensOut[i], address(this), msg.sender);
         }
-        for (uint256 i = 0; i < tokensOut.length; i++) {
-            _zapOut(tokensOut[i], address(this), address(this));
-        }
-
-        ZapInParams memory params;
-        params.tickRange = new int24[](2);
-        params.amountsOut = new uint256[](2);
-
-        params.pair = master.getPool(tokenIn);
-        (params.tickRange[0], params.tickRange[1]) = master.getTicks(tokenIn);
-        IERC20 asset0 = IERC20(token0In);
-        IERC20 asset1 = IERC20(token1In);
-        params.amountsOut[0] = asset0.balanceOf(address(this));
-        params.amountsOut[1] = asset1.balanceOf(address(this));
-        manageLiquidity(params, tokenIn);
+        _zapIn(swapData, paramsData, false, tokenIn);
     }
 
     function _zapIn(
@@ -75,40 +59,43 @@ contract ZapFacet is IZapFacet {
         bool needTransfer,
         uint256 tokenId
     ) internal {
-        prepareSwap(swapData, needTransfer);
-        address[] memory tokensOut = new address[](2);
-        (tokensOut[0], tokensOut[1]) = master.getPoolTokens(paramsData.pair);
-        for (uint256 i = 0; i < tokensOut.length; i++) {
-            IERC20 asset = IERC20(tokensOut[i]);
-            if (needTransfer && paramsData.amountsOut[i] > 0) {
-                asset.transferFrom(msg.sender, address(this), paramsData.amountsOut[i]);
-            }
-            paramsData.amountsOut[i] = asset.balanceOf(address(this));
-        }
-        swapOdos(swapData);
-
         IMasterFacet master = IMasterFacet(address(this));
-        manageLiquidity(paramsData, tokenId);
+        prepareSwap(swapData, needTransfer);
 
-        uint amountAsset0After = asset0.balanceOf(address(this));
-        result.amountAsset1After = asset1.balanceOf(address(this));
-        if (result.amountAsset0After > 0) {
-            asset0.transfer(msg.sender, result.amountAsset0After);
+        address[] memory tokensOut = new address[](2);
+        IERC20[] memory assets = new IERC20[](2);
+        uint256[] memory amounts = new uint256[](2);
+
+        uint256[] memory amountsBefore = new uint256[](2);
+        uint256[] memory amountsPut = new uint256[](2);
+        
+        (tokensOut[0], tokensOut[1]) = master.getPoolTokens(paramsData.pair);
+        
+        for (uint256 i = 0; i < 2; i++) {
+            assets[i] = IERC20(tokensOut[i]);
+            if (needTransfer && paramsData.amountsOut[i] > 0) {
+                assets[i].transferFrom(msg.sender, address(this), paramsData.amountsOut[i]);
+            }
+            paramsData.amountsOut[i] = assets[i].balanceOf(address(this));
+            amountsBefore[i] = paramsData.amountsOut[i];
         }
-        if (result.amountAsset1After > 0) {
-            asset1.transfer(msg.sender, result.amountAsset1After);
+
+        swapOdos(swapData);
+        tokenId = manageLiquidity(paramsData, tokenId);
+        for (uint256 i = 0; i < 2; i++) {
+            amounts[i] = assets[i].balanceOf(address(this));
+            amountsPut[i] = amountsBefore[i] - amounts[i];
         }
+        emit PutIntoPool(amountsPut, tokensOut);
+        adjustLiquidity(paramsData.pair, paramsData.tickRange, tokenId, amounts);
 
-        result.amountsPut = new uint256[](2);
-        result.amountsPut[0] = result.amountAsset0Before - result.amountAsset0After;
-        result.amountsPut[1] = result.amountAsset1Before - result.amountAsset1After;
-
-        result.amountsReturned = new uint256[](2);
-        result.amountsReturned[0] = result.amountAsset0After;
-        result.amountsReturned[1] = result.amountAsset1After;
-
-        emit PutIntoPool(result.amountsPut, tokensOut);
-        emit ReturnedToUser(result.amountsReturned, tokensOut);
+        for (uint256 i = 0; i < 2; i++) {
+            amounts[i] = assets[i].balanceOf(address(this));
+            if (amounts[i] > 0) {
+                assets[i].transfer(msg.sender, amounts[i]);
+            }
+        }
+        emit ReturnedToUser(amounts, tokensOut);
     }
 
     function _zapOut(uint256 tokenId, address recipient, address feeRecipient) internal {
@@ -117,7 +104,7 @@ contract ZapFacet is IZapFacet {
         master.closePosition(tokenId, recipient, feeRecipient);
     }
 
-    function manageLiquidity(ZapInParams memory paramsData, uint256 tokenId) internal {
+    function manageLiquidity(ZapInParams memory paramsData, uint256 tokenId) internal returns (uint256) {
         address[] memory tokensOut = new address[](2);
         IMasterFacet master = IMasterFacet(address(this));
         (tokensOut[0], tokensOut[1]) = master.getPoolTokens(paramsData.pair);
@@ -127,9 +114,6 @@ contract ZapFacet is IZapFacet {
         IERC20 asset1 = IERC20(tokensOut[1]);
         asset0.approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[0]);
         asset1.approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[1]);
-
-        uint amountAsset0Before = asset0.balanceOf(address(this));
-        uint amountAsset1Before = asset1.balanceOf(address(this));
 
         if (tokenId == 0) {
             tokenId = master.mintPosition(
@@ -144,6 +128,7 @@ contract ZapFacet is IZapFacet {
         } else {
             master.increaseLiquidity(tokenId, paramsData.amountsOut[0], paramsData.amountsOut[1]);
         }
+        return tokenId;
     }
 
     function prepareSwap(SwapData memory swapData, bool needTransfer) internal {
@@ -217,21 +202,28 @@ contract ZapFacet is IZapFacet {
 
     function adjustLiquidity(
         address pair,
-        int24[] tickRange,
+        int24[] memory tickRange,
         uint256 tokenId,
-        uint256[] amounts
+        uint256[] memory amounts
     ) internal {
         IMasterFacet master = IMasterFacet(address(this));
         uint160 sqrtRatio = master.getPoolSqrtRatioX96(pair);
-        uint128 liquidity = master.getLiquidity(pair);
+        (uint256 ratio0, uint256 ratio1) = master.getProportion(pair, tickRange);
 
-        (uint i, uint j) = amounts[0] > amounts[1] ? (0, 1) : (1, 0);
-        
-        uint256 swapAmount0 = amounts[i] / 2;
-        uint256 swapAmount1 = i < j ? 
-            master.estimateAmount1(swapAmount0, liquidity, sqrtRatio, tickRange[0], tickRange[1]) : 
-            master.estimateAmount0(swapAmount0, liquidity, sqrtRatio, tickRange[0], tickRange[1]);
+        uint256 totalAmount = amounts[0] + amounts[1];
+        uint256 desiredAmount0 = (totalAmount * ratio0) / (ratio0 + ratio1);
+        uint256 desiredAmount1 = totalAmount - desiredAmount0;
 
-        uint160 nextSqrtPriceX96 = master.getNextSqrtPriceFromAmounts(sqrtRatio, liquidity, swapAmount0, swapAmount1, i < j);
+        if (amounts[0] > desiredAmount0) {
+            master.swap(pair, amounts[0] - desiredAmount0, sqrtRatio, true);
+        } else {
+            master.swap(pair, amounts[1] - desiredAmount1, sqrtRatio, false);
+        }
+        (address token0Address, address token1Address) = master.getPoolTokens(pair);
+        uint256 amount0 = IERC20(token0Address).balanceOf(address(this));
+        uint256 amount1 = IERC20(token1Address).balanceOf(address(this));
+
+        emit AdjustedSwap(amount0, amount1);
+        master.increaseLiquidity(tokenId, amount0, amount1);
     }
 }

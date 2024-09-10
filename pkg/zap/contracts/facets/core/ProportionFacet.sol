@@ -157,7 +157,7 @@ contract ProportionFacet is IProportionFacet {
     function getProportion(
         address pair,
         int24[] memory tickRange
-    ) internal view returns (uint256 token0Amount, uint256 token1Amount) {
+    ) public override view returns (uint256 token0Amount, uint256 token1Amount) {
         IMasterFacet master = IMasterFacet(address(this));
         (uint256 decimals0, uint256 decimals1) = master.getPoolDecimals(pair);
         uint256 dec0 = 10 ** decimals0;

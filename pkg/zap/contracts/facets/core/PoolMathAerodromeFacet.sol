@@ -46,9 +46,9 @@ contract PoolMathAerodromeFacet is IPoolMathFacet, Modifiers {
         return (pool.token0(), pool.token1());
     }
 
-    function getLiquidity(address pair) external onlyDiamond view returns (uint128) {
-        return ICLPool(pair).liquidity();
-    }
+    // function getLiquidity(address pair) external onlyDiamond view returns (uint128) {
+    //     return ICLPool(pair).liquidity();
+    // }
 
     function getLiquidityForAmounts(
         uint160 sqrtRatioX96,
@@ -69,67 +69,67 @@ contract PoolMathAerodromeFacet is IPoolMathFacet, Modifiers {
         return LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);
     }
 
-    function estimateAmount0(
-        uint256 amount1,
-        uint128 liquidity,
-        uint160 sqrtRatioX96,
-        int24 tickLow,
-        int24 tickHigh
-    ) external pure returns (uint256) { 
-        return SqrtPriceMath.estimateAmount0(amount1, liquidity, sqrtRatioX96, tickLow, tickHigh);
-    }
+    // function estimateAmount0(
+    //     uint256 amount1,
+    //     uint128 liquidity,
+    //     uint160 sqrtRatioX96,
+    //     int24 tickLow,
+    //     int24 tickHigh
+    // ) external pure returns (uint256) { 
+    //     return SqrtPriceMath.estimateAmount0(amount1, liquidity, sqrtRatioX96, tickLow, tickHigh);
+    // }
 
-    function estimateAmount1(
-        uint256 amount0,
-        uint128 liquidity,
-        uint160 sqrtRatioX96,
-        int24 tickLow,
-        int24 tickHigh
-    ) external pure returns (uint256) {
-        return SqrtPriceMath.estimateAmount1(amount0, liquidity, sqrtRatioX96, tickLow, tickHigh);
-    }
+    // function estimateAmount1(
+    //     uint256 amount0,
+    //     uint128 liquidity,
+    //     uint160 sqrtRatioX96,
+    //     int24 tickLow,
+    //     int24 tickHigh
+    // ) external pure returns (uint256) {
+    //     return SqrtPriceMath.estimateAmount1(amount0, liquidity, sqrtRatioX96, tickLow, tickHigh);
+    // }
 
-     function getNextSqrtPriceFromAmounts(
-        uint160 sqrtPriceX96,
-        uint128 liquidity,
-        uint256 amount0,
-        uint256 amount1,
-        bool direction
-    ) external pure returns (uint160 nextSqrtPriceX96) {
-        require(sqrtPriceX96 > 0 && liquidity > 0, "Invalid sqrtPriceX96 or liquidity");
+    //  function getNextSqrtPriceFromAmounts(
+    //     uint160 sqrtPriceX96,
+    //     uint128 liquidity,
+    //     uint256 amount0,
+    //     uint256 amount1,
+    //     bool direction
+    // ) external pure returns (uint160 nextSqrtPriceX96) {
+    //     require(sqrtPriceX96 > 0 && liquidity > 0, "Invalid sqrtPriceX96 or liquidity");
 
-        uint160 sqrtP1 = direction ? SqrtPriceMath.getNextSqrtPriceFromAmount1RoundingDown(
-            sqrtPriceX96,
-            liquidity,
-            amount1,
-            true
-        ) : SqrtPriceMath.getNextSqrtPriceFromAmount0RoundingUp(
-            sqrtPriceX96,
-            liquidity,
-            amount0,
-            true 
-        );
+    //     uint160 sqrtP1 = direction ? SqrtPriceMath.getNextSqrtPriceFromAmount1RoundingDown(
+    //         sqrtPriceX96,
+    //         liquidity,
+    //         amount1,
+    //         true
+    //     ) : SqrtPriceMath.getNextSqrtPriceFromAmount0RoundingUp(
+    //         sqrtPriceX96,
+    //         liquidity,
+    //         amount0,
+    //         true 
+    //     );
 
-        uint128 liquidityDelta = direction ? LiquidityAmounts.getLiquidityForAmount1(
-            sqrtPriceX96,
-            sqrtP1,
-            amount1
-        ) : LiquidityAmounts.getLiquidityForAmount0(
-            sqrtPriceX96,
-            sqrtP1,
-            amount0
-        );
+    //     uint128 liquidityDelta = direction ? LiquidityAmounts.getLiquidityForAmount1(
+    //         sqrtPriceX96,
+    //         sqrtP1,
+    //         amount1
+    //     ) : LiquidityAmounts.getLiquidityForAmount0(
+    //         sqrtPriceX96,
+    //         sqrtP1,
+    //         amount0
+    //     );
 
-        nextSqrtPriceX96 = direction ? SqrtPriceMath.getNextSqrtPriceFromAmount1RoundingDown(
-            sqrtP1,
-            liquidity + liquidityDelta,
-            amount1,
-            false
-        ) : SqrtPriceMath.getNextSqrtPriceFromAmount0RoundingUp(
-            sqrtP1,
-            liquidity + liquidityDelta,
-            amount0,
-            false
-        );
-    }
+    //     nextSqrtPriceX96 = direction ? SqrtPriceMath.getNextSqrtPriceFromAmount1RoundingDown(
+    //         sqrtP1,
+    //         liquidity + liquidityDelta,
+    //         amount1,
+    //         false
+    //     ) : SqrtPriceMath.getNextSqrtPriceFromAmount0RoundingUp(
+    //         sqrtP1,
+    //         liquidity + liquidityDelta,
+    //         amount0,
+    //         false
+    //     );
+    // }
 }

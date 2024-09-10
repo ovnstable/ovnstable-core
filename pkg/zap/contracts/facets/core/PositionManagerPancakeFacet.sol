@@ -51,6 +51,15 @@ contract PositionManagerPancakeFacet is IPositionManagerFacet, Modifiers {
         (liquidity,,) = getNpm().increaseLiquidity(params);
     }
 
+    function swap(
+        address pair,
+        uint256 amountIn,
+        uint160 sqrtPriceLimitX96,
+        bool zeroForOne
+    ) external returns (int256, int256) {
+        return (0, 0); // TODO
+    }
+
     function getPositions(address wallet) external view returns (PositionInfo[] memory result) {
         uint256 validChefPositionsLength = calculateChefPositionsLength(wallet);
         uint256 validUserPositionsLength = calculateUserPositionsLength(wallet);
