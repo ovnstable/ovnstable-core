@@ -201,8 +201,6 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
         return owners.length();
     }
 
-
-
     /**
      * @return High resolution rebasingCreditsPerToken
      */
@@ -217,10 +215,15 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
         return _rebasingCredits;
     }
 
-    
+    /**
+     * @return The total shares of OVN+.
+     */
+    function totalShares() external view returns (uint256) {
+        return _totalShares;
+    }    
 
     function sharesBalanceOf(address _account) 
-        public
+        external
         view
         returns (uint256)
     {
@@ -586,15 +589,15 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
             return;
         }
 
-        uint256 delta = _newTotalSupply - _totalSupply - _totalDeposit;
-
-        
-        
+        uint256 delta = _newTotalSupply - _totalSupply - _totalDeposit;    
 
         uint256 baseDelta = delta * _totalDeposit / (_totalSupply + _totalDeposit); // TODO: check zero case
         
         uint256 teamDelta = delta - baseDelta;
-        
+
+        // console.log(delta);
+        // console.log(baseDelta);
+        // console.log(teamDelta);
         
         uint256 ownersCount = ownersLength();
 

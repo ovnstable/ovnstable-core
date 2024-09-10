@@ -3,11 +3,7 @@ pragma solidity >=0.5.0 <0.9.0;
 
 import "./IPayoutManager.sol";
 
-interface IUsdPlusToken {
-
-    function liquidityIndex() external view returns (uint256);
-
-    function setLiquidityIndex(uint256 _liquidityIndex) external;
+interface IOvnFund {
 
     function exchange() external view returns (address);
 
@@ -129,15 +125,15 @@ interface IUsdPlusToken {
      */
     function decimals() external pure returns (uint8);
 
-    function rebaseOptIn(address _address) external;
-
-    function rebaseOptOut(address _address) external;
-
     function changeNegativeSupply(uint256 _newTotalSupply) external;
 
     function changeSupply(uint256 _newTotalSupply, uint256 _totalDeposit) external;
 
-    function rebasingCreditsPerTokenHighres() external view returns (uint256);
+    function rebasingCreditsPerToken() external view returns (uint256);
 
     function isPaused() external view returns (bool);
+
+    function totalShares() external view returns (uint256);
+
+    function sharesBalanceOf(address _account) external view returns (uint256);
 }

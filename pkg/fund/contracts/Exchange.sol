@@ -14,7 +14,7 @@ import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IBlockGetter.sol";
 import "./interfaces/IRoleManager.sol";
 import "./interfaces/IStrategy.sol";
-import "./interfaces/IUsdPlusToken.sol";
+import "./interfaces/IOvnFund.sol";
 
 
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
@@ -25,7 +25,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // ---  fields
 
-    IUsdPlusToken public usdPlus;
+    IOvnFund public ovnPlus;
     IERC20 public usdc; // asset name
 
     IPortfolioManager public portfolioManager; // portfolio manager contract
@@ -54,7 +54,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // ---  events
 
-    event TokensUpdated(address usdPlus, address asset);
+    event TokensUpdated(address ovnPlus, address asset);
     event Mark2MarketUpdated(address mark2market);
     event RoleManagerUpdated(address roleManager);
     event PortfolioManagerUpdated(address portfolioManager);
@@ -74,7 +74,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
     event NextPayoutTime(uint256 nextPayoutTime);
     event OnNotEnoughLimitRedeemed(address token, uint256 amount);
-    event PayoutAbroad(uint256 delta, uint256 deltaUsdPlus);
+    event PayoutAbroad(uint256 delta, uint256 deltaOvnPlus);
     event MaxAbroad(uint256 abroad);
     event ProfitRecipientUpdated(address recipient);
     event OracleLossUpdate(uint256 oracleLoss, uint256 denominator);
@@ -128,12 +128,12 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
     // ---  setters Admin
 
-    function setTokens(address _usdPlus, address _asset) external onlyAdmin {
-        require(_usdPlus != address(0), "Zero address not allowed");
+    function setTokens(address _ovnPlus, address _asset) external onlyAdmin {
+        require(_ovnPlus != address(0), "Zero address not allowed");
         require(_asset != address(0), "Zero address not allowed");
-        usdPlus = IUsdPlusToken(_usdPlus);
+        ovnPlus = IOvnFund(_ovnPlus);
         usdc = IERC20(_asset);
-        emit TokensUpdated(_usdPlus, _asset);
+        emit TokensUpdated(_ovnPlus, _asset);
     }
 
     function setPortfolioManager(address _portfolioManager) external onlyAdmin {
@@ -213,7 +213,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function withdrawDeposit(address _asset, uint256 _amount) external whenNotPaused nonReentrant onlyAdmin returns (uint256) { // for depositor
         require(_asset == address(usdc), "Only asset available for redeem");
         require(_amount > 0, "Amount of USD+ is zero");
-        require(usdPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
+        require(ovnPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
 
         uint256 redeemAmount = _rebaseToAsset(_amount);
         require(redeemAmount > 0, "Amount of asset is zero");
@@ -244,7 +244,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function _withdraw(address _asset, uint256 _amount) internal whenNotPaused nonReentrant returns (uint256) {
         require(_asset == address(usdc), "Only asset available for redeem");
         require(_amount > 0, "Amount of USD+ is zero");
-        require(usdPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
+        require(ovnPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
 
         uint256 assetAmount = _rebaseToAsset(_amount);
         require(assetAmount > 0, "Amount of asset is zero");
@@ -253,7 +253,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         _requireOncePerBlock(isBalanced);
 
         // Or just burn from sender
-        usdPlus.burn(msg.sender, _amount);
+        ovnPlus.burn(msg.sender, _amount);
 
         require(usdc.balanceOf(address(this)) >= assetAmount, "Not enough for transfer assetAmount");
         SafeERC20.safeTransfer(usdc, msg.sender, assetAmount);
@@ -280,8 +280,8 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         require(_amount > 0, "Amount of asset is zero");
 
-        uint256 usdPlusAmount = _assetToRebase(_amount);
-        require(usdPlusAmount > 0, "Amount of USD+ is zero");
+        uint256 ovnPlusAmount = _assetToRebase(_amount);
+        require(ovnPlusAmount > 0, "Amount of USD+ is zero");
 
         uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
         SafeERC20.safeTransferFrom(usdc, msg.sender, address(portfolioManager), _amount);
@@ -290,11 +290,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         portfolioManager.deposit();
         _requireOncePerBlock(false);
 
-        usdPlus.mint(msg.sender, usdPlusAmount);
+        ovnPlus.mint(msg.sender, ovnPlusAmount);
 
-        emit EventExchange("mint", usdPlusAmount, msg.sender);
+        emit EventExchange("mint", ovnPlusAmount, msg.sender);
 
-        return usdPlusAmount;
+        return ovnPlusAmount;
     }
 
 
@@ -345,11 +345,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function _rebaseToAsset(uint256 _amount) internal view returns (uint256){
 
         uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
-        uint256 usdPlusDecimals = usdPlus.decimals();
-        if (assetDecimals > usdPlusDecimals) {
-            _amount = _amount * (10 ** (assetDecimals - usdPlusDecimals));
+        uint256 ovnPlusDecimals = ovnPlus.decimals();
+        if (assetDecimals > ovnPlusDecimals) {
+            _amount = _amount * (10 ** (assetDecimals - ovnPlusDecimals));
         } else {
-            _amount = _amount / (10 ** (usdPlusDecimals - assetDecimals));
+            _amount = _amount / (10 ** (ovnPlusDecimals - assetDecimals));
         }
 
         return _amount;
@@ -359,11 +359,11 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     function _assetToRebase(uint256 _amount) internal view returns (uint256){
 
         uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
-        uint256 usdPlusDecimals = usdPlus.decimals();
-        if (assetDecimals > usdPlusDecimals) {
-            _amount = _amount / (10 ** (assetDecimals - usdPlusDecimals));
+        uint256 ovnPlusDecimals = ovnPlus.decimals();
+        if (assetDecimals > ovnPlusDecimals) {
+            _amount = _amount / (10 ** (assetDecimals - ovnPlusDecimals));
         } else {
-            _amount = _amount * (10 ** (usdPlusDecimals - assetDecimals));
+            _amount = _amount * (10 ** (ovnPlusDecimals - assetDecimals));
         }
         return _amount;
     }
@@ -391,48 +391,48 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
 
         portfolioManager.claimAndBalance();
 
-        uint256 usdPlusSupply = usdPlus.totalSupply(); 
-        uint256 totalUsdPlus = usdPlusSupply + totalDeposit;
-        uint256 previousUsdPlus = totalUsdPlus;
+        uint256 ovnPlusSupply = ovnPlus.totalSupply(); 
+        uint256 totalOvnPlus = ovnPlusSupply + totalDeposit;
+        uint256 previousOvnPlus = totalOvnPlus;
 
         uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
         uint256 loss;
 
         uint256 delta;
 
-        if (totalUsdPlus > totalNav) {
-            loss = totalUsdPlus - totalNav;
-            if (usdPlusSupply > loss) {
-                usdPlus.changeNegativeSupply(usdPlusSupply - loss);
+        if (totalOvnPlus > totalNav) {
+            loss = totalOvnPlus - totalNav;
+            if (ovnPlusSupply > loss) {
+                ovnPlus.changeNegativeSupply(ovnPlusSupply - loss);
                 return 0;
             } else {
                 revert("This rebase will remove all team funds");
             }
         } else {
-            delta = totalNav * LIQ_DELTA_DM / (usdPlus.totalSupply() + totalDeposit);
+            delta = totalNav * LIQ_DELTA_DM / (ovnPlus.totalSupply() + totalDeposit);
         }
 
 
         // In case positive rebase and negative rebase the value changes and we must update it:
-        // - totalUsdPlus
+        // - totalOvnPlus
         // - totalNav
 
-        totalUsdPlus = usdPlus.totalSupply() + totalDeposit;
+        totalOvnPlus = ovnPlus.totalSupply() + totalDeposit;
         totalNav = _assetToRebase(mark2market.totalNetAssets());
 
-        require(totalNav >= totalUsdPlus, 'negative rebase');
+        require(totalNav >= totalOvnPlus, 'negative rebase');
 
         // Calculating how much users profit after excess fee
-        uint256 profit = totalNav - totalUsdPlus;
+        uint256 profit = totalNav - totalOvnPlus;
 
-        uint256 expectedTotalUsdPlus = previousUsdPlus + profit;
+        uint256 expectedTotalOvnPlus = previousOvnPlus + profit;
 
-        usdPlus.changeSupply(totalNav, totalDeposit);
+        ovnPlus.changeSupply(totalNav, totalDeposit);
 
         
 
-        require(usdPlus.totalSupply() + totalDeposit == totalNav, 'total != nav');
-        require(usdPlus.totalSupply() + totalDeposit == expectedTotalUsdPlus, 'total != expected');
+        require(ovnPlus.totalSupply() + totalDeposit == totalNav, 'total != nav');
+        require(ovnPlus.totalSupply() + totalDeposit == expectedTotalOvnPlus, 'total != expected');
 
         emit PayoutEvent(
             profit
@@ -457,7 +457,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
     function getAvailabilityInfo() external view returns(uint256 _available, bool _paused, bool _deprecated) {
-        _paused = paused() || usdPlus.isPaused();
+        _paused = paused() || ovnPlus.isPaused();
 
         IPortfolioManager.StrategyWeight[] memory weights = portfolioManager.getAllStrategyWeights();
         uint256 count = weights.length;
