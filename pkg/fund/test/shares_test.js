@@ -193,26 +193,25 @@ describe("Token", function () {
     });
 
     it("Should maintain correct share-to-balance ratio after multiple rebases with deposits", async () => {
-        await usdPlus.giveShares(user1.address, 1);
-        await usdPlus.giveShares(user2.address, 4);
+        await ovnPlus.giveShares(user1.address, 1);
+        await ovnPlus.giveShares(user2.address, 4);
     
         await sharesOf(user1, 1);
         await sharesOf(user2, 4);
     
         
-        await usdPlus.mint(user1.address, toAsset(500)); 
+        await ovnPlus.mint(user1.address, toAsset(500)); 
         await changeTotalSupply(1500, 500);
         await balanceOf(user1, 800); 
         await balanceOf(user2, 200); 
     
         
-        // await usdPlus.mint(user2.address, toAsset(500)); 
-        // await changeTotalSupply(2100, 500);
-        // await balanceOf(user1, 800); 
-        // await balanceOf(user2, 1200); 
+        await changeTotalSupply(2100, 500);
+        await balanceOf(user1, 1160); 
+        await balanceOf(user2, 440); 
     
-        await sharesOf(user1, 400);
-        await sharesOf(user2, 600);
+        await sharesOf(user1, 1);
+        await sharesOf(user2, 4);
     });
 
     it('Should return correct balance for small amounts at transfer', async ()=>{
