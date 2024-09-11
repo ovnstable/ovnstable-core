@@ -107,12 +107,14 @@ contract StrategyMorpho is Strategy {
 
         IChainAgnosticBundlerV2 bundler = IChainAgnosticBundlerV2(chainAgnosticBundler);
 
+        uint256 startUsdcBalance = usdcToken.balanceOf(address(this));
+
         bundler.multicall(data);
         if (wellToken.balanceOf(address(this)) > 0) {
             wellToken.transfer(_beneficiary, wellToken.balanceOf(address(this)));
         }
-        if (usdcToken.balanceOf(address(this)) > 0) {
-            usdcToken.transfer(_beneficiary, usdcToken.balanceOf(address(this)));
+        if (usdcToken.balanceOf(address(this)) > startUsdcBalance) {
+            usdcToken.transfer(_beneficiary, usdcToken.balanceOf(address(this)) - startUsdcBalance);
         }
     }
 }
