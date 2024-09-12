@@ -13,7 +13,8 @@ const {
     getPrice, 
     amountFromUsdPrice,
     toDecimals,
-    handleProportionResponse
+    handleProportionResponse,
+    showZapEvents
 } = require('./utils.js');
 const { fromE6, fromE18, toE18 } = require('@overnight-contracts/common/utils/decimals');
 

@@ -7,6 +7,7 @@ import "../../libraries/core/LibCoreStorage.sol";
 contract ZapFacet is IZapFacet {
     event InputTokens(address[] tokens, uint256[] amounts);
     event OutputTokens(address[] tokens, uint256[] amounts);
+    event InitialTokens(address[] tokens, uint256[] amounts);
     event PutIntoPool(address[] tokens, uint256[] amounts);
     event SwappedIntoPool(address[] tokens, uint256[] amounts);
     event ReturnedToUser(address[] tokens, uint256[] amounts);
@@ -94,6 +95,7 @@ contract ZapFacet is IZapFacet {
             amounts[i] = assets[i].balanceOf(address(this));
             paramsData.amountsOut[i] = amounts[i];
         }
+        emit InitialTokens(tokensPool, amounts);
 
         tokenId = manageLiquidity(paramsData, tokenId);
 
@@ -103,7 +105,7 @@ contract ZapFacet is IZapFacet {
         }
         emit PutIntoPool(tokensPool, amounts);
 
-        adjustLiquidity(paramsData, tokenId);
+        // adjustLiquidity(paramsData, tokenId);
         emit PoolPriceAfterSwap(master.getCurrentPrice(paramsData.pair));
         for (uint256 i = 0; i < 2; i++) {
             amounts[i] = amounts[i] - assets[i].balanceOf(address(this));
@@ -209,6 +211,7 @@ contract ZapFacet is IZapFacet {
         ZapInParams memory paramsData,
         uint256 tokenId
     ) internal {
+        console.log("adjustLiquidity");
         IMasterFacet master = IMasterFacet(address(this));
         (uint256 ratio0, uint256 ratio1) = master.getProportion(paramsData.pair, paramsData.tickRange);
         (address token0Address, address token1Address) = master.getPoolTokens(paramsData.pair);
@@ -221,12 +224,20 @@ contract ZapFacet is IZapFacet {
         uint256 desiredAmount0 = master.mulDiv(totalAmount, ratio0, ratio0 + ratio1);
         uint256 desiredAmount1 = totalAmount - desiredAmount0;
 
+        console.log(assets[0].balanceOf(address(this)));
+        console.log(assets[1].balanceOf(address(this)));
+        console.log("desiredAmount0", desiredAmount0);
+        console.log("desiredAmount1", desiredAmount1);
+
         if (paramsData.amountsOut[0] > desiredAmount0) {
             master.swap(paramsData.pair, paramsData.amountsOut[0] - desiredAmount0, 0, true);
         } 
         else {
             master.swap(paramsData.pair, paramsData.amountsOut[1] - desiredAmount1, 0, false);
         }
+
+        console.log(assets[0].balanceOf(address(this)));
+        console.log(assets[1].balanceOf(address(this)));
 
         paramsData.amountsOut[0] = assets[0].balanceOf(address(this));
         paramsData.amountsOut[1] = assets[1].balanceOf(address(this));

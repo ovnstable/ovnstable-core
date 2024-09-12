@@ -154,6 +154,7 @@ async function showZapEvents(zapInResponse) {
 
     const inputTokensEvent = zapInResponse.events.find((event) => event.event === 'InputTokens');
     const outputTokensEvent = zapInResponse.events.find((event) => event.event === 'OutputTokens');
+    const initialTokensEvent = zapInResponse.events.find((event) => event.event === 'InitialTokens');
     const putIntoPoolEvent = zapInResponse.events.find((event) => event.event === 'PutIntoPool');
     const swappedIntoPoolEvent = zapInResponse.events.find((event) => event.event === 'SwappedIntoPool');
     const returnedToUserEvent = zapInResponse.events.find((event) => event.event === 'ReturnedToUser');
@@ -162,33 +163,35 @@ async function showZapEvents(zapInResponse) {
     const poolPriceAfterOdosSwapEvent = zapInResponse.events.find((event) => event.event === 'PoolPriceAfterOdosSwap');
     const poolPriceAfterSwapEvent = zapInResponse.events.find((event) => event.event === 'PoolPriceAfterSwap');
 
+    
+
     for (let i = 0; i < 2; i++) {
         items1.push({
-            name: await getERC20ByAddress(inputTokensEvent.args.tokens[i]).symbol(),
+            "Address": inputTokensEvent.args.tokens[i],
             "InputTokens": inputTokensEvent.args.amounts[i],
         });
     }
     for (let i = 0; i < 2; i++) {
         items1.push({
-            name: await getERC20ByAddress(outputTokensEvent.args.tokens[i]).symbol(),
+            "Address": outputTokensEvent.args.tokens[i],
             "OutputTokens": outputTokensEvent.args.amounts[i],
         });
     }
     for (let i = 0; i < 2; i++) {
-            items1.push({
-            name: await getERC20ByAddress(putIntoPoolEvent.args.tokens[i]).symbol(),
+        items1.push({
+            "Address": putIntoPoolEvent.args.tokens[i],
             "PutIntoPool": putIntoPoolEvent.args.amounts[i],
         });
     }
     for (let i = 0; i < 2; i++) {
         items1.push({
-            name: await getERC20ByAddress(swappedIntoPoolEvent.args.tokens[i]).symbol(),
+            "Address": swappedIntoPoolEvent.args.tokens[i],
             "SwappedIntoPool": swappedIntoPoolEvent.args.amounts[i],
         });
     }
     for (let i = 0; i < 2; i++) {
         items1.push({
-            name: await getERC20ByAddress(returnedToUserEvent.args.tokens[i]).symbol(),
+            "Address": returnedToUserEvent.args.tokens[i],
             "ReturnedToUser": returnedToUserEvent.args.amounts[i],
         });
     }
@@ -207,8 +210,6 @@ async function showZapEvents(zapInResponse) {
     });
     console.table(items1);
     console.table(items2);
-
-
 }
 
 
@@ -231,6 +232,7 @@ module.exports = {
     setUp: setUp,
     getPrice: getPrice,
     showBalances: showBalances,
+    showZapEvents: showZapEvents,
     amountFromUsdPrice: amountFromUsdPrice,
     toDecimals: toDecimals,
     fromDecimals: fromDecimals,

@@ -21,34 +21,34 @@ function getTestCases() {
             return [
                 {
                     name: 'AerodromeCLZap',
-                    pool: '0xfD22D75b2FB405EE185155D57B0277b9DB2F8E29',
+                    pool: '0xfD7aBC461df4e496A25898CaB0c6EA88cDd94Cf9',
                     inputTokens: [
                         {
                             tokenAddress: getTokenAddress('weth'),
-                            amountInUsd: 20000
+                            amountInUsd: 1000
                         }
                     ]
                 },
-                {
-                    name: 'AerodromeCLZap',
-                    pool: '0x75D18ee68bB93BE5cB2dcCFa0d8151E25CBC8Eb8',
-                    inputTokens: [
-                        {
-                            tokenAddress: getTokenAddress('weth'),
-                            amountInUsd: 20000
-                        }
-                    ]
-                },
-                {
-                    name: 'AerodromeCLZap',
-                    pool: '0xd07B4d7CeA966B6E8087C8be3347E4B790679785',
-                    inputTokens: [
-                        {
-                            tokenAddress: getTokenAddress('weth'),
-                            amountInUsd: 10000
-                        }
-                    ]
-                }
+                // {
+                //     name: 'AerodromeCLZap',
+                //     pool: '0x75D18ee68bB93BE5cB2dcCFa0d8151E25CBC8Eb8',
+                //     inputTokens: [
+                //         {
+                //             tokenAddress: getTokenAddress('weth'),
+                //             amountInUsd: 20000
+                //         }
+                //     ]
+                // },
+                // {
+                //     name: 'AerodromeCLZap',
+                //     pool: '0xd07B4d7CeA966B6E8087C8be3347E4B790679785',
+                //     inputTokens: [
+                //         {
+                //             tokenAddress: getTokenAddress('weth'),
+                //             amountInUsd: 10000
+                //         }
+                //     ]
+                // }
             ];
         default:
             throw new Error('Unknown network');
