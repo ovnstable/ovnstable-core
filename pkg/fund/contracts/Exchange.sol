@@ -9,7 +9,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IBlockGetter.sol";
 import "./interfaces/IRoleManager.sol";
@@ -29,7 +28,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     IERC20 public usdc; // asset name
 
     IPortfolioManager public portfolioManager; // portfolio manager contract
-    IMark2Market public mark2market;
+    
 
     uint256 totalDeposit;
 
@@ -55,7 +54,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
     // ---  events
 
     event TokensUpdated(address ovnPlus, address asset);
-    event Mark2MarketUpdated(address mark2market);
     event RoleManagerUpdated(address roleManager);
     event PortfolioManagerUpdated(address portfolioManager);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
@@ -140,12 +138,6 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         require(_portfolioManager != address(0), "Zero address not allowed");
         portfolioManager = IPortfolioManager(_portfolioManager);
         emit PortfolioManagerUpdated(_portfolioManager);
-    }
-
-    function setMark2Market(address _mark2market) external onlyAdmin {
-        require(_mark2market != address(0), "Zero address not allowed");
-        mark2market = IMark2Market(_mark2market);
-        emit Mark2MarketUpdated(_mark2market);
     }
 
     function setRoleManager(address _roleManager) external onlyAdmin {
@@ -395,7 +387,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 totalOvnPlus = ovnPlusSupply + totalDeposit;
         uint256 previousOvnPlus = totalOvnPlus;
 
-        uint256 totalNav = _assetToRebase(mark2market.totalNetAssets());
+        uint256 totalNav = _assetToRebase(portfolioManager.totalNetAssets());
         uint256 loss;
 
         uint256 delta;
@@ -418,7 +410,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         // - totalNav
 
         totalOvnPlus = ovnPlus.totalSupply() + totalDeposit;
-        totalNav = _assetToRebase(mark2market.totalNetAssets());
+        totalNav = _assetToRebase(portfolioManager.totalNetAssets());
 
         require(totalNav >= totalOvnPlus, 'negative rebase');
 

@@ -12,7 +12,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "./libraries/StableMath.sol";
 
-import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
 
@@ -49,7 +48,6 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
 
     address public exchange;
     uint8 private _decimals;
-    address public payoutManager;
     
     IRoleManager public roleManager;
 
@@ -60,7 +58,6 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
     );
 
     event ExchangerUpdated(address exchanger);
-    event PayoutManagerUpdated(address payoutManager);
     event RoleManagerUpdated(address roleManager);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -101,11 +98,6 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
         _;
     }
 
-    modifier onlyPayoutManager() {
-        require(payoutManager == _msgSender(), "Caller is not the PAYOUT_MANAGER");
-        _;
-    }
-
     modifier onlyPortfolioAgent() {
         require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, _msgSender()), "Restricted to Portfolio Agent");
         _;
@@ -125,12 +117,6 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
         require(_exchanger != address(0), 'exchange is zero');
         exchange = _exchanger;
         emit ExchangerUpdated(_exchanger);
-    }
-
-    function setPayoutManager(address _payoutManager) external onlyAdmin {
-        require(_payoutManager != address(0), 'payoutManager is zero');
-        payoutManager = _payoutManager;
-        emit PayoutManagerUpdated(_payoutManager);
     }
 
     function setRoleManager(address _roleManager) external onlyAdmin {

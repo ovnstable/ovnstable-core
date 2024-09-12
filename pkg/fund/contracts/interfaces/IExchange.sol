@@ -1,23 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "./IInsuranceExchange.sol";
-
 interface IExchange {
 
     struct MintParams {
         address asset;   // USDC | BUSD depends at chain
         uint256 amount;  // amount asset
-        string referral; // code from Referral Program -> if not have -> set empty
     }
-
-    function buyFee() external view returns (uint256);
-
-    function buyFeeDenominator() external view returns (uint256);
-
-    function redeemFee() external view returns (uint256);
-
-    function redeemFeeDenominator() external view returns (uint256);
 
     function balance() external view returns (uint256);
 
@@ -39,6 +28,6 @@ interface IExchange {
      */
     function redeem(address _asset, uint256 _amount) external returns (uint256);
 
-    function payout(bool simulate, IInsuranceExchange.SwapData memory swapData)  external returns (uint256 swapAmount);
+    function payout()  external returns (uint256 swapAmount);
 
 }
