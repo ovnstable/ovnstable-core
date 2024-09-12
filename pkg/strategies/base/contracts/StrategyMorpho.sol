@@ -100,9 +100,11 @@ contract StrategyMorpho is Strategy {
         return usdcToken.balanceOf(address(this)) + mUsdcToken.balanceOf(address(this)) / 10 ** (mUsdcToken.decimals() - 6);
     }
 
-    function _claimRewards(address _beneficiary, bytes[] memory data) public onlyPortfolioAgent {
-        address chainAgnosticBundler = address(0x23055618898e202386e6c13955a58D3C68200BFB);
+    function _claimRewards(address _beneficiary) internal override returns (uint256) {
+        return 0;
+    }
 
+    function claimMerkleTreeRewards(address _beneficiary, bytes[] memory data, address chainAgnosticBundler) public onlyPortfolioAgent {
         IChainAgnosticBundlerV2 bundler = IChainAgnosticBundlerV2(chainAgnosticBundler);
 
         uint256 startUsdcBalance = usdcToken.balanceOf(address(this));

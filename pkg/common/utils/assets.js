@@ -39,6 +39,7 @@ let BASE = {
     morpho: '0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb',
     mwUsdc: '0xc1256Ae5FF1cf2719D4937adb3bbCCab2E00A2Ca',
     gcUsdc: '0xc0c5689e6f4D256E861F65465b691aeEcC0dEb12',
+    morphoChainAgnosticBundler: '0x23055618898e202386e6c13955a58D3C68200BFB',
 
 
     // seamlesss

@@ -10,17 +10,18 @@ module.exports = async ({deployments}) => {
     });
 
     await settingSection('', async (strategy) => {
-        await (await strategy.setParams(await getParams())).wait();
+        await (await strategy.setParams(getParamsAlpha())).wait();
     });
 };
 
-async function getParams() {
+function getParamsAlpha() {
     return {
         usdc: BASE.usdc,
         mUsdc: BASE.mwUsdc,
         well: BASE.well,
         uniswapV3Router: BASE.uniswapV3Router
     };
-}
+};
 
+module.exports.strategyMorphoAlpha = getParamsAlpha;
 module.exports.tags = ['StrategyMorphoAlpha'];

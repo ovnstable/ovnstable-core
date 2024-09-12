@@ -6,7 +6,8 @@ const path = require('path');
 const { prepareEnvironment } = require("@overnight-contracts/common/utils/tests");
 const { strategySiloUsdc } = require("@overnight-contracts/strategies-arbitrum/deploy/38_strategy_silo_usdc");
 const { ethers } = require("hardhat");
-const { strategyEtsEtaParams } = require("@overnight-contracts/strategies-base/deploy/11_ets_eta");
+const { strategyMorphoAlpha } = require("@overnight-contracts/strategies-base/deploy/22_strategy_morpho_alpha");
+const { strategyMorphoBeta } = require("@overnight-contracts/strategies-base/deploy/24_strategy_morpho_beta");
 const {BASE, COMMON} = require('@overnight-contracts/common/utils/assets');
 const {getImplementationAddress} = require('@openzeppelin/upgrades-core');
 let filename = path.basename(__filename);
@@ -14,8 +15,8 @@ filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
 
-    // let wallet = await initWallet();
-    // await transferETH(1, wallet.address);
+    let wallet = await initWallet();
+    await transferETH(1, wallet.address);
     
     let addresses = [];
     let values = [];
@@ -30,18 +31,18 @@ async function main() {
     addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock.address]);
     
 
-    let newMorphoAlphaImpl = "0x1b1e56A4B8131c98655b663106A08d005D7a8E3F";  
-    let newMorphoBetaImpl = "0xcc4067930138C47562D86C7E1c8C38A241639588";
+    let newMorphoAlphaImpl = "0xf367AEc30377ee0e24C6091Fb32Be56A7D3e9e0A";  
+    let newMorphoBetaImpl = "0x02fd6138c488D941C8dA02865399e2976Ba94af3";
     let treasury = "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46";
 
     addProposalItem(morphoAlpha, 'upgradeTo', [newMorphoAlphaImpl]);
     addProposalItem(morphoBeta, 'upgradeTo', [newMorphoBetaImpl]);
-    addProposalItem(morphoAlpha, 'setParams', [getParamsAlpha()]);
-    addProposalItem(morphoBeta, 'setParams', [getParamsBeta()]);
+    addProposalItem(morphoAlpha, 'setParams', [strategyMorphoAlpha()]);
+    addProposalItem(morphoBeta, 'setParams', [strategyMorphoBeta()]);
     
 
-    // let well = await getERC20ByAddress(BASE.well, wallet.address);
-    // let usdc = await getERC20ByAddress(BASE.usdc, wallet.address);
+    let well = await getERC20ByAddress(BASE.well, wallet.address);
+    let usdc = await getERC20ByAddress(BASE.usdc, wallet.address);
 
     // console.log("alpha well", (await well.balanceOf(morphoAlpha.address)).toString());
     // console.log("beta well", (await well.balanceOf(morphoBeta.address)).toString());
@@ -56,8 +57,8 @@ async function main() {
     "0x6b89026a0000000000000000000000005400dbb270c956e8985184335a1c62aca6ce13330000000000000000000000002e99704871c726893c94bbe7e5ba4c2bed976a86000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda029130000000000000000000000000000000000000000000000000000000052ab37c300000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000b6c2eceeebef82b541db7ae8eb7831bcdb17876f8b41797eecffe14288e94660a67cea24ec676f6c24304786b29d852b7c665c5f3efa0cd5cbe41679bda25a3935d4617aea5621f0162bcd220d430c3236883f61e000f773e42380aeb4235f1935cf18a609666109e79d083d02159a7a251df25576360db598feb072b5b9a6bf10a40c3c22346bbaf4ce0da89bfeeb1d44e5d1563c572f02ea3e9a086d4bc1247b6c4e6f28749b01cfc7d74a74b4803549e6eb2f077de8c11130029ef61bcc19c72f3dc6947c6ce1c3731140c07142be748c60d98cd3d13cf7c0e45a847fa37f2f41a2b338004af011f39c96fa0d3bd9feea556a72d70b89de6f684cc2ac55da3fd46f37bdf43772ffc1dc3736a0d0d6737f5866c4221c5e3eecf44e81de2c42fc540c469ccee802e66d5e2138d9fd1f50d2819df2fba9f1ebf549c8967827697d49a78bf5bb0899bef206895ed8de1b5ec2d746b5e48dfd4047a01a00664e341"]
 
     let dataBeta = ["0x6b89026a0000000000000000000000005400dbb270c956e8985184335a1c62aca6ce1333000000000000000000000000e1d2e5d59f8802b0249ea12d9ac94249d6bff17c000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda02913000000000000000000000000000000000000000000000000000000009522bc7000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000be251b0c2ed1c7ca890d0a2f632f3fe46ad25e6c35b6e1fd3b2307f37ea7576e9c9b16d786fda5f26f1e76f0361953fa080d162153f536db4a8ac286b69a92bb64c1a9c0e7da0950ef9f7cc4b81481a7722bae43b33e8a211cc3b8fbae5f3f28d00feec6ba1f488814a00917df08b30618869653dabadf72b920c942725462af042caefa463f6cca66f540df71fdbcb21338c22ec003031403907a31ef659fa1669688c5627086f09a253a5a52ed1d6f3c9ceea09564d2d3ce6a24c2e35987b65bdccce1391d9f2c8f8fb80722fc794f5b4f71ed8a653f100d6c958591646a9148939bb11439dcb48cb9c4d4ca1317c8fb32b7f3fc34d7c0a770444a6d2d433a74756fc4e79171a8c8f1077d218283c9fd1c765d7e29c02e1a6a44cc218e67b7167b036b179c60e19dcb8ba3fd3350c2680272b4513baa8c18b1a7636673054d8171b88484e4b5afd10033a6ffeb502eba972af3d7d6773d8e9d7712dc4bd0a5a"]
-    addProposalItem(morphoAlpha, '_claimRewards', [treasury, dataAlpha]);
-    addProposalItem(morphoBeta, '_claimRewards', [treasury, dataBeta]);
+    addProposalItem(morphoAlpha, 'claimMerkleTreeRewards', [COMMON.rewardWallet, dataAlpha, BASE.morphoChainAgnosticBundler]);
+    addProposalItem(morphoBeta, 'claimMerkleTreeRewards', [COMMON.rewardWallet, dataBeta, BASE.morphoChainAgnosticBundler]);
     
 
     
@@ -79,24 +80,6 @@ async function main() {
         addresses.push(contract.address);
         values.push(0);
         abis.push(contract.interface.encodeFunctionData(methodName, params));
-    }
-
-    function getParamsAlpha() {
-        return {
-            usdc: BASE.usdc,
-            mUsdc: BASE.mwUsdc,
-            well: BASE.well,
-            uniswapV3Router: BASE.uniswapV3Router
-        };
-    }
-
-    function getParamsBeta() {
-        return {
-            usdc: BASE.usdc,
-            mUsdc: BASE.gcUsdc,
-            well: BASE.well,
-            uniswapV3Router: BASE.uniswapV3Router
-        };
     }
 }
 
