@@ -157,7 +157,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         // You need have permission for role UPGRADER_ROLE;
 
         try {
-            impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: always });
+            impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow });
         } catch (e) {
             console.log(e);
             impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow });
@@ -176,7 +176,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
             {
                 kind: 'uups',
                 unsafeAllow: unsafeAllow,
-                redeployImplementation: "always"
+                // redeployImplementation: "always"
                 // unsafeSkipStorageCheck: true,
                 // unsafeAllowRenames: true
             },
