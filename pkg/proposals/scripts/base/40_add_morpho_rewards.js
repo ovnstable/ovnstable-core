@@ -14,10 +14,9 @@ filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
 
-    let wallet = await initWallet();
-    await transferETH(1, wallet.address);
+    // let wallet = await initWallet();
+    // await transferETH(1, wallet.address);
     
-
     let addresses = [];
     let values = [];
     let abis = [];
@@ -25,11 +24,8 @@ async function main() {
     let rm = await getContract('RoleManager', 'base');
     let timelock = await getContract('AgentTimelock', 'base');
     
-
     let morphoAlpha = await getContract('StrategyMorphoAlpha', 'base');
-    let morphoBeta = await getContract('StrategyMorphoBeta', 'base');
-
-    
+    let morphoBeta = await getContract('StrategyMorphoBeta', 'base');  
     
     addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock.address]);
     
@@ -44,16 +40,16 @@ async function main() {
     addProposalItem(morphoBeta, 'setParams', [getParamsBeta()]);
     
 
-    let well = await getERC20ByAddress(BASE.well, wallet.address);
-    let usdc = await getERC20ByAddress(BASE.usdc, wallet.address);
+    // let well = await getERC20ByAddress(BASE.well, wallet.address);
+    // let usdc = await getERC20ByAddress(BASE.usdc, wallet.address);
 
-    console.log("alpha well", (await well.balanceOf(morphoAlpha.address)).toString());
-    console.log("beta well", (await well.balanceOf(morphoBeta.address)).toString());
-    console.log("treasury well", (await well.balanceOf(treasury)).toString());
+    // console.log("alpha well", (await well.balanceOf(morphoAlpha.address)).toString());
+    // console.log("beta well", (await well.balanceOf(morphoBeta.address)).toString());
+    // console.log("treasury well", (await well.balanceOf(treasury)).toString());
 
-    console.log("alpha usdc", (await usdc.balanceOf(morphoAlpha.address)).toString());
-    console.log("beta usdc", (await usdc.balanceOf(morphoBeta.address)).toString());
-    console.log("treasury usdc", (await usdc.balanceOf(treasury)).toString());
+    // console.log("alpha usdc", (await usdc.balanceOf(morphoAlpha.address)).toString());
+    // console.log("beta usdc", (await usdc.balanceOf(morphoBeta.address)).toString());
+    // console.log("treasury usdc", (await usdc.balanceOf(treasury)).toString());
 
 
     let dataAlpha = ["0x6b89026a0000000000000000000000009e3380f8b29e8f85ca19effa80fb41149417d9430000000000000000000000002e99704871c726893c94bbe7e5ba4c2bed976a86000000000000000000000000a88594d404727625a9437c3f886c7643872296ae000000000000000000000000000000000000000000003fd9052acee6e0ecf5b100000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000cda3618da2629bd5367a20a219310eaac53421738bd8fe0ee069c4509d8859851facea566791f108a28e4c43c5e0a404268ec3eee7197fa8a051b73ceb7e536a438837518d8460be54825697605d98bdaeda3ab654cb96225f22a7dc532d27e1a74c351897f8246175908045d48c0af381ca688b1203de616af2b870963b96eab819409d0331d4fb19f558a434605a33ec85f768655ebab307970f479f1e4972ba73a7729cc133a2a656b667fd3ce725fc2b09d5c5935dcb1ea5d53b82645b633c438fe255361b52ca379ee1bfddd8c6f724f3904d9dd6911be791b13964c1b68fe56a913b67eb45eec358e1d4705d976c6634e6c62eefa9fa00995c958c2f5dad19647a2ffd05dbc9e184a1d505d80cd1b849ef358fea53381189eaf4a59cb9227f1d1cfdbf0e8f7fce95e196ac631d1c3c34abe7700f7e3458914c7c6b0825eece254b7316ee14d01671672be4be72c58ba733a31fc35af4f1d7b59b2692c4accd1ad6a67bc3f47ddf68c25ebffb25b73a35029105e37da70a04b8f2777652a",
@@ -66,18 +62,18 @@ async function main() {
 
     
 
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
     // await testUsdPlus(filename, 'base');
     // await testStrategy(filename, morpho, 'base');
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
-    console.log("alpha well", (await well.balanceOf(morphoAlpha.address)).toString());
-    console.log("beta well", (await well.balanceOf(morphoBeta.address)).toString());
-    console.log("treasury well", (await well.balanceOf(treasury)).toString());
+    // console.log("alpha well", (await well.balanceOf(morphoAlpha.address)).toString());
+    // console.log("beta well", (await well.balanceOf(morphoBeta.address)).toString());
+    // console.log("treasury well", (await well.balanceOf(treasury)).toString());
 
-    console.log("alpha usdc", (await usdc.balanceOf(morphoAlpha.address)).toString());
-    console.log("beta usdc", (await usdc.balanceOf(morphoBeta.address)).toString());
-    console.log("treasury usdc", (await usdc.balanceOf(treasury)).toString());
+    // console.log("alpha usdc", (await usdc.balanceOf(morphoAlpha.address)).toString());
+    // console.log("beta usdc", (await usdc.balanceOf(morphoBeta.address)).toString());
+    // console.log("treasury usdc", (await usdc.balanceOf(treasury)).toString());
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
