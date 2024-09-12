@@ -52,15 +52,6 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         (liquidity,,) = getNpm().increaseLiquidity(params);
     }
 
-    function swap(
-        address pair,
-        uint256 amountIn,
-        uint160 sqrtPriceLimitX96,
-        bool zeroForOne
-    ) external onlyDiamond returns (int256 amountOut0, int256 amountOut1) {
-        (amountOut0, amountOut1) = ICLPool(pair).swap(address(this), zeroForOne, int256(amountIn), sqrtPriceLimitX96, "");
-    }
-
     function getPositions(address wallet) external view returns (PositionInfo[] memory result) {
         uint256 gaugePositionsLength = calculateGaugePositionsLength(wallet);
         uint256 validPositionsLength = calculateUserPositionsLength(wallet);

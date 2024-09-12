@@ -20,7 +20,6 @@ interface IProportionFacet {
         uint256[] outputTokenProportions;
         uint256[] outputTokenAmounts;
         uint256[] poolProportionsUsd;
-        uint256[] outputSwapExpected;
     }
 
     struct OutTokenInfo {
@@ -37,8 +36,7 @@ interface IProportionFacet {
     function getProportionForZap(
         address pair,
         int24[] memory tickRange,
-        InputSwapToken[] memory inputTokens,
-        PoolTokenPrices[] memory prices
+        InputSwapToken[] memory inputTokens
     ) external view returns (ResultOfProportion memory);
 
     function getProportionForRebalance(

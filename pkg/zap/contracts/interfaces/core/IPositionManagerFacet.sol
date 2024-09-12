@@ -36,13 +36,6 @@ interface IPositionManagerFacet {
         uint256 amount1
     ) external returns (uint128);
 
-    function swap(
-        address pair,
-        uint256 amountIn,
-        uint160 sqrtPriceLimitX96,
-        bool zeroForOne
-    ) external returns (int256, int256);
-
     function closePosition(uint256 tokenId, address recipient, address feeRecipient) external;
 
     function getPositions(address wallet) external view returns (PositionInfo[] memory);

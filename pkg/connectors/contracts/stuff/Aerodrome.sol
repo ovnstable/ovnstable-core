@@ -2636,4 +2636,22 @@ interface IUniswapV3Pair {
 
 }
 
+library CallbackValidation {
+    function verifyCallback(
+        address factory,
+        address tokenA,
+        address tokenB,
+        int24 tickSpacing
+    ) internal view returns (ICLPool pool) {
+        return verifyCallback(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing));
+    }
 
+    function verifyCallback(address factory, PoolAddress.PoolKey memory poolKey)
+        internal
+        view
+        returns (ICLPool pool)
+    {   
+        pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
+        require(msg.sender == address(pool), "swap validation failed");
+    }
+}
