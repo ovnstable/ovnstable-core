@@ -30,7 +30,7 @@ describe("Token", function () {
 
         const wallet = await initWallet();
 
-        const {deployer} = await getNamedAccounts();
+        const { deployer } = await getNamedAccounts();
         await deployments.fixture(["Exchange", "OvnFund"]);
         account = deployer;
         
@@ -81,7 +81,7 @@ describe("Token", function () {
         expect(sharesValue).to.eq(amount);
     }
 
-    async function giveShares(amount) {
+    async function giveShares(user, amount) {
         await ovnPlus.giveShares(user.address, toAsset(amount));
     }
 
