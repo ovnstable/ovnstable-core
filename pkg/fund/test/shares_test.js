@@ -31,7 +31,7 @@ describe("Token", function () {
         const wallet = await initWallet();
 
         const { deployer } = await getNamedAccounts();
-        await deployments.fixture(["Exchange", "OvnFund"]);
+        await deployments.fixture(["FundExchange", "OvnFund"]);
         account = deployer;
         
         user1 = await createRandomWallet();
@@ -40,7 +40,7 @@ describe("Token", function () {
         nonRebaseUser1 = await createRandomWallet();
         nonRebaseUser2 = await createRandomWallet();
         ovnPlus = await ethers.getContract("OvnFund", deployer);
-        exchange = await ethers.getContract("Exchange", deployer);
+        exchange = await ethers.getContract("FundExchange", deployer);
         
         await transferAsset(ARBITRUM.usdcCircle, deployer);
         await transferETH(100, wallet.address);
