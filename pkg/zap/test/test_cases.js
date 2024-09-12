@@ -31,6 +31,26 @@ function getTestCases() {
                 },
                 // {
                 //     name: 'AerodromeCLZap',
+                //     pool: '0xfD7aBC461df4e496A25898CaB0c6EA88cDd94Cf9',
+                //     inputTokens: [
+                //         {
+                //             tokenAddress: getTokenAddress('weth'),
+                //             amountInUsd: 10000
+                //         }
+                //     ]
+                // },
+                {
+                    name: 'AerodromeCLZap',
+                    pool: '0xfD7aBC461df4e496A25898CaB0c6EA88cDd94Cf9',
+                    inputTokens: [
+                        {
+                            tokenAddress: getTokenAddress('weth'),
+                            amountInUsd: 100000
+                        }
+                    ]
+                },
+                // {
+                //     name: 'AerodromeCLZap',
                 //     pool: '0x75D18ee68bB93BE5cB2dcCFa0d8151E25CBC8Eb8',
                 //     inputTokens: [
                 //         {

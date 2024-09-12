@@ -149,69 +149,62 @@ async function showBalances(account, inputTokens) {
 }
 
 async function showZapEvents(zapInResponse) {
-    let items1 = [];
-    let items2 = [];
+    let items = [];
 
-    const inputTokensEvent = zapInResponse.events.find((event) => event.event === 'InputTokens');
-    const outputTokensEvent = zapInResponse.events.find((event) => event.event === 'OutputTokens');
-    const initialTokensEvent = zapInResponse.events.find((event) => event.event === 'InitialTokens');
-    const putIntoPoolEvent = zapInResponse.events.find((event) => event.event === 'PutIntoPool');
-    const swappedIntoPoolEvent = zapInResponse.events.find((event) => event.event === 'SwappedIntoPool');
-    const returnedToUserEvent = zapInResponse.events.find((event) => event.event === 'ReturnedToUser');
+    const inputTokensEvent = zapInResponse.events.find((event) => event.event === 'InputTokens').args;
+    const outputTokensEvent = zapInResponse.events.find((event) => event.event === 'OutputTokens').args;
+    const initialTokensEvent = zapInResponse.events.find((event) => event.event === 'InitialTokens').args;
+    const putIntoPoolEvent = zapInResponse.events.find((event) => event.event === 'PutIntoPool').args;
+    const swappedIntoPoolEvent = zapInResponse.events.find((event) => event.event === 'SwappedIntoPool').args;
+    const returnedToUserEvent = zapInResponse.events.find((event) => event.event === 'ReturnedToUser').args;
 
-    const poolPriceInitialEvent = zapInResponse.events.find((event) => event.event === 'PoolPriceInitial');
-    const poolPriceAfterOdosSwapEvent = zapInResponse.events.find((event) => event.event === 'PoolPriceAfterOdosSwap');
-    const poolPriceAfterSwapEvent = zapInResponse.events.find((event) => event.event === 'PoolPriceAfterSwap');
+    const poolPriceInitialEvent = zapInResponse.events.find((event) => event.event === 'PoolPriceInitial').args;
+    const poolPriceAfterOdosSwapEvent = zapInResponse.events.find((event) => event.event === 'PoolPriceAfterOdosSwap').args;
+    const poolPriceAfterSwapEvent = zapInResponse.events.find((event) => event.event === 'PoolPriceAfterSwap').args;
 
+    console.log(`Price initial: ${poolPriceInitialEvent.price}`);
+    console.log(`Price after odoswap, diff to initial: ${poolPriceAfterOdosSwapEvent.price}, ${poolPriceAfterOdosSwapEvent.price / poolPriceInitialEvent.price - 1}`);
+    console.log(`Price after swap, diff to initial: ${poolPriceAfterSwapEvent.price}, ${poolPriceAfterSwapEvent.price / poolPriceInitialEvent.price - 1}`);
+
+    // console.log(`Input tokens: ${inputTokensEvent.amounts} ${inputTokensEvent.tokens}`);
+    // console.log(`Output tokens: ${outputTokensEvent.amounts} ${outputTokensEvent.tokens}`);
+
+    // console.log(`Initial tokens: ${initialTokensEvent.amounts} ${initialTokensEvent.tokens}`);
+    // console.log(`Put into pool: ${putIntoPoolEvent.amounts} ${putIntoPoolEvent.tokens}`);
+    // console.log(`Swapped into pool: ${swappedIntoPoolEvent.amounts} ${swappedIntoPoolEvent.tokens}`);
+    // console.log(`Returned to user: ${returnedToUserEvent.amounts} ${returnedToUserEvent.tokens}`);
+
+    items.push({
+        name: 'Initial tokens',
+        token0: `${initialTokensEvent.amounts[0]}`,
+        token1: `${initialTokensEvent.amounts[1]}`,
+        diff0: 0,
+        diff1: 0
+    });
+    items.push({
+        name: 'Put into pool',
+        token0: `${putIntoPoolEvent.amounts[0]}`,
+        token1: `${putIntoPoolEvent.amounts[1]}`,
+        diff0: putIntoPoolEvent.amounts[0] / initialTokensEvent.amounts[0],
+        diff1: putIntoPoolEvent.amounts[1] / initialTokensEvent.amounts[1]
+    });
+    items.push({
+        name: 'Swapped into pool',
+        token0: `${swappedIntoPoolEvent.amounts[0]}`,
+        token1: `${swappedIntoPoolEvent.amounts[1]}`,
+        diff0: swappedIntoPoolEvent.amounts[0] / putIntoPoolEvent.amounts[0],
+        diff1: swappedIntoPoolEvent.amounts[1] / putIntoPoolEvent.amounts[1]
+    });
+    items.push({
+        name: 'Returned to user',
+        token0: `${returnedToUserEvent.amounts[0]}`,
+        token1: `${returnedToUserEvent.amounts[1]}`,
+        diff0: returnedToUserEvent.amounts[0] / initialTokensEvent.amounts[0],
+        diff1: returnedToUserEvent.amounts[1] / initialTokensEvent.amounts[1]
+    });
     
-
-    for (let i = 0; i < 2; i++) {
-        items1.push({
-            "Address": inputTokensEvent.args.tokens[i],
-            "InputTokens": inputTokensEvent.args.amounts[i],
-        });
-    }
-    for (let i = 0; i < 2; i++) {
-        items1.push({
-            "Address": outputTokensEvent.args.tokens[i],
-            "OutputTokens": outputTokensEvent.args.amounts[i],
-        });
-    }
-    for (let i = 0; i < 2; i++) {
-        items1.push({
-            "Address": putIntoPoolEvent.args.tokens[i],
-            "PutIntoPool": putIntoPoolEvent.args.amounts[i],
-        });
-    }
-    for (let i = 0; i < 2; i++) {
-        items1.push({
-            "Address": swappedIntoPoolEvent.args.tokens[i],
-            "SwappedIntoPool": swappedIntoPoolEvent.args.amounts[i],
-        });
-    }
-    for (let i = 0; i < 2; i++) {
-        items1.push({
-            "Address": returnedToUserEvent.args.tokens[i],
-            "ReturnedToUser": returnedToUserEvent.args.amounts[i],
-        });
-    }
-
-    items2.push({
-        name: 'PoolPriceInitial',
-        price: poolPriceInitialEvent.args.price,
-    });
-    items2.push({
-        name: 'PoolPriceAfterOdosSwap',
-        "PoolPriceAfterOdosSwap": poolPriceAfterOdosSwapEvent.args.price,
-    });
-    items2.push({
-        name: 'PoolPriceAfterSwap',
-        "PoolPriceAfterSwap": poolPriceAfterSwapEvent.args.price,
-    });
-    console.table(items1);
-    console.table(items2);
+    console.table(items);
 }
-
 
 function handleProportionResponse(response) {
     let handledResponse = {

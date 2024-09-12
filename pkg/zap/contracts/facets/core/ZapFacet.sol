@@ -104,8 +104,11 @@ contract ZapFacet is IZapFacet {
             paramsData.amountsOut[i] = assets[i].balanceOf(address(this));
         }
         emit PutIntoPool(tokensPool, amounts);
+        for (uint256 i = 0; i < 2; i++) {
+            amounts[i] = assets[i].balanceOf(address(this));
+        }
 
-        // adjustLiquidity(paramsData, tokenId);
+        adjustLiquidity(paramsData, tokenId);
         emit PoolPriceAfterSwap(master.getCurrentPrice(paramsData.pair));
         for (uint256 i = 0; i < 2; i++) {
             amounts[i] = amounts[i] - assets[i].balanceOf(address(this));
@@ -213,31 +216,44 @@ contract ZapFacet is IZapFacet {
     ) internal {
         console.log("adjustLiquidity");
         IMasterFacet master = IMasterFacet(address(this));
-        (uint256 ratio0, uint256 ratio1) = master.getProportion(paramsData.pair, paramsData.tickRange);
         (address token0Address, address token1Address) = master.getPoolTokens(paramsData.pair);
 
         IERC20[] memory assets = new IERC20[](2);
         assets[0] = IERC20(token0Address);
         assets[1] = IERC20(token1Address);
 
-        uint256 totalAmount = paramsData.amountsOut[0] + paramsData.amountsOut[1];
-        uint256 desiredAmount0 = master.mulDiv(totalAmount, ratio0, ratio0 + ratio1);
-        uint256 desiredAmount1 = totalAmount - desiredAmount0;
+        console.log("balance0 before", assets[0].balanceOf(address(this)));
+        console.log("balance1 before", assets[1].balanceOf(address(this)));
 
-        console.log(assets[0].balanceOf(address(this)));
-        console.log(assets[1].balanceOf(address(this)));
-        console.log("desiredAmount0", desiredAmount0);
-        console.log("desiredAmount1", desiredAmount1);
+        (uint256[] memory poolRatio, uint256[] memory swapRatio, uint256[] memory amountsToSwap) = getRatios(paramsData);
+        console.log("poolRatio0", poolRatio[0]);
+        console.log("poolRatio1", poolRatio[1]);
+        console.log("swapRatio0", swapRatio[0]);
+        console.log("swapRatio1", swapRatio[1]);
+        console.log("amountsToSwap0", amountsToSwap[0]);
+        console.log("amountsToSwap1", amountsToSwap[1]);
 
-        if (paramsData.amountsOut[0] > desiredAmount0) {
-            master.swap(paramsData.pair, paramsData.amountsOut[0] - desiredAmount0, 0, true);
+        if (amountsToSwap[0] > amountsToSwap[1]) {
+            // console.log("swap0", paramsData.amountsOut[0] - desiredAmount0);
+            // ratio1 = estimateAmount1(paramsData.amountsOut[0] - desiredAmount0, master.getPoolSqrtRatioX96(paramsData.pair));
+            // console.log("estimateAmount1", ratio1);
+            master.swap(paramsData.pair, amountsToSwap[0], 0, true);
         } 
         else {
-            master.swap(paramsData.pair, paramsData.amountsOut[1] - desiredAmount1, 0, false);
+            // console.log("swap1", paramsData.amountsOut[1] - desiredAmount1);
+            // ratio0 = estimateAmount0(paramsData.amountsOut[1] - desiredAmount1, master.getPoolSqrtRatioX96(paramsData.pair));
+            // console.log("estimateAmount0", ratio0);
+            master.swap(paramsData.pair, amountsToSwap[1], 0, false);
         }
 
-        console.log(assets[0].balanceOf(address(this)));
-        console.log(assets[1].balanceOf(address(this)));
+        console.log("balance0 after swap", assets[0].balanceOf(address(this)));
+        console.log("balance1 after swap", assets[1].balanceOf(address(this)));
+        // console.log("diff0 after swap", desiredAmount0 - assets[0].balanceOf(address(this)));
+        // console.log("diff1 after swap", desiredAmount1 - assets[1].balanceOf(address(this)));
+
+        // (ratio0, ratio1) = master.getProportion(paramsData.pair, paramsData.tickRange);
+        // console.log("ratio0 after", ratio0);
+        // console.log("ratio1 after", ratio1);
 
         paramsData.amountsOut[0] = assets[0].balanceOf(address(this));
         paramsData.amountsOut[1] = assets[1].balanceOf(address(this));
@@ -245,5 +261,64 @@ contract ZapFacet is IZapFacet {
         assets[1].approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[1]);
 
         master.increaseLiquidity(tokenId, paramsData.amountsOut[0], paramsData.amountsOut[1]);
+
+        console.log("balance0 after addLiquidity", assets[0].balanceOf(address(this)));
+        console.log("balance1 after addLiquidity", assets[1].balanceOf(address(this)));
+    }
+
+    function estimateAmount1(uint256 amount0, uint160 sqrtPriceX96) public view returns (uint256 amount1) {
+        IMasterFacet master = IMasterFacet(address(this));
+        uint256 sqrtPriceX96Wide = uint256(sqrtPriceX96);
+        
+        amount1 = master.mulDiv(
+            master.mulDiv(amount0, sqrtPriceX96Wide, 2**96),
+            sqrtPriceX96Wide,
+        2**96
+        );
+    }
+
+    function estimateAmount0(uint256 amount1, uint160 sqrtPriceX96) internal view returns (uint256 amount0) {
+        IMasterFacet master = IMasterFacet(address(this));
+        uint256 sqrtPriceX96Wide = uint256(sqrtPriceX96);
+
+        amount0 = master.mulDiv(
+            amount1,
+            2**96,
+            sqrtPriceX96Wide
+        );
+        amount0 = master.mulDiv(
+            amount0,
+            2**96,
+            sqrtPriceX96Wide
+        );
+    }
+
+    function getRatios(ZapInParams memory paramsData) internal view returns (
+        uint256[] memory poolRatio,
+        uint256[] memory swapRatio,
+        uint256[] memory amountsToSwap
+        ) {
+        poolRatio = new uint256[](2);
+        swapRatio = new uint256[](2);
+
+        amountsToSwap = new uint256[](2);
+        IMasterFacet master = IMasterFacet(address(this));
+        
+        (poolRatio[0], poolRatio[1]) = master.getProportion(paramsData.pair, paramsData.tickRange);
+        uint160 sqrtRatioX96 = master.getPoolSqrtRatioX96(paramsData.pair);
+        swapRatio[0] = 10**18;
+        swapRatio[1] = estimateAmount1(swapRatio[0], sqrtRatioX96);
+        
+        uint256 numerator;
+        uint256 denominator;
+        if (poolRatio[0] * paramsData.amountsOut[1] > poolRatio[1] * paramsData.amountsOut[0]) {
+            numerator = poolRatio[0] * paramsData.amountsOut[1] - poolRatio[1] * paramsData.amountsOut[0];
+            denominator = poolRatio[0] * swapRatio[0] + poolRatio[1] * swapRatio[1];
+            amountsToSwap[1] = numerator / denominator;
+        } else {
+            numerator = poolRatio[1] * paramsData.amountsOut[0] - poolRatio[0] * paramsData.amountsOut[1];
+            denominator = master.mulDiv(poolRatio[0], swapRatio[0], swapRatio[1]) + poolRatio[1];
+            amountsToSwap[0] = numerator / denominator;
+        }
     }
 }
