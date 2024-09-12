@@ -23,14 +23,19 @@ async function main() {
     let abis = [];
 
     let rm = await getContract('RoleManager', 'base');
-    let timelock = "0x8ab9012d1bff1b62c2ad82ae0106593371e6b247";
-    // addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock]);
+    let timelock = await getContract('AgentTimelock', 'base');
+    
 
     let morphoAlpha = await getContract('StrategyMorphoAlpha', 'base');
     let morphoBeta = await getContract('StrategyMorphoBeta', 'base');
+
     
-    let newMorphoAlphaImpl = "0xB92Dd67684714958bc1F22191c2Ea9eA07F9774F";
-    let newMorphoBetaImpl = "0xEF1Bea3869ae14456682E90e190520877d7baC41";
+    
+    addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock.address]);
+    
+
+    let newMorphoAlphaImpl = "0x1b1e56A4B8131c98655b663106A08d005D7a8E3F";  
+    let newMorphoBetaImpl = "0xcc4067930138C47562D86C7E1c8C38A241639588";
     let treasury = "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46";
 
     addProposalItem(morphoAlpha, 'upgradeTo', [newMorphoAlphaImpl]);
@@ -38,6 +43,7 @@ async function main() {
 
     let well = await getERC20ByAddress(BASE.well, wallet.address);
     let usdc = await getERC20ByAddress(BASE.usdc, wallet.address);
+
     console.log("alpha well", (await well.balanceOf(morphoAlpha.address)).toString());
     console.log("beta well", (await well.balanceOf(morphoBeta.address)).toString());
     console.log("treasury well", (await well.balanceOf(treasury)).toString());
@@ -52,15 +58,15 @@ async function main() {
 
     let dataBeta = ["0xac9650d800000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000002446b89026a0000000000000000000000005400dbb270c956e8985184335a1c62aca6ce1333000000000000000000000000e1d2e5d59f8802b0249ea12d9ac94249d6bff17c000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda02913000000000000000000000000000000000000000000000000000000009522bc7000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000be251b0c2ed1c7ca890d0a2f632f3fe46ad25e6c35b6e1fd3b2307f37ea7576e9c9b16d786fda5f26f1e76f0361953fa080d162153f536db4a8ac286b69a92bb64c1a9c0e7da0950ef9f7cc4b81481a7722bae43b33e8a211cc3b8fbae5f3f28d00feec6ba1f488814a00917df08b30618869653dabadf72b920c942725462af042caefa463f6cca66f540df71fdbcb21338c22ec003031403907a31ef659fa1669688c5627086f09a253a5a52ed1d6f3c9ceea09564d2d3ce6a24c2e35987b65bdccce1391d9f2c8f8fb80722fc794f5b4f71ed8a653f100d6c958591646a9148939bb11439dcb48cb9c4d4ca1317c8fb32b7f3fc34d7c0a770444a6d2d433a74756fc4e79171a8c8f1077d218283c9fd1c765d7e29c02e1a6a44cc218e67b7167b036b179c60e19dcb8ba3fd3350c2680272b4513baa8c18b1a7636673054d8171b88484e4b5afd10033a6ffeb502eba972af3d7d6773d8e9d7712dc4bd0a5a0000000000000000000000000000000000000000000000000000000066e124630000da44"]
     addProposalItem(morphoAlpha, '_claimRewards', [treasury, dataAlpha]);
-    addProposalItem(morphoBeta, '_claimRewards', [treasury, dataBeta]);
-    // await (await morphoAlpha._claimRewards(treasury, dataAlpha)).wait();
+    // addProposalItem(morphoBeta, '_claimRewards', [treasury, dataBeta]);
+    
 
     
 
-    // await testProposal(addresses, values, abis);
+    await testProposal(addresses, values, abis);
     // await testUsdPlus(filename, 'base');
     // await testStrategy(filename, morpho, 'base');
-    await createProposal(filename, addresses, values, abis);
+    // await createProposal(filename, addresses, values, abis);
 
     console.log("alpha well", (await well.balanceOf(morphoAlpha.address)).toString());
     console.log("beta well", (await well.balanceOf(morphoBeta.address)).toString());
