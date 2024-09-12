@@ -1,0 +1,82 @@
+{
+  "address": "0xE3c6B98B77BB5aC53242c4B51c566e95703538F7",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "getNumber",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "multiCall",
+      "outputs": [
+        {
+          "internalType": "contract Multicall2",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xdd3d19b8a1af1edc46722f5c364308c5678a55bfa1790dd44b77e29b20a3a03e",
+  "receipt": {
+    "to": null,
+    "from": "0x5CB01385d3097b6a189d1ac8BA3364D900666445",
+    "contractAddress": "0xE3c6B98B77BB5aC53242c4B51c566e95703538F7",
+    "transactionIndex": 5,
+    "gasUsed": "1377817",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x7ef1ab4373a1f8ccea19e0e79f549b480831a743904471c1c01cb058a000dabc",
+    "transactionHash": "0xdd3d19b8a1af1edc46722f5c364308c5678a55bfa1790dd44b77e29b20a3a03e",
+    "logs": [],
+    "blockNumber": 65772462,
+    "cumulativeGasUsed": "8395117",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "c99fb4924fbee6945d57acea9f8ed0c4",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"getNumber\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"multiCall\",\"outputs\":[{\"internalType\":\"contract Multicall2\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/blockgetters/ArbitrumBlockGetter.sol\":\"ArbitrumBlockGetter\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v4.6.0) (token/ERC20/IERC20.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `to`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address to, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `from` to `to` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(\\n        address from,\\n        address to,\\n        uint256 amount\\n    ) external returns (bool);\\n}\\n\",\"keccak256\":\"0x9750c6b834f7b43000631af5cc30001c5f547b3ceb3635488f140f60e897ea6b\",\"license\":\"MIT\"},\"contracts/blockgetters/ArbitrumBlockGetter.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.0 <0.9.0;\\n\\nimport \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\nimport \\\"../interfaces/IBlockGetter.sol\\\";\\n\\ncontract ArbitrumBlockGetter is IBlockGetter {\\n\\n    // https://developer.arbitrum.io/time#case-study-multicall\\n    Multicall2 public multiCall = Multicall2(0x842eC2c7D803033Edf55E478F461FC547Bc54EB2);\\n\\n    function getNumber() external override view returns (uint256){\\n        return multiCall.getBlockNumber();\\n    }\\n\\n\\n}\\n\\ninterface Multicall2 {\\n\\n    function getBlockNumber() external view returns (uint256 blockNumber);\\n}\\n\",\"keccak256\":\"0xe4848f2b8e9f762606ee8a68403d76cf3c4f5a92949798984964d9ab9ad5d6d7\",\"license\":\"MIT\"},\"contracts/interfaces/IBlockGetter.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.8.0 <0.9.0;\\n\\ninterface IBlockGetter {\\n\\n    function getNumber() external view returns (uint256);\\n}\\n\\n\\n\\n\",\"keccak256\":\"0x10d2647e4d0617de607b49180ab953c2da23450a41ccc6a0043a8e2a7854da7b\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x6080604052600080546001600160a01b03191673842ec2c7d803033edf55e478f461fc547bc54eb217905534801561003657600080fd5b5061015c806100466000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c80637fc611f01461003b578063f2c9ecd81461006b575b600080fd5b60005461004e906001600160a01b031681565b6040516001600160a01b0390911681526020015b60405180910390f35b610073610081565b604051908152602001610062565b60008060009054906101000a90046001600160a01b03166001600160a01b03166342cbb15c6040518163ffffffff1660e01b815260040160206040518083038186803b1580156100d057600080fd5b505afa1580156100e4573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610108919061010d565b905090565b60006020828403121561011f57600080fd5b505191905056fea26469706673582212201db702903e00af4bba773adf1f47e9e3f87ee5546f24d8281aae67544b90074a64736f6c63430008060033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100365760003560e01c80637fc611f01461003b578063f2c9ecd81461006b575b600080fd5b60005461004e906001600160a01b031681565b6040516001600160a01b0390911681526020015b60405180910390f35b610073610081565b604051908152602001610062565b60008060009054906101000a90046001600160a01b03166001600160a01b03166342cbb15c6040518163ffffffff1660e01b815260040160206040518083038186803b1580156100d057600080fd5b505afa1580156100e4573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610108919061010d565b905090565b60006020828403121561011f57600080fd5b505191905056fea26469706673582212201db702903e00af4bba773adf1f47e9e3f87ee5546f24d8281aae67544b90074a64736f6c63430008060033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 17694,
+        "contract": "contracts/blockgetters/ArbitrumBlockGetter.sol:ArbitrumBlockGetter",
+        "label": "multiCall",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_contract(Multicall2)17712"
+      }
+    ],
+    "types": {
+      "t_contract(Multicall2)17712": {
+        "encoding": "inplace",
+        "label": "contract Multicall2",
+        "numberOfBytes": "20"
+      }
+    }
+  }
+}
