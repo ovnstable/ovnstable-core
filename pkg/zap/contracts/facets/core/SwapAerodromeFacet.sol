@@ -10,13 +10,13 @@ import "../../interfaces/Constants.sol";
 
 contract SwapAerodromeFacet is ISwapFacet, Modifiers {
     address constant WETH = 0x4200000000000000000000000000000000000006;
-    
+
     function swap(
         address pair,
         uint256 amountIn,
         uint160 sqrtPriceLimitX96,
         bool zeroForOne
-    ) external onlyDiamond {
+    ) public onlyDiamond {
         IMasterFacet master = IMasterFacet(address(this));
         (address token0Address, address token1Address) = master.getPoolTokens(pair);
         int24 tickSpacing = master.getTickSpacing(pair);
@@ -34,6 +34,28 @@ contract SwapAerodromeFacet is ISwapFacet, Modifiers {
                 ? (zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1)
                 : sqrtPriceLimitX96, 
             abi.encode(data)
+        );
+    }
+
+    function simulateSwap(
+        address pair,
+        uint256 amountIn,
+        uint160 sqrtPriceLimitX96,
+        bool zeroForOne,
+        int24[] memory tickRange
+    ) external onlyDiamond {
+        IMasterFacet master = IMasterFacet(address(this));
+        (address token0Address, address token1Address) = master.getPoolTokens(pair);
+
+        swap(pair, amountIn, sqrtPriceLimitX96, zeroForOne);
+
+        uint256[] memory ratio = new uint256[](2);
+        (ratio[0], ratio[1]) = master.getProportion(pair, tickRange);
+        revert SwapError(
+            IERC20(token0Address).balanceOf(address(this)),
+            IERC20(token1Address).balanceOf(address(this)),
+            ratio[0],
+            ratio[1]
         );
     }
 
