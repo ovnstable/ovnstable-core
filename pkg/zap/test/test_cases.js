@@ -19,19 +19,19 @@ function getTestCases() {
             return [];
         case 'BASE':
             return [
-                {
-                    name: 'AerodromeCLZap',
-                    pool: '0xfD7aBC461df4e496A25898CaB0c6EA88cDd94Cf9',
-                    inputTokens: [
-                        {
-                            tokenAddress: getTokenAddress('weth'),
-                            amountInUsd: 1000
-                        }
-                    ]
-                },
                 // {
                 //     name: 'AerodromeCLZap',
                 //     pool: '0xfD7aBC461df4e496A25898CaB0c6EA88cDd94Cf9',
+                //     inputTokens: [
+                //         {
+                //             tokenAddress: getTokenAddress('weth'),
+                //             amountInUsd: 1000
+                //         }
+                //     ]
+                // },
+                // {
+                //     name: 'AerodromeCLZap',
+                //     pool: '0xfD7aBC461df4e496A25898CaB0c6EA88cDd94Cf9', // tvl $150k
                 //     inputTokens: [
                 //         {
                 //             tokenAddress: getTokenAddress('weth'),
@@ -41,7 +41,7 @@ function getTestCases() {
                 // },
                 {
                     name: 'AerodromeCLZap',
-                    pool: '0xfD7aBC461df4e496A25898CaB0c6EA88cDd94Cf9',
+                    pool: '0xfD7aBC461df4e496A25898CaB0c6EA88cDd94Cf9', // tvl $150k
                     inputTokens: [
                         {
                             tokenAddress: getTokenAddress('weth'),
@@ -49,6 +49,27 @@ function getTestCases() {
                         }
                     ]
                 },
+                {
+                    name: 'AerodromeCLZap',
+                    pool: '0xBE700f5c75dFCbEf3Cae37873aEEB1724daED3f6', // tvl $25k
+                    inputTokens: [
+                        {
+                            tokenAddress: getTokenAddress('weth'),
+                            amountInUsd: 10000
+                        }
+                    ]
+                },
+                {
+                    name: 'AerodromeCLZap',
+                    pool: '0xeBeC4772aBA30d82bC64BBB99187B4Ca29928e2E', // tvl $25k
+                    inputTokens: [
+                        {
+                            tokenAddress: getTokenAddress('usd+'),
+                            amountInUsd: 10000
+                        }
+                    ]
+                },
+
                 // {
                 //     name: 'AerodromeCLZap',
                 //     pool: '0x75D18ee68bB93BE5cB2dcCFa0d8151E25CBC8Eb8',

@@ -53,6 +53,7 @@ async function getOdosRequest(request) {
         'outputTokens': request.outputTokens,
         'userAddr': request.userAddr,
         'slippageLimitPercent': 1,
+        // 'sourceBlacklist': ['Hashflow', 'Overnight Exchange', 'Aerodrome Slipstream'],
         'sourceBlacklist': ['Hashflow', 'Overnight Exchange'],
         'sourceWhitelist': [],
         'simulate': false,
@@ -155,7 +156,7 @@ async function showZapEvents(zapInResponse) {
     const outputTokensEvent = zapInResponse.events.find((event) => event.event === 'OutputTokens').args;
     const initialTokensEvent = zapInResponse.events.find((event) => event.event === 'InitialTokens').args;
     const putIntoPoolEvent = zapInResponse.events.find((event) => event.event === 'PutIntoPool').args;
-    const swappedIntoPoolEvent = zapInResponse.events.find((event) => event.event === 'SwappedIntoPool').args;
+    const swappedIntoPoolEvent = zapInResponse.events.find((event) => event.event === 'SwapedIntoPool').args;
     const returnedToUserEvent = zapInResponse.events.find((event) => event.event === 'ReturnedToUser').args;
 
     const poolPriceInitialEvent = zapInResponse.events.find((event) => event.event === 'PoolPriceInitial').args;
@@ -166,8 +167,8 @@ async function showZapEvents(zapInResponse) {
     console.log(`Price after odoswap, diff to initial: ${poolPriceAfterOdosSwapEvent.price}, ${poolPriceAfterOdosSwapEvent.price / poolPriceInitialEvent.price - 1}`);
     console.log(`Price after swap, diff to initial: ${poolPriceAfterSwapEvent.price}, ${poolPriceAfterSwapEvent.price / poolPriceInitialEvent.price - 1}`);
 
-    // console.log(`Input tokens: ${inputTokensEvent.amounts} ${inputTokensEvent.tokens}`);
-    // console.log(`Output tokens: ${outputTokensEvent.amounts} ${outputTokensEvent.tokens}`);
+    console.log(`Input tokens: ${inputTokensEvent.amounts} ${inputTokensEvent.tokens}`);
+    console.log(`Output tokens: ${outputTokensEvent.amounts} ${outputTokensEvent.tokens}`);
 
     // console.log(`Initial tokens: ${initialTokensEvent.amounts} ${initialTokensEvent.tokens}`);
     // console.log(`Put into pool: ${putIntoPoolEvent.amounts} ${putIntoPoolEvent.tokens}`);
@@ -189,11 +190,11 @@ async function showZapEvents(zapInResponse) {
         diff1: putIntoPoolEvent.amounts[1] / initialTokensEvent.amounts[1]
     });
     items.push({
-        name: 'Swapped into pool',
+        name: 'Swaped into pool',
         token0: `${swappedIntoPoolEvent.amounts[0]}`,
         token1: `${swappedIntoPoolEvent.amounts[1]}`,
-        diff0: swappedIntoPoolEvent.amounts[0] / putIntoPoolEvent.amounts[0],
-        diff1: swappedIntoPoolEvent.amounts[1] / putIntoPoolEvent.amounts[1]
+        diff0: swappedIntoPoolEvent.amounts[0] / initialTokensEvent.amounts[0],
+        diff1: swappedIntoPoolEvent.amounts[1] / initialTokensEvent.amounts[1]
     });
     items.push({
         name: 'Returned to user',
