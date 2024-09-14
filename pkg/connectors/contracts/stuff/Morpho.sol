@@ -1118,3 +1118,7 @@ library ErrorsLib {
     /// @notice Thrown when the maximum uint128 is exceeded.
     string internal constant MAX_UINT128_EXCEEDED = "max uint128 exceeded";
 }
+
+interface IChainAgnosticBundlerV2 {
+    function multicall(bytes[] memory data) external payable;
+}

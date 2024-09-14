@@ -10,17 +10,19 @@ module.exports = async ({deployments}) => {
     });
 
     await settingSection('', async (strategy) => {
-        await (await strategy.setParams(await getParams())).wait();
+        await (await strategy.setParams(getParamsBeta())).wait();
     });
 };
 
-async function getParams() {
+function getParamsBeta() {
     return {
         usdc: BASE.usdc,
         mUsdc: BASE.gcUsdc,
         well: BASE.well,
         uniswapV3Router: BASE.uniswapV3Router
     };
-}
+};
 
+
+module.exports.strategyMorphoBeta = getParamsBeta;
 module.exports.tags = ['StrategyMorphoBeta'];

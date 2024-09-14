@@ -4,8 +4,6 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/connectors/contracts/stuff/Morpho.sol";
 
-
-
 contract StrategyMorpho is Strategy {
 
     // --- params
@@ -52,7 +50,6 @@ contract StrategyMorpho is Strategy {
         mUsdcToken = IMetaMorpho(params.mUsdc);
         wellToken = IERC20(params.well);
         // morphoToken = IERC20(params.morpho);
-        // rewardsDistrubutor = IUniversalRewardsDistributor(params.rewardsDistrubutor);
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
 
         emit StrategyUpdatedParams();
@@ -65,9 +62,7 @@ contract StrategyMorpho is Strategy {
         address _asset,
         uint256 _amount
     ) internal override {
-
         require(_asset == address(usdcToken), "Some token not compatible");
-
         
         usdcToken.approve(address(mUsdcToken), _amount);
         mUsdcToken.deposit(_amount, address(this));
@@ -78,7 +73,6 @@ contract StrategyMorpho is Strategy {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-
         require(_asset == address(usdcToken), "Some token not compatible");
 
         mUsdcToken.withdraw(_amount, address(this), address(this));
@@ -90,11 +84,9 @@ contract StrategyMorpho is Strategy {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-
         require(_asset == address(usdcToken), "Some token not compatible");
 
         uint256 _amount = mUsdcToken.balanceOf(address(this)) / 10 ** (mUsdcToken.decimals() - 6);
-
         mUsdcToken.withdraw(_amount, address(this), address(this));
 
         return usdcToken.balanceOf(address(this));
@@ -110,5 +102,19 @@ contract StrategyMorpho is Strategy {
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
         return 0;
+    }
+
+    function claimMerkleTreeRewards(address _beneficiary, bytes[] memory data, address chainAgnosticBundler) public onlyPortfolioAgent {
+        IChainAgnosticBundlerV2 bundler = IChainAgnosticBundlerV2(chainAgnosticBundler);
+
+        uint256 startUsdcBalance = usdcToken.balanceOf(address(this));
+
+        bundler.multicall(data);
+        if (wellToken.balanceOf(address(this)) > 0) {
+            wellToken.transfer(_beneficiary, wellToken.balanceOf(address(this)));
+        }
+        if (usdcToken.balanceOf(address(this)) > startUsdcBalance) {
+            usdcToken.transfer(_beneficiary, usdcToken.balanceOf(address(this)) - startUsdcBalance);
+        }
     }
 }
