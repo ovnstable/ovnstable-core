@@ -23,6 +23,10 @@ interface IZapFacet {
         InputToken[] inputs;
         OutputToken[] outputs;
         bytes data;
+
+        bool needToAdjust;
+        bool adjustSwapSide;
+        uint256 adjustSwapAmount;
     }
 
     struct BinSearchParams {

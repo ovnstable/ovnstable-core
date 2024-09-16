@@ -89,6 +89,9 @@ describe('Testing all zaps', function() {
                         'amountMin': "0"
                     })),
                     data: request.data,
+                    needToAdjust: true,
+                    adjustSwapSide: false,
+                    adjustSwapAmount: 0
                 };
 
                 let paramsData = {
