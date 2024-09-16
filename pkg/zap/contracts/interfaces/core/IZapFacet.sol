@@ -25,6 +25,12 @@ interface IZapFacet {
         bytes data;
     }
 
+    struct BinSearchParams {
+        uint256 left;
+        uint256 right;
+        uint256 mid;
+    }
+
     function zapIn(SwapData memory swapData, ZapInParams memory paramsData) external;
 
     function zapOut(uint256 tokenId) external;

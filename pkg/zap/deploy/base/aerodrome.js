@@ -14,10 +14,10 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     let zap = await deployDiamond(name, deployer);
     const facetNames = [
         'AccessControlFacet',
-        'PoolMathAerodromeFacet',
-        'PositionManagerAerodromeFacet',
-        'PoolFetcherAerodromeFacet',
-        'SwapAerodromeFacet',
+        'AerodromePoolMathFacet',
+        'AerodromeNpmFacet',
+        'AerodromeAggregatorFacet',
+        'AerodromeSwapFacet',
         'MathFacet',
         'ProportionFacet',
         'SetUpFacet',

@@ -8,7 +8,7 @@ import "../../interfaces/core/ISwapFacet.sol";
 import "../../interfaces/IMasterFacet.sol";
 import "../../interfaces/Constants.sol";
 
-contract SwapAerodromeFacet is ISwapFacet, Modifiers {
+contract AerodromeSwapFacet is ISwapFacet, Modifiers {
     address constant WETH = 0x4200000000000000000000000000000000000006;
 
     function swap(

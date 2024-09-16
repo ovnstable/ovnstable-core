@@ -49,26 +49,26 @@ function getTestCases() {
                 //         }
                 //     ]
                 // },
-                // {
-                //     name: 'AerodromeCLZap',
-                //     pool: '0xBE700f5c75dFCbEf3Cae37873aEEB1724daED3f6', // tvl $25k
-                //     inputTokens: [
-                //         {
-                //             tokenAddress: getTokenAddress('weth'),
-                //             amountInUsd: 10000
-                //         }
-                //     ]
-                // },
                 {
                     name: 'AerodromeCLZap',
-                    pool: '0xeBeC4772aBA30d82bC64BBB99187B4Ca29928e2E', // tvl $25k
+                    pool: '0xBE700f5c75dFCbEf3Cae37873aEEB1724daED3f6', // tvl $25k
                     inputTokens: [
                         {
-                            tokenAddress: getTokenAddress('usd+'),
+                            tokenAddress: getTokenAddress('weth'),
                             amountInUsd: 10000
                         }
                     ]
                 },
+                // {
+                //     name: 'AerodromeCLZap',
+                //     pool: '0xeBeC4772aBA30d82bC64BBB99187B4Ca29928e2E', // tvl $25k
+                //     inputTokens: [
+                //         {
+                //             tokenAddress: getTokenAddress('usd+'),
+                //             amountInUsd: 10000
+                //         }
+                //     ]
+                // },
 
                 // {
                 //     name: 'AerodromeCLZap',

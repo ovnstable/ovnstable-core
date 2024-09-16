@@ -753,6 +753,58 @@
       ]
     },
     {
+      "type": "error",
+      "name": "SwapError",
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "balance0"
+        },
+        {
+          "type": "uint256",
+          "name": "balance1"
+        },
+        {
+          "type": "uint256",
+          "name": "ratio0"
+        },
+        {
+          "type": "uint256",
+          "name": "ratio1"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "simulateSwap",
+      "constant": false,
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "pair"
+        },
+        {
+          "type": "uint256",
+          "name": "amountIn"
+        },
+        {
+          "type": "uint160",
+          "name": "sqrtPriceLimitX96"
+        },
+        {
+          "type": "bool",
+          "name": "zeroForOne"
+        },
+        {
+          "type": "int24[]",
+          "name": "tickRange"
+        }
+      ],
+      "outputs": []
+    },
+    {
       "type": "function",
       "name": "swap",
       "constant": false,
@@ -821,6 +873,37 @@
         {
           "type": "int24",
           "name": "right"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "compareRatios",
+      "constant": true,
+      "stateMutability": "pure",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "a"
+        },
+        {
+          "type": "uint256",
+          "name": "b"
+        },
+        {
+          "type": "uint256",
+          "name": "c"
+        },
+        {
+          "type": "uint256",
+          "name": "d"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
         }
       ]
     },
@@ -1327,7 +1410,7 @@
     {
       "type": "event",
       "anonymous": false,
-      "name": "SwappedIntoPool",
+      "name": "SwapedIntoPool",
       "inputs": [
         {
           "type": "address[]",

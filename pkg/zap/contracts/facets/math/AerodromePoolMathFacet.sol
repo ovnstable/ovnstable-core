@@ -2,21 +2,21 @@
 pragma solidity >=0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@overnight-contracts/connectors/contracts/stuff/PancakeV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import "../../interfaces/core/IPoolMathFacet.sol";
 import "../../libraries/core/LibCoreStorage.sol";
 import "../../interfaces/Modifiers.sol";
 
-contract PoolMathPancakeFacet is IPoolMathFacet, Modifiers {
-    function toUint160(uint256 y) external onlyDiamond view returns (uint160 z) {
+contract AerodromePoolMathFacet is IPoolMathFacet, Modifiers {
+    function toUint160(uint256 y) external onlyDiamond view returns (uint160) {
         return SafeCast.toUint160(y);
     }
 
-    function mulDiv(uint256 a, uint256 b, uint256 denominator) external onlyDiamond view returns (uint256 result) {
+    function mulDiv(uint256 a, uint256 b, uint256 denominator) external onlyDiamond view returns (uint256) {
         return FullMath.mulDiv(a, b, denominator);
     }
 
-    function getTickAtSqrtRatio(uint160 sqrtPriceX96) external onlyDiamond view returns (int24 tick) {
+    function getTickAtSqrtRatio(uint160 sqrtPriceX96) external onlyDiamond view returns (int24) {
         return TickMath.getTickAtSqrtRatio(sqrtPriceX96);
     }
 
@@ -25,24 +25,24 @@ contract PoolMathPancakeFacet is IPoolMathFacet, Modifiers {
     }
 
     function getPoolDecimals(address pair) external onlyDiamond view returns (uint256, uint256) {
-        IPancakeV3Pool pool = IPancakeV3Pool(pair);
+        ICLPool pool = ICLPool(pair);
         return (IERC20Metadata(pool.token0()).decimals(), IERC20Metadata(pool.token1()).decimals());
     }
 
     function getPoolSqrtRatioX96(address pair) external onlyDiamond view returns (uint160 sqrtRatioX96) {
-        (sqrtRatioX96,,,,,,) = IPancakeV3Pool(pair).slot0();
+        (sqrtRatioX96,,,,,) = ICLPool(pair).slot0();
     }
 
     function getPoolTickSpacing(address pair) external onlyDiamond view returns (int24) {
-        return IPancakeV3Pool(pair).tickSpacing();
+        return ICLPool(pair).tickSpacing();
     }
 
     function getPoolTick(address pair) external onlyDiamond view returns (int24 tick) {
-        (, tick,,,,,) = IPancakeV3Pool(pair).slot0();
+        (, tick,,,,) = ICLPool(pair).slot0();
     }
 
     function getPoolTokens(address pair) external onlyDiamond view returns (address, address) {
-        IPancakeV3Pool pool = IPancakeV3Pool(pair);
+        ICLPool pool = ICLPool(pair);
         return (pool.token0(), pool.token1());
     }
 

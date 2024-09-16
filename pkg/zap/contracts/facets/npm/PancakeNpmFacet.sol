@@ -1,14 +1,14 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
+import "@overnight-contracts/connectors/contracts/stuff/PancakeV3.sol";
 import "../../libraries/core/LibCoreStorage.sol";
 import "../../interfaces/Modifiers.sol";
 import "../../interfaces/core/IPositionManagerFacet.sol";
 import "../../interfaces/Constants.sol";
 import "hardhat/console.sol";
 
-contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
+contract PancakeNpmFacet is IPositionManagerFacet, Modifiers {
 
     function mintPosition(
         address pair,
@@ -18,11 +18,11 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         uint256 amountOut1,
         address recipient
     ) external onlyDiamond returns (uint256 tokenId) {
-        ICLPool pool = ICLPool(pair);
-        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
+        IPancakeV3Pool pool = IPancakeV3Pool(pair);
+        MintParams memory params = MintParams({
             token0: pool.token0(),
             token1: pool.token1(),
-            tickSpacing: pool.tickSpacing(),
+            fee: pool.fee(),
             tickLower: tickRange0,
             tickUpper: tickRange1,
             amount0Desired: amountOut0,
@@ -30,8 +30,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
             amount0Min: 0,
             amount1Min: 0,
             recipient: recipient,
-            deadline: block.timestamp,
-            sqrtPriceX96: 0
+            deadline: block.timestamp
         });
         (tokenId,,,) = getNpm().mint(params);
     }
@@ -41,7 +40,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         uint256 amount0,
         uint256 amount1
     ) external onlyDiamond returns (uint128 liquidity) {
-        INonfungiblePositionManager.IncreaseLiquidityParams memory params = INonfungiblePositionManager.IncreaseLiquidityParams({
+        IncreaseLiquidityParams memory params = IncreaseLiquidityParams({
             tokenId: tokenId,
             amount0Desired: amount0,
             amount1Desired: amount1,
@@ -53,34 +52,27 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
     }
 
     function getPositions(address wallet) external view returns (PositionInfo[] memory result) {
-        uint256 gaugePositionsLength = calculateGaugePositionsLength(wallet);
-        uint256 validPositionsLength = calculateUserPositionsLength(wallet);
-        uint256 positionsLength = getNpm().balanceOf(wallet);
+        uint256 validChefPositionsLength = calculateChefPositionsLength(wallet);
+        uint256 validUserPositionsLength = calculateUserPositionsLength(wallet);
+        uint256 userPositionsLength = getNpm().balanceOf(wallet);
         uint256 positionCount;
-        result = new PositionInfo[](gaugePositionsLength + validPositionsLength);
-        ICLFactory factory = ICLFactory(getNpm().factory());
-        uint256 poolsLength = factory.allPoolsLength();
+        result = new PositionInfo[](validChefPositionsLength + validUserPositionsLength);
 
-        for (uint256 i = 0; i < poolsLength; i++) {
-            ICLPool pool = ICLPool(factory.allPools(i));
-            if (pool.gauge() == address(0)) {
-                continue;
-            }
-            ICLGauge gauge = ICLGauge(pool.gauge());
-            uint256[] memory tokenIds = gauge.stakedValues(wallet);
-            for (uint j = 0; j < tokenIds.length; j++) {
-                if (getLiquidity(tokenIds[j]) > 0) {
-                    result[positionCount] = getPositionInfo(wallet, tokenIds[j]);
-                    result[positionCount].isStaked = true;
-                    positionCount++;
-                }
+        IMasterChefV3 masterChef = IMasterChefV3(MASTER_CHEF_V3);
+        uint256 chefPositionsLength = masterChef.balanceOf(wallet);
+        for (uint256 i = 0; i < chefPositionsLength; i++) {
+            uint256 tokenId = masterChef.tokenOfOwnerByIndex(wallet, i);
+            if (getLiquidity(tokenId) > 0) {
+                result[positionCount] = getPositionInfo(tokenId);
+                result[positionCount].isStaked = true;
+                positionCount++;
             }
         }
 
-        for (uint256 i = 0; i < positionsLength; i++) {
+        for (uint256 i = 0; i < userPositionsLength; i++) {
             uint256 tokenId = getNpm().tokenOfOwnerByIndex(wallet, i);
             if (getLiquidity(tokenId) > 0) {
-                result[positionCount] = getPositionInfo(wallet, tokenId);
+                result[positionCount] = getPositionInfo(tokenId);
                 positionCount++;
             }
         }
@@ -88,7 +80,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
     }
 
     function closePosition(uint256 tokenId, address recipient, address feeRecipient) onlyDiamond external {
-        INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
+        DecreaseLiquidityParams memory params = DecreaseLiquidityParams({
             tokenId: tokenId,
             liquidity: getLiquidity(tokenId),
             amount0Min: 0,
@@ -122,7 +114,7 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
     }
 
     function getTokens(uint256 tokenId) external onlyDiamond view returns (address, address) {
-       return _getTokens(tokenId);
+        return _getTokens(tokenId);
     }
 
     function getTicks(uint256 tokenId) external onlyDiamond view returns (int24, int24) {
@@ -147,12 +139,14 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
 
     function _getPool(uint256 tokenId) internal view returns (address poolId) {
         (address token0, address token1) = _getTokens(tokenId);
-        poolId = PoolAddress.computeAddress(getNpm().factory(),
-            PoolAddress.getPoolKey(token0, token1, getTickSpacing(tokenId)));
+        (,,,, uint24 fee,,,,,,,) = getNpm().positions(tokenId);
+        IPancakeV3Factory factory = IPancakeV3Factory(getNpm().factory());
+        poolId = factory.getPool(token0, token1, fee);
     }
 
     function getTickSpacing(uint256 tokenId) internal view returns (int24 tickSpacing) {
-        (,,,, tickSpacing,,,,,,,) = getNpm().positions(tokenId);
+        IPancakeV3Pool pool = IPancakeV3Pool(_getPool(tokenId));
+        tickSpacing = pool.tickSpacing();
     }
 
     function getLiquidity(uint256 tokenId) internal view returns (uint128 liquidity) {
@@ -163,10 +157,15 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         (fee0, fee1) = PositionValue.fees(getNpm(), tokenId);
     }
 
+    function getReward(uint256 tokenId) internal view returns (uint256 reward) {
+        IMasterChefV3 masterChef = IMasterChefV3(MASTER_CHEF_V3);
+        reward = masterChef.pendingCake(tokenId);
+    }
+
     function _getPositionAmounts(uint256 tokenId) internal view returns (uint256 amount0, uint256 amount1) {
         address poolId = _getPool(tokenId);
         (int24 tickLower, int24 tickUpper) = _getTicks(tokenId);
-        (uint160 sqrtRatioX96,,,,,) = IUniswapV3Pool(poolId).slot0();
+        (uint160 sqrtRatioX96,,,,,,) = IPancakeV3Pool(poolId).slot0();
         (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtRatioX96,
             TickMath.getSqrtRatioAtTick(tickLower),
@@ -175,29 +174,24 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         );
     }
 
-    function getPositionInfo(address wallet, uint256 tokenId) internal view returns (PositionInfo memory) {
+    function getPositionInfo(uint256 tokenId) internal view returns (PositionInfo memory) {
         PositionInfo memory result;
-        result.platform = "Aerodrome";
+        result.platform = "PCS";
         result.tokenId = tokenId;
         (result.token0, result.token1) = _getTokens(tokenId);
         (result.tickLower, result.tickUpper) = _getTicks(tokenId);
         result.poolId = _getPool(tokenId);
-        ICLPool pool = ICLPool(result.poolId);
-        (, result.currentTick,,,,) = pool.slot0();
+        IPancakeV3Pool pool = IPancakeV3Pool(result.poolId);
+        (, result.currentTick,,,,,) = pool.slot0();
         (result.amount0, result.amount1) = _getPositionAmounts(tokenId);
         (result.fee0, result.fee1) = getFees(tokenId);
-        if (pool.gauge() != address(0)) {
-            ICLGauge gauge = ICLGauge(pool.gauge());
-            if (gauge.stakedContains(wallet, tokenId)) {
-                result.emissions = gauge.earned(wallet, tokenId) + gauge.rewards(tokenId);
-            }
-        }
+        result.emissions = getReward(tokenId);
 
         return result;
     }
 
     function collectRewards(uint256 tokenId, address recipient) internal returns (uint256, uint256) {
-        INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
+        CollectParams memory collectParams = CollectParams({
             tokenId: tokenId,
             recipient: recipient,
             amount0Max: type(uint128).max,
@@ -206,22 +200,14 @@ contract PositionManagerAerodromeFacet is IPositionManagerFacet, Modifiers {
         return getNpm().collect(collectParams);
     }
 
-    function calculateGaugePositionsLength(address wallet) internal view returns (uint256 length) {
+    function calculateChefPositionsLength(address wallet) internal view returns (uint256 length) {
         length = 0;
-        ICLFactory factory = ICLFactory(getNpm().factory());
-        uint256 poolsLength = factory.allPoolsLength();
-        for (uint256 i = 0; i < poolsLength; i++) {
-            ICLPool pool = ICLPool(factory.allPools(i));
-            if (pool.gauge() == address(0)) {
-                continue;
-            }
-            ICLGauge gauge = ICLGauge(pool.gauge());
-            uint256 gaugePositionsLength = gauge.stakedLength(wallet);
-            uint256[] memory tokenIds = gauge.stakedValues(wallet);
-            for (uint j = 0; j < gaugePositionsLength; j++) {
-                if (getLiquidity(tokenIds[j]) > 0) {
-                    length++;
-                }
+        IMasterChefV3 masterChef = IMasterChefV3(MASTER_CHEF_V3);
+        uint256 positionsLength = masterChef.balanceOf(wallet);
+        for (uint256 i = 0; i < positionsLength; i++) {
+            uint256 tokenId = masterChef.tokenOfOwnerByIndex(wallet, i);
+            if (getLiquidity(tokenId) > 0) {
+                length++;
             }
         }
     }

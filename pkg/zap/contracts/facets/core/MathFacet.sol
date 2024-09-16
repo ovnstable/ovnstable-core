@@ -84,4 +84,8 @@ contract MathFacet is IMathFacet, Modifiers {
             z = 1;
         }
     }
+
+    function compareRatios(uint256 a, uint256 b, uint256 c, uint256 d) external pure returns (bool) {
+        return a * d > b * c;
+    }
 }

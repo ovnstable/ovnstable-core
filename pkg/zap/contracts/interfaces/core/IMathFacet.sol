@@ -13,4 +13,6 @@ interface IMathFacet {
     function getCurrentPoolTick(address pair) external view returns (int24 tick);
 
     function closestTicksForCurrentTick(address pair) external view returns (int24 left, int24 right);
+
+    function compareRatios(uint256 a, uint256 b, uint256 c, uint256 d) external pure returns (bool);
 }

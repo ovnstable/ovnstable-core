@@ -4,10 +4,10 @@ pragma solidity >=0.8.0;
 import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import "../../libraries/core/LibCoreStorage.sol";
 import "../../interfaces/IMasterFacet.sol";
-import "../../interfaces/core/IPoolFetcherFacet.sol";
+import "../../interfaces/core/IAggregatorFacet.sol";
 import "../../interfaces/Constants.sol";
 
-contract PoolFetcherAerodromeFacet is IPoolFetcherFacet {
+contract AerodromeAggregatorFacet is IAggregatorFacet {
 
     function protocolName() external pure returns (string memory) {
         return "Aerodrome";
