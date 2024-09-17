@@ -6,6 +6,7 @@ interface IZapFacet {
         address pair;
         int24[] tickRange;
         uint256[] amountsOut;
+        bool isSimulation;
     }
 
     struct OutputToken {
@@ -27,12 +28,6 @@ interface IZapFacet {
         bool needToAdjust;
         bool adjustSwapSide;
         uint256 adjustSwapAmount;
-    }
-
-    struct BinSearchParams {
-        uint256 left;
-        uint256 right;
-        uint256 mid;
     }
 
     function zapIn(SwapData memory swapData, ZapInParams memory paramsData) external;

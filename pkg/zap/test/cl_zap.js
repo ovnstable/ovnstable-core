@@ -83,10 +83,10 @@ describe('Testing all zaps', function() {
                         'tokenAddress': e.tokenAddress,
                         'amountIn': e.amount
                     })),
-                    outputs: odosRequestData.outputTokens.map((e) => ({
+                    outputs: odosRequestData.outputTokens.map((e, i) => ({
                         'tokenAddress': e.tokenAddress,
                         'receiver': zap.address,
-                        'amountMin': "0"
+                        'amountMin': new BN(outAmounts[i]).muln(0.99).toString()
                     })),
                     data: request.data,
                     needToAdjust: true,
@@ -102,57 +102,20 @@ describe('Testing all zaps', function() {
                 
                 console.log('swapData:', swapData);
                 console.log('paramsData:', paramsData);
-                let zapInResponse = await (await zap.connect(account).zapIn(swapData, paramsData)).wait();
+                try {
+                    let zapInResponse = await zap.connect(account).callStatic.zapIn(swapData, paramsData);
+                    console.log('zapInResponse:', zapInResponse);
+                } catch (e) {
+                    if (e.data) {
+                        const decodedError = zap.interface.parseError(e.data);
+                        console.log('decodedError:', decodedError);
+                        console.log(`Transaction failed: ${decodedError?.name}`);
+                      } else {
+                        console.log(`Error in widthrawContract:`, e);
+                      }
+                }
                 await showBalances(account, inputTokensERC20);
                 await showZapEvents(zapInResponse);
-                return;
-                const inputTokensEvent = zapInResponse.events.find((event) => event.event === 'InputTokens');
-                const outputTokensEvent = zapInResponse.events.find((event) => event.event === 'OutputTokens');
-                const putIntoPoolEvent = price.events.find((event) => event.event === 'PutIntoPool');
-                const returnedToUserEvent = price.events.find((event) => event.event === 'ReturnedToUser');
-
-                console.log(`Input tokens: ${inputTokensEvent.args.amountsIn} ${inputTokensEvent.args.tokensIn}`);
-                console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
-                console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
-                console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
-
-                expect(token0In.address).to.equals(inputTokensEvent.args.tokensIn[0]);
-                expect(token1In.address).to.equals(inputTokensEvent.args.tokensIn[1]);
-
-                expect(amountToken0In).to.equals(inputTokensEvent.args.amountsIn[0]);
-                expect(amountToken1In).to.equals(inputTokensEvent.args.amountsIn[1]);
-
-                expect(token0Out.address).to.equals(putIntoPoolEvent.args.tokensPut[0]);
-                expect(token1Out.address).to.equals(putIntoPoolEvent.args.tokensPut[1]);
-
-                expect(token0Out.address).to.equals(returnedToUserEvent.args.tokensReturned[0]);
-                expect(token1Out.address).to.equals(returnedToUserEvent.args.tokensReturned[1]);
-
-                // 1) tokensPut в пределах границы согласно пропорциям внутри пула:
-                const proportion0 = reserves[0] / reserves[0].add(reserves[1]);
-                const proportion1 = reserves[1] / reserves[0].add(reserves[1]);
-                const putTokenAmount0 = fromToken0Out(putIntoPoolEvent.args.amountsPut[0]);
-                const putTokenAmount1 = fromToken1Out(putIntoPoolEvent.args.amountsPut[1]);
-
-                console.log(proportion0, proportion1, putTokenAmount0, putTokenAmount1);
-
-                console.log('prop0: ', proportion0);
-                console.log('prop1: ', putTokenAmount0 / (putTokenAmount0 + putTokenAmount1));
-                expect(Math.abs(proportion0 - putTokenAmount0 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
-                expect(Math.abs(proportion1 - putTokenAmount1 / (putTokenAmount0 + putTokenAmount1))).to.lessThan(0.05);
-
-                // 2) Общая сумма вложенного = (общей сумме обмененного - допустимый slippage)
-                const inTokenAmount0 = fromToken0In(inputTokensEvent.args.amountsIn[0]);
-                const inTokenAmount1 = fromToken1In(inputTokensEvent.args.amountsIn[1]);
-                const outTokenAmount0 = fromToken0Out(outputTokensEvent.args.amountsOut[0]);
-                const outTokenAmount1 = fromToken1Out(outputTokensEvent.args.amountsOut[1]);
-
-                console.log(inTokenAmount0, inTokenAmount1, putTokenAmount0, putTokenAmount1);
-
-                expect(fromToken0In(await token0In.balanceOf(zap.address))).to.lessThan(1);
-                expect(fromToken1In(await token1In.balanceOf(zap.address))).to.lessThan(1);
-                expect(fromToken0Out(await token0Out.balanceOf(zap.address))).to.lessThan(1);
-                expect(fromToken1Out(await token1Out.balanceOf(zap.address))).to.lessThan(1);
             }
         });
     });

@@ -12,7 +12,7 @@ contract Modifiers {
     }
 
     modifier onlyDiamond() {
-        require(LibCoreStorage.coreStorage().diamond == msg.sender, "Restricted to Diamond");
+        require(address(this) == msg.sender, "Restricted to Diamond");
         _;
     }
 

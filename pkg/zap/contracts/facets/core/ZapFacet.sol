@@ -7,23 +7,30 @@ import "../../libraries/core/LibCoreStorage.sol";
 contract ZapFacet is IZapFacet {
     event InputTokens(address[] tokens, uint256[] amounts);
     event OutputTokens(address[] tokens, uint256[] amounts);
-    event InitialTokens(address[] tokens, uint256[] amounts);
-    event PutIntoPool(address[] tokens, uint256[] amounts);
-    event SwapedIntoPool(address[] tokens, uint256[] amounts);
-    event ReturnedToUser(address[] tokens, uint256[] amounts);
-    event PoolPriceInitial(uint256 price);
-    event PoolPriceAfterOdosSwap(uint256 price);
-    event PoolPriceAfterSwap(uint256 price);
+    event ZapResult(
+        address[] tokens, 
+        uint256[] initialAmounts, 
+        uint256[] putAmounts, 
+        uint256[] returnedAmounts
+    );
+    // event PutIntoPool(address[] tokens, uint256[] amounts);
+    // event ReturnedToUser(address[] tokens, uint256[] amounts);
     event TokenId(uint256 tokenId);
 
     error BelowAmountMin(address tokenAddress, uint256 amountMin, uint256 amountReceived);
+    error SimulationResult(
+        address[] tokens, 
+        uint256[] initialAmounts, 
+        uint256[] putAmounts, 
+        uint256[] returnedAmounts,
+        uint256 amountToSwap,
+        bool zeroForOne
+    );
 
     receive() external payable {}
 
     function zapIn(SwapData memory swapData, ZapInParams memory paramsData) external {
-        uint256 startGas = gasleft();
         _zapIn(swapData, paramsData, true, 0);
-        console.log("zapIn gas", startGas - gasleft());
     }
 
     function zapOut(uint256 tokenId) external {
@@ -51,83 +58,86 @@ contract ZapFacet is IZapFacet {
         _zapIn(swapData, paramsData, false, tokenIn);
     }
 
+    struct PoolTokens {
+        address[] token;
+        IERC20[] asset;
+        uint256[] amount;
+    }
+
+    struct TokenAmounts {
+        address[] tokens;
+        uint256[] initial;
+        uint256[] put;
+        uint256[] returned;
+    }
+
     function _zapIn(
         SwapData memory swapData,
         ZapInParams memory paramsData,
         bool needTransfer,
         uint256 tokenId
     ) internal {
+        // TODO: require 
         IMasterFacet master = IMasterFacet(address(this));
 
-        IERC20[] memory assets = new IERC20[](2);
-        address[] memory tokensPool = new address[](2);
-        uint256[] memory amounts = new uint256[](2);
-        uint256 startGas;
-
-        (tokensPool[0], tokensPool[1]) = master.getPoolTokens(paramsData.pair);
-
         prepareSwap(swapData, needTransfer);
-        emit PoolPriceInitial(master.getCurrentPrice(paramsData.pair));
-        startGas = gasleft();
         swapOdos(swapData);
-        console.log("swapOdos gas", startGas - gasleft());
-        emit PoolPriceAfterOdosSwap(master.getCurrentPrice(paramsData.pair));
 
-        {
-            address[] memory tokensIn = new address[](swapData.inputs.length);
-            uint256[] memory amountsIn = new uint256[](swapData.inputs.length);
-            for (uint256 i = 0; i < swapData.inputs.length; i++) {
-                tokensIn[i] = swapData.inputs[i].tokenAddress;
-                amountsIn[i] = swapData.inputs[i].amountIn;
-            }
-            emit InputTokens(tokensIn, amountsIn);
-        }
-        {
-            address[] memory tokensOut = new address[](swapData.outputs.length);
-            uint256[] memory amountsOut = new uint256[](swapData.outputs.length);
-            for (uint256 i = 0; i < swapData.outputs.length; i++) {
-                tokensOut[i] = swapData.outputs[i].tokenAddress;
-                amountsOut[i] = IERC20(tokensOut[i]).balanceOf(address(this));
-            }
-            emit OutputTokens(tokensOut, amountsOut);
-        }
+        PoolTokens memory poolTokens = PoolTokens({
+            token: new address[](2),
+            asset: new IERC20[](2),
+            amount: new uint256[](2)
+        });
+        TokenAmounts memory tokenAmounts = TokenAmounts({
+            tokens: new address[](2),
+            initial: new uint256[](2),
+            put: new uint256[](2),
+            returned: new uint256[](2)
+        });
+        (poolTokens.token[0], poolTokens.token[1]) = master.getPoolTokens(paramsData.pair);
+        tokenAmounts.tokens = poolTokens.token;
 
-        uint256[] memory initialAmounts = new uint256[](2);
         for (uint256 i = 0; i < 2; i++) {
-            assets[i] = IERC20(tokensPool[i]);
+            poolTokens.asset[i] = IERC20(poolTokens.token[i]);
             if (needTransfer && paramsData.amountsOut[i] > 0) {
-                assets[i].transferFrom(msg.sender, address(this), paramsData.amountsOut[i]);
+                poolTokens.asset[i].transferFrom(msg.sender, address(this), paramsData.amountsOut[i]);
             }
-            amounts[i] = assets[i].balanceOf(address(this));
-            paramsData.amountsOut[i] = amounts[i];
-            initialAmounts[i] = amounts[i];
+            poolTokens.amount[i] = poolTokens.asset[i].balanceOf(address(this));
+            paramsData.amountsOut[i] = poolTokens.amount[i];
         }
-        emit InitialTokens(tokensPool, initialAmounts);
+        tokenAmounts.initial = poolTokens.amount;
 
-        startGas = gasleft();
-        tokenId = manageLiquidity(paramsData, tokenId);
-        console.log("manageLiquidity gas", startGas - gasleft());
-
-        for (uint256 i = 0; i < 2; i++) {
-            amounts[i] = amounts[i] - assets[i].balanceOf(address(this));
-            paramsData.amountsOut[i] = assets[i].balanceOf(address(this));
+        uint256[] memory positionAmounts = new uint256[](2);
+        uint256[] memory newPositionAmounts = new uint256[](2);
+        if (tokenId != 0) {
+            (positionAmounts[0], positionAmounts[1]) = master.getPositionAmounts(tokenId);
         }
-        emit PutIntoPool(tokensPool, amounts);
-
-        startGas = gasleft();
+        tokenId = manageLiquidity(paramsData, poolTokens, tokenId);
         if (swapData.needToAdjust) {
-            adjustSwap(swapData, paramsData, tokenId);
+            adjustSwap(swapData, paramsData, poolTokens, tokenId);
         }
-        console.log("adjustSwap gas", startGas - gasleft());
-        emit PoolPriceAfterSwap(master.getCurrentPrice(paramsData.pair));
+        (newPositionAmounts[0], newPositionAmounts[1]) = master.getPositionAmounts(tokenId);
 
         for (uint256 i = 0; i < 2; i++) {
-            amounts[i] = assets[i].balanceOf(address(this));
-            if (amounts[i] > 0) {
-                assets[i].transfer(msg.sender, amounts[i]);
+            require(newPositionAmounts[i] >= positionAmounts[i], "Decrease in liquidity");
+            tokenAmounts.put[i] = newPositionAmounts[i] - positionAmounts[i];
+            tokenAmounts.returned[i] = poolTokens.asset[i].balanceOf(address(this));
+            if (tokenAmounts.returned[i] > 0) {
+                poolTokens.asset[i].transfer(msg.sender, tokenAmounts.returned[i]);
             }
         }
-        emit ReturnedToUser(tokensPool, amounts);
+        if (!paramsData.isSimulation) {
+            emit ZapResult(tokenAmounts.tokens, tokenAmounts.initial, tokenAmounts.put, tokenAmounts.returned);
+        } else {
+            revert SimulationResult(
+                tokenAmounts.tokens, 
+                tokenAmounts.initial, 
+                tokenAmounts.put, 
+                tokenAmounts.returned, 
+                swapData.adjustSwapAmount, 
+                swapData.adjustSwapSide
+            );
+        }
     }
 
     function _zapOut(uint256 tokenId, address recipient, address feeRecipient) internal {
@@ -188,30 +198,44 @@ contract ZapFacet is IZapFacet {
                 });
             }
         }
+        {
+            address[] memory tokensIn = new address[](swapData.inputs.length);
+            uint256[] memory amountsIn = new uint256[](swapData.inputs.length);
+            for (uint256 i = 0; i < swapData.inputs.length; i++) {
+                tokensIn[i] = swapData.inputs[i].tokenAddress;
+                amountsIn[i] = swapData.inputs[i].amountIn;
+            }
+            emit InputTokens(tokensIn, amountsIn);
+        }
+        {
+            address[] memory tokensOut = new address[](swapData.outputs.length);
+            uint256[] memory amountsOut = new uint256[](swapData.outputs.length);
+            for (uint256 i = 0; i < swapData.outputs.length; i++) {
+                tokensOut[i] = swapData.outputs[i].tokenAddress;
+                amountsOut[i] = IERC20(tokensOut[i]).balanceOf(address(this));
+            }
+            emit OutputTokens(tokensOut, amountsOut);
+        }
     }
 
-    function manageLiquidity(ZapInParams memory paramsData, uint256 tokenId) internal returns (uint256) {
-        address[] memory tokensOut = new address[](2);
+    function manageLiquidity(ZapInParams memory paramsData, PoolTokens memory poolTokens, uint256 tokenId) internal returns (uint256) {
         IMasterFacet master = IMasterFacet(address(this));
-        (tokensOut[0], tokensOut[1]) = master.getPoolTokens(paramsData.pair);
 
-        IERC20 asset0 = IERC20(tokensOut[0]);
-        IERC20 asset1 = IERC20(tokensOut[1]);
-        asset0.approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[0]);
-        asset1.approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[1]);
+        poolTokens.asset[0].approve(LibCoreStorage.coreStorage().npm, poolTokens.amount[0]);
+        poolTokens.asset[1].approve(LibCoreStorage.coreStorage().npm, poolTokens.amount[1]);
 
         if (tokenId == 0) {
             tokenId = master.mintPosition(
                 paramsData.pair,
                 paramsData.tickRange[0],
                 paramsData.tickRange[1],
-                paramsData.amountsOut[0],
-                paramsData.amountsOut[1],
+                poolTokens.amount[0],
+                poolTokens.amount[1],
                 msg.sender
             );
             emit TokenId(tokenId);
         } else {
-            master.increaseLiquidity(tokenId, paramsData.amountsOut[0], paramsData.amountsOut[1]);
+            master.increaseLiquidity(tokenId, poolTokens.amount[0], poolTokens.amount[1]); // TODO : check for out of range
         }
         return tokenId;
     }
@@ -219,47 +243,40 @@ contract ZapFacet is IZapFacet {
     function adjustSwap(
         SwapData memory swapData,
         ZapInParams memory paramsData,
+        PoolTokens memory poolTokens,
         uint256 tokenId
     ) internal {
         IMasterFacet master = IMasterFacet(address(this));
-        address[] memory tokens = new address[](2);
-        IERC20[] memory assets = new IERC20[](2);
-        (tokens[0], tokens[1]) = master.getPoolTokens(paramsData.pair);
-
-        assets[0] = IERC20(tokens[0]);
-        assets[1] = IERC20(tokens[1]);
         
-        if (swapData.adjustSwapAmount == 0) {
-            (swapData.adjustSwapAmount, swapData.adjustSwapSide) = simulateSwap(paramsData);
+        if (paramsData.isSimulation) {
+            (swapData.adjustSwapAmount, swapData.adjustSwapSide) = simulateSwap(paramsData, poolTokens);
         }
         master.swap(paramsData.pair, swapData.adjustSwapAmount, 0, swapData.adjustSwapSide);
 
-        paramsData.amountsOut[0] = assets[0].balanceOf(address(this));
-        paramsData.amountsOut[1] = assets[1].balanceOf(address(this));
-        assets[0].approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[0]);
-        assets[1].approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[1]);
+        paramsData.amountsOut[0] = poolTokens.asset[0].balanceOf(address(this));
+        paramsData.amountsOut[1] = poolTokens.asset[1].balanceOf(address(this));
+        poolTokens.asset[0].approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[0]);
+        poolTokens.asset[1].approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[1]);
 
         master.increaseLiquidity(tokenId, paramsData.amountsOut[0], paramsData.amountsOut[1]);
-
-        uint256[] memory swapedIntoPool = new uint256[](2);
-        swapedIntoPool[0] = paramsData.amountsOut[0] - assets[0].balanceOf(address(this));
-        swapedIntoPool[1] = paramsData.amountsOut[1] - assets[1].balanceOf(address(this));
-        emit SwapedIntoPool(tokens, swapedIntoPool);
     }
 
-    function simulateSwap(ZapInParams memory paramsData) internal returns (uint256 amountToSwap, bool zeroForOne) {
-        IMasterFacet master = IMasterFacet(address(this));
-        address[] memory tokens = new address[](2);
-        IERC20[] memory assets = new IERC20[](2);
-        (tokens[0], tokens[1]) = master.getPoolTokens(paramsData.pair);
+    struct BinSearchParams {
+        uint256 left;
+        uint256 right;
+        uint256 mid;
+    }
 
-        assets[0] = IERC20(tokens[0]);
-        assets[1] = IERC20(tokens[1]);
-        zeroForOne = assets[0].balanceOf(address(this)) > assets[1].balanceOf(address(this));
+    function simulateSwap(
+        ZapInParams memory paramsData, 
+        PoolTokens memory poolTokens
+    ) internal returns (uint256 amountToSwap, bool zeroForOne) {
+        IMasterFacet master = IMasterFacet(address(this));
+        zeroForOne = poolTokens.asset[0].balanceOf(address(this)) > poolTokens.asset[1].balanceOf(address(this));
         BinSearchParams memory binSearchParams;
-        binSearchParams.right = assets[zeroForOne ? 0 : 1].balanceOf(address(this));
-        uint256 startGas = gasleft();
-        for (uint256 i = 0; i < 10; i++) {
+        binSearchParams.right = poolTokens.asset[zeroForOne ? 0 : 1].balanceOf(address(this));
+
+        for (uint256 i = 0; i < LibCoreStorage.coreStorage().binSearchIterations; i++) {
             binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;
 
             try master.simulateSwap(
@@ -286,7 +303,6 @@ contract ZapFacet is IZapFacet {
                 }
             }
         }
-        console.log("bin search gas", (startGas - gasleft()) / 10);
         amountToSwap = binSearchParams.mid;
     }
 }

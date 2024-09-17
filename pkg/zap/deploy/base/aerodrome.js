@@ -32,6 +32,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     let coreParams = {
         odosRouter: BASE.odosRouterV2,
         npm: BASE.aerodromeNpm,
+        slippageBps: 100,
+        binSearchIterations: 10
     };
     await (await zap.setCoreParams(coreParams)).wait();
     console.log('setCoreParams done()');

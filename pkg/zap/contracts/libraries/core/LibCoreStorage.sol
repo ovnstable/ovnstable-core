@@ -7,9 +7,8 @@ library LibCoreStorage {
     struct CoreStorage {
         address odosRouter;
         address npm;
-        uint256 stakeSlippageBP;
-        address diamond;
-        uint256 maxSwapIterations;
+        uint256 slippageBps;
+        uint256 binSearchIterations;
     }
 
     function coreStorage() internal pure returns (CoreStorage storage ds) {

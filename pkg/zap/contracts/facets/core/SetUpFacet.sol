@@ -8,6 +8,8 @@ contract SetUpFacet is Modifiers {
     struct Args {
         address odosRouter;
         address npm;
+        uint256 slippageBps;
+        uint256 binSearchIterations;
     }
 
     function setCoreParams(Args memory args) external onlyAdmin {
@@ -16,18 +18,8 @@ contract SetUpFacet is Modifiers {
 
         LibCoreStorage.coreStorage().odosRouter = args.odosRouter;
         LibCoreStorage.coreStorage().npm = args.npm;
-    }
-
-    function setSlippages(uint256 stakeSlippage) external onlyAdmin {
-        LibCoreStorage.coreStorage().stakeSlippageBP = stakeSlippage;
-    }
-
-    function setMaxSwaps(uint256 stakeSlippage) external onlyAdmin {
-        LibCoreStorage.coreStorage().stakeSlippageBP = stakeSlippage;
-    }
-
-    function stakeSlippageBP() external view returns (uint256) {
-        return LibCoreStorage.coreStorage().stakeSlippageBP;
+        LibCoreStorage.coreStorage().slippageBps = args.slippageBps;
+        LibCoreStorage.coreStorage().binSearchIterations = args.binSearchIterations;
     }
 
     function odosRouter() external view returns (address) {
@@ -36,5 +28,13 @@ contract SetUpFacet is Modifiers {
 
     function npm() external view returns (address) {
         return LibCoreStorage.coreStorage().npm;
+    }
+
+    function slippageBps() external view returns (uint256) {
+        return LibCoreStorage.coreStorage().slippageBps;
+    }
+
+    function binSearchIterations() external view returns (uint256) {
+        return LibCoreStorage.coreStorage().binSearchIterations;
     }
 }

@@ -38,8 +38,6 @@ contract Diamond {
         ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
         ds.supportedInterfaces[type(IERC173).interfaceId] = true;
-
-        LibCoreStorage.coreStorage().diamond = address(this);
     }
 
     // Find facet for function that is called and execute the
