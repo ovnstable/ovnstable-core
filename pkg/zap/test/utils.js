@@ -154,38 +154,43 @@ async function showZapEvents(zapInResponse) {
 
     const inputTokensEvent = zapInResponse.events.find((event) => event.event === 'InputTokens').args;
     const outputTokensEvent = zapInResponse.events.find((event) => event.event === 'OutputTokens').args;
-    const initialTokensEvent = zapInResponse.events.find((event) => event.event === 'InitialTokens').args;
-    const putIntoPoolEvent = zapInResponse.events.find((event) => event.event === 'PutIntoPool').args;
-    const returnedToUserEvent = zapInResponse.events.find((event) => event.event === 'ReturnedToUser').args;
-    const adjustSwapParamsEvent = zapInResponse.events.find((event) => event.event === 'AdjustSwapParams').args;
+    const zapResultEvent = zapInResponse.events.find((event) => event.event === 'ZapResult').args;
 
     console.log(`Input tokens: ${inputTokensEvent.amounts} ${inputTokensEvent.tokens}`);
     console.log(`Output tokens: ${outputTokensEvent.amounts} ${outputTokensEvent.tokens}`);
-    console.log(`Adjust swap params: ${adjustSwapParamsEvent.amountToSwap} ${adjustSwapParamsEvent.zeroForOne}`);
-    
+
     items.push({
         name: 'Initial tokens',
-        token0: `${initialTokensEvent.amounts[0]}`,
-        token1: `${initialTokensEvent.amounts[1]}`,
+        token0: `${zapResultEvent.initialAmounts[0]}`,
+        token1: `${zapResultEvent.initialAmounts[1]}`,
         diff0: 0,
         diff1: 0
     });
     items.push({
         name: 'Put into pool',
-        token0: `${putIntoPoolEvent.amounts[0]}`,
-        token1: `${putIntoPoolEvent.amounts[1]}`,
-        diff0: putIntoPoolEvent.amounts[0] / initialTokensEvent.amounts[0],
-        diff1: putIntoPoolEvent.amounts[1] / initialTokensEvent.amounts[1]
+        token0: `${zapResultEvent.putAmounts[0]}`,
+        token1: `${zapResultEvent.putAmounts[1]}`,
+        diff0: zapResultEvent.putAmounts[0] / zapResultEvent.initialAmounts[0],
+        diff1: zapResultEvent.putAmounts[1] / zapResultEvent.initialAmounts[1]
     });
     items.push({
         name: 'Returned to user',
-        token0: `${returnedToUserEvent.amounts[0]}`,
-        token1: `${returnedToUserEvent.amounts[1]}`,
-        diff0: returnedToUserEvent.amounts[0] / initialTokensEvent.amounts[0],
-        diff1: returnedToUserEvent.amounts[1] / initialTokensEvent.amounts[1]
+        token0: `${zapResultEvent.returnedAmounts[0]}`,
+        token1: `${zapResultEvent.returnedAmounts[1]}`,
+        diff0: zapResultEvent.returnedAmounts[0] / zapResultEvent.initialAmounts[0],
+        diff1: zapResultEvent.returnedAmounts[1] / zapResultEvent.initialAmounts[1]
     });
     
     console.table(items);
+}
+
+function showSimulationResult(response) {
+    console.log('Tokens:', response.args[0]);
+    console.log('Initial amounts:', response.args[1].map((x) => x.toString()));
+    console.log('Put amounts:', response.args[2].map((x) => x.toString()));
+    console.log('Returned amounts:', response.args[3].map((x) => x.toString()));
+    console.log('Amount to swap:', response.args[4].toString());
+    console.log('Swap side:', response.args[5]);
 }
 
 function handleProportionResponse(response) {
@@ -208,6 +213,7 @@ module.exports = {
     getPrice: getPrice,
     showBalances: showBalances,
     showZapEvents: showZapEvents,
+    showSimulationResult: showSimulationResult,
     amountFromUsdPrice: amountFromUsdPrice,
     toDecimals: toDecimals,
     fromDecimals: fromDecimals,

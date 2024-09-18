@@ -24,7 +24,7 @@ contract ZapFacet is IZapFacet {
         uint256[] putAmounts, 
         uint256[] returnedAmounts,
         uint256 amountToSwap,
-        bool zeroForOne
+        bool swapSide
     );
 
     receive() external payable {}

@@ -14,7 +14,8 @@ const {
     amountFromUsdPrice,
     toDecimals,
     handleProportionResponse,
-    showZapEvents
+    showZapEvents,
+    showSimulationResult
 } = require('./utils.js');
 const { fromE6, fromE18, toE18 } = require('@overnight-contracts/common/utils/decimals');
 
@@ -98,22 +99,22 @@ describe('Testing all zaps', function() {
                     pair: testCase.pool,
                     amountsOut: [proportion.outputTokenAmounts[0], proportion.outputTokenAmounts[1]],
                     tickRange: testCase.tickRange,
+                    isSimulation: true
                 }
                 
                 console.log('swapData:', swapData);
                 console.log('paramsData:', paramsData);
                 try {
-                    let zapInResponse = await zap.connect(account).callStatic.zapIn(swapData, paramsData);
-                    console.log('zapInResponse:', zapInResponse);
+                    await zap.connect(account).callStatic.zapIn(swapData, paramsData);
                 } catch (e) {
-                    if (e.data) {
-                        const decodedError = zap.interface.parseError(e.data);
-                        console.log('decodedError:', decodedError);
-                        console.log(`Transaction failed: ${decodedError?.name}`);
-                      } else {
-                        console.log(`Error in widthrawContract:`, e);
-                      }
+                    const simulationResult = zap.interface.parseError(e.data);
+                    swapData.adjustSwapAmount = simulationResult.args[4];
+                    swapData.adjustSwapSide = simulationResult.args[5];
+                    paramsData.isSimulation = false;
+                    showSimulationResult(simulationResult);
+                    await showBalances(account, inputTokensERC20);
                 }
+                let zapInResponse = await (await zap.connect(account).zapIn(swapData, paramsData)).wait();
                 await showBalances(account, inputTokensERC20);
                 await showZapEvents(zapInResponse);
             }
