@@ -1176,6 +1176,20 @@
     },
     {
       "type": "function",
+      "name": "binSearchIterations",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [],
+      "outputs": [
+        {
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "function",
       "name": "npm",
       "constant": true,
       "stateMutability": "view",
@@ -1220,6 +1234,14 @@
             {
               "type": "address",
               "name": "npm"
+            },
+            {
+              "type": "uint256",
+              "name": "slippageBps"
+            },
+            {
+              "type": "uint256",
+              "name": "binSearchIterations"
             }
           ]
         }
@@ -1228,35 +1250,7 @@
     },
     {
       "type": "function",
-      "name": "setMaxSwaps",
-      "constant": false,
-      "payable": false,
-      "gas": 20000000,
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "stakeSlippage"
-        }
-      ],
-      "outputs": []
-    },
-    {
-      "type": "function",
-      "name": "setSlippages",
-      "constant": false,
-      "payable": false,
-      "gas": 20000000,
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "stakeSlippage"
-        }
-      ],
-      "outputs": []
-    },
-    {
-      "type": "function",
-      "name": "stakeSlippageBP",
+      "name": "slippageBps",
       "constant": true,
       "stateMutability": "view",
       "payable": false,
@@ -1287,19 +1281,32 @@
       ]
     },
     {
-      "type": "event",
-      "anonymous": false,
-      "name": "InitialTokens",
+      "type": "error",
+      "name": "SimulationResult",
       "inputs": [
         {
           "type": "address[]",
-          "name": "tokens",
-          "indexed": false
+          "name": "tokens"
         },
         {
           "type": "uint256[]",
-          "name": "amounts",
-          "indexed": false
+          "name": "initialAmounts"
+        },
+        {
+          "type": "uint256[]",
+          "name": "putAmounts"
+        },
+        {
+          "type": "uint256[]",
+          "name": "returnedAmounts"
+        },
+        {
+          "type": "uint256",
+          "name": "amountToSwap"
+        },
+        {
+          "type": "bool",
+          "name": "swapSide"
         }
       ]
     },
@@ -1340,98 +1347,38 @@
     {
       "type": "event",
       "anonymous": false,
-      "name": "PoolPriceAfterOdosSwap",
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "price",
-          "indexed": false
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "anonymous": false,
-      "name": "PoolPriceAfterSwap",
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "price",
-          "indexed": false
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "anonymous": false,
-      "name": "PoolPriceInitial",
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "price",
-          "indexed": false
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "anonymous": false,
-      "name": "PutIntoPool",
-      "inputs": [
-        {
-          "type": "address[]",
-          "name": "tokens",
-          "indexed": false
-        },
-        {
-          "type": "uint256[]",
-          "name": "amounts",
-          "indexed": false
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "anonymous": false,
-      "name": "ReturnedToUser",
-      "inputs": [
-        {
-          "type": "address[]",
-          "name": "tokens",
-          "indexed": false
-        },
-        {
-          "type": "uint256[]",
-          "name": "amounts",
-          "indexed": false
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "anonymous": false,
-      "name": "SwapedIntoPool",
-      "inputs": [
-        {
-          "type": "address[]",
-          "name": "tokens",
-          "indexed": false
-        },
-        {
-          "type": "uint256[]",
-          "name": "amounts",
-          "indexed": false
-        }
-      ]
-    },
-    {
-      "type": "event",
-      "anonymous": false,
       "name": "TokenId",
       "inputs": [
         {
           "type": "uint256",
           "name": "tokenId",
+          "indexed": false
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "anonymous": false,
+      "name": "ZapResult",
+      "inputs": [
+        {
+          "type": "address[]",
+          "name": "tokens",
+          "indexed": false
+        },
+        {
+          "type": "uint256[]",
+          "name": "initialAmounts",
+          "indexed": false
+        },
+        {
+          "type": "uint256[]",
+          "name": "putAmounts",
+          "indexed": false
+        },
+        {
+          "type": "uint256[]",
+          "name": "returnedAmounts",
           "indexed": false
         }
       ]
@@ -1482,6 +1429,18 @@
             {
               "type": "bytes",
               "name": "data"
+            },
+            {
+              "type": "bool",
+              "name": "needToAdjust"
+            },
+            {
+              "type": "bool",
+              "name": "adjustSwapSide"
+            },
+            {
+              "type": "uint256",
+              "name": "adjustSwapAmount"
             }
           ]
         },
@@ -1500,6 +1459,10 @@
             {
               "type": "uint256[]",
               "name": "amountsOut"
+            },
+            {
+              "type": "bool",
+              "name": "isSimulation"
             }
           ]
         },
@@ -1556,6 +1519,18 @@
             {
               "type": "bytes",
               "name": "data"
+            },
+            {
+              "type": "bool",
+              "name": "needToAdjust"
+            },
+            {
+              "type": "bool",
+              "name": "adjustSwapSide"
+            },
+            {
+              "type": "uint256",
+              "name": "adjustSwapAmount"
             }
           ]
         },
@@ -1574,6 +1549,10 @@
             {
               "type": "uint256[]",
               "name": "amountsOut"
+            },
+            {
+              "type": "bool",
+              "name": "isSimulation"
             }
           ]
         },
@@ -1634,6 +1613,18 @@
             {
               "type": "bytes",
               "name": "data"
+            },
+            {
+              "type": "bool",
+              "name": "needToAdjust"
+            },
+            {
+              "type": "bool",
+              "name": "adjustSwapSide"
+            },
+            {
+              "type": "uint256",
+              "name": "adjustSwapAmount"
             }
           ]
         },
@@ -1652,6 +1643,10 @@
             {
               "type": "uint256[]",
               "name": "amountsOut"
+            },
+            {
+              "type": "bool",
+              "name": "isSimulation"
             }
           ]
         },
@@ -1708,6 +1703,18 @@
             {
               "type": "bytes",
               "name": "data"
+            },
+            {
+              "type": "bool",
+              "name": "needToAdjust"
+            },
+            {
+              "type": "bool",
+              "name": "adjustSwapSide"
+            },
+            {
+              "type": "uint256",
+              "name": "adjustSwapAmount"
             }
           ]
         },
@@ -1726,6 +1733,10 @@
             {
               "type": "uint256[]",
               "name": "amountsOut"
+            },
+            {
+              "type": "bool",
+              "name": "isSimulation"
             }
           ]
         }

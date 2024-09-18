@@ -55,7 +55,7 @@ function getTestCases() {
                     inputTokens: [
                         {
                             tokenAddress: getTokenAddress('weth'),
-                            amountInUsd: 10000
+                            amountInUsd: 0.1
                         }
                     ]
                 },

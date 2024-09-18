@@ -1,171 +1,123 @@
-const { expect } = require('chai');
-const { deployments, ethers, getNamedAccounts, artifacts } = require('hardhat');
+const { ethers } = require('hardhat');
 const {
-    transferAsset,
-    getERC20,
-    transferETH,
-    initWallet,
-    execTimelock,
-    getContract,
-    getChainId, getERC721,
+    getERC20ByAddress,
+    initWallet
 } = require('@overnight-contracts/common/utils/script-utils');
-const { resetHardhat, greatLess, resetHardhatToLastBlock } = require('@overnight-contracts/common/utils/tests');
 const BN = require('bn.js');
-const hre = require('hardhat');
-const { sharedBeforeEach } = require('@overnight-contracts/common/utils/sharedBeforeEach');
 const { toE6, fromE6, fromE18, toAsset, toE18 } = require('@overnight-contracts/common/utils/decimals');
-const axios = require('axios');
 const { default: BigNumber } = require('bignumber.js');
-const { getOdosAmountOut, getOdosSwapData } = require('@overnight-contracts/common/utils/odos-helper');
-const { getOdosAmountOutOnly } = require('@overnight-contracts/common/utils/odos-helper.js');
+const { 
+    updatePrices, 
+    getOdosRequest, 
+    showBalances, 
+    getPrice, 
+    amountFromUsdPrice,
+    toDecimals,
+    handleProportionResponse,
+    showZapEvents,
+    showSimulationResult
+} = require('../test/utils.js');
+const { tokens } = require('../test/test_cases.js');
+
+let testCase;
+let zap;
+let account;
+let inputTokensERC20;
+
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 async function main() {
-    // let zap = await ethers.getContract("PancakeCLZap");
-    let zap = await ethers.getContract("AerodromeCLZap");
-
-    let account = await initWallet();
-    console.log("init");
-    // await transferETH(0.000001, "0x0000000000000000000000000000000000000000");
-
-    let poolId = "0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606";
-    let tickRange = await zap.closestTicksForCurrentTick(poolId);
-    tickRange = [tickRange.left, tickRange.right];
-    console.log("tickRange", tickRange);
-    let inputTokens = [
-        {
-            tokenAddress: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
-            price: toE18(1),
-            amount: toE6(1000),
-        }
-    ];
-    let prices = [
-        {
-            tokenAddress: "0x4200000000000000000000000000000000000006",
-            price: toE18(2400),
-        },
-        {
-            tokenAddress: "0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376",
-            price: toE18(1),
-        }
-    ];
-    let token0 = await (await getERC20("usdbc")).connect(account);
-    await (await token0.approve(zap.address, toE18(10000))).wait();
-
-    let result = await zap.getProportionForZap(poolId, tickRange, inputTokens, prices);
-    console.log("inputTokenAddresses:", result.inputTokenAddresses);
-    console.log("inputTokenAmounts:", result.inputTokenAmounts.map((x) => x.toString()));
-    console.log("outputTokenAddresses:", result.outputTokenAddresses);
-    console.log("outputTokenProportions:", result.outputTokenProportions.map((x) => x.toString()));
-    console.log("outputTokenAmounts:", result.outputTokenAmounts.map((x) => x.toString()));
-    console.log("outputSwapExpected:", result.outputSwapExpected.map((x) => x.toString()));
-    return;
-
-    let proportions = {
-        "inputTokens": result.inputTokenAddresses.map((e, i) => ({
-            "tokenAddress": e,
-            "amount": result.inputTokenAmounts[i].toString()
-        })),
-        "outputTokens": result.outputTokenAddresses.map((e, i) => ({
-            "tokenAddress": e,
-            "proportion": fromE6(result.outputTokenProportions[i].toString()),
-        })),
-        "amountToken0Out": result.outputTokenAmounts[0].toString(),
-        "amountToken1Out": result.outputTokenAmounts[1].toString(),
+    testCase = {
+        name: 'AerodromeCLZap',
+        pool: '0xBE700f5c75dFCbEf3Cae37873aEEB1724daED3f6', // tvl $25k
+        inputTokens: [
+            {
+                tokenAddress: '0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA',
+                amountInUsd: 0.1
+            }
+        ]
     };
 
-    console.log("proportions", proportions);
-    let request;
-    if (proportions.inputTokens.length === 0 && proportions.outputTokens.length === 0) {
-        request = {
-            "data": "0x"
-        }
-    } else {
-        request = await getOdosRequest({
-            'inputTokens': proportions.inputTokens,
-            'outputTokens': proportions.outputTokens,
-            'userAddr': zap.address,
-        });
-    }
+    await updatePrices(tokens[process.env.ETH_NETWORK]);
 
-    const inputTokensSwap = proportions.inputTokens.map(({ tokenAddress, amount }) => {
-        return { "tokenAddress": tokenAddress, "amountIn": amount };
-    });
-    const outputTokensSwap = proportions.outputTokens.map(({ tokenAddress }) => {
-        return { "tokenAddress": tokenAddress, "receiver": zap.address };
-    });
+    zap = await ethers.getContract("AerodromeCLZap");
+    account = await initWallet();
+    inputTokensERC20 = await Promise.all(testCase.inputTokens.map(async (token) => (await getERC20ByAddress(token.tokenAddress)).connect(account)));
+
+    await cookTestCase();
+    await showBalances(account, inputTokensERC20);
+
+    let proportionResponse = await zap.getProportionForZap(testCase.pool, testCase.tickRange, testCase.inputTokens);
+    let proportion = handleProportionResponse(proportionResponse);
+
+    let odosRequestData = {
+        'inputTokens': proportion.inputTokenAddresses.map((e, i) => ({
+            'tokenAddress': e,
+            'amount': proportion.inputTokenAmounts[i]
+        })).filter((x) => x.tokenAddress !== ZERO_ADDRESS),
+        'outputTokens': proportion.outputTokenAddresses.map((e, i) => ({
+            'tokenAddress': e,
+            'proportion': fromE6(proportion.outputTokenProportions[i]),
+        })).filter((x) => x.tokenAddress !== ZERO_ADDRESS),
+        'userAddr': zap.address
+    }
+    console.log("odosRequestData:", odosRequestData);
+    let {request, outAmounts} = await getOdosRequest(odosRequestData);
 
     let swapData = {
-        inputs: inputTokensSwap,
-        outputs: outputTokensSwap,
+        inputs: odosRequestData.inputTokens.map((e) => ({
+            'tokenAddress': e.tokenAddress,
+            'amountIn': e.amount
+        })),
+        outputs: odosRequestData.outputTokens.map((e, i) => ({
+            'tokenAddress': e.tokenAddress,
+            'receiver': zap.address,
+            'amountMin': new BN(outAmounts[i]).muln(0.90).toString()
+        })),
         data: request.data,
+        needToAdjust: true,
+        adjustSwapSide: false,
+        adjustSwapAmount: 0
     };
-    let aerodromeData = {
-        pair: poolId,
-        amountsOut: [proportions.amountToken0Out, proportions.amountToken1Out],
-        tickRange: tickRange,
+
+    let paramsData = {
+        pair: testCase.pool,
+        amountsOut: [proportion.outputTokenAmounts[0], proportion.outputTokenAmounts[1]],
+        tickRange: testCase.tickRange,
+        isSimulation: true
     }
+    
     console.log('swapData:', swapData);
-    console.log('aerodromeData:', aerodromeData);
-    let price = await (await zap.connect(account).zapIn(swapData, aerodromeData)).wait();
-
-    const inputTokensEvent = price.events.find((event) => event.event === 'InputTokens');
-    const outputTokensEvent = price.events.find((event) => event.event === 'OutputTokens');
-    const putIntoPoolEvent = price.events.find((event) => event.event === 'PutIntoPool');
-    const returnedToUserEvent = price.events.find((event) => event.event === 'ReturnedToUser');
-
-    console.log(`Input tokens: ${inputTokensEvent.args.amountsIn} ${inputTokensEvent.args.tokensIn}`);
-    console.log(`Output tokens: ${outputTokensEvent.args.amountsOut} ${outputTokensEvent.args.tokensOut}`);
-    console.log(`Tokens put into pool: ${putIntoPoolEvent.args.amountsPut} ${putIntoPoolEvent.args.tokensPut}`);
-    console.log(`Tokens returned to user: ${returnedToUserEvent.args.amountsReturned} ${returnedToUserEvent.args.tokensReturned}`);
+    console.log('paramsData:', paramsData);
+    try {
+        await zap.connect(account).callStatic.zapIn(swapData, paramsData);
+    } catch (e) {
+        console.log('e:', e);
+        const simulationResult = zap.interface.parseError(e.data);
+        swapData.adjustSwapAmount = simulationResult.args[4];
+        swapData.adjustSwapSide = simulationResult.args[5];
+        paramsData.isSimulation = false;
+        showSimulationResult(simulationResult);
+    }
+    let zapInResponse = await (await zap.connect(account).zapIn(swapData, paramsData)).wait();
+    await showBalances(account, inputTokensERC20);
+    await showZapEvents(zapInResponse);
 }
 
-async function getOdosRequest(request) {
-    let swapParams = {
-        'chainId': await getChainId(),
-        'gasPrice': 1,
-        'inputTokens': request.inputTokens,
-        'outputTokens': request.outputTokens,
-        'userAddr': request.userAddr,
-        'slippageLimitPercent': 1,
-        'sourceBlacklist': ['Hashflow', 'Overnight Exchange'],
-        'sourceWhitelist': [],
-        'simulate': false,
-        'pathViz': false,
-        'disableRFQs': false,
-    };
-
-    // @ts-ignore
-    const urlQuote = 'https://api.overnight.fi/root/odos/sor/quote/v2';
-    const urlAssemble = 'https://api.overnight.fi/root/odos/sor/assemble';
-    let transaction;
-    try {
-        let quotaResponse = (await axios.post(urlQuote, swapParams, { headers: { 'Accept-Encoding': 'br' } }));
-
-        let assembleData = {
-            'userAddr': request.userAddr,
-            'pathId': quotaResponse.data.pathId,
-            'simulate': true,
-        };
-
-        // console.log("assembleData: ", assembleData)
-        transaction = (await axios.post(urlAssemble, assembleData, { headers: { 'Accept-Encoding': 'br' } }));
-        // console.log('trans: ', transaction, quotaResponse);
-        // console.log("odos transaction simulation: ", transaction.data.simulation)
-    } catch (e) {
-        console.log('[zap] getSwapTransaction: ', e);
-        return 0;
-    }
-    if (transaction.statusCode === 400) {
-        console.log(`[zap] ${transaction.description}`);
-        return 0;
-    }
-    if (transaction.data.transaction === undefined) {
-        console.log('[zap] transaction.tx is undefined');
-        return 0;
+async function cookTestCase() {
+    if (testCase.tickRange === undefined) {
+        testCase.tickRange = (await zap.closestTicksForCurrentTick(testCase.pool)).slice(0, 2);
     }
 
-    console.log('Success get data from Odos!');
-    return transaction.data.transaction;
+    for (let i = 0; i < testCase.inputTokens.length; i++) {
+        let amount = amountFromUsdPrice(testCase.inputTokens[i].tokenAddress, testCase.inputTokens[i].amountInUsd);
+        testCase.inputTokens[i].amount = await toDecimals(inputTokensERC20[i], amount);
+        await (await inputTokensERC20[i].approve(zap.address, testCase.inputTokens[i].amount)).wait();
+
+        if (testCase.inputTokens[i].price === undefined) {  
+            testCase.inputTokens[i].price = toE18(getPrice(testCase.inputTokens[i].tokenAddress));
+        }
+    }
 }
 
 main()

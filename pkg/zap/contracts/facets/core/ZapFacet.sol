@@ -13,8 +13,6 @@ contract ZapFacet is IZapFacet {
         uint256[] putAmounts, 
         uint256[] returnedAmounts
     );
-    // event PutIntoPool(address[] tokens, uint256[] amounts);
-    // event ReturnedToUser(address[] tokens, uint256[] amounts);
     event TokenId(uint256 tokenId);
 
     error BelowAmountMin(address tokenAddress, uint256 amountMin, uint256 amountReceived);
