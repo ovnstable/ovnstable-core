@@ -238,6 +238,8 @@ interface IMasterChefV3 {
     /// @notice Info of each MCV3 pool.
     function poolInfo(uint256 _pid) external view returns (PoolInfo memory);
 
+    function poolLength() external view returns (uint256);
+
     /// @notice userPositionInfos[tokenId] => UserPositionInfo
     /// @dev TokenId is unique, and we can query the pid by tokenId.
     function userPositionInfos(uint256 _pid) external view returns (UserPositionInfo memory);

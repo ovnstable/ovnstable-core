@@ -18,8 +18,8 @@ contract PancakeAggregatorFacet is IAggregatorFacet {
         uint256 offset
     ) external view returns (PoolInfo[] memory result) {
         IMasterFacet master = IMasterFacet(address(this));
-        IPancakeV3Factory factory = IPancakeV3Factory(getNpm().factory());
-        uint256 poolsLength = factory.allPoolsLength();
+        IMasterChefV3 masterChef = IMasterChefV3(LibCoreStorage.coreStorage().masterChefV3);
+        uint256 poolsLength = masterChef.poolLength();
         uint256 size;
         if (offset < poolsLength) {
             size = offset + limit > poolsLength ? poolsLength - offset : limit;
@@ -27,23 +27,25 @@ contract PancakeAggregatorFacet is IAggregatorFacet {
         result = new PoolInfo[](size);
         for (uint256 i = offset; i < offset + size; i++) {
             uint256 j = i - offset;
-            IPancakeV3Pool pool = IPancakeV3Pool(factory.allPools(i));
+            IMasterChefV3.PoolInfo memory poolInfo = masterChef.poolInfo(i);
+            if (address(poolInfo.v3Pool) == address(0)) {
+                continue;
+            }
             result[j].platform = protocolName();
-            result[j].poolId = address(pool);
-            result[j].token0 = getTokenInfo(pool.token0());
-            result[j].token1 = getTokenInfo(pool.token1());
-            result[j].tickSpacing = pool.tickSpacing();
-            result[j].fee = pool.fee();
+            result[j].poolId = address(poolInfo.v3Pool);
+            result[j].token0 = getTokenInfo(poolInfo.token0);
+            result[j].token1 = getTokenInfo(poolInfo.token1);
+            result[j].tickSpacing = master.getTickSpacing(address(poolInfo.v3Pool));
+            result[j].fee = poolInfo.fee;
             result[j].gauge = LibCoreStorage.coreStorage().masterChefV3;
 
-            (result[j].amount0, result[j].amount1) = getPoolAmounts(pool);
+            (result[j].amount0, result[j].amount1) = getPoolAmounts(poolInfo.v3Pool);
             result[j].price = master.getCurrentPrice(result[j].poolId);
         }
     }
 
     function getPoolsAmount() external view returns (uint256) {
-        IPancakeV3Factory factory = IPancakeV3Factory(getNpm().factory());
-        return factory.allPoolsLength();
+        return IMasterChefV3(LibCoreStorage.coreStorage().masterChefV3).poolLength();
     }
 
     function getTokenInfo(address tokenId) internal view returns (TokenInfo memory) {

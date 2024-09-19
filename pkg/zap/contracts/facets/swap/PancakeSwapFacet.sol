@@ -24,7 +24,7 @@ contract PancakeSwapFacet is ISwapFacet, Modifiers {
             tickSpacing: tickSpacing
         });
 
-        IPancakeV3SwapCallback(pair).swap(
+        IPancakeV3Pool(pair).swap(
             address(this), 
             zeroForOne, 
             int256(amountIn), 

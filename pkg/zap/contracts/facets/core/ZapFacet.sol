@@ -75,7 +75,6 @@ contract ZapFacet is IZapFacet {
         bool needTransfer,
         uint256 tokenId
     ) internal {
-        // TODO: require 
         IMasterFacet master = IMasterFacet(address(this));
 
         prepareSwap(swapData, needTransfer);
