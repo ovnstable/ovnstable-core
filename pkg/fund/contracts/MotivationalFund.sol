@@ -314,7 +314,7 @@ contract MotivationalFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IE
         _sharesBalances[_account] += _amount;
         _sharesBalances[msg.sender] -= _amount;
         
-        _afterTokenTransfer(address(0), _account, _amount); // TODO: remove comment
+        _afterTokenTransfer(address(0), _account, _amount); 
     }
 
     /**

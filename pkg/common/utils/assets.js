@@ -154,7 +154,7 @@ let ZKSYNC = {
 
 let ARBITRUM = {
     // fund
-    ovnPlus: "0x586265d91004c4cA78066B77bF6447a4F6aB79E8", // TODO: check address, mb it will change
+    fund: "0x586265d91004c4cA78066B77bF6447a4F6aB79E8", // TODO: check address, mb it will change
 
     // tokens
     usdPlus: "0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65",

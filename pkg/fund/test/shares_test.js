@@ -12,7 +12,7 @@ const { ARBITRUM } = require("@overnight-contracts/common/utils/assets");
 
 describe("Token", function () {
 
-    let ovnPlus;
+    let fund;
     let account;
 
     let user1;
@@ -39,7 +39,7 @@ describe("Token", function () {
         user3 = await createRandomWallet();
         nonRebaseUser1 = await createRandomWallet();
         nonRebaseUser2 = await createRandomWallet();
-        ovnPlus = await ethers.getContract("MotivationalFund", deployer);
+        fund = await ethers.getContract("MotivationalFund", deployer);
         exchange = await ethers.getContract("FundExchange", deployer);
         
         await transferAsset(ARBITRUM.usdcCircle, deployer);
@@ -48,17 +48,17 @@ describe("Token", function () {
         let usdcCircle = await getERC20("usdcCircle");
         await usdcCircle.approve(deployer, toE6(10000000));
 
-        await ovnPlus.setExchanger(account);
-        await exchange.setTokens(ARBITRUM.ovnPlus, ARBITRUM.usdcCircle);
+        await fund.setExchanger(account);
+        await exchange.setTokens(ARBITRUM.fund, ARBITRUM.usdcCircle);
 
-        let decimals = await ovnPlus.decimals();
+        let decimals = await fund.decimals();
         
         fromAsset = decimals === 18 ? fromE18 : fromE6;
         toAsset = decimals === 18 ? toE18 : toE6;
     });
 
     // async function transfer(from, to, amount) {
-    //     await ovnPlus.connect(from).transfer(to.address, toAsset(amount));
+    //     await fund.connect(from).transfer(to.address, toAsset(amount));
     // }
 
     async function deposit(amount) {
@@ -66,54 +66,54 @@ describe("Token", function () {
     }
 
     async function mint(user, amount) {
-        await ovnPlus.mint(user.address, toAsset(amount));
+        await fund.mint(user.address, toAsset(amount));
     }
 
     async function balanceOf(user, amount) {
-        let balanceValue = await ovnPlus.balanceOf(user.address);
+        let balanceValue = await fund.balanceOf(user.address);
         let balance = Math.ceil(fromAsset(balanceValue));
         expect(balance).to.eq(amount);
     }
 
     async function sharesOf(user, amount) {
-        let sharesValue = await ovnPlus.sharesBalanceOf(user.address);
+        let sharesValue = await fund.sharesBalanceOf(user.address);
         // let shares = Math.ceil(sharesValue);
         expect(sharesValue).to.eq(amount);
     }
 
     async function giveShares(user, amount) {
-        await ovnPlus.giveShares(user.address, toAsset(amount));
+        await fund.giveShares(user.address, toAsset(amount));
     }
 
     async function totalSupply(amount) {
-        let totalSupply = await ovnPlus.totalSupply();
+        let totalSupply = await fund.totalSupply();
         expect(fromAsset(totalSupply)).to.eq(amount);
     }
 
     async function changeTotalSupply(amount, deposit) {
-        await ovnPlus.changeSupply(toAsset(amount), toAsset(deposit));
+        await fund.changeSupply(toAsset(amount), toAsset(deposit));
     }
 
 
     it("Should return the token name and symbol", async () => {
-        console.log(ovnPlus.name());
-        expect(await ovnPlus.name()).to.equal("MotivationalFund");
-        expect(await ovnPlus.symbol()).to.equal("FUND");
+        console.log(fund.name());
+        expect(await fund.name()).to.equal("MotivationalFund");
+        expect(await fund.symbol()).to.equal("FUND");
     });
 
     it("Should have 6 decimals", async () => {
-        expect(await ovnPlus.decimals()).to.equal(6);
+        expect(await fund.decimals()).to.equal(6);
     });
 
     it("Should return 0 balance for the zero address", async () => {
         expect(
-            await ovnPlus.balanceOf("0x0000000000000000000000000000000000000000")
+            await fund.balanceOf("0x0000000000000000000000000000000000000000")
         ).to.equal(0);
     });
 
     it("Should not allow anyone to mint USD+ directly", async () => {
         await expectRevert(
-            ovnPlus.connect(user1).mint(user1.address, toAsset(100)), "Caller is not the EXCHANGER")
+            fund.connect(user1).mint(user1.address, toAsset(100)), "Caller is not the EXCHANGER")
     });
 
     // it("Should allow deposit", async () => {
@@ -121,32 +121,32 @@ describe("Token", function () {
     // });
 
     it("Should allow a simple transfer of 1 share", async () => {
-        await ovnPlus.giveShares(user2.address, 100);
+        await fund.giveShares(user2.address, 100);
         await sharesOf(user1, 0);
         await sharesOf(user2, 100);
-        await ovnPlus.connect(user2).transferShares(user1.address, 1);
+        await fund.connect(user2).transferShares(user1.address, 1);
         await sharesOf(user1, 1);
         await sharesOf(user2, 99);
     });
 
-    it("Should allow a simple transfer of 1 OVN+", async () => {
-        await ovnPlus.mint(user2.address, toAsset(100));
+    it("Should allow a simple transfer of 1 FUND", async () => {
+        await fund.mint(user2.address, toAsset(100));
         await balanceOf(user1, 0);
         await balanceOf(user2, 100);
-        await ovnPlus.connect(user2).transfer(user1.address, toAsset(1));
+        await fund.connect(user2).transfer(user1.address, toAsset(1));
         await balanceOf(user1, 1);
         await balanceOf(user2, 99);
     });
 
     it("Should allow a transferFrom with an allowance", async () => {
-        await ovnPlus.mint(user1.address, toAsset(1000));
+        await fund.mint(user1.address, toAsset(1000));
 
-        await ovnPlus.connect(user1).approve(user2.address, toAsset(1000));
-        expect(await ovnPlus.allowance(user1.address, user2.address)).to.eq(toAsset(1000));
+        await fund.connect(user1).approve(user2.address, toAsset(1000));
+        expect(await fund.allowance(user1.address, user2.address)).to.eq(toAsset(1000));
 
-        await ovnPlus.connect(user2).transferFrom(user1.address, user2.address, toAsset(1));
+        await fund.connect(user2).transferFrom(user1.address, user2.address, toAsset(1));
         await balanceOf(user2, 1);
-        expect(await ovnPlus.allowance(user1.address, user2.address)).to.eq(toAsset(999));
+        expect(await fund.allowance(user1.address, user2.address)).to.eq(toAsset(999));
 
     });
 
@@ -156,10 +156,10 @@ describe("Token", function () {
         let amounts = ['100000000000', '10000000000', '1000000000', '100000000', '10000000', '1000000', '100000', '10000', '1000', '100', '10', '1'];
 
         for (const amount of amounts) {
-            await ovnPlus.mint(user1.address, amount);
-            expect(ovnPlus.balanceOf(user1.address), amount);
-            await ovnPlus.burn(user1.address, amount);
-            expect(ovnPlus.balanceOf(user1.address), '0');
+            await fund.mint(user1.address, amount);
+            expect(fund.balanceOf(user1.address), amount);
+            await fund.burn(user1.address, amount);
+            expect(fund.balanceOf(user1.address), '0');
         }
 
     });
@@ -169,9 +169,9 @@ describe("Token", function () {
         let amounts = ['100000000000', '10000000000', '1000000000', '100000000', '10000000', '1000000', '100000', '10000', '1000', '100', '10', '1'];
 
         for (const amount of amounts) {
-            await ovnPlus.giveShares(user1.address, amount);
+            await fund.giveShares(user1.address, amount);
             await sharesOf(user1, amount);
-            await ovnPlus.burnShares(user1.address, amount);
+            await fund.burnShares(user1.address, amount);
             await sharesOf(user1, 0);
         }
 
@@ -185,22 +185,22 @@ describe("Token", function () {
         await changeTotalSupply(12543, 0);
 
         for (const amount of amounts) {
-            await ovnPlus.mint(user1.address, amount);
-            expect(ovnPlus.balanceOf(user1.address), amount);
-            await ovnPlus.burn(user1.address, amount);
-            expect(ovnPlus.balanceOf(user1.address), '0');
+            await fund.mint(user1.address, amount);
+            expect(fund.balanceOf(user1.address), amount);
+            await fund.burn(user1.address, amount);
+            expect(fund.balanceOf(user1.address), '0');
         }
     });
 
     it("Should maintain correct share-to-balance ratio after multiple rebases with deposits", async () => {
-        await ovnPlus.giveShares(user1.address, 1);
-        await ovnPlus.giveShares(user2.address, 4);
+        await fund.giveShares(user1.address, 1);
+        await fund.giveShares(user2.address, 4);
     
         await sharesOf(user1, 1);
         await sharesOf(user2, 4);
     
         
-        await ovnPlus.mint(user1.address, toAsset(500)); 
+        await fund.mint(user1.address, toAsset(500)); 
         await changeTotalSupply(1500, 500);
         await balanceOf(user1, 800); 
         await balanceOf(user2, 200); 
@@ -219,13 +219,13 @@ describe("Token", function () {
         let amounts = ['100000000000', '10000000000', '1000000000', '100000000', '10000000', '1000000', '100000', '10000', '1000', '100', '10', '1'];
 
         for (const amount of amounts) {
-            await ovnPlus.mint(user1.address, amount);
-            expect(ovnPlus.balanceOf(user1.address), amount);
-            await ovnPlus.connect(user1).transfer(user2.address, amount);
-            expect(ovnPlus.balanceOf(user2.address), amount);
-            expect(ovnPlus.balanceOf(user1.address), '0');
-            await ovnPlus.burn(user2.address, amount);
-            expect(ovnPlus.balanceOf(user2.address), '0');
+            await fund.mint(user1.address, amount);
+            expect(fund.balanceOf(user1.address), amount);
+            await fund.connect(user1).transfer(user2.address, amount);
+            expect(fund.balanceOf(user2.address), amount);
+            expect(fund.balanceOf(user1.address), '0');
+            await fund.burn(user2.address, amount);
+            expect(fund.balanceOf(user2.address), '0');
         }
     });
 
@@ -234,12 +234,12 @@ describe("Token", function () {
         let amounts = ['100000000000', '10000000000', '1000000000', '100000000', '10000000', '1000000', '100000', '10000', '1000', '100', '10', '1'];
 
         for (const amount of amounts) {
-            await ovnPlus.giveShares(user1.address, amount);
+            await fund.giveShares(user1.address, amount);
             await sharesOf(user1, amount);
-            await ovnPlus.connect(user1).transferShares(user2.address, amount);
+            await fund.connect(user1).transferShares(user2.address, amount);
             await sharesOf(user2, amount);
             await sharesOf(user1, '0');
-            await ovnPlus.burnShares(user2.address, amount);
+            await fund.burnShares(user2.address, amount);
             await sharesOf(user1, '0');
         }
     });
@@ -253,13 +253,13 @@ describe("Token", function () {
         await changeTotalSupply(12543, 0);
 
         for (const amount of amounts) {
-            await ovnPlus.mint(user1.address, amount);
-            expect(ovnPlus.balanceOf(user1.address), amount);
-            await ovnPlus.connect(user1).transfer(user2.address, amount);
-            expect(ovnPlus.balanceOf(user2.address), amount);
-            expect(ovnPlus.balanceOf(user1.address), '0');
-            await ovnPlus.burn(user2.address, amount);
-            expect(ovnPlus.balanceOf(user2.address), '0');
+            await fund.mint(user1.address, amount);
+            expect(fund.balanceOf(user1.address), amount);
+            await fund.connect(user1).transfer(user2.address, amount);
+            expect(fund.balanceOf(user2.address), amount);
+            expect(fund.balanceOf(user1.address), '0');
+            await fund.burn(user2.address, amount);
+            expect(fund.balanceOf(user2.address), '0');
 
         }
 
@@ -267,8 +267,8 @@ describe("Token", function () {
 
     it("Should return correct balance for shares user and for base user", async () => {
 
-        await ovnPlus.mint(user1.address, toAsset(100));
-        await ovnPlus.giveShares(user2.address, 100);
+        await fund.mint(user1.address, toAsset(100));
+        await fund.giveShares(user2.address, 100);
 
         await balanceOf(user1, 100);
         await balanceOf(user2, 0);
@@ -277,7 +277,7 @@ describe("Token", function () {
         await sharesOf(user2, 100);
 
         // Make rebase
-        await ovnPlus.changeSupply(toAsset(250), toAsset(100));
+        await fund.changeSupply(toAsset(250), toAsset(100));
 
         await balanceOf(user1, 125);
         await balanceOf(user2, 25);
@@ -286,8 +286,8 @@ describe("Token", function () {
     
     it("Should return correct balance for shares user and for base user v2", async () => {
 
-        await ovnPlus.mint(user1.address, toAsset(100));
-        await ovnPlus.giveShares(user2.address, 100);
+        await fund.mint(user1.address, toAsset(100));
+        await fund.giveShares(user2.address, 100);
 
         await balanceOf(user1, 100);
         await balanceOf(user2, 0);
@@ -296,43 +296,43 @@ describe("Token", function () {
         await sharesOf(user2, 100);
 
         // Make rebase
-        await ovnPlus.changeSupply(toAsset(250), toAsset(100));
+        await fund.changeSupply(toAsset(250), toAsset(100));
 
         await balanceOf(user1, 125);
         await balanceOf(user2, 25);
 
-        await ovnPlus.changeSupply(toAsset(500), toAsset(100));
+        await fund.changeSupply(toAsset(500), toAsset(100));
 
         await balanceOf(user1, 250);
         await balanceOf(user2, 150);
     });
 
     it("Should handle correct share calculations on multiple transfers", async () => {
-        await ovnPlus.giveShares(user2.address, 500);
+        await fund.giveShares(user2.address, 500);
         await sharesOf(user2, 500);
     
-        await ovnPlus.connect(user2).transferShares(user1.address, 250);
+        await fund.connect(user2).transferShares(user1.address, 250);
         await sharesOf(user2, 250);
         await sharesOf(user1, 250);
     
-        await ovnPlus.connect(user1).transferShares(user2.address, 125);
+        await fund.connect(user1).transferShares(user2.address, 125);
         await sharesOf(user1, 125);
         await sharesOf(user2, 375);
     
-        let totalShares = await ovnPlus.totalShares();
+        let totalShares = await fund.totalShares();
         expect(totalShares).to.eq(500);
     });
     
 
     it("Should distribute rebased supply proportionally based on shares with deposits", async () => {
         
-        await ovnPlus.giveShares(user1.address, 400);
-        await ovnPlus.giveShares(user2.address, 600);
+        await fund.giveShares(user1.address, 400);
+        await fund.giveShares(user2.address, 600);
     
         await sharesOf(user1, 400);
         await sharesOf(user2, 600);
     
-        await ovnPlus.mint(user1.address, toAsset(100)); 
+        await fund.mint(user1.address, toAsset(100)); 
         await balanceOf(user1, 100); 
     
         await changeTotalSupply(1500, 500);
@@ -345,26 +345,26 @@ describe("Token", function () {
     it("Should revert a transferFrom if an allowance is insufficient", async () => {
         await mint(user1, 100);
 
-        await ovnPlus.connect(user1).approve(user2.address, toAsset(10));
-        expect(await ovnPlus.allowance(user1.address, user2.address)).to.equal(toAsset(10));
-        await expectRevert(ovnPlus.connect(user2).transferFrom(user1.address, user2.address, toAsset(100)), "Allowance amount exceeds balance");
+        await fund.connect(user1).approve(user2.address, toAsset(10));
+        expect(await fund.allowance(user1.address, user2.address)).to.equal(toAsset(10));
+        await expectRevert(fund.connect(user2).transferFrom(user1.address, user2.address, toAsset(100)), "Allowance amount exceeds balance");
     });
 
     it("Should allow to increase/decrease allowance", async () => {
         await mint(user1, 1000);
 
-        await ovnPlus.connect(user1).approve(user2.address, toAsset(1000));
-        expect(await ovnPlus.allowance(user1.address, user2.address)).to.equal(toAsset(1000));
+        await fund.connect(user1).approve(user2.address, toAsset(1000));
+        expect(await fund.allowance(user1.address, user2.address)).to.equal(toAsset(1000));
 
-        await ovnPlus.connect(user1).decreaseAllowance(user2.address, toAsset(100));
-        expect(await ovnPlus.allowance(user1.address, user2.address)).to.equal(toAsset(900));
+        await fund.connect(user1).decreaseAllowance(user2.address, toAsset(100));
+        expect(await fund.allowance(user1.address, user2.address)).to.equal(toAsset(900));
 
-        await ovnPlus.connect(user1).increaseAllowance(user2.address, toAsset(20));
-        expect(await ovnPlus.allowance(user1.address, user2.address)).to.equal(toAsset(920));
+        await fund.connect(user1).increaseAllowance(user2.address, toAsset(20));
+        expect(await fund.allowance(user1.address, user2.address)).to.equal(toAsset(920));
 
         // Decrease allowance more than what's there
-        await ovnPlus.connect(user1).decreaseAllowance(user2.address, toAsset(950));
-        expect(await ovnPlus.allowance(user1.address, user2.address)).to.equal(toAsset(0));
+        await fund.connect(user1).decreaseAllowance(user2.address, toAsset(950));
+        expect(await fund.allowance(user1.address, user2.address)).to.equal(toAsset(0));
 
     });
 
@@ -375,8 +375,8 @@ describe("Token", function () {
 
         await changeTotalSupply(102, 0);
 
-        let balanceUser1 = fromAsset(await ovnPlus.balanceOf(user1.address));
-        let balanceUser2 = fromAsset(await ovnPlus.balanceOf(user2.address));
+        let balanceUser1 = fromAsset(await fund.balanceOf(user1.address));
+        let balanceUser2 = fromAsset(await fund.balanceOf(user2.address));
 
         expect(balanceUser1).to.eq(100.98);
         expect(balanceUser2).to.eq(1.02);
@@ -390,17 +390,17 @@ describe("Token", function () {
 
     // Helper to verify balance-exact transfers in
     const checkTransferIn = async (amount) => {
-      const beforeReceiver = await ovnPlus.balanceOf(nonRebaseUser1.address);
-      await ovnPlus.connect(user1).transfer(nonRebaseUser1.address, amount);
-      const afterReceiver = await ovnPlus.balanceOf(nonRebaseUser1.address);
+      const beforeReceiver = await fund.balanceOf(nonRebaseUser1.address);
+      await fund.connect(user1).transfer(nonRebaseUser1.address, amount);
+      const afterReceiver = await fund.balanceOf(nonRebaseUser1.address);
       expect(beforeReceiver.add(amount)).to.equal(afterReceiver);
     };
 
     // Helper to verify balance-exact transfers out
     const checkTransferOut = async (amount) => {
-      const beforeReceiver = await ovnPlus.balanceOf(nonRebaseUser1.address);
-      await ovnPlus.connect(nonRebaseUser1).transfer(user1.address, amount);
-      const afterReceiver = await ovnPlus.balanceOf(nonRebaseUser1.address);
+      const beforeReceiver = await fund.balanceOf(nonRebaseUser1.address);
+      await fund.connect(nonRebaseUser1).transfer(user1.address, amount);
+      const afterReceiver = await fund.balanceOf(nonRebaseUser1.address);
       expect(beforeReceiver.sub(amount)).to.equal(afterReceiver);
     };
 
@@ -438,13 +438,13 @@ describe("Token", function () {
         let amount06 = {amount: "115792089237316195423570985008687907853269984665640564039457584007913129639935", credit: "115792089237316195423570985008687907853269984665640564039457584007913129639935"};
         let amount07 = {amount: "115792089237316195423570985008687907853269984665640564039457584007913", credit: "115792089237316195423570985008687907853269984665640564039457584007913129639935"};
 
-        expect(await ovnPlus.assetToCredit(amount01.amount)).to.eq(amount01.credit);
-        expect(await ovnPlus.assetToCredit(amount02.amount)).to.eq(amount02.credit);
-        expect(await ovnPlus.assetToCredit(amount03.amount)).to.eq(amount03.credit);
-        expect(await ovnPlus.assetToCredit(amount04.amount)).to.eq(amount04.credit);
-        expect(await ovnPlus.assetToCredit(amount05.amount)).to.eq(amount05.credit);
-        expect(await ovnPlus.assetToCredit(amount06.amount)).to.eq(amount06.credit);
-        expect(await ovnPlus.assetToCredit(amount07.amount)).to.eq(amount07.credit);
+        expect(await fund.assetToCredit(amount01.amount)).to.eq(amount01.credit);
+        expect(await fund.assetToCredit(amount02.amount)).to.eq(amount02.credit);
+        expect(await fund.assetToCredit(amount03.amount)).to.eq(amount03.credit);
+        expect(await fund.assetToCredit(amount04.amount)).to.eq(amount04.credit);
+        expect(await fund.assetToCredit(amount05.amount)).to.eq(amount05.credit);
+        expect(await fund.assetToCredit(amount06.amount)).to.eq(amount06.credit);
+        expect(await fund.assetToCredit(amount07.amount)).to.eq(amount07.credit);
 
         await changeTotalSupply(102, 0);
 
@@ -456,13 +456,13 @@ describe("Token", function () {
         let amount16 = {amount: "115792089237316195423570985008687907853269984665640564039457584007913129639935", credit: "115792089237316195423570985008687907853269984665640564039457584007913129639935"};
         let amount17 = {amount: "115792089237316195423570985008687907853269984665640564039457584007913", credit: "115792089237316195423570985008687907853269984665640564039457584007913129639935"};
 
-        expect(await ovnPlus.assetToCredit(amount11.amount)).to.eq(amount11.credit);
-        expect(await ovnPlus.assetToCredit(amount12.amount)).to.eq(amount12.credit);
-        expect(await ovnPlus.assetToCredit(amount13.amount)).to.eq(amount13.credit);
-        expect(await ovnPlus.assetToCredit(amount14.amount)).to.eq(amount14.credit);
-        expect(await ovnPlus.assetToCredit(amount15.amount)).to.eq(amount15.credit);
-        expect(await ovnPlus.assetToCredit(amount16.amount)).to.eq(amount16.credit);
-        expect(await ovnPlus.assetToCredit(amount17.amount)).to.eq(amount17.credit);
+        expect(await fund.assetToCredit(amount11.amount)).to.eq(amount11.credit);
+        expect(await fund.assetToCredit(amount12.amount)).to.eq(amount12.credit);
+        expect(await fund.assetToCredit(amount13.amount)).to.eq(amount13.credit);
+        expect(await fund.assetToCredit(amount14.amount)).to.eq(amount14.credit);
+        expect(await fund.assetToCredit(amount15.amount)).to.eq(amount15.credit);
+        expect(await fund.assetToCredit(amount16.amount)).to.eq(amount16.credit);
+        expect(await fund.assetToCredit(amount17.amount)).to.eq(amount17.credit);
     });
 
     it("creditToAsset converts credit", async () => {
@@ -478,13 +478,13 @@ describe("Token", function () {
         let amount06 = {amount: "115792089237316195423570985008687907853269984665640564039457584007913129639935", credit: "115792089237316195423570985008687907853269984665640564039457584007913129639935"};
         let amount07 = {amount: "115792089237316195423570985008687907853269984665640564039457584007913129639935", credit: "115792089237316195423570985008687907853269984665640564039457584007913"};
 
-        expect(await ovnPlus.creditToAsset(amount01.credit)).to.eq(amount01.amount);
-        expect(await ovnPlus.creditToAsset(amount02.credit)).to.eq(amount02.amount);
-        expect(await ovnPlus.creditToAsset(amount03.credit)).to.eq(amount03.amount);
-        expect(await ovnPlus.creditToAsset(amount04.credit)).to.eq(amount04.amount);
-        expect(await ovnPlus.creditToAsset(amount05.credit)).to.eq(amount05.amount);
-        expect(await ovnPlus.creditToAsset(amount06.credit)).to.eq(amount06.amount);
-        expect(await ovnPlus.creditToAsset(amount07.credit)).to.eq(amount07.amount);
+        expect(await fund.creditToAsset(amount01.credit)).to.eq(amount01.amount);
+        expect(await fund.creditToAsset(amount02.credit)).to.eq(amount02.amount);
+        expect(await fund.creditToAsset(amount03.credit)).to.eq(amount03.amount);
+        expect(await fund.creditToAsset(amount04.credit)).to.eq(amount04.amount);
+        expect(await fund.creditToAsset(amount05.credit)).to.eq(amount05.amount);
+        expect(await fund.creditToAsset(amount06.credit)).to.eq(amount06.amount);
+        expect(await fund.creditToAsset(amount07.credit)).to.eq(amount07.amount);
 
         await changeTotalSupply(102, 0);
 
@@ -496,13 +496,13 @@ describe("Token", function () {
         let amount16 = {amount: "115792089237316195423570985008687907853269984665640564039457584007913129639935", credit: "115792089237316195423570985008687907853269984665640564039457584007913129639935"};
         let amount17 = {amount: "115792089237316195423570985008687907853269984665640564039457584007913129639935", credit: "115792089237316195423570985008687907853269984665640564039457584007913"};
 
-        expect(await ovnPlus.creditToAsset(amount11.credit)).to.eq(amount11.amount);
-        expect(await ovnPlus.creditToAsset(amount12.credit)).to.eq(amount12.amount);
-        expect(await ovnPlus.creditToAsset(amount13.credit)).to.eq(amount13.amount);
-        expect(await ovnPlus.creditToAsset(amount14.credit)).to.eq(amount14.amount);
-        expect(await ovnPlus.creditToAsset(amount15.credit)).to.eq(amount15.amount);
-        expect(await ovnPlus.creditToAsset(amount16.credit)).to.eq(amount16.amount);
-        expect(await ovnPlus.creditToAsset(amount17.credit)).to.eq(amount17.amount);
+        expect(await fund.creditToAsset(amount11.credit)).to.eq(amount11.amount);
+        expect(await fund.creditToAsset(amount12.credit)).to.eq(amount12.amount);
+        expect(await fund.creditToAsset(amount13.credit)).to.eq(amount13.amount);
+        expect(await fund.creditToAsset(amount14.credit)).to.eq(amount14.amount);
+        expect(await fund.creditToAsset(amount15.credit)).to.eq(amount15.amount);
+        expect(await fund.creditToAsset(amount16.credit)).to.eq(amount16.amount);
+        expect(await fund.creditToAsset(amount17.credit)).to.eq(amount17.amount);
     });
 
     it("subCredits work correct", async () => {
@@ -514,12 +514,12 @@ describe("Token", function () {
         let amount5 = {credit1: "1000000000000000", credit2: "1000000000000000",       error: "errorText", result: "0"};
         let amount6 = {credit1: "1000000000000",    credit2: "1000000000000000000000", error: "errorText", result: "errorText"};
 
-        expect(await ovnPlus.subCredits(amount1.credit1, amount1.credit2, amount1.error)).to.eq(amount1.result);
-        expect(await ovnPlus.subCredits(amount2.credit1, amount2.credit2, amount2.error)).to.eq(amount2.result);
-        expect(await ovnPlus.subCredits(amount3.credit1, amount3.credit2, amount3.error)).to.eq(amount3.result);
-        expect(await ovnPlus.subCredits(amount4.credit1, amount4.credit2, amount4.error)).to.eq(amount4.result);
-        expect(await ovnPlus.subCredits(amount5.credit1, amount5.credit2, amount5.error)).to.eq(amount5.result);
-        await expectRevert(ovnPlus.subCredits(amount6.credit1, amount6.credit2, amount6.error), amount6.result);
+        expect(await fund.subCredits(amount1.credit1, amount1.credit2, amount1.error)).to.eq(amount1.result);
+        expect(await fund.subCredits(amount2.credit1, amount2.credit2, amount2.error)).to.eq(amount2.result);
+        expect(await fund.subCredits(amount3.credit1, amount3.credit2, amount3.error)).to.eq(amount3.result);
+        expect(await fund.subCredits(amount4.credit1, amount4.credit2, amount4.error)).to.eq(amount4.result);
+        expect(await fund.subCredits(amount5.credit1, amount5.credit2, amount5.error)).to.eq(amount5.result);
+        await expectRevert(fund.subCredits(amount6.credit1, amount6.credit2, amount6.error), amount6.result);
     });
 
     it("Approve/allowance different numbers", async () => {
@@ -542,13 +542,13 @@ describe("Token", function () {
         ];
 
         for (const amount of amounts0) {
-            await ovnPlus.connect(user1).approve(user2.address, amount);
-            expect(await ovnPlus.allowance(user1.address, user2.address)).to.eq(amounts0[0]);
+            await fund.connect(user1).approve(user2.address, amount);
+            expect(await fund.allowance(user1.address, user2.address)).to.eq(amounts0[0]);
         }
 
         for (const amount of amounts1) {
-            await ovnPlus.connect(user1).approve(user2.address, amount);
-            expect(await ovnPlus.allowance(user1.address, user2.address)).to.eq(amount);
+            await fund.connect(user1).approve(user2.address, amount);
+            expect(await fund.allowance(user1.address, user2.address)).to.eq(amount);
         }
 
     });
@@ -557,10 +557,10 @@ describe("Token", function () {
 
         let amount = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
         await mint(user1, 1000000);
-        await ovnPlus.connect(user1).approve(user2.address, amount);
-        expect(await ovnPlus.allowance(user1.address, user2.address)).to.eq(amount);
-        await ovnPlus.connect(user2).transferFrom(user1.address, user2.address, 1000000);
-        expect(await ovnPlus.allowance(user1.address, user2.address)).to.eq(amount);
+        await fund.connect(user1).approve(user2.address, amount);
+        expect(await fund.allowance(user1.address, user2.address)).to.eq(amount);
+        await fund.connect(user2).transferFrom(user1.address, user2.address, 1000000);
+        expect(await fund.allowance(user1.address, user2.address)).to.eq(amount);
 
     });
 
