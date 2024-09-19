@@ -31,7 +31,7 @@ describe("Token", function () {
         const wallet = await initWallet();
 
         const { deployer } = await getNamedAccounts();
-        await deployments.fixture(["FundExchange", "OvnFund"]);
+        await deployments.fixture(["FundExchange", "MotivationalFund"]);
         account = deployer;
         
         user1 = await createRandomWallet();
@@ -39,7 +39,7 @@ describe("Token", function () {
         user3 = await createRandomWallet();
         nonRebaseUser1 = await createRandomWallet();
         nonRebaseUser2 = await createRandomWallet();
-        ovnPlus = await ethers.getContract("OvnFund", deployer);
+        ovnPlus = await ethers.getContract("MotivationalFund", deployer);
         exchange = await ethers.getContract("FundExchange", deployer);
         
         await transferAsset(ARBITRUM.usdcCircle, deployer);
@@ -97,8 +97,8 @@ describe("Token", function () {
 
     it("Should return the token name and symbol", async () => {
         console.log(ovnPlus.name());
-        expect(await ovnPlus.name()).to.equal("OVN+");
-        expect(await ovnPlus.symbol()).to.equal("OVN+");
+        expect(await ovnPlus.name()).to.equal("MotivationalFund");
+        expect(await ovnPlus.symbol()).to.equal("FUND");
     });
 
     it("Should have 6 decimals", async () => {

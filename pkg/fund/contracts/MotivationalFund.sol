@@ -17,9 +17,8 @@ import "./libraries/WadRayMath.sol";
 
 import "hardhat/console.sol";
 
-// TODO: put m2m in smth 
 
-contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract MotivationalFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeMath for uint256;
@@ -355,11 +354,10 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
         uint256 _value
     ) internal {
 
-        uint256 creditsCredited = assetToCredit(_value);
-        uint256 creditsDeducted = assetToCredit(_value);
+        uint256 credits = assetToCredit(_value);
 
-        _creditBalances[_from] = subCredits(_creditBalances[_from], creditsDeducted, "Transfer amount exceeds balance");
-        _creditBalances[_to] = _creditBalances[_to].add(creditsCredited);
+        _creditBalances[_from] = subCredits(_creditBalances[_from], credits, "Transfer amount exceeds balance");
+        _creditBalances[_to] = _creditBalances[_to].add(credits);
 
         _afterTokenTransfer(address(0), _to, 1);
     }
@@ -423,7 +421,7 @@ contract OvnFund is PausableUpgradeable, ReentrancyGuardUpgradeable, IERC20Upgra
         uint256 scaledAmount = assetToCredit(_addedValue);
         _allowances[msg.sender][_spender] = _allowances[msg.sender][_spender]
             .add(scaledAmount);
-        // emit Approval(msg.sender, _spender, _allowances[msg.sender][_spender]);
+        emit Approval(msg.sender, _spender, _allowances[msg.sender][_spender]);
         return true;
     }
 

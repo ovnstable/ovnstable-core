@@ -31,7 +31,7 @@ describe("Token", function () {
         const wallet = await initWallet();
 
         const {deployer} = await getNamedAccounts();
-        await deployments.fixture(["OvnFund"]);
+        await deployments.fixture(["MotivationalFund"]);
         account = deployer;
         console.log(account)
         user1 = await createRandomWallet();
@@ -39,7 +39,7 @@ describe("Token", function () {
         user3 = await createRandomWallet();
         nonRebaseUser1 = await createRandomWallet();
         nonRebaseUser2 = await createRandomWallet();
-        usdPlus = await ethers.getContract("OvnFund", deployer);
+        usdPlus = await ethers.getContract("MotivationalFund", deployer);
         await usdPlus.setExchanger(account);
 
         let decimals = await usdPlus.decimals();
@@ -86,8 +86,8 @@ describe("Token", function () {
 
     it("Should return the token name and symbol", async () => {
         console.log(usdPlus.name());
-        expect(await usdPlus.name()).to.equal("OVN+");
-        expect(await usdPlus.symbol()).to.equal("OVN+");
+        expect(await usdPlus.name()).to.equal("MotivationalFund");
+        expect(await usdPlus.symbol()).to.equal("FUND");
     });
 
     it("Should have 6 decimals", async () => {
@@ -100,12 +100,12 @@ describe("Token", function () {
         ).to.equal(0);
     });
 
-    it("Should not allow anyone to mint USD+ directly", async () => {
+    it("Should not allow anyone to mint FUND directly", async () => {
         await expectRevert(
             usdPlus.connect(user1).mint(user1.address, toAsset(100)), "Caller is not the EXCHANGER")
     });
 
-    it("Should allow a simple transfer of 1 USD+", async () => {
+    it("Should allow a simple transfer of 1 FUND", async () => {
         await usdPlus.mint(user2.address, toAsset(100));
         await balanceOf(user1, 0);
         await balanceOf(user2, 100);

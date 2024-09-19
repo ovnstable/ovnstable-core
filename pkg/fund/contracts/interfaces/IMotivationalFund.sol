@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5.0 <0.9.0;
 
-interface IOvnFund {
+interface IMotivationalFund {
 
     function exchange() external view returns (address);
 
@@ -48,10 +48,6 @@ interface IOvnFund {
      * @return the current total supply
      **/
     function totalSupply() external view returns (uint256);
-
-    function totalMint() external view returns (uint256);
-
-    function totalBurn() external view returns (uint256);
 
     /**
      * @dev Atomically increases the allowance granted to `spender` by the caller.

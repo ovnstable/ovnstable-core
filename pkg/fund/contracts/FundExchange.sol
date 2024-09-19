@@ -13,7 +13,7 @@ import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IBlockGetter.sol";
 import "./interfaces/IRoleManager.sol";
 import "./interfaces/IStrategy.sol";
-import "./interfaces/IOvnFund.sol";
+import "./interfaces/IMotivationalFund.sol";
 
 
 contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
@@ -24,7 +24,7 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
 
     // ---  fields
 
-    IOvnFund public ovnPlus;
+    IMotivationalFund public fund;
     IERC20 public usdc; // asset name
 
     IPortfolioManager public portfolioManager; // portfolio manager contract
@@ -53,7 +53,7 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
 
     // ---  events
 
-    event TokensUpdated(address ovnPlus, address asset);
+    event TokensUpdated(address fund, address asset);
     event RoleManagerUpdated(address roleManager);
     event PortfolioManagerUpdated(address portfolioManager);
     event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
@@ -72,7 +72,7 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
     event PaidRedeemFee(uint256 amount, uint256 feeAmount);
     event NextPayoutTime(uint256 nextPayoutTime);
     event OnNotEnoughLimitRedeemed(address token, uint256 amount);
-    event PayoutAbroad(uint256 delta, uint256 deltaOvnPlus);
+    event PayoutAbroad(uint256 delta, uint256 deltaFund);
     event MaxAbroad(uint256 abroad);
     event ProfitRecipientUpdated(address recipient);
     event OracleLossUpdate(uint256 oracleLoss, uint256 denominator);
@@ -126,12 +126,12 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
 
     // ---  setters Admin
 
-    function setTokens(address _ovnPlus, address _asset) external onlyAdmin {
-        require(_ovnPlus != address(0), "Zero address not allowed");
+    function setTokens(address _fund, address _asset) external onlyAdmin {
+        require(_fund != address(0), "Zero address not allowed");
         require(_asset != address(0), "Zero address not allowed");
-        ovnPlus = IOvnFund(_ovnPlus);
+        fund = IMotivationalFund(_fund);
         usdc = IERC20(_asset);
-        emit TokensUpdated(_ovnPlus, _asset);
+        emit TokensUpdated(_fund, _asset);
     }
 
     function setPortfolioManager(address _portfolioManager) external onlyAdmin {
@@ -178,15 +178,8 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
         _unpause();
     }
 
-    struct MutabilityParams {
-        address asset;   // USDC | BUSD depends at chain
-        uint256 amount;  // amount asset
-    }
-
     
-    function deposit(address _asset, uint256 _amount) external whenNotPaused nonReentrant onlyAdmin { // for depositor
-        require(_asset == address(usdc), "Only asset available for buy");
-
+    function deposit(uint256 _amount) external whenNotPaused nonReentrant onlyAdmin { // for depositor
         uint256 currentBalance = usdc.balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
 
@@ -202,10 +195,9 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
         _requireOncePerBlock(false);
     }
 
-    function withdrawDeposit(address _asset, uint256 _amount) external whenNotPaused nonReentrant onlyAdmin returns (uint256) { // for depositor
-        require(_asset == address(usdc), "Only asset available for redeem");
+    function withdrawDeposit(uint256 _amount) external whenNotPaused nonReentrant onlyAdmin returns (uint256) { // for depositor
         require(_amount > 0, "Amount of USD+ is zero");
-        require(ovnPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
+        require(fund.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
 
         uint256 redeemAmount = _rebaseToAsset(_amount);
         require(redeemAmount > 0, "Amount of asset is zero");
@@ -223,20 +215,18 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
         return redeemAmount;
     }
 
-    function withdraw(MutabilityParams calldata params) external whenNotPaused nonReentrant returns (uint256) {
-        _withdraw(params.asset, params.amount);
+    function withdraw(uint256 _amount) external whenNotPaused nonReentrant returns (uint256) {
+        _withdraw(_amount);
     }
 
 
     /**
-     * @param _asset Asset to redeem
      * @param _amount Amount of USD+ to burn
      * @return Amount of asset unstacked and transferred to caller
      */
-    function _withdraw(address _asset, uint256 _amount) internal whenNotPaused nonReentrant returns (uint256) {
-        require(_asset == address(usdc), "Only asset available for redeem");
+    function _withdraw(uint256 _amount) internal whenNotPaused nonReentrant returns (uint256) {
         require(_amount > 0, "Amount of USD+ is zero");
-        require(ovnPlus.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
+        require(fund.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
 
         uint256 assetAmount = _rebaseToAsset(_amount);
         require(assetAmount > 0, "Amount of asset is zero");
@@ -245,7 +235,7 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
         _requireOncePerBlock(isBalanced);
 
         // Or just burn from sender
-        ovnPlus.burn(msg.sender, _amount);
+        fund.burn(msg.sender, _amount);
 
         require(usdc.balanceOf(address(this)) >= assetAmount, "Not enough for transfer assetAmount");
         SafeERC20.safeTransfer(usdc, msg.sender, assetAmount);
@@ -255,25 +245,22 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
         return assetAmount;
     }
 
-    function mint(MutabilityParams calldata params) external whenNotPaused nonReentrant returns (uint256) {
-        return _mint(params.asset, params.amount);
+    function mint(uint256 _amount) external whenNotPaused nonReentrant returns (uint256) {
+        return _mint(_amount);
     }
 
     /**
-     * @param _asset Asset to spend
      * @param _amount Amount of asset to spend
      * @return Amount of minted USD+ to caller
      */
-    function _mint(address _asset, uint256 _amount) internal returns (uint256) {
-        require(_asset == address(usdc), "Only asset available for buy");
-
+    function _mint(uint256 _amount) internal returns (uint256) {
         uint256 currentBalance = usdc.balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
 
         require(_amount > 0, "Amount of asset is zero");
 
-        uint256 ovnPlusAmount = _assetToRebase(_amount);
-        require(ovnPlusAmount > 0, "Amount of USD+ is zero");
+        uint256 fundAmount = _assetToRebase(_amount);
+        require(fundAmount > 0, "Amount of USD+ is zero");
 
         uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
         SafeERC20.safeTransferFrom(usdc, msg.sender, address(portfolioManager), _amount);
@@ -282,11 +269,11 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
         portfolioManager.deposit();
         _requireOncePerBlock(false);
 
-        ovnPlus.mint(msg.sender, ovnPlusAmount);
+        fund.mint(msg.sender, fundAmount);
 
-        emit EventExchange("mint", ovnPlusAmount, msg.sender);
+        emit EventExchange("mint", fundAmount, msg.sender);
 
-        return ovnPlusAmount;
+        return fundAmount;
     }
 
 
@@ -337,11 +324,11 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
     function _rebaseToAsset(uint256 _amount) internal view returns (uint256){
 
         uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
-        uint256 ovnPlusDecimals = ovnPlus.decimals();
-        if (assetDecimals > ovnPlusDecimals) {
-            _amount = _amount * (10 ** (assetDecimals - ovnPlusDecimals));
+        uint256 fundDecimals = fund.decimals();
+        if (assetDecimals > fundDecimals) {
+            _amount = _amount * (10 ** (assetDecimals - fundDecimals));
         } else {
-            _amount = _amount / (10 ** (ovnPlusDecimals - assetDecimals));
+            _amount = _amount / (10 ** (fundDecimals - assetDecimals));
         }
 
         return _amount;
@@ -351,11 +338,11 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
     function _assetToRebase(uint256 _amount) internal view returns (uint256){
 
         uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
-        uint256 ovnPlusDecimals = ovnPlus.decimals();
-        if (assetDecimals > ovnPlusDecimals) {
-            _amount = _amount / (10 ** (assetDecimals - ovnPlusDecimals));
+        uint256 fundDecimals = fund.decimals();
+        if (assetDecimals > fundDecimals) {
+            _amount = _amount / (10 ** (assetDecimals - fundDecimals));
         } else {
-            _amount = _amount * (10 ** (ovnPlusDecimals - assetDecimals));
+            _amount = _amount * (10 ** (fundDecimals - assetDecimals));
         }
         return _amount;
     }
@@ -383,48 +370,25 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
 
         portfolioManager.claimAndBalance();
 
-        uint256 ovnPlusSupply = ovnPlus.totalSupply(); 
-        uint256 totalOvnPlus = ovnPlusSupply + totalDeposit;
-        uint256 previousOvnPlus = totalOvnPlus;
-
+        uint256 fundSupply = fund.totalSupply(); 
+        uint256 totalFund = fundSupply + totalDeposit;
         uint256 totalNav = _assetToRebase(portfolioManager.totalNetAssets());
-        uint256 loss;
 
-        uint256 delta;
-
-        if (totalOvnPlus > totalNav) {
-            loss = totalOvnPlus - totalNav;
-            if (ovnPlusSupply > loss) {
-                ovnPlus.changeNegativeSupply(ovnPlusSupply - loss);
-                return 0;
-            } else {
-                revert("This rebase will remove all team funds");
-            }
-        } else {
-            delta = totalNav * LIQ_DELTA_DM / (ovnPlus.totalSupply() + totalDeposit);
+        if (totalFund > totalNav) {
+            uint256 loss = totalFund - totalNav;
+            fund.changeNegativeSupply(fundSupply - loss * fundSupply / totalFund);
+            totalDeposit -= loss * totalDeposit / totalFund;
+            return 0;
         }
 
-
-        // In case positive rebase and negative rebase the value changes and we must update it:
-        // - totalOvnPlus
-        // - totalNav
-
-        totalOvnPlus = ovnPlus.totalSupply() + totalDeposit;
-        totalNav = _assetToRebase(portfolioManager.totalNetAssets());
-
-        require(totalNav >= totalOvnPlus, 'negative rebase');
-
         // Calculating how much users profit after excess fee
-        uint256 profit = totalNav - totalOvnPlus;
+        uint256 profit = totalNav - totalFund;
+        uint256 expectedTotalFund = totalFund + profit;
 
-        uint256 expectedTotalOvnPlus = previousOvnPlus + profit;
+        fund.changeSupply(totalNav, totalDeposit);
 
-        ovnPlus.changeSupply(totalNav, totalDeposit);
-
-        
-
-        require(ovnPlus.totalSupply() + totalDeposit == totalNav, 'total != nav');
-        require(ovnPlus.totalSupply() + totalDeposit == expectedTotalOvnPlus, 'total != expected');
+        require(fund.totalSupply() + totalDeposit == totalNav, 'total != nav');
+        require(fund.totalSupply() + totalDeposit == expectedTotalFund, 'total != expected');
 
         emit PayoutEvent(
             profit
@@ -446,21 +410,5 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
 
         // If this is not a simulation, then we return the value is not used in any way
         return 0;
-    }
-
-    function getAvailabilityInfo() external view returns(uint256 _available, bool _paused, bool _deprecated) {
-        _paused = paused() || ovnPlus.isPaused();
-
-        IPortfolioManager.StrategyWeight[] memory weights = portfolioManager.getAllStrategyWeights();
-        uint256 count = weights.length;
-
-        for (uint8 i = 0; i < count; i++) {
-            IPortfolioManager.StrategyWeight memory weight = weights[i];
-            IStrategy strategy = IStrategy(weight.strategy);
-
-            if (weight.enabled) {
-                _available += strategy.netAssetValue();
-            }
-        }
     }
 }

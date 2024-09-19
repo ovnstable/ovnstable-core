@@ -1077,7 +1077,6 @@ async function transferAsset(assetAddress, to, amount) {
     if (!amount) {
         amount = await asset.balanceOf(from);
     }
-    console.log("amount: ", amount);
     await asset.connect(account).transfer(to, amount, await getPrice());
     
     await hre.network.provider.request({

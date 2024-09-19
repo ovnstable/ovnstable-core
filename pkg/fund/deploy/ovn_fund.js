@@ -6,17 +6,17 @@ const { ethers } = require("hardhat");
 module.exports = async ({ deployments }) => {
     const { save } = deployments;
     if (hre.network.name === "localhost") await transferETH(1, await getWalletAddress());
-    let params = { args: ["OVN+", "OVN+", 6] };
+    let params = { args: ["MotivationalFund", "FUND", 6] };
     
-    await deployProxy("OvnFund", deployments, save, params);
+    await deployProxy("MotivationalFund", deployments, save, params);
 
-    let usdPlus = await ethers.getContract("OvnFund");
+    let usdPlus = await ethers.getContract("MotivationalFund");
 
-    console.log("OvnFund deploy done()");
+    console.log("MotivationalFund deploy done()");
     console.log("Symbol:      " + (await usdPlus.symbol()));
     console.log("Name:        " + (await usdPlus.name()));
     console.log("Decimals:    " + (await usdPlus.decimals()));
     console.log("totalSupply: " + (await usdPlus.totalSupply()));
 };
 
-module.exports.tags = ["OvnFund"];
+module.exports.tags = ["MotivationalFund"];

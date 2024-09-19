@@ -43,6 +43,3 @@ localhost
 artifacts-zk/
 cache-zk/
 yarn.lock
-
-pkg/core/deployments/ 
-pkg/core/.openzeppelin
