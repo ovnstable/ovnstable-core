@@ -30,10 +30,4 @@ interface ISwapFacet {
         bool zeroForOne,
         int24[] memory tickRange
     ) external;
-
-    function uniswapV3SwapCallback(
-        int256 amount0Delta,
-        int256 amount1Delta,
-        bytes calldata _data
-    ) external;
 }

@@ -8,7 +8,7 @@ import "../../interfaces/core/INpmFacet.sol";
 import "../../interfaces/Constants.sol";
 import "hardhat/console.sol";
 
-contract AerodromeNpmFacet is INpmFacet, Modifiers {
+contract UniswapNpmFacet is INpmFacet, Modifiers {
 
     function mintPosition(
         address pair,

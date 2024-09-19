@@ -4,11 +4,11 @@ pragma solidity >=0.8.0;
 import "@overnight-contracts/connectors/contracts/stuff/PancakeV3.sol";
 import "../../libraries/core/LibCoreStorage.sol";
 import "../../interfaces/Modifiers.sol";
-import "../../interfaces/core/IPositionManagerFacet.sol";
+import "../../interfaces/core/INpmFacet.sol";
 import "../../interfaces/Constants.sol";
 import "hardhat/console.sol";
 
-contract PancakeNpmFacet is IPositionManagerFacet, Modifiers {
+contract PancakeNpmFacet is INpmFacet, Modifiers {
 
     function mintPosition(
         address pair,
@@ -58,7 +58,7 @@ contract PancakeNpmFacet is IPositionManagerFacet, Modifiers {
         uint256 positionCount;
         result = new PositionInfo[](validChefPositionsLength + validUserPositionsLength);
 
-        IMasterChefV3 masterChef = IMasterChefV3(MASTER_CHEF_V3);
+        IMasterChefV3 masterChef = IMasterChefV3(LibCoreStorage.coreStorage().masterChefV3);
         uint256 chefPositionsLength = masterChef.balanceOf(wallet);
         for (uint256 i = 0; i < chefPositionsLength; i++) {
             uint256 tokenId = masterChef.tokenOfOwnerByIndex(wallet, i);
@@ -158,7 +158,7 @@ contract PancakeNpmFacet is IPositionManagerFacet, Modifiers {
     }
 
     function getReward(uint256 tokenId) internal view returns (uint256 reward) {
-        IMasterChefV3 masterChef = IMasterChefV3(MASTER_CHEF_V3);
+        IMasterChefV3 masterChef = IMasterChefV3(LibCoreStorage.coreStorage().masterChefV3);
         reward = masterChef.pendingCake(tokenId);
     }
 
@@ -202,7 +202,7 @@ contract PancakeNpmFacet is IPositionManagerFacet, Modifiers {
 
     function calculateChefPositionsLength(address wallet) internal view returns (uint256 length) {
         length = 0;
-        IMasterChefV3 masterChef = IMasterChefV3(MASTER_CHEF_V3);
+        IMasterChefV3 masterChef = IMasterChefV3(LibCoreStorage.coreStorage().masterChefV3);
         uint256 positionsLength = masterChef.balanceOf(wallet);
         for (uint256 i = 0; i < positionsLength; i++) {
             uint256 tokenId = masterChef.tokenOfOwnerByIndex(wallet, i);

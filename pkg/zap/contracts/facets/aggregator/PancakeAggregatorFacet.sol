@@ -1,16 +1,16 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
+import "@overnight-contracts/connectors/contracts/stuff/PancakeV3.sol";
 import "../../libraries/core/LibCoreStorage.sol";
 import "../../interfaces/IMasterFacet.sol";
 import "../../interfaces/core/IAggregatorFacet.sol";
 import "../../interfaces/Constants.sol";
 
-contract AerodromeAggregatorFacet is IAggregatorFacet {
+contract PancakeAggregatorFacet is IAggregatorFacet {
 
     function protocolName() public pure returns (string memory) {
-        return "Aerodrome";
+        return "Pancake";
     }
 
     function fetchPools(
@@ -18,7 +18,7 @@ contract AerodromeAggregatorFacet is IAggregatorFacet {
         uint256 offset
     ) external view returns (PoolInfo[] memory result) {
         IMasterFacet master = IMasterFacet(address(this));
-        ICLFactory factory = ICLFactory(getNpm().factory());
+        IPancakeV3Factory factory = IPancakeV3Factory(getNpm().factory());
         uint256 poolsLength = factory.allPoolsLength();
         uint256 size;
         if (offset < poolsLength) {
@@ -27,14 +27,14 @@ contract AerodromeAggregatorFacet is IAggregatorFacet {
         result = new PoolInfo[](size);
         for (uint256 i = offset; i < offset + size; i++) {
             uint256 j = i - offset;
-            ICLPool pool = ICLPool(factory.allPools(i));
+            IPancakeV3Pool pool = IPancakeV3Pool(factory.allPools(i));
             result[j].platform = protocolName();
             result[j].poolId = address(pool);
             result[j].token0 = getTokenInfo(pool.token0());
             result[j].token1 = getTokenInfo(pool.token1());
             result[j].tickSpacing = pool.tickSpacing();
             result[j].fee = pool.fee();
-            result[j].gauge = pool.gauge();
+            result[j].gauge = LibCoreStorage.coreStorage().masterChefV3;
 
             (result[j].amount0, result[j].amount1) = getPoolAmounts(pool);
             result[j].price = master.getCurrentPrice(result[j].poolId);
@@ -42,7 +42,7 @@ contract AerodromeAggregatorFacet is IAggregatorFacet {
     }
 
     function getPoolsAmount() external view returns (uint256) {
-        ICLFactory factory = ICLFactory(getNpm().factory());
+        IPancakeV3Factory factory = IPancakeV3Factory(getNpm().factory());
         return factory.allPoolsLength();
     }
 
@@ -56,7 +56,7 @@ contract AerodromeAggregatorFacet is IAggregatorFacet {
         });
     }
 
-    function getPoolAmounts(ICLPool pool) internal view returns (uint256 amount0, uint256 amount1) {
+    function getPoolAmounts(IPancakeV3Pool pool) internal view returns (uint256 amount0, uint256 amount1) {
         IERC20 token0 = IERC20(pool.token0());
         IERC20 token1 = IERC20(pool.token1());
         amount0 = token0.balanceOf(address(pool));

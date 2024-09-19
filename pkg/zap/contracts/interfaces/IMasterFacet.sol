@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 import "./core/IPoolMathFacet.sol";
-import "./core/IPositionManagerFacet.sol";
+import "./core/INpmFacet.sol";
 import "./core/IZapFacet.sol";
 import "./core/IMathFacet.sol";
 import "./core/IProportionFacet.sol";
@@ -15,4 +15,4 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "hardhat/console.sol";
 
-interface IMasterFacet is IPoolMathFacet, IPositionManagerFacet, IZapFacet, IMathFacet, IProportionFacet, ISwapFacet {}
+interface IMasterFacet is IPoolMathFacet, INpmFacet, IZapFacet, IMathFacet, IProportionFacet, ISwapFacet {}

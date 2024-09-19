@@ -22,6 +22,11 @@ contract SetUpFacet is Modifiers {
         LibCoreStorage.coreStorage().binSearchIterations = args.binSearchIterations;
     }
 
+    function setMasterChefV3(address _masterChefV3) external onlyAdmin {
+        require(_masterChefV3 != address(0), 'masterChefV3 is empty');
+        LibCoreStorage.coreStorage().masterChefV3 = _masterChefV3;
+    }
+
     function odosRouter() external view returns (address) {
         return LibCoreStorage.coreStorage().odosRouter;
     }
@@ -36,5 +41,9 @@ contract SetUpFacet is Modifiers {
 
     function binSearchIterations() external view returns (uint256) {
         return LibCoreStorage.coreStorage().binSearchIterations;
+    }
+
+    function masterChefV3() external view returns (address) {
+        return LibCoreStorage.coreStorage().masterChefV3;
     }
 }

@@ -49,8 +49,18 @@ function getTestCases() {
                 //         }
                 //     ]
                 // },
+                // {
+                //     name: 'AerodromeCLZap',
+                //     pool: '0xBE700f5c75dFCbEf3Cae37873aEEB1724daED3f6', // tvl $25k
+                //     inputTokens: [
+                //         {
+                //             tokenAddress: getTokenAddress('weth'),
+                //             amountInUsd: 0.1
+                //         }
+                //     ]
+                // },
                 {
-                    name: 'AerodromeCLZap',
+                    name: 'PancakeCLZap',
                     pool: '0xBE700f5c75dFCbEf3Cae37873aEEB1724daED3f6', // tvl $25k
                     inputTokens: [
                         {

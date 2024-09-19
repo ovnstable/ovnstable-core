@@ -9,6 +9,8 @@ library LibCoreStorage {
         address npm;
         uint256 slippageBps;
         uint256 binSearchIterations;
+
+        address masterChefV3;
     }
 
     function coreStorage() internal pure returns (CoreStorage storage ds) {

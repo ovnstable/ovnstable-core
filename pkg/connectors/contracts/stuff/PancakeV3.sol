@@ -4,6 +4,7 @@ pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 
 struct MintParams {
     address token0;
@@ -200,6 +201,8 @@ interface IPancakeV3Factory {
         address tokenB,
         uint24 fee
     ) external view returns (address pool);
+
+    function poolDeployer() external view returns (address);
 }
 
 interface IMasterChefV3 {
@@ -1763,5 +1766,58 @@ library PancakeSwapV3Library {
         });
 
         amountOut = ISmartRouter(smartRouter).exactInput(params);
+    }
+}
+
+/// @title Provides functions for deriving a pool address from the factory, tokens, and the fee
+library PoolAddress {
+    /// @notice The identifying key of the pool
+    struct PoolKey {
+        address token0;
+        address token1;
+        int24 tickSpacing;
+    }
+
+    /// @notice Returns PoolKey: the ordered tokens with the matched fee levels
+    /// @param tokenA The first token of a pool, unsorted
+    /// @param tokenB The second token of a pool, unsorted
+    /// @param tickSpacing The tick spacing of the pool
+    /// @return Poolkey The pool details with ordered token0 and token1 assignments
+    function getPoolKey(address tokenA, address tokenB, int24 tickSpacing) internal pure returns (PoolKey memory) {
+        if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
+        return PoolKey({token0: tokenA, token1: tokenB, tickSpacing: tickSpacing});
+    }
+
+    /// @notice Deterministically computes the pool address given the factory and PoolKey
+    /// @param factory The CL factory contract address
+    /// @param key The PoolKey
+    /// @return pool The contract address of the V3 pool
+    function computeAddress(address factory, PoolKey memory key) internal view returns (address pool) {
+        require(key.token0 < key.token1);
+        pool = Clones.predictDeterministicAddress(
+            IPancakeV3Factory(factory).poolDeployer(),
+            keccak256(abi.encode(key.token0, key.token1, key.tickSpacing)),
+            factory
+        );
+    }
+}
+
+library CallbackValidation {
+    function verifyCallback(
+        address factory,
+        address tokenA,
+        address tokenB,
+        int24 tickSpacing
+    ) internal view returns (IPancakeV3Pool pool) {
+        return verifyCallback(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing));
+    }
+
+    function verifyCallback(address factory, PoolAddress.PoolKey memory poolKey)
+        internal
+        view
+        returns (IPancakeV3Pool pool)
+    {   
+        pool = IPancakeV3Pool(PoolAddress.computeAddress(factory, poolKey));
+        require(msg.sender == address(pool), "swap validation failed");
     }
 }
