@@ -4,128 +4,112 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+// Importing interfaces and modifiers
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IBlockGetter.sol";
 import "./interfaces/IRoleManager.sol";
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IMotivationalFund.sol";
+import "./interfaces/Modifiers.sol";
 
+/// @title FundExchange
+/// @notice Manages the exchange of assets with the MotivationalFund, handling deposits, withdrawals, and payouts.
+/// @dev Inherits multiple OpenZeppelin contracts for security and upgradeability.
+contract FundExchange is
+    Modifiers,
+    UUPSUpgradeable,
+    PausableUpgradeable,
+    ReentrancyGuardUpgradeable
+{
+    // --- Fields ---
 
-contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable {
-    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
-    bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
-
-    uint256 public constant LIQ_DELTA_DM = 1e6;
-
-    // ---  fields
-
+    /// @notice The MotivationalFund contract instance.
     IMotivationalFund public fund;
-    IERC20 public usdc; // asset name
 
-    IPortfolioManager public portfolioManager; // portfolio manager contract
-    
+    /// @notice The ERC20 token used as the asset (e.g., USDC).
+    IERC20 public usdc;
 
-    uint256 totalDeposit;
+    /// @notice The PortfolioManager contract instance.
+    IPortfolioManager public portfolioManager;
 
-    // next payout time in epoch seconds
+    /// @notice Total amount of assets deposited by DEPOSITOR.
+    uint256 public totalDeposit;
+
+    /// @notice The next payout time in epoch seconds.
     uint256 public nextPayoutTime;
 
-    // period between payouts in seconds, need to calc nextPayoutTime
+    /// @notice The period between payouts in seconds.
     uint256 public payoutPeriod;
 
-    // range of time for starting near next payout time at seconds
-    // if time in [nextPayoutTime-payoutTimeRange;nextPayoutTime+payoutTimeRange]
-    //    then payouts can be started by payout() method anyone
-    // else if time more than nextPayoutTime+payoutTimeRange
-    //    then payouts started by any next buy/redeem
+    /// @notice The time range around the next payout time when payouts can be initiated.
     uint256 public payoutTimeRange;
 
-    // last block number when buy/redeem was executed
+    /// @notice The last block number when a buy/redeem was executed.
     uint256 public lastBlockNumber;
 
+    /// @notice The address of the block number getter contract (used for L2 solutions like Arbitrum).
     address public blockGetter;
-    IRoleManager public roleManager;
 
-    // ---  events
+    // --- Events ---
 
     event TokensUpdated(address fund, address asset);
-    event RoleManagerUpdated(address roleManager);
     event PortfolioManagerUpdated(address portfolioManager);
-    event BuyFeeUpdated(uint256 fee, uint256 feeDenominator);
-    event RedeemFeeUpdated(uint256 fee, uint256 feeDenominator);
-    event ProfitFeeUpdated(uint256 fee, uint256 feeDenominator);
-    event PayoutTimesUpdated(uint256 nextPayoutTime, uint256 payoutPeriod, uint256 payoutTimeRange);
-    event PayoutManagerUpdated(address payoutManager);
-    event InsuranceUpdated(address insurance);
+    event PayoutTimesUpdated(
+        uint256 nextPayoutTime,
+        uint256 payoutPeriod,
+        uint256 payoutTimeRange
+    );
     event BlockGetterUpdated(address blockGetter);
 
     event EventExchange(string label, uint256 amount, address sender);
-    event PayoutEvent(
-        uint256 profit
-    );
-    event PaidBuyFee(uint256 amount, uint256 feeAmount);
-    event PaidRedeemFee(uint256 amount, uint256 feeAmount);
+    event PayoutEvent(uint256 profit);
     event NextPayoutTime(uint256 nextPayoutTime);
-    event OnNotEnoughLimitRedeemed(address token, uint256 amount);
-    event PayoutAbroad(uint256 delta, uint256 deltaFund);
-    event MaxAbroad(uint256 abroad);
-    event ProfitRecipientUpdated(address recipient);
-    event OracleLossUpdate(uint256 oracleLoss, uint256 denominator);
-    event CompensateLossUpdate(uint256 compensateLoss, uint256 denominator);
 
-    // ---  modifiers
-
-    modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
-        _;
-    }
-
-    modifier onlyPortfolioAgent() {
-        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
-        _;
-    }
-
-    modifier onlyUnit(){
-        require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
-        _;
-    }
-
-    // ---  constructor
+    // --- Constructor ---
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize() initializer public {
+    /**
+     * @notice Initializes the contract with default payout settings.
+     */
+    function initialize() public initializer {
         __AccessControl_init();
         __Pausable_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        // 1637193600 = 2021-11-18T00:00:00Z
-        nextPayoutTime = 1637193600; // TODO: change
+        payoutPeriod = 24 * 60 * 60 * 30; // Default to 30 days
 
-        payoutPeriod = 24 * 60 * 60 * 30;
+        payoutTimeRange = 24 * 60 * 60 * 30; // 30 days time range
 
-        payoutTimeRange = 24 * 60 * 60 * 30; // 24 hours * 30
+        nextPayoutTime = block.timestamp + payoutPeriod;
     }
 
+    /**
+     * @notice Authorizes an upgrade to a new implementation.
+     * @param newImplementation The address of the new contract implementation.
+     */
     function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyRole(DEFAULT_ADMIN_ROLE)
-    override
+        internal
+        override
+        onlyRole(DEFAULT_ADMIN_ROLE)
     {}
 
+    // --- Admin Setters ---
 
-    // ---  setters Admin
-
+    /**
+     * @notice Sets the addresses for the fund and asset tokens.
+     * @param _fund The address of the MotivationalFund contract.
+     * @param _asset The address of the asset token (e.g., USDC).
+     */
     function setTokens(address _fund, address _asset) external onlyAdmin {
         require(_fund != address(0), "Zero address not allowed");
         require(_asset != address(0), "Zero address not allowed");
@@ -134,26 +118,37 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
         emit TokensUpdated(_fund, _asset);
     }
 
-    function setPortfolioManager(address _portfolioManager) external onlyAdmin {
+    /**
+     * @notice Sets the PortfolioManager contract address.
+     * @param _portfolioManager The address of the PortfolioManager contract.
+     */
+    function setPortfolioManager(address _portfolioManager)
+        external
+        onlyAdmin
+    {
         require(_portfolioManager != address(0), "Zero address not allowed");
         portfolioManager = IPortfolioManager(_portfolioManager);
         emit PortfolioManagerUpdated(_portfolioManager);
     }
 
-    function setRoleManager(address _roleManager) external onlyAdmin {
-        require(_roleManager != address(0), "Zero address not allowed");
-        roleManager = IRoleManager(_roleManager);
-        emit RoleManagerUpdated(_roleManager);
-    }
-
+    /**
+     * @notice Sets the BlockGetter contract address (used for L2 solutions).
+     * @param _blockGetter The address of the BlockGetter contract.
+     */
     function setBlockGetter(address _blockGetter) external onlyAdmin {
         // blockGetter can be empty
         blockGetter = _blockGetter;
         emit BlockGetterUpdated(_blockGetter);
     }
 
-    // ---  setters Portfolio Manager
+    // --- Portfolio Manager Setters ---
 
+    /**
+     * @notice Sets payout timing configurations.
+     * @param _nextPayoutTime The next payout time in epoch seconds.
+     * @param _payoutPeriod The period between payouts in seconds.
+     * @param _payoutTimeRange The time range around the next payout time when payouts can be initiated.
+     */
     function setPayoutTimes(
         uint256 _nextPayoutTime,
         uint256 _payoutPeriod,
@@ -161,254 +156,314 @@ contract FundExchange is Initializable, AccessControlUpgradeable, UUPSUpgradeabl
     ) external onlyPortfolioAgent {
         require(_nextPayoutTime != 0, "Zero _nextPayoutTime not allowed");
         require(_payoutPeriod != 0, "Zero _payoutPeriod not allowed");
-        require(_nextPayoutTime > _payoutTimeRange, "_nextPayoutTime shoud be more than _payoutTimeRange");
+        require(
+            _nextPayoutTime > _payoutTimeRange,
+            "_nextPayoutTime should be more than _payoutTimeRange"
+        );
         nextPayoutTime = _nextPayoutTime;
         payoutPeriod = _payoutPeriod;
         payoutTimeRange = _payoutTimeRange;
         emit PayoutTimesUpdated(nextPayoutTime, payoutPeriod, payoutTimeRange);
     }
 
-    // ---  logic
+    // --- Contract Logic ---
 
+    /**
+     * @notice Pauses the contract, disabling certain functions.
+     */
     function pause() public onlyPortfolioAgent {
         _pause();
     }
 
+    /**
+     * @notice Unpauses the contract, enabling certain functions.
+     */
     function unpause() public onlyPortfolioAgent {
         _unpause();
     }
 
-    
-    function deposit(uint256 _amount) external whenNotPaused nonReentrant onlyAdmin { // for depositor
-        uint256 currentBalance = usdc.balanceOf(msg.sender);
-        require(currentBalance >= _amount, "Not enough tokens to buy");
-
-        require(_amount > 0, "Amount of asset is zero");
-
-        uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
-        SafeERC20.safeTransferFrom(usdc, msg.sender, address(portfolioManager), _amount);
-        require(usdc.balanceOf(address(portfolioManager)) == _targetBalance, 'pm balance != target');
-
-        totalDeposit += _amount;
-
-        portfolioManager.deposit();
-        _requireOncePerBlock(false);
+    /**
+     * @notice Allows a user to withdraw their funds.
+     * @param _amount The amount of FUND tokens to withdraw.
+     * @return The amount of asset tokens withdrawn.
+     */
+    function withdraw(uint256 _amount)
+        external
+        whenNotPaused
+        nonReentrant
+        returns (uint256)
+    {
+        return _withdraw(_amount);
     }
-
-    function withdrawDeposit(uint256 _amount) external whenNotPaused nonReentrant onlyAdmin returns (uint256) { // for depositor
-        require(_amount > 0, "Amount of USD+ is zero");
-        require(fund.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
-
-        uint256 redeemAmount = _rebaseToAsset(_amount);
-        require(redeemAmount > 0, "Amount of asset is zero");
-
-        (, bool isBalanced) = portfolioManager.withdraw(redeemAmount);
-        _requireOncePerBlock(isBalanced);
-
-        require(usdc.balanceOf(address(this)) >= redeemAmount, "Not enough for transfer redeemAmount");
-        SafeERC20.safeTransfer(usdc, msg.sender, redeemAmount);
-
-        totalDeposit -= _amount;
-
-        emit EventExchange("Withdraw", redeemAmount, msg.sender);
-
-        return redeemAmount;
-    }
-
-    function withdraw(uint256 _amount) external whenNotPaused nonReentrant returns (uint256) {
-        _withdraw(_amount);
-    }
-
 
     /**
-     * @param _amount Amount of USD+ to burn
-     * @return Amount of asset unstacked and transferred to caller
+     * @notice Allows the depositor to withdraw a specified amount.
+     * @param _amount The amount of asset tokens to withdraw.
+     * @return withdrawAmount The amount withdrawn.
      */
-    function _withdraw(uint256 _amount) internal whenNotPaused nonReentrant returns (uint256) {
-        require(_amount > 0, "Amount of USD+ is zero");
-        require(fund.balanceOf(msg.sender) >= _amount, "Not enough tokens to redeem");
+    function withdrawDeposit(uint256 _amount)
+        external
+        whenNotPaused
+        nonReentrant
+        onlyDepositor
+        returns (uint256 withdrawAmount)
+    {
+        require(totalDeposit >= _amount, "Not enough tokens to withdraw");
 
-        uint256 assetAmount = _rebaseToAsset(_amount);
-        require(assetAmount > 0, "Amount of asset is zero");
+        withdrawAmount = _withdrawLogic(_amount);
+        totalDeposit -= _amount;
 
-        (, bool isBalanced) = portfolioManager.withdraw(assetAmount);
-        _requireOncePerBlock(isBalanced);
+        emit EventExchange("withdraw deposit", withdrawAmount, msg.sender);
 
-        // Or just burn from sender
-        fund.burn(msg.sender, _amount);
-
-        require(usdc.balanceOf(address(this)) >= assetAmount, "Not enough for transfer assetAmount");
-        SafeERC20.safeTransfer(usdc, msg.sender, assetAmount);
-
-        emit EventExchange("redeem", assetAmount, msg.sender);
-
-        return assetAmount;
+        return withdrawAmount;
     }
 
-    function mint(uint256 _amount) external whenNotPaused nonReentrant returns (uint256) {
+    /**
+     * @notice Internal function to handle withdrawals.
+     * @param _amount The amount of FUND tokens to withdraw.
+     * @return withdrawAmount The amount of asset tokens withdrawn.
+     */
+    function _withdraw(uint256 _amount)
+        internal
+        whenNotPaused
+        nonReentrant
+        returns (uint256 withdrawAmount)
+    {
+        require(
+            fund.balanceOf(msg.sender) >= _amount,
+            "Not enough tokens to withdraw"
+        );
+
+        withdrawAmount = _withdrawLogic(_amount);
+        fund.burn(msg.sender, _amount);
+
+        emit EventExchange("withdraw", withdrawAmount, msg.sender);
+
+        return withdrawAmount;
+    }
+
+    /**
+     * @notice Core logic for handling withdrawals.
+     * @param _amount The amount to withdraw in FUND tokens.
+     * @return The amount of asset tokens withdrawn.
+     */
+    function _withdrawLogic(uint256 _amount)
+        internal
+        returns (uint256)
+    {
+        require(_amount > 0, "Amount of FUND is zero");
+
+        uint256 withdrawAmount = _rebaseToAsset(_amount);
+        require(withdrawAmount > 0, "Amount of asset is zero");
+
+        // Withdraw from the PortfolioManager
+        (, bool isBalanced) = portfolioManager.withdraw(withdrawAmount);
+        _requireOncePerBlock(isBalanced);
+
+        require(
+            usdc.balanceOf(address(this)) >= withdrawAmount,
+            "Not enough for transfer withdrawAmount"
+        );
+        SafeERC20.safeTransfer(usdc, msg.sender, withdrawAmount);
+
+        return withdrawAmount;
+    }
+
+    /**
+     * @notice Allows a user to mint FUND tokens by depositing asset tokens.
+     * @param _amount The amount of asset tokens to deposit.
+     * @return The amount of FUND tokens minted.
+     */
+    function mint(uint256 _amount)
+        external
+        whenNotPaused
+        nonReentrant
+        returns (uint256)
+    {
         return _mint(_amount);
     }
 
     /**
-     * @param _amount Amount of asset to spend
-     * @return Amount of minted USD+ to caller
+     * @notice Internal function to handle minting of FUND tokens.
+     * @param _amount The amount of asset tokens to deposit.
+     * @return fundAmount The amount of FUND tokens minted.
      */
-    function _mint(uint256 _amount) internal returns (uint256) {
+    function _mint(uint256 _amount)
+        internal
+        returns (uint256 fundAmount)
+    {
+        fundAmount = _mintLogic(_amount);
+        fund.mint(msg.sender, _assetToRebase(_amount));
+
+        emit EventExchange("mint", _assetToRebase(_amount), msg.sender);
+    }
+
+    /**
+     * @notice Allows the depositor to deposit asset tokens.
+     * @param _amount The amount of asset tokens to deposit.
+     * @return fundAmount The amount of FUND tokens credited.
+     */
+    function deposit(uint256 _amount)
+        external
+        whenNotPaused
+        nonReentrant
+        onlyDepositor
+        returns (uint256 fundAmount)
+    {
+        fundAmount = _mintLogic(_amount);
+        totalDeposit += _amount;
+
+        emit EventExchange("deposit", _assetToRebase(_amount), msg.sender);
+    }
+
+    /**
+     * @notice Core logic for handling minting and deposits.
+     * @param _amount The amount of asset tokens to process.
+     * @return The equivalent amount in FUND tokens.
+     */
+    function _mintLogic(uint256 _amount)
+        internal
+        returns (uint256)
+    {
         uint256 currentBalance = usdc.balanceOf(msg.sender);
         require(currentBalance >= _amount, "Not enough tokens to buy");
 
         require(_amount > 0, "Amount of asset is zero");
 
-        uint256 fundAmount = _assetToRebase(_amount);
-        require(fundAmount > 0, "Amount of USD+ is zero");
-
-        uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
-        SafeERC20.safeTransferFrom(usdc, msg.sender, address(portfolioManager), _amount);
-        require(usdc.balanceOf(address(portfolioManager)) == _targetBalance, 'pm balance != target');
+        // Transfer assets to the PortfolioManager
+        uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) +
+            _amount;
+        SafeERC20.safeTransferFrom(
+            usdc,
+            msg.sender,
+            address(portfolioManager),
+            _amount
+        );
+        require(
+            usdc.balanceOf(address(portfolioManager)) == _targetBalance,
+            "PortfolioManager balance mismatch"
+        );
 
         portfolioManager.deposit();
         _requireOncePerBlock(false);
 
-        fund.mint(msg.sender, fundAmount);
-
-        emit EventExchange("mint", fundAmount, msg.sender);
-
-        return fundAmount;
+        return _assetToRebase(_amount);
     }
 
-
     /**
-     * @dev Protect from flashloan attacks
-     * Allow execute only one mint or redeem transaction in per block
-     * ONLY if balance function triggered on PortfolioManager
-     * in other cases: stake/unstake only from cash strategy is safe
+     * @notice Ensures that only one mint or redeem transaction is executed per block when necessary.
+     * @param isBalanced A flag indicating if the PortfolioManager has rebalanced.
      */
-
     function _requireOncePerBlock(bool isBalanced) internal {
-
         uint256 blockNumber;
 
-        // Arbitrum when call block.number return blockNumber from L1(mainnet)
-        // To get a valid block, we use a BlockGetter contract with its own implementation of getting a block.number from L2(Arbitrum)
-
-        // What is it needed?
-        // 15 seconds ~ average time for a new block to appear on the mainnet
-
-        // User1 send transaction mint:
-        // - l1.blockNumber = 100
-        // - l2.blockNumber = 60000
-        // 5 seconds later
-        // User2 send transaction mint:
-        // - l1.blockNumber = 100
-        // - l2.blockNumber = 60001
-        // If blockNumber from L1 then tx be revert("Only once in block")
-        // If blockNumber from L2 then tx be success mint!
-
+        // For L2 solutions like Arbitrum, use a custom block number getter
         if (blockGetter != address(0)) {
             blockNumber = IBlockGetter(blockGetter).getNumber();
         } else {
             blockNumber = block.number;
         }
 
-        // Flag isBalanced take about:
-        // PortfolioManager run balance function and unstake liquidity from non cash strategies
-        // Check is not actual if stake/unstake will be only from cash strategy (for example Aave or Venus)
+        // If the PortfolioManager has rebalanced, ensure only one transaction per block
         if (isBalanced) {
-            require(lastBlockNumber < blockNumber, "Only once in block");
+            require(lastBlockNumber < blockNumber, "Only once per block");
         }
 
         lastBlockNumber = blockNumber;
     }
 
-
-    function _rebaseToAsset(uint256 _amount) internal view returns (uint256){
-
+    /**
+     * @notice Converts FUND token amount to asset token amount based on decimals.
+     * @param _amount The amount in FUND tokens.
+     * @return The equivalent amount in asset tokens.
+     */
+    function _rebaseToAsset(uint256 _amount) internal view returns (uint256) {
         uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
         uint256 fundDecimals = fund.decimals();
         if (assetDecimals > fundDecimals) {
-            _amount = _amount * (10 ** (assetDecimals - fundDecimals));
+            _amount = _amount * (10**(assetDecimals - fundDecimals));
         } else {
-            _amount = _amount / (10 ** (fundDecimals - assetDecimals));
+            _amount = _amount / (10**(fundDecimals - assetDecimals));
         }
 
         return _amount;
     }
 
-
-    function _assetToRebase(uint256 _amount) internal view returns (uint256){
-
+    /**
+     * @notice Converts asset token amount to FUND token amount based on decimals.
+     * @param _amount The amount in asset tokens.
+     * @return The equivalent amount in FUND tokens.
+     */
+    function _assetToRebase(uint256 _amount) internal view returns (uint256) {
         uint256 assetDecimals = IERC20Metadata(address(usdc)).decimals();
         uint256 fundDecimals = fund.decimals();
         if (assetDecimals > fundDecimals) {
-            _amount = _amount / (10 ** (assetDecimals - fundDecimals));
+            _amount = _amount / (10**(assetDecimals - fundDecimals));
         } else {
-            _amount = _amount * (10 ** (fundDecimals - assetDecimals));
+            _amount = _amount * (10**(fundDecimals - assetDecimals));
         }
         return _amount;
     }
 
     /**
-     * @dev Payout
-     * The root method of protocol USD+
-     * Calculates delta total NAV - total supply USD+ and accrues profit or loss among all token holders
-     *
-     * What do method?
-     * - Claim rewards from all strategy
-     * - Increase liquidity index USD+ on amount of profit
-     * - Decrease liquidity index USD+ on amount of loss
-     *
-     * Support Insurance mode: Only if insurance is set
-     * What the Insurance to do?
-     * If USD+ has Loss then Exchange coverts the loss through Insurance
-     * if USD+ has profit then Exchange send premium amount to Insurance
+     * @notice Handles the payout process, distributing profits or losses among token holders.
+     * @return swapAmount The net amount of profit or loss after payout.
      */
-    function payout() external whenNotPaused onlyUnit nonReentrant returns (int256 swapAmount) {
-
+    function payout()
+        external
+        whenNotPaused
+        onlyUnit
+        nonReentrant
+        returns (int256 swapAmount)
+    {
+        // Check if it's time for payout
         if (block.timestamp + payoutTimeRange < nextPayoutTime) {
             return 0;
         }
 
+        // Claim rewards and rebalance the portfolio
         portfolioManager.claimAndBalance();
 
-        uint256 fundSupply = fund.totalSupply(); 
+        uint256 fundSupply = fund.totalSupply();
         uint256 totalFund = fundSupply + totalDeposit;
         uint256 totalNav = _assetToRebase(portfolioManager.totalNetAssets());
 
         if (totalFund > totalNav) {
+            // Handle loss scenario
             uint256 loss = totalFund - totalNav;
-            fund.changeNegativeSupply(fundSupply - loss * fundSupply / totalFund);
-            totalDeposit -= loss * totalDeposit / totalFund;
+            fund.changeNegativeSupply(
+                fundSupply - (loss * fundSupply) / totalFund
+            );
+            totalDeposit -= (loss * totalDeposit) / totalFund;
             return 0;
         }
 
-        // Calculating how much users profit after excess fee
+        // Calculate profit
         uint256 profit = totalNav - totalFund;
         uint256 expectedTotalFund = totalFund + profit;
 
+        // Adjust the fund supply
         fund.changeSupply(totalNav, totalDeposit);
 
-        require(fund.totalSupply() + totalDeposit == totalNav, 'total != nav');
-        require(fund.totalSupply() + totalDeposit == expectedTotalFund, 'total != expected');
-
-        emit PayoutEvent(
-            profit
+        // Ensure consistency
+        require(
+            fund.totalSupply() + totalDeposit == totalNav,
+            "Total supply mismatch with NAV"
+        );
+        require(
+            fund.totalSupply() + totalDeposit == expectedTotalFund,
+            "Total supply mismatch with expected"
         );
 
-        // Update next payout time. Cycle for preventing gaps
-        // Allow execute payout every day in one time (10:00)
+        emit PayoutEvent(profit);
 
-        // If we cannot execute payout (for any reason) in 10:00 and execute it in 15:00
-        // then this cycle make 1 iteration and next payout time will be same 10:00 in next day
-
-        // If we cannot execute payout more than 2 days and execute it in 15:00
-        // then this cycle make 3 iteration and next payout time will be same 10:00 in next day
-
-        for (; block.timestamp >= nextPayoutTime - payoutTimeRange;) {
-            nextPayoutTime = nextPayoutTime + payoutPeriod;
+        // Update the next payout time, ensuring consistent scheduling
+        while (block.timestamp >= nextPayoutTime - payoutTimeRange) {
+            nextPayoutTime += payoutPeriod;
         }
         emit NextPayoutTime(nextPayoutTime);
 
-        // If this is not a simulation, then we return the value is not used in any way
+        // Return the net profit or loss (unused in this implementation)
         return 0;
     }
 }

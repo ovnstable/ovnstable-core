@@ -6,14 +6,16 @@ const {createRandomWallet} = require("@overnight-contracts/common/utils/tests");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const {fromE18, fromE6, toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
-const { initWallet, transferAsset, getERC20, transferETH } = require("@overnight-contracts/common/utils/script-utils");
+const { initWallet, transferAsset, getERC20, transferETH, getContract, execTimelock } = require("@overnight-contracts/common/utils/script-utils");
 const { ARBITRUM } = require("@overnight-contracts/common/utils/assets");
+const { Roles } = require("@overnight-contracts/common/utils/roles");
 
 
 describe("Token", function () {
 
     let fund;
     let account;
+    let rm;
 
     let user1;
     let user2;
@@ -25,13 +27,15 @@ describe("Token", function () {
     let fromAsset;
     let toAsset;
 
+    let wallet;
+
     sharedBeforeEach(async () => {
         await hre.run("compile");
 
-        const wallet = await initWallet();
+        wallet = await initWallet();
 
         const { deployer } = await getNamedAccounts();
-        await deployments.fixture(["FundExchange", "MotivationalFund"]);
+        await deployments.fixture(["FundExchange", "MotivationalFund", "RoleManager"]);
         account = deployer;
         
         user1 = await createRandomWallet();
@@ -41,6 +45,8 @@ describe("Token", function () {
         nonRebaseUser2 = await createRandomWallet();
         fund = await ethers.getContract("MotivationalFund", deployer);
         exchange = await ethers.getContract("FundExchange", deployer);
+        // rm = await ethers.getContract("RoleManager", deployer);
+        rm = await getContract('RoleManager', 'arbitrum');
         
         await transferAsset(ARBITRUM.usdcCircle, deployer);
         await transferETH(100, wallet.address);
@@ -49,6 +55,12 @@ describe("Token", function () {
         await usdcCircle.approve(deployer, toE6(10000000));
 
         await fund.setExchanger(account);
+        await fund.setRoleManager(rm.address);
+        await execTimelock(async timelock => {
+            await rm.connect(timelock).grantRole(Roles.DEPOSITOR_ROLE, "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")});
+        
+        console.log(await rm.hasRole(Roles.DEPOSITOR_ROLE, account));
+        // await rm.grantRole(Roles.DEPOSITOR_ROLE, account);
         await exchange.setTokens(ARBITRUM.fund, ARBITRUM.usdcCircle);
 
         let decimals = await fund.decimals();
@@ -111,7 +123,7 @@ describe("Token", function () {
         ).to.equal(0);
     });
 
-    it("Should not allow anyone to mint USD+ directly", async () => {
+    it("Should not allow anyone to mint FUND directly", async () => {
         await expectRevert(
             fund.connect(user1).mint(user1.address, toAsset(100)), "Caller is not the EXCHANGER")
     });
