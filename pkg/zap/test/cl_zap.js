@@ -117,6 +117,9 @@ describe('Testing all zaps', function() {
                 let zapInResponse = await (await zap.connect(account).zapIn(swapData, paramsData)).wait();
                 await showBalances(account, inputTokensERC20);
                 await showZapEvents(zapInResponse);
+
+                const tokenId = zapInResponse.events.find((event) => event.event === 'TokenId').args.toString();
+                const currentTick = await zap.getCurrentPoolTick(testCase.pool);
             }
         });
     });

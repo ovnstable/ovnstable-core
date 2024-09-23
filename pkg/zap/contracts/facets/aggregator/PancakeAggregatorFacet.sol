@@ -21,6 +21,9 @@ contract PancakeAggregatorFacet is IAggregatorFacet {
         IMasterChefV3 masterChef = IMasterChefV3(LibCoreStorage.coreStorage().masterChefV3);
         uint256 poolsLength = masterChef.poolLength();
         uint256 size;
+        if (offset == 0) {
+            offset = 1; // first pool is zero
+        }
         if (offset < poolsLength) {
             size = offset + limit > poolsLength ? poolsLength - offset : limit;
         }
@@ -45,7 +48,7 @@ contract PancakeAggregatorFacet is IAggregatorFacet {
     }
 
     function getPoolsAmount() external view returns (uint256) {
-        return IMasterChefV3(LibCoreStorage.coreStorage().masterChefV3).poolLength();
+        return IMasterChefV3(LibCoreStorage.coreStorage().masterChefV3).poolLength() - 1;
     }
 
     function getTokenInfo(address tokenId) internal view returns (TokenInfo memory) {

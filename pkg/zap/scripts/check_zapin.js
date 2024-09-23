@@ -24,8 +24,6 @@ let zap;
 let account;
 let inputTokensERC20;
 
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
 async function main() {
     testCase = {
         name: 'AerodromeCLZap',
@@ -54,11 +52,11 @@ async function main() {
         'inputTokens': proportion.inputTokenAddresses.map((e, i) => ({
             'tokenAddress': e,
             'amount': proportion.inputTokenAmounts[i]
-        })).filter((x) => x.tokenAddress !== ZERO_ADDRESS),
+        })).filter((x) => x.tokenAddress !== ethers.constants.AddressZero),
         'outputTokens': proportion.outputTokenAddresses.map((e, i) => ({
             'tokenAddress': e,
             'proportion': fromE6(proportion.outputTokenProportions[i]),
-        })).filter((x) => x.tokenAddress !== ZERO_ADDRESS),
+        })).filter((x) => x.tokenAddress !== ethers.constants.AddressZero),
         'userAddr': zap.address
     }
     console.log("odosRequestData:", odosRequestData);
