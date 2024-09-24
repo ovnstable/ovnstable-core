@@ -19,8 +19,6 @@ const {
 } = require('./utils.js');
 const { fromE6, fromE18, toE18 } = require('@overnight-contracts/common/utils/decimals');
 
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
 describe('Testing all zaps', function() {
     sharedBeforeEach('update prices', async () => {
         await updatePrices(tokens[process.env.ETH_NETWORK]);
@@ -39,20 +37,6 @@ describe('Testing all zaps', function() {
                 zap = await ethers.getContract(testCase.name);
                 ({ account, inputTokensERC20 } = await setUp(testCase.inputTokens));
                 console.log('setUp done successfully');
-                if (testCase.tickRange === undefined) {
-                    testCase.tickRange = (await zap.closestTicksForCurrentTick(testCase.pool)).slice(0, 2);
-                }
-
-                for (let i = 0; i < testCase.inputTokens.length; i++) {
-                    let amount = amountFromUsdPrice(testCase.inputTokens[i].tokenAddress, testCase.inputTokens[i].amountInUsd);
-                    testCase.inputTokens[i].amount = await toDecimals(inputTokensERC20[i], amount);
-                    await (await inputTokensERC20[i].approve(zap.address, testCase.inputTokens[i].amount)).wait();
-
-                    if (testCase.inputTokens[i].price === undefined) {  
-                        testCase.inputTokens[i].price = toE18(getPrice(testCase.inputTokens[i].tokenAddress));
-                    }
-                }
-                console.log('before done successfully');
             });
 
             it('zapIn to the pool', async function() {
@@ -62,23 +46,104 @@ describe('Testing all zaps', function() {
 
             async function check() {
                 await showBalances(account, inputTokensERC20);
-                let proportionResponse = await zap.getProportionForZap(testCase.pool, testCase.tickRange, testCase.inputTokens);
-                let proportion = handleProportionResponse(proportionResponse);
+                let tokenId = await zapIn();
+                await increase(tokenId);
+            }
+    
+            async function zapIn() {
+                console.log("zapIn");
+                await cookTestInput('zapin');
+                let {swapData, paramsData} = await buildInputData(0);
+                console.log('swapData:', swapData);
+                console.log('paramsData:', paramsData);
 
+                try {
+                    await zap.connect(account).callStatic.zapIn(swapData, paramsData);
+                } catch (e) {
+                    const simulationResult = zap.interface.parseError(e.data);
+                    console.log("simulationResult:", simulationResult);
+                    paramsData.adjustSwapAmount = simulationResult.args[4];
+                    paramsData.adjustSwapSide = simulationResult.args[5];
+                    paramsData.isSimulation = false;
+                    await showBalances(account, inputTokensERC20);
+                }
+                console.log("simulation done");
+                let zapInResponse = await (await zap.connect(account).zapIn(swapData, paramsData)).wait();
+                await showBalances(account, inputTokensERC20);
+                await showZapEvents(zapInResponse);
+    
+                const tokenId = zapInResponse.events.find((event) => event.event === 'TokenId').args.toString();
+                console.log("zapIn done");
+                return tokenId;
+            }
+    
+            async function increase(tokenId) {
+                console.log("increase");
+                await cookTestInput('increase', tokenId);
+                let currentTick = await zap.getCurrentPoolTick(testCase.pool);
+                console.log("currentTick:", currentTick);
+                console.log("tickRange:", testCase.tickRange);
+                let {swapData, paramsData} = await buildInputData(tokenId);
+                console.log('swapData:', swapData);
+                console.log('paramsData:', paramsData);
+                
+                try {
+                    await zap.connect(account).callStatic.increase(swapData, paramsData, tokenId);
+                } catch (e) {
+                    const simulationResult = zap.interface.parseError(e.data);
+                    console.log("simulationResult:", simulationResult);
+                    paramsData.adjustSwapAmount = simulationResult.args[4];
+                    paramsData.adjustSwapSide = simulationResult.args[5];
+                    paramsData.isSimulation = false;
+                    await showBalances(account, inputTokensERC20);
+                }
+                console.log("simulation done");
+                let zapInResponse = await (await zap.connect(account).increase(swapData, paramsData, tokenId)).wait();
+                await showBalances(account, inputTokensERC20);
+                await showZapEvents(zapInResponse);
+                console.log("increase done");
+            }
+
+            async function cookTestInput(op, tokenId) {
+                if (testCase.tickRange === undefined) {
+                    testCase.tickRange = (await zap.closestTicksForCurrentTick(testCase.pool)).slice(0, 2);
+                }
+                if (op === 'increase') {
+                    testCase.tickRange = (await zap.getPositionTicks(tokenId)).slice(0, 2);
+                }
+
+                for (let i = 0; i < testCase.inputTokens.length; i++) {
+                    let amount = amountFromUsdPrice(testCase.inputTokens[i].tokenAddress, testCase.inputTokens[i].amountInUsd);
+                    // if (op === 'increase') {
+                    //     amount /= 10;
+                    // }
+                    testCase.inputTokens[i].amount = await toDecimals(inputTokensERC20[i], amount);
+                    await (await inputTokensERC20[i].approve(zap.address, testCase.inputTokens[i].amount)).wait();
+
+                    if (testCase.inputTokens[i].price === undefined) {  
+                        testCase.inputTokens[i].price = toE18(getPrice(testCase.inputTokens[i].tokenAddress));
+                    }
+                }
+            }
+
+            async function buildInputData(tokenId) {
+                let proportionResponse = await zap.getProportionForZap(testCase.pool, testCase.tickRange, testCase.inputTokens, tokenId);
+                let proportion = handleProportionResponse(proportionResponse);
+    
                 let odosRequestData = {
                     'inputTokens': proportion.inputTokenAddresses.map((e, i) => ({
                         'tokenAddress': e,
                         'amount': proportion.inputTokenAmounts[i]
-                    })).filter((x) => x.tokenAddress !== ZERO_ADDRESS),
+                    })).filter((x) => x.tokenAddress !== ethers.constants.AddressZero),
                     'outputTokens': proportion.outputTokenAddresses.map((e, i) => ({
                         'tokenAddress': e,
                         'proportion': fromE6(proportion.outputTokenProportions[i]),
-                    })).filter((x) => x.tokenAddress !== ZERO_ADDRESS),
+                    })).filter((x) => x.tokenAddress !== ethers.constants.AddressZero),
                     'userAddr': zap.address
                 }
                 console.log("odosRequestData:", odosRequestData);
                 let {request, outAmounts} = await getOdosRequest(odosRequestData);
-
+    
                 let swapData = {
                     inputs: odosRequestData.inputTokens.map((e) => ({
                         'tokenAddress': e.tokenAddress,
@@ -89,37 +154,21 @@ describe('Testing all zaps', function() {
                         'receiver': zap.address,
                         'amountMin': new BN(outAmounts[i]).muln(0.99).toString()
                     })),
-                    data: request.data,
-                    needToAdjust: true,
-                    adjustSwapSide: false,
-                    adjustSwapAmount: 0
+                    data: request.data
                 };
-
+    
                 let paramsData = {
-                    pair: testCase.pool,
+                    pool: testCase.pool,
                     amountsOut: [proportion.outputTokenAmounts[0], proportion.outputTokenAmounts[1]],
                     tickRange: testCase.tickRange,
-                    isSimulation: true
+                    isSimulation: true,
+                    adjustSwapSide: false,
+                    adjustSwapAmount: 0
                 }
-                
-                console.log('swapData:', swapData);
-                console.log('paramsData:', paramsData);
-                try {
-                    await zap.connect(account).callStatic.zapIn(swapData, paramsData);
-                } catch (e) {
-                    const simulationResult = zap.interface.parseError(e.data);
-                    swapData.adjustSwapAmount = simulationResult.args[4];
-                    swapData.adjustSwapSide = simulationResult.args[5];
-                    paramsData.isSimulation = false;
-                    showSimulationResult(simulationResult);
-                    await showBalances(account, inputTokensERC20);
-                }
-                let zapInResponse = await (await zap.connect(account).zapIn(swapData, paramsData)).wait();
-                await showBalances(account, inputTokensERC20);
-                await showZapEvents(zapInResponse);
-
-                const tokenId = zapInResponse.events.find((event) => event.event === 'TokenId').args.toString();
-                const currentTick = await zap.getCurrentPoolTick(testCase.pool);
+                return {
+                    "swapData": swapData,
+                    "paramsData": paramsData
+                };
             }
         });
     });
