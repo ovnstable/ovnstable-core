@@ -139,6 +139,4 @@ library LibAccessControl {
     function renounceRole(bytes32 role) internal {
         revokeRole(role, msg.sender);
     }
-
-
 }

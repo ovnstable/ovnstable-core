@@ -36,14 +36,8 @@ interface IProportionFacet {
     function getProportionForZap(
         address pair,
         int24[] memory tickRange,
-        InputSwapToken[] memory inputTokens
-    ) external view returns (ResultOfProportion memory);
-
-    function getProportionForRebalance(
-        uint256 tokenId,
-        address poolId,
-        int24[] memory tickRange,
-        PoolTokenPrices[] memory prices
+        InputSwapToken[] memory inputTokens,
+        uint256 tokenId
     ) external view returns (ResultOfProportion memory);
 
     function getProportion(

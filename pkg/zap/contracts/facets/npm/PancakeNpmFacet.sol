@@ -113,12 +113,12 @@ contract PancakeNpmFacet is INpmFacet, Modifiers {
         return _getPositionAmounts(tokenId);
     }
 
-    function getTokens(uint256 tokenId) external onlyDiamond view returns (address, address) {
-        return _getTokens(tokenId);
+    function getPositionTicks(uint256 tokenId) public view returns (int24 tickLower, int24 tickUpper) {
+        (,,,,, tickLower, tickUpper,,,,,) = getNpm().positions(tokenId);
     }
 
-    function getTicks(uint256 tokenId) external onlyDiamond view returns (int24, int24) {
-        return _getTicks(tokenId);
+    function getTokens(uint256 tokenId) external onlyDiamond view returns (address, address) {
+        return _getTokens(tokenId);
     }
 
     function getPool(uint256 tokenId) external onlyDiamond view returns (address) {
@@ -131,10 +131,6 @@ contract PancakeNpmFacet is INpmFacet, Modifiers {
 
     function _getTokens(uint256 tokenId) internal view returns (address token0, address token1) {
         (,, token0, token1,,,,,,,,) = getNpm().positions(tokenId);
-    }
-
-    function _getTicks(uint256 tokenId) internal view returns (int24 tickLower, int24 tickUpper) {
-        (,,,,, tickLower, tickUpper,,,,,) = getNpm().positions(tokenId);
     }
 
     function _getPool(uint256 tokenId) internal view returns (address poolId) {
@@ -164,7 +160,7 @@ contract PancakeNpmFacet is INpmFacet, Modifiers {
 
     function _getPositionAmounts(uint256 tokenId) internal view returns (uint256 amount0, uint256 amount1) {
         address poolId = _getPool(tokenId);
-        (int24 tickLower, int24 tickUpper) = _getTicks(tokenId);
+        (int24 tickLower, int24 tickUpper) = getPositionTicks(tokenId);
         (uint160 sqrtRatioX96,,,,,,) = IPancakeV3Pool(poolId).slot0();
         (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
             sqrtRatioX96,
@@ -179,7 +175,7 @@ contract PancakeNpmFacet is INpmFacet, Modifiers {
         result.platform = "PCS";
         result.tokenId = tokenId;
         (result.token0, result.token1) = _getTokens(tokenId);
-        (result.tickLower, result.tickUpper) = _getTicks(tokenId);
+        (result.tickLower, result.tickUpper) = getPositionTicks(tokenId);
         result.poolId = _getPool(tokenId);
         IPancakeV3Pool pool = IPancakeV3Pool(result.poolId);
         (, result.currentTick,,,,,) = pool.slot0();

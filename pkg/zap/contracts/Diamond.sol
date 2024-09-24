@@ -9,7 +9,6 @@ pragma solidity ^0.8.0;
 /******************************************************************************/
 
 import {LibDiamond} from "./libraries/diamond/LibDiamond.sol";
-import {LibCoreStorage} from "./libraries/core/LibCoreStorage.sol";
 import {LibAccessControl} from "./libraries/core/LibAccessControl.sol";
 import {IDiamondLoupe} from "./interfaces/diamond/IDiamondLoupe.sol";
 import {IDiamondCut} from "./interfaces/diamond/IDiamondCut.sol";

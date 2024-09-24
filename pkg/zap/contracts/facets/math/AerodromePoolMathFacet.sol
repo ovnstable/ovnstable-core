@@ -46,6 +46,18 @@ contract AerodromePoolMathFacet is IPoolMathFacet, Modifiers {
         return (pool.token0(), pool.token1());
     }
 
+    function isValidPool(address pair) external onlyDiamond view returns (bool) {
+        address factory = INonfungiblePositionManager(LibCoreStorage.coreStorage().npm).factory();
+        ICLPool pool = ICLPool(pair);
+        PoolAddress.PoolKey memory key = PoolAddress.PoolKey({
+            token0: pool.token0(),
+            token1: pool.token1(),
+            tickSpacing: pool.tickSpacing()
+        });
+        address computedAddress = PoolAddress.computeAddress(factory, key);
+        return computedAddress == pair;
+    }
+
     function getLiquidityForAmounts(
         uint160 sqrtRatioX96,
         uint160 sqrtRatioAX96,

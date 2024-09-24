@@ -12,21 +12,21 @@ contract AerodromeSwapFacet is ISwapFacet, Modifiers {
     address constant WETH = 0x4200000000000000000000000000000000000006;
 
     function swap(
-        address pair,
+        address pool,
         uint256 amountIn,
         uint160 sqrtPriceLimitX96,
         bool zeroForOne
     ) public onlyDiamond {
         IMasterFacet master = IMasterFacet(address(this));
-        (address token0Address, address token1Address) = master.getPoolTokens(pair);
-        int24 tickSpacing = master.getTickSpacing(pair);
+        (address token0Address, address token1Address) = master.getPoolTokens(pool);
+        int24 tickSpacing = master.getTickSpacing(pool);
         SwapCallbackData memory data = SwapCallbackData({
             tokenA: token0Address,
             tokenB: token1Address,
             tickSpacing: tickSpacing
         });
 
-        ICLPool(pair).swap(
+        ICLPool(pool).swap(
             address(this), 
             zeroForOne, 
             int256(amountIn), 
@@ -38,19 +38,18 @@ contract AerodromeSwapFacet is ISwapFacet, Modifiers {
     }
 
     function simulateSwap(
-        address pair,
+        address pool,
         uint256 amountIn,
         uint160 sqrtPriceLimitX96,
         bool zeroForOne,
         int24[] memory tickRange
     ) external onlyDiamond {
         IMasterFacet master = IMasterFacet(address(this));
-        (address token0Address, address token1Address) = master.getPoolTokens(pair);
-
-        swap(pair, amountIn, sqrtPriceLimitX96, zeroForOne);
+        (address token0Address, address token1Address) = master.getPoolTokens(pool);
+        swap(pool, amountIn, sqrtPriceLimitX96, zeroForOne);
 
         uint256[] memory ratio = new uint256[](2);
-        (ratio[0], ratio[1]) = master.getProportion(pair, tickRange);
+        (ratio[0], ratio[1]) = master.getProportion(pool, tickRange);
         revert SwapError(
             IERC20(token0Address).balanceOf(address(this)),
             IERC20(token1Address).balanceOf(address(this)),

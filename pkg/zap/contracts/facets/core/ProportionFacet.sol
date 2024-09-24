@@ -8,7 +8,8 @@ contract ProportionFacet is IProportionFacet {
     function getProportionForZap(
         address pair,
         int24[] memory tickRange,
-        InputSwapToken[] memory inputTokens
+        InputSwapToken[] memory inputTokens,
+        uint256 tokenId
     ) external view returns (ResultOfProportion memory result) {
         IMasterFacet master = IMasterFacet(address(this));
         uint8[] memory decimals = new uint8[](inputTokens.length);
@@ -45,7 +46,11 @@ contract ProportionFacet is IProportionFacet {
             result.inputTokenAmounts[i] = inputTokens[i].amount;
         }
 
-        (outTokens[0].propAmount, outTokens[1].propAmount) = getProportion(pair, tickRange);
+        if (tokenId == 0) {
+            (outTokens[0].propAmount, outTokens[1].propAmount) = getProportion(pair, tickRange);
+        } else {
+            (outTokens[0].propAmount, outTokens[1].propAmount) = master.getPositionAmounts(tokenId);
+        }
         outTokens[0].prop = outTokens[0].propAmount * master.getCurrentPrice(pair);
         outTokens[1].prop = outTokens[0].prop + outTokens[1].propAmount * (10 ** IERC20Metadata(outTokens[1].token).decimals());
         result.poolProportionsUsd[0] = master.mulDiv(sumInputsUsd, outTokens[0].prop, outTokens[1].prop);
@@ -55,8 +60,8 @@ contract ProportionFacet is IProportionFacet {
             (outTokens[0].prop == 0 || outTokens[0].prop == outTokens[1].prop)) {
             delete result.inputTokenAddresses;
             delete result.inputTokenAmounts;
-            setOutputToken(inputTokens, outTokens, result, 0);
-            setOutputToken(inputTokens, outTokens, result, 1);
+            result.outputTokenAmounts[0] = outTokens[0].idx < inputTokens.length ? inputTokens[outTokens[0].idx].amount : 0;
+            result.outputTokenAmounts[1] = outTokens[1].idx < inputTokens.length ? inputTokens[outTokens[1].idx].amount : 0;
             return result;
         }
 
@@ -69,7 +74,7 @@ contract ProportionFacet is IProportionFacet {
                 // front (!)
                 result.outputTokenProportions[0] = BASE_DIV;
                 result.outputTokenAmounts[i] = inputTokens[outTokens[i].idx].amount - outTokens[i].amountToSwap;
-                setOutputToken(inputTokens, outTokens, result, 1 - i);
+                result.outputTokenAmounts[1 - i] = outTokens[1 - i].idx < inputTokens.length ? inputTokens[outTokens[1 - i].idx].amount : 0;
                 return result;
             }
         }
@@ -79,62 +84,8 @@ contract ProportionFacet is IProportionFacet {
         result.outputTokenProportions[0] = master.mulDiv(result.poolProportionsUsd[0] - outTokens[0].amountUsd, BASE_DIV,
             (result.poolProportionsUsd[0] + result.poolProportionsUsd[1]) - (outTokens[0].amountUsd + outTokens[1].amountUsd));
         result.outputTokenProportions[1] = BASE_DIV - result.outputTokenProportions[0];
-        setOutputToken(inputTokens, outTokens, result, 0);
-        setOutputToken(inputTokens, outTokens, result, 1);
-        return result;
-    }
-
-    function getProportionForRebalance(
-        uint256 tokenId,
-        address poolId,
-        int24[] memory tickRange,
-        PoolTokenPrices[] memory prices
-    ) external view returns (ResultOfProportion memory result) {
-        require(prices.length == 2, "!= 2 tokens");
-        IMasterFacet master = IMasterFacet(address(this));
-        uint8[] memory decimals = new uint8[](2);
-        OutTokenInfo[] memory outTokens = new OutTokenInfo[](2);
-        uint256 sumInputsUsd;
-
-        (outTokens[0].token, outTokens[1].token) = master.getPoolTokens(poolId);
-        require(
-            outTokens[0].token == prices[0].tokenAddress && outTokens[1].token == prices[1].tokenAddress,
-            "Invalid input tokens"
-        );
-        result.inputTokenAddresses = new address[](1);
-        result.inputTokenAmounts = new uint256[](1);
-        result.outputTokenAddresses = new address[](1);
-        result.outputTokenProportions = new uint256[](1);
-        result.outputTokenAmounts = new uint256[](2);
-        result.poolProportionsUsd = new uint256[](2);
-
-        (outTokens[0].amount, outTokens[1].amount) = master.getPositionAmounts(tokenId);
-        for (uint256 i = 0; i < 2; i++) {
-            decimals[i] = IERC20Metadata(prices[i].tokenAddress).decimals();
-            uint256 amountUsd = master.mulDiv(prices[i].price, outTokens[i].amount, 10 ** decimals[i]);
-            sumInputsUsd += amountUsd;
-            outTokens[i].amountUsd = amountUsd;
-        }
-
-        (outTokens[0].propAmount, outTokens[1].propAmount) = getProportion(poolId, tickRange);
-        outTokens[0].prop = outTokens[0].propAmount * master.getCurrentPrice(poolId);
-        outTokens[1].prop = outTokens[0].prop + outTokens[1].propAmount * (10 ** decimals[1]);
-        result.poolProportionsUsd[0] = master.mulDiv(sumInputsUsd, outTokens[0].prop, outTokens[1].prop);
-        result.poolProportionsUsd[1] = sumInputsUsd - result.poolProportionsUsd[0];
-
-        for (uint256 i = 0; i < 2; i++) {
-            if (result.poolProportionsUsd[i] < outTokens[i].amountUsd) {
-                outTokens[i].amountToSwap = master.mulDiv(outTokens[i].amountUsd - result.poolProportionsUsd[i], 10 ** decimals[i], prices[i].price);
-                result.inputTokenAddresses[0] = prices[i].tokenAddress;
-                result.inputTokenAmounts[0] = outTokens[i].amountToSwap;
-                result.outputTokenAddresses[0] = outTokens[1 - i].token;
-                // front (!)
-                result.outputTokenProportions[0] = BASE_DIV;
-                result.outputTokenAmounts[i] = outTokens[i].amount - outTokens[i].amountToSwap;
-                result.outputTokenAmounts[1 - i] = outTokens[1 - i].amount;
-                break;
-            }
-        }
+        result.outputTokenAmounts[0] = outTokens[0].idx < inputTokens.length ? inputTokens[outTokens[0].idx].amount : 0;
+        result.outputTokenAmounts[1] = outTokens[1].idx < inputTokens.length ? inputTokens[outTokens[1].idx].amount : 0;
         return result;
     }
 
