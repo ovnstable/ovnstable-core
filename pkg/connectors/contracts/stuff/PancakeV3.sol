@@ -1805,21 +1805,27 @@ library PoolAddress {
 }
 
 library CallbackValidation {
+    struct PoolKey {
+        address token0;
+        address token1;
+        uint24 fee;
+    }
+
     function verifyCallback(
         address factory,
         address tokenA,
         address tokenB,
-        int24 tickSpacing
+        uint24 fee
     ) internal view returns (IPancakeV3Pool pool) {
-        return verifyCallback(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing));
+        return verifyCallback(factory, PoolKey({token0: tokenA, token1: tokenB, fee: fee}));
     }
 
-    function verifyCallback(address factory, PoolAddress.PoolKey memory poolKey)
+    function verifyCallback(address factory, PoolKey memory poolKey)
         internal
         view
         returns (IPancakeV3Pool pool)
     {   
-        pool = IPancakeV3Pool(PoolAddress.computeAddress(factory, poolKey));
+        pool = IPancakeV3Pool(IPancakeV3Factory(factory).getPool(poolKey.token0, poolKey.token1, poolKey.fee));
         require(msg.sender == address(pool), "swap validation failed");
     }
 }

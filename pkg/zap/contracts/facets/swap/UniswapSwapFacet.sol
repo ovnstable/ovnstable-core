@@ -11,6 +11,12 @@ import "../../interfaces/Constants.sol";
 contract UniswapSwapFacet is ISwapFacet, Modifiers {
     address constant WETH = 0x4200000000000000000000000000000000000006;
 
+    struct SwapCallbackData {
+        address tokenA;
+        address tokenB;
+        int24 tickSpacing;
+    }
+
     function swap(
         address pair,
         uint256 amountIn,

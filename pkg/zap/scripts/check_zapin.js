@@ -26,7 +26,7 @@ let inputTokensERC20;
 
 async function main() {
     testCase = {
-        name: 'AerodromeCLZap',
+        name: 'PancakeCLZapBase',
         pool: '0xBE700f5c75dFCbEf3Cae37873aEEB1724daED3f6', // tvl $25k
         inputTokens: [
             {
@@ -38,7 +38,29 @@ async function main() {
 
     await updatePrices(tokens[process.env.ETH_NETWORK]);
 
-    zap = await ethers.getContract("AerodromeCLZap");
+    zap = await ethers.getContract("PancakeCLZapBase");
+
+
+    let positions = await zap.getPositions("0xa30b8deFcC9eDdf9E960ef810D89E194C1f65771");
+    for (let i = 0; i < positions.length; i++) {
+        console.log("platform:", positions[i].platform);
+        console.log("tokenId:", positions[i].tokenId.toString());
+        console.log("poolId:", positions[i].poolId.toString());
+        console.log("token0:", positions[i].token0.toString());
+        console.log("token1:", positions[i].token1.toString());
+        console.log("amount0:", positions[i].amount0.toString());
+        console.log("amount1:", positions[i].amount1.toString());
+        console.log("fee0:", positions[i].fee0.toString());
+        console.log("fee1:", positions[i].fee1.toString());
+        console.log("emissions:", positions[i].emissions.toString());
+        console.log("tickLower:", positions[i].tickLower.toString());
+        console.log("tickUpper:", positions[i].tickUpper.toString());
+        console.log("currentTick:", positions[i].currentTick.toString());
+        console.log("isStaked:", positions[i].isStaked.toString());
+        console.log("----------------------------------");
+    }
+    return;
+
     account = await initWallet();
     inputTokensERC20 = await Promise.all(testCase.inputTokens.map(async (token) => (await getERC20ByAddress(token.tokenAddress)).connect(account)));
 

@@ -5,11 +5,6 @@ pragma solidity >=0.8.0;
 /// @notice Interface for the SwapFacet contract
 /// @dev This interface defines the structure and functions for swapping tokens
 interface ISwapFacet {
-    struct SwapCallbackData {
-        address tokenA;
-        address tokenB;
-        int24 tickSpacing;
-    }
 
     /// @notice Error containing information about a swap (for a simulation)
     /// @param balance0 The balance of token0 after the swap

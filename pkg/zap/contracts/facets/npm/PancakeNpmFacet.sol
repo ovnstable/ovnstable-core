@@ -112,11 +112,11 @@ contract PancakeNpmFacet is INpmFacet, Modifiers {
         (,,,,, tickLower, tickUpper,,,,,) = getNpm().positions(tokenId);
     }
 
-    function getTokens(uint256 tokenId) public onlyDiamond view returns (address token0, address token1) {
+    function getTokens(uint256 tokenId) public view returns (address token0, address token1) {
         (,, token0, token1,,,,,,,,) = getNpm().positions(tokenId);
     }
 
-    function getPool(uint256 tokenId) public onlyDiamond view returns (address poolId) {
+    function getPool(uint256 tokenId) public view returns (address poolId) {
         (address token0, address token1) = getTokens(tokenId);
         (,,,, uint24 fee,,,,,,,) = getNpm().positions(tokenId);
         IPancakeV3Factory factory = IPancakeV3Factory(getNpm().factory());

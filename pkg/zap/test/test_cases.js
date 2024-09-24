@@ -61,11 +61,11 @@ function getTestCases() {
                 },
                 // {
                 //     name: 'PancakeCLZapBase',
-                //     pool: '0xBE700f5c75dFCbEf3Cae37873aEEB1724daED3f6', // tvl $25k
+                //     pool: '0xbee435c7Ff6Cb814124281C4C2532476A094Ac87', // tvl $40k
                 //     inputTokens: [
                 //         {
                 //             tokenAddress: getTokenAddress('weth'),
-                //             amountInUsd: 0.1
+                //             amountInUsd: 1000
                 //         }
                 //     ]
                 // },

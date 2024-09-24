@@ -71,7 +71,6 @@ contract ZapFacet is IZapFacet {
         uint256 tokenId
     ) internal {
         validateInputs(swapData, paramsData);
-
         for (uint256 i = 0; i < swapData.inputs.length; i++) {
             IERC20 asset = IERC20(swapData.inputs[i].tokenAddress);
             if (needTransfer) {
@@ -80,7 +79,6 @@ contract ZapFacet is IZapFacet {
             asset.approve(LibCoreStorage.coreStorage().odosRouter, swapData.inputs[i].amountIn);
         }
         swapOdos(swapData);
-
         PoolTokens memory poolTokens = PoolTokens({
             token: new address[](2),
             asset: new IERC20[](2),
@@ -94,7 +92,6 @@ contract ZapFacet is IZapFacet {
         });
         (poolTokens.token[0], poolTokens.token[1]) = masterFacet().getPoolTokens(paramsData.pool);
         tokenAmounts.tokens = poolTokens.token;
-
         for (uint256 i = 0; i < 2; i++) {
             poolTokens.asset[i] = IERC20(poolTokens.token[i]);
             if (needTransfer && paramsData.amountsOut[i] > 0) {
@@ -104,7 +101,6 @@ contract ZapFacet is IZapFacet {
             paramsData.amountsOut[i] = poolTokens.amount[i];
         }
         tokenAmounts.initial = poolTokens.amount;
-
         uint256[] memory positionAmounts = new uint256[](2);
         uint256[] memory newPositionAmounts = new uint256[](2);
         if (tokenId != 0) {
@@ -233,7 +229,6 @@ contract ZapFacet is IZapFacet {
         if (paramsData.adjustSwapAmount > 0) {
             masterFacet().swap(paramsData.pool, paramsData.adjustSwapAmount, 0, paramsData.adjustSwapSide);
         }
-        
         paramsData.amountsOut[0] = poolTokens.asset[0].balanceOf(address(this));
         paramsData.amountsOut[1] = poolTokens.asset[1].balanceOf(address(this));
         poolTokens.asset[0].approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[0]);
@@ -255,7 +250,6 @@ contract ZapFacet is IZapFacet {
         zeroForOne = poolTokens.asset[0].balanceOf(address(this)) > poolTokens.asset[1].balanceOf(address(this));
         BinSearchParams memory binSearchParams;
         binSearchParams.right = poolTokens.asset[zeroForOne ? 0 : 1].balanceOf(address(this));
-
         for (uint256 i = 0; i < LibCoreStorage.coreStorage().binSearchIterations; i++) {
             binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;
 

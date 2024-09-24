@@ -39,9 +39,30 @@ describe('Testing all zaps', function() {
                 console.log('setUp done successfully');
             });
 
-            it('zapIn to the pool', async function() {
-                console.log("cooked testCase:", testCase);
-                await check();
+            // it('zapIn to the pool', async function() {
+            //     console.log("cooked testCase:", testCase);
+            //     await check();
+            // });
+
+            it('getPositions', async function() {
+                let positions = await zap.getPositions("0xab918d486c61ADd7c577F1af938117bBD422f088");
+                for (let i = 0; i < positions.length; i++) {
+                    console.log("platform:", positions[i].platform);
+                    console.log("tokenId:", positions[i].tokenId.toString());
+                    console.log("poolId:", positions[i].poolId.toString());
+                    console.log("token0:", positions[i].token0.toString());
+                    console.log("token1:", positions[i].token1.toString());
+                    console.log("amount0:", positions[i].amount0.toString());
+                    console.log("amount1:", positions[i].amount1.toString());
+                    console.log("fee0:", positions[i].fee0.toString());
+                    console.log("fee1:", positions[i].fee1.toString());
+                    console.log("emissions:", positions[i].emissions.toString());
+                    console.log("tickLower:", positions[i].tickLower.toString());
+                    console.log("tickUpper:", positions[i].tickUpper.toString());
+                    console.log("currentTick:", positions[i].currentTick.toString());
+                    console.log("isStaked:", positions[i].isStaked.toString());
+                    console.log("----------------------------------");
+                }
             });
 
             async function check() {
@@ -60,6 +81,7 @@ describe('Testing all zaps', function() {
                 try {
                     await zap.connect(account).callStatic.zapIn(swapData, paramsData);
                 } catch (e) {
+                    console.log("e", e);
                     const simulationResult = zap.interface.parseError(e.data);
                     console.log("simulationResult:", simulationResult);
                     paramsData.adjustSwapAmount = simulationResult.args[4];

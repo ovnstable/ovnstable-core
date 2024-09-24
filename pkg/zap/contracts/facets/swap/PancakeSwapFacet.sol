@@ -9,22 +9,27 @@ import "../../interfaces/IMasterFacet.sol";
 import "../../interfaces/Constants.sol";
 
 contract PancakeSwapFacet is ISwapFacet, Modifiers {
+
+    struct SwapCallbackData {
+        address tokenA;
+        address tokenB;
+        uint24 fee;
+    }
+
     function swap(
         address pair,
         uint256 amountIn,
         uint160 sqrtPriceLimitX96,
         bool zeroForOne
-    ) public onlyDiamond {
-        IMasterFacet master = IMasterFacet(address(this));
-        (address token0Address, address token1Address) = master.getPoolTokens(pair);
-        int24 tickSpacing = master.getTickSpacing(pair);
+    ) public onlyDiamond amountIsNotZero(amountIn) {
+        IPancakeV3Pool pool = IPancakeV3Pool(pair);
         SwapCallbackData memory data = SwapCallbackData({
-            tokenA: token0Address,
-            tokenB: token1Address,
-            tickSpacing: tickSpacing
+            tokenA: pool.token0(),
+            tokenB: pool.token1(),
+            fee: pool.fee()
         });
 
-        IPancakeV3Pool(pair).swap(
+        pool.swap(
             address(this), 
             zeroForOne, 
             int256(amountIn), 
@@ -41,10 +46,9 @@ contract PancakeSwapFacet is ISwapFacet, Modifiers {
         uint160 sqrtPriceLimitX96,
         bool zeroForOne,
         int24[] memory tickRange
-    ) external onlyDiamond {
+    ) external onlyDiamond amountIsNotZero(amountIn) {
         IMasterFacet master = IMasterFacet(address(this));
         (address token0Address, address token1Address) = master.getPoolTokens(pair);
-
         swap(pair, amountIn, sqrtPriceLimitX96, zeroForOne);
 
         uint256[] memory ratio = new uint256[](2);
@@ -64,7 +68,7 @@ contract PancakeSwapFacet is ISwapFacet, Modifiers {
     ) external {
         SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
         address factory = INonfungiblePositionManager(LibCoreStorage.coreStorage().npm).factory();
-        CallbackValidation.verifyCallback(factory, data.tokenA, data.tokenB, data.tickSpacing);
+        CallbackValidation.verifyCallback(factory, data.tokenA, data.tokenB, data.fee);
 
         (bool isExactInput, uint256 amountToPay) =
             amount0Delta > 0
@@ -76,6 +80,10 @@ contract PancakeSwapFacet is ISwapFacet, Modifiers {
         } else {
             IERC20(data.tokenB).transfer(msg.sender, amountToPay);
         }
+    }
 
+    modifier amountIsNotZero(uint256 amount) {
+        require(amount > 0, "Amount to swap is zero");
+        _;
     }
 }

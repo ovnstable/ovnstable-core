@@ -9,24 +9,27 @@ import "../../interfaces/IMasterFacet.sol";
 import "../../interfaces/Constants.sol";
 
 contract AerodromeSwapFacet is ISwapFacet, Modifiers {
-    address constant WETH = 0x4200000000000000000000000000000000000006;
+
+    struct SwapCallbackData {
+        address tokenA;
+        address tokenB;
+        int24 tickSpacing;
+    }
 
     function swap(
-        address pool,
+        address pair,
         uint256 amountIn,
         uint160 sqrtPriceLimitX96,
         bool zeroForOne
     ) public onlyDiamond amountIsNotZero(amountIn) {
-        IMasterFacet master = IMasterFacet(address(this));
-        (address token0Address, address token1Address) = master.getPoolTokens(pool);
-        int24 tickSpacing = master.getTickSpacing(pool);
+        ICLPool pool = ICLPool(pair);
         SwapCallbackData memory data = SwapCallbackData({
-            tokenA: token0Address,
-            tokenB: token1Address,
-            tickSpacing: tickSpacing
+            tokenA: pool.token0(),
+            tokenB: pool.token1(),
+            tickSpacing: pool.tickSpacing()
         });
 
-        ICLPool(pool).swap(
+        pool.swap(
             address(this), 
             zeroForOne, 
             int256(amountIn), 

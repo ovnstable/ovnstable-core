@@ -869,7 +869,7 @@
       "inputs": [
         {
           "type": "address",
-          "name": "pool"
+          "name": "pair"
         },
         {
           "type": "uint256",
