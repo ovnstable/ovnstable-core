@@ -9,11 +9,12 @@ module.exports = async ({ deployments }) => {
     await deployProxy('PoolAggregator', deployments, save);
     console.log("PoolAggregator deploy done()");
 
-    let aggregator = await ethers.getContract('PoolAggregator');
+    // let aggregator = await ethers.getContract('PoolAggregator');
 
-    await (await aggregator.grantRole(Roles.UNIT_ROLE, "0xab918d486c61ADd7c577F1af938117bBD422f088")).wait();
-    await (await aggregator.addProtocol("0xb63F93A8020d0495fE9EDfE23Da3b7833F632c49")).wait();
-    console.log('PoolAggregator addProtocol done()');
+    // await (await aggregator.grantRole(Roles.UNIT_ROLE, "0xab918d486c61ADd7c577F1af938117bBD422f088")).wait();
+    // await (await aggregator.addProtocol("0xb63F93A8020d0495fE9EDfE23Da3b7833F632c49")).wait();
+    // await (await aggregator.addProtocol("0xB1b2F63ADD990d792d436143a07b8E0c06d8Fa09")).wait();
+    // console.log('PoolAggregator addProtocol done()');
 };
 
 module.exports.tags = ['PoolAggregator'];

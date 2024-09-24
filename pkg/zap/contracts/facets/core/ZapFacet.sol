@@ -6,22 +6,6 @@ import "../../libraries/core/LibCoreStorage.sol";
 
 contract ZapFacet is IZapFacet {
 
-    // Контракт успешной транзакции создает события:
-    // - Сколько подали токенов на вход
-    // - Сколько получили в результате обмена
-    // - Сколько положили в пул
-    // - Сколько вернули пользователю
-
-    event InputTokens(uint256[] amountsIn, address[] tokensIn);
-
-    event OutputTokens(uint256[] amountsOut, address[] tokensOut);
-
-    event PutIntoPool(uint256[] amountsPut, address[] tokensPut);
-
-    event ReturnedToUser(uint256[] amountsReturned, address[] tokensReturned);
-
-    event TokenId(uint256 tokenId); // name..?
-
     receive() external payable {}
 
     function zapIn(SwapData memory swapData, ZapInParams memory paramsData) external {
@@ -29,42 +13,55 @@ contract ZapFacet is IZapFacet {
     }
 
     function zapOut(uint256 tokenId) external {
+        masterFacet().isValidPosition(tokenId);
+        masterFacet().isNotStakedPosition(tokenId);
+
         _zapOut(tokenId, msg.sender, msg.sender);
     }
 
     function rebalance(SwapData memory swapData, ZapInParams memory paramsData, uint256 tokenId) external {
+        masterFacet().isValidPosition(tokenId);
+        masterFacet().isNotStakedPosition(tokenId);
+
         _zapOut(tokenId, address(this), msg.sender);
         _zapIn(swapData, paramsData, false, 0);
     }
 
     function increase(SwapData memory swapData, ZapInParams memory paramsData, uint256 tokenId) external {
+        masterFacet().isValidPosition(tokenId);
+        masterFacet().isNotStakedPosition(tokenId);
+
         _zapIn(swapData, paramsData, true, tokenId);
     }
 
-    function merge(uint256 tokenIn, uint256[] memory tokensOut) external {
-        IMasterFacet master = IMasterFacet(address(this));
-        (address token0In, address token1In) = master.getTokens(tokenIn);
+    function merge(
+        SwapData memory swapData, 
+        ZapInParams memory paramsData, 
+        uint256 tokenIn, 
+        uint256[] memory tokensOut
+    ) external {
+        masterFacet().isValidPosition(tokenIn);
+        masterFacet().isNotStakedPosition(tokenIn); 
 
         for (uint256 i = 0; i < tokensOut.length; i++) {
-            (address token0, address token1) = master.getTokens(tokensOut[i]);
-            require(token0In == token0 && token1In == token1, 'different pools');
+            masterFacet().isValidPosition(tokensOut[i]);
+            masterFacet().isNotStakedPosition(tokensOut[i]);
+            _zapOut(tokensOut[i], address(this), msg.sender);
         }
+        _zapIn(swapData, paramsData, false, tokenIn);
+    }
 
-        for (uint256 i = 0; i < tokensOut.length; i++) {
-            _zapOut(tokensOut[i], address(this), address(this));
-        }
+    struct PoolTokens {
+        address[] token;
+        IERC20[] asset;
+        uint256[] amount;
+    }
 
-        ZapInParams memory params;
-        params.tickRange = new int24[](2);
-        params.amountsOut = new uint256[](2);
-
-        params.pair = master.getPool(tokenIn);
-        (params.tickRange[0], params.tickRange[1]) = master.getTicks(tokenIn);
-        IERC20 asset0 = IERC20(token0In);
-        IERC20 asset1 = IERC20(token1In);
-        params.amountsOut[0] = asset0.balanceOf(address(this));
-        params.amountsOut[1] = asset1.balanceOf(address(this));
-        manageLiquidity(params, tokenIn);
+    struct TokenAmounts {
+        address[] tokens;
+        uint256[] initial;
+        uint256[] put;
+        uint256[] returned;
     }
 
     function _zapIn(
@@ -73,135 +70,217 @@ contract ZapFacet is IZapFacet {
         bool needTransfer,
         uint256 tokenId
     ) internal {
-        prepareSwap(swapData, needTransfer);
-        swap(swapData);
-        IMasterFacet master = IMasterFacet(address(this));
-        address[] memory tokensOut = new address[](2);
-        (tokensOut[0], tokensOut[1]) = master.getPoolTokens(paramsData.pair);
-
-        for (uint256 i = 0; i < tokensOut.length; i++) {
-            IERC20 asset = IERC20(tokensOut[i]);
-            if (needTransfer && paramsData.amountsOut[i] > 0) {
-                asset.transferFrom(msg.sender, address(this), paramsData.amountsOut[i]);
-            }
-            paramsData.amountsOut[i] = asset.balanceOf(address(this));
-        }
-        manageLiquidity(paramsData, tokenId);
-    }
-
-    function _zapOut(uint256 tokenId, address recipient, address feeRecipient) internal {
-        IMasterFacet master = IMasterFacet(address(this));
-        master.checkForOwner(tokenId, msg.sender);
-        master.closePosition(tokenId, recipient, feeRecipient);
-    }
-
-    function manageLiquidity(ZapInParams memory paramsData, uint256 tokenId) internal {
-        address[] memory tokensOut = new address[](2);
-        IMasterFacet master = IMasterFacet(address(this));
-        (tokensOut[0], tokensOut[1]) = master.getPoolTokens(paramsData.pair);
-        ResultOfLiquidity memory result;
-
-        IERC20 asset0 = IERC20(tokensOut[0]);
-        IERC20 asset1 = IERC20(tokensOut[1]);
-        asset0.approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[0]);
-        asset1.approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[1]);
-
-        result.amountAsset0Before = asset0.balanceOf(address(this));
-        result.amountAsset1Before = asset1.balanceOf(address(this));
-
-        if (tokenId == 0) {
-            tokenId = master.mintPosition(
-                paramsData.pair,
-                paramsData.tickRange[0],
-                paramsData.tickRange[1],
-                paramsData.amountsOut[0],
-                paramsData.amountsOut[1],
-                msg.sender
-            );
-            emit TokenId(tokenId);
-        } else {
-            master.increaseLiquidity(tokenId, paramsData.amountsOut[0], paramsData.amountsOut[1]);
-        }
-
-        result.amountAsset0After = asset0.balanceOf(address(this));
-        result.amountAsset1After = asset1.balanceOf(address(this));
-        if (result.amountAsset0After > 0) {
-            asset0.transfer(msg.sender, result.amountAsset0After);
-        }
-        if (result.amountAsset1After > 0) {
-            asset1.transfer(msg.sender, result.amountAsset1After);
-        }
-
-        result.amountsPut = new uint256[](2);
-        result.amountsPut[0] = result.amountAsset0Before - result.amountAsset0After;
-        result.amountsPut[1] = result.amountAsset1Before - result.amountAsset1After;
-
-        result.amountsReturned = new uint256[](2);
-        result.amountsReturned[0] = result.amountAsset0After;
-        result.amountsReturned[1] = result.amountAsset1After;
-
-        emit PutIntoPool(result.amountsPut, tokensOut);
-        emit ReturnedToUser(result.amountsReturned, tokensOut);
-    }
-
-    function prepareSwap(SwapData memory swapData, bool needTransfer) internal {
-        for (uint256 i = 0; i < swapData.outputs.length; i++) {
-            for (uint256 j = 0; j < i; j++) {
-                require(
-                    swapData.outputs[i].tokenAddress != swapData.outputs[j].tokenAddress,
-                    "Duplicate output tokens"
-                );
-                require(
-                    swapData.outputs[i].receiver == address(this), // TODO: remove from internal for
-                    "Receiver of swap is not this contract"
-                );
-            }
-        }
-
+        validateInputs(swapData, paramsData);
         for (uint256 i = 0; i < swapData.inputs.length; i++) {
-            // different inputs
-            for (uint256 j = 0; j < i; j++) {
-                require(
-                    swapData.inputs[i].tokenAddress != swapData.inputs[j].tokenAddress,
-                    "Duplicate input tokens"
-                );
-            }
-            // no identical inputs and outputs
-            for (uint256 j = 0; j < swapData.outputs.length; j++) {
-                require(
-                    swapData.inputs[i].tokenAddress != swapData.outputs[j].tokenAddress,
-                    "Duplicate input and output"
-                );
-            }
-
             IERC20 asset = IERC20(swapData.inputs[i].tokenAddress);
             if (needTransfer) {
                 asset.transferFrom(msg.sender, address(this), swapData.inputs[i].amountIn);
             }
             asset.approve(LibCoreStorage.coreStorage().odosRouter, swapData.inputs[i].amountIn);
         }
+        swapOdos(swapData);
+        PoolTokens memory poolTokens = PoolTokens({
+            token: new address[](2),
+            asset: new IERC20[](2),
+            amount: new uint256[](2)
+        });
+        TokenAmounts memory tokenAmounts = TokenAmounts({
+            tokens: new address[](2),
+            initial: new uint256[](2),
+            put: new uint256[](2),
+            returned: new uint256[](2)
+        });
+        (poolTokens.token[0], poolTokens.token[1]) = masterFacet().getPoolTokens(paramsData.pool);
+        tokenAmounts.tokens = poolTokens.token;
+        for (uint256 i = 0; i < 2; i++) {
+            poolTokens.asset[i] = IERC20(poolTokens.token[i]);
+            if (needTransfer && paramsData.amountsOut[i] > 0) {
+                poolTokens.asset[i].transferFrom(msg.sender, address(this), paramsData.amountsOut[i]);
+            }
+            poolTokens.amount[i] = poolTokens.asset[i].balanceOf(address(this));
+            paramsData.amountsOut[i] = poolTokens.amount[i];
+        }
+        tokenAmounts.initial = poolTokens.amount;
+        uint256[] memory positionAmounts = new uint256[](2);
+        uint256[] memory newPositionAmounts = new uint256[](2);
+        if (tokenId != 0) {
+            (positionAmounts[0], positionAmounts[1]) = masterFacet().getPositionAmounts(tokenId);
+        }
+        tokenId = manageLiquidity(paramsData, poolTokens, tokenId);
+        adjustSwap(paramsData, poolTokens, tokenId);
+        (newPositionAmounts[0], newPositionAmounts[1]) = masterFacet().getPositionAmounts(tokenId);
+
+        for (uint256 i = 0; i < 2; i++) {
+            if (newPositionAmounts[i] > positionAmounts[i]) {
+                tokenAmounts.put[i] = newPositionAmounts[i] - positionAmounts[i];
+            }
+            tokenAmounts.returned[i] = poolTokens.asset[i].balanceOf(address(this));
+            if (tokenAmounts.returned[i] > 0) {
+                poolTokens.asset[i].transfer(msg.sender, tokenAmounts.returned[i]);
+            }
+        }
+        for (uint256 i = 0; i < swapData.inputs.length; i++) {
+            IERC20 asset = IERC20(swapData.inputs[i].tokenAddress);
+            uint256 balance = asset.balanceOf(address(this));
+            if (balance > 0) {
+                asset.transfer(msg.sender, balance);
+            }
+        }
+        if (!paramsData.isSimulation) {
+            emit ZapResult(tokenAmounts.tokens, tokenAmounts.initial, tokenAmounts.put, tokenAmounts.returned);
+        } else {
+            revert SimulationResult(
+                tokenAmounts.tokens, 
+                tokenAmounts.initial, 
+                tokenAmounts.put, 
+                tokenAmounts.returned, 
+                paramsData.adjustSwapAmount, 
+                paramsData.adjustSwapSide
+            );
+        }
     }
 
-    function swap(SwapData memory swapData) internal returns (address[] memory, uint256[] memory) {
-        (bool success,) = LibCoreStorage.coreStorage().odosRouter.call{value : 0}(swapData.data);
-        require(success, "router swap invalid");
+    function _zapOut(uint256 tokenId, address recipient, address feeRecipient) internal {
+        masterFacet().isOwner(tokenId, msg.sender);
+        masterFacet().closePosition(tokenId, recipient, feeRecipient);
+    }
 
-        // Emit events
-        address[] memory tokensIn = new address[](swapData.inputs.length);
-        uint256[] memory amountsIn = new uint256[](swapData.inputs.length);
+    function validateInputs(SwapData memory swapData, ZapInParams memory paramsData) internal view {
         for (uint256 i = 0; i < swapData.inputs.length; i++) {
-            tokensIn[i] = swapData.inputs[i].tokenAddress;
-            amountsIn[i] = swapData.inputs[i].amountIn;
+            for (uint256 j = 0; j < i; j++) {
+                require(
+                    swapData.inputs[i].tokenAddress != swapData.inputs[j].tokenAddress,
+                    "Duplicate input tokens"
+                );
+            }
+            require(swapData.inputs[i].amountIn > 0, "Input amount is 0");
         }
-        emit InputTokens(amountsIn, tokensIn);
 
-        address[] memory tokensOut = new address[](swapData.outputs.length);
-        uint256[] memory amountsOut = new uint256[](swapData.outputs.length);
-        for (uint256 i = 0; i < swapData.outputs.length; i++) {
-            tokensOut[i] = swapData.outputs[i].tokenAddress;
-            amountsOut[i] = IERC20(tokensOut[i]).balanceOf(swapData.outputs[i].receiver);
+        require(paramsData.amountsOut.length == 2, "Invalid output length, must be exactly 2");
+        require(masterFacet().isValidPool(paramsData.pool), "Pool address in not valid");
+        require(paramsData.tickRange.length == 2, "Invalid tick range length, must be exactly 2");
+        require(paramsData.tickRange[0] < paramsData.tickRange[1], "Invalid tick range");
+    }
+
+    function swapOdos(SwapData memory swapData) internal {
+        if (swapData.inputs.length > 0) {
+            (bool success,) = LibCoreStorage.coreStorage().odosRouter.call{value : 0}(swapData.data);
+            require(success, "router swap invalid");
         }
-        emit OutputTokens(amountsOut, tokensOut);
-        return (tokensOut, amountsOut);
+
+        for (uint256 i = 0; i < swapData.outputs.length; i++) {
+            uint256 amountOut = IERC20(swapData.outputs[i].tokenAddress).balanceOf(address(this));
+            if (amountOut < swapData.outputs[i].amountMin) {
+                revert BelowAmountMin({
+                    tokenAddress: swapData.outputs[i].tokenAddress,
+                    amountMin: swapData.outputs[i].amountMin,
+                    amountReceived: amountOut
+                });
+            }
+        }
+        {
+            address[] memory tokensIn = new address[](swapData.inputs.length);
+            uint256[] memory amountsIn = new uint256[](swapData.inputs.length);
+            for (uint256 i = 0; i < swapData.inputs.length; i++) {
+                tokensIn[i] = swapData.inputs[i].tokenAddress;
+                amountsIn[i] = swapData.inputs[i].amountIn;
+            }
+            emit InputTokens(tokensIn, amountsIn);
+        }
+        {
+            address[] memory tokensOut = new address[](swapData.outputs.length);
+            uint256[] memory amountsOut = new uint256[](swapData.outputs.length);
+            for (uint256 i = 0; i < swapData.outputs.length; i++) {
+                tokensOut[i] = swapData.outputs[i].tokenAddress;
+                amountsOut[i] = IERC20(tokensOut[i]).balanceOf(address(this));
+            }
+            emit OutputTokens(tokensOut, amountsOut);
+        }
+    }
+
+    function manageLiquidity(ZapInParams memory paramsData, PoolTokens memory poolTokens, uint256 tokenId) internal returns (uint256) {
+        poolTokens.asset[0].approve(LibCoreStorage.coreStorage().npm, poolTokens.amount[0]);
+        poolTokens.asset[1].approve(LibCoreStorage.coreStorage().npm, poolTokens.amount[1]);
+
+        if (tokenId == 0) {
+            tokenId = masterFacet().mintPosition(
+                paramsData.pool,
+                paramsData.tickRange[0],
+                paramsData.tickRange[1],
+                poolTokens.amount[0],
+                poolTokens.amount[1],
+                msg.sender
+            );
+            emit TokenId(tokenId);
+        } else {
+            masterFacet().increaseLiquidity(tokenId, poolTokens.amount[0], poolTokens.amount[1]);
+        }
+        return tokenId;
+    }
+
+    function adjustSwap(
+        ZapInParams memory paramsData,
+        PoolTokens memory poolTokens,
+        uint256 tokenId
+    ) internal {
+        if (paramsData.isSimulation) {
+            (paramsData.adjustSwapAmount, paramsData.adjustSwapSide) = simulateSwap(paramsData, poolTokens);
+        }
+        if (paramsData.adjustSwapAmount > 0) {
+            masterFacet().swap(paramsData.pool, paramsData.adjustSwapAmount, 0, paramsData.adjustSwapSide);
+        }
+        paramsData.amountsOut[0] = poolTokens.asset[0].balanceOf(address(this));
+        paramsData.amountsOut[1] = poolTokens.asset[1].balanceOf(address(this));
+        poolTokens.asset[0].approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[0]);
+        poolTokens.asset[1].approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[1]);
+
+        masterFacet().increaseLiquidity(tokenId, paramsData.amountsOut[0], paramsData.amountsOut[1]);
+    }
+
+    struct BinSearchParams {
+        uint256 left;
+        uint256 right;
+        uint256 mid;
+    }
+
+    function simulateSwap(
+        ZapInParams memory paramsData, 
+        PoolTokens memory poolTokens
+    ) internal returns (uint256 amountToSwap, bool zeroForOne) {
+        zeroForOne = poolTokens.asset[0].balanceOf(address(this)) > poolTokens.asset[1].balanceOf(address(this));
+        BinSearchParams memory binSearchParams;
+        binSearchParams.right = poolTokens.asset[zeroForOne ? 0 : 1].balanceOf(address(this));
+        for (uint256 i = 0; i < LibCoreStorage.coreStorage().binSearchIterations; i++) {
+            binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;
+
+            try masterFacet().simulateSwap(
+                paramsData.pool, 
+                binSearchParams.mid, 
+                0, 
+                zeroForOne, 
+                paramsData.tickRange
+            ) 
+            {} catch (bytes memory _data) {
+                bytes memory data;
+                assembly {
+                    data := add(_data, 4)
+                }
+                uint256[] memory swapResult = new uint256[](4);
+                (swapResult[0], swapResult[1], swapResult[2], swapResult[3]) = abi.decode(data, (uint256, uint256, uint256, uint256));
+                bool compareResult = zeroForOne ? 
+                    masterFacet().compareRatios(swapResult[0], swapResult[1], swapResult[2], swapResult[3]) : 
+                    masterFacet().compareRatios(swapResult[1], swapResult[0], swapResult[3], swapResult[2]);
+                if (compareResult) {
+                    binSearchParams.left = binSearchParams.mid;
+                } else {
+                    binSearchParams.right = binSearchParams.mid;
+                }
+            }
+        }
+        amountToSwap = binSearchParams.mid;
+    }
+
+    function masterFacet() internal view returns (IMasterFacet) {
+        return IMasterFacet(address(this));
     }
 }

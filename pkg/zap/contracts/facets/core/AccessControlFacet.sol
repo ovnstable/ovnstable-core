@@ -34,5 +34,4 @@ contract AccessControlFacet {
     ) external onlyRole(getRoleAdmin(role)) {
         return LibAccessControl.revokeRole(role, account);
     }
-
 }

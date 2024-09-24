@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "./interfaces/core/IPoolFetcherFacet.sol";
+import "./interfaces/core/IAggregatorFacet.sol";
 
 contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
@@ -53,30 +53,30 @@ contract PoolAggregator is Initializable, AccessControlUpgradeable, UUPSUpgradea
     }
 
     function aggregatePools(uint256 limit, uint256 offset)
-        external view returns (IPoolFetcherFacet.PoolInfo[] memory result) {
+        external view returns (IAggregatorFacet.PoolInfo[] memory result) {
         uint256 totalPoolsAmount;
         uint256 resultSize;
         uint256 resultPoolsCounter;
 
         for (uint256 c = 0; c < zaps.length; c++) {
-            totalPoolsAmount += IPoolFetcherFacet(zaps[c]).getPoolsAmount();
+            totalPoolsAmount += IAggregatorFacet(zaps[c]).getPoolsAmount();
         }
         if (offset < totalPoolsAmount) {
             resultSize = offset + limit > totalPoolsAmount ? totalPoolsAmount - offset : limit;
         }
-        result = new IPoolFetcherFacet.PoolInfo[](resultSize);
+        result = new IAggregatorFacet.PoolInfo[](resultSize);
         if (resultSize == 0) {
             return result;
         }
 
         for (uint256 q = 0; q < zaps.length; q++) {
-            IPoolFetcherFacet fetcher = IPoolFetcherFacet(zaps[q]);
+            IAggregatorFacet fetcher = IAggregatorFacet(zaps[q]);
             uint256 poolsAmount = fetcher.getPoolsAmount();
             if (offset >= poolsAmount) {
                 offset -= poolsAmount;
                 continue;
             }
-            IPoolFetcherFacet.PoolInfo[] memory currentPools = fetcher.fetchPools(limit, offset);
+            IAggregatorFacet.PoolInfo[] memory currentPools = fetcher.fetchPools(limit, offset);
             for (uint256 j = 0; j < currentPools.length; j++) {
                 result[resultPoolsCounter] = currentPools[j];
                 resultPoolsCounter++;

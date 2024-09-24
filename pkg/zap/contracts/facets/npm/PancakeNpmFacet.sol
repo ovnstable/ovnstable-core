@@ -4,11 +4,11 @@ pragma solidity >=0.8.0;
 import "@overnight-contracts/connectors/contracts/stuff/PancakeV3.sol";
 import "../../libraries/core/LibCoreStorage.sol";
 import "../../interfaces/Modifiers.sol";
-import "../../interfaces/core/IPositionManagerFacet.sol";
+import "../../interfaces/core/INpmFacet.sol";
 import "../../interfaces/Constants.sol";
 import "hardhat/console.sol";
 
-contract PositionManagerPancakeFacet is IPositionManagerFacet, Modifiers {
+contract PancakeNpmFacet is INpmFacet, Modifiers {
 
     function mintPosition(
         address pair,
@@ -58,7 +58,7 @@ contract PositionManagerPancakeFacet is IPositionManagerFacet, Modifiers {
         uint256 positionCount;
         result = new PositionInfo[](validChefPositionsLength + validUserPositionsLength);
 
-        IMasterChefV3 masterChef = IMasterChefV3(MASTER_CHEF_V3);
+        IMasterChefV3 masterChef = IMasterChefV3(LibCoreStorage.coreStorage().masterChefV3);
         uint256 chefPositionsLength = masterChef.balanceOf(wallet);
         for (uint256 i = 0; i < chefPositionsLength; i++) {
             uint256 tokenId = masterChef.tokenOfOwnerByIndex(wallet, i);
@@ -96,56 +96,51 @@ contract PositionManagerPancakeFacet is IPositionManagerFacet, Modifiers {
         getNpm().burn(tokenId);
     }
 
-    function checkForOwner(uint256 tokenId, address sender) external view {
-        bool ownerFound = false;
-        uint256 numPositions = getNpm().balanceOf(sender);
-        for (uint256 i = 0; i < numPositions; i++) {
-            uint256 curTokenId = getNpm().tokenOfOwnerByIndex(sender, i);
-            if (tokenId == curTokenId) {
-                ownerFound = true;
-                break;
-            }
-        }
-        require(ownerFound, "Caller doesn't own the token");
+    function getPositionAmounts(uint256 tokenId) public view returns (uint256 amount0, uint256 amount1) {
+        address poolId = getPool(tokenId);
+        (int24 tickLower, int24 tickUpper) = getPositionTicks(tokenId);
+        (uint160 sqrtRatioX96,,,,,,) = IPancakeV3Pool(poolId).slot0();
+        (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtRatioX96,
+            TickMath.getSqrtRatioAtTick(tickLower),
+            TickMath.getSqrtRatioAtTick(tickUpper),
+            getLiquidity(tokenId)
+        );
     }
 
-    function getPositionAmounts(uint256 tokenId) external view returns (uint256, uint256) {
-        return _getPositionAmounts(tokenId);
+    function getPositionTicks(uint256 tokenId) public view returns (int24 tickLower, int24 tickUpper) {
+        (,,,,, tickLower, tickUpper,,,,,) = getNpm().positions(tokenId);
     }
 
-    function getTokens(uint256 tokenId) external onlyDiamond view returns (address, address) {
-        return _getTokens(tokenId);
+    function getTokens(uint256 tokenId) public view returns (address token0, address token1) {
+        (,, token0, token1,,,,,,,,) = getNpm().positions(tokenId);
     }
 
-    function getTicks(uint256 tokenId) external onlyDiamond view returns (int24, int24) {
-        return _getTicks(tokenId);
+    function getPool(uint256 tokenId) public view returns (address poolId) {
+        (address token0, address token1) = getTokens(tokenId);
+        (,,,, uint24 fee,,,,,,,) = getNpm().positions(tokenId);
+        IPancakeV3Factory factory = IPancakeV3Factory(getNpm().factory());
+        poolId = factory.getPool(token0, token1, fee);
     }
 
-    function getPool(uint256 tokenId) external onlyDiamond view returns (address) {
-        return _getPool(tokenId);
+    function isOwner(uint256 tokenId, address sender) external onlyDiamond view {
+        require(getNpm().ownerOf(tokenId) == sender, "Caller doesn't own the token");
+    }
+
+    function isValidPosition(uint256 tokenId) external onlyDiamond view {
+        require(tokenId != 0 && getNpm().ownerOf(tokenId) != address(0), "Invalid tokenId");
+    }
+
+    function isNotStakedPosition(uint256 tokenId) external onlyDiamond view {
+        require(getNpm().ownerOf(tokenId) != LibCoreStorage.coreStorage().masterChefV3, "Position is staked");
     }
 
     function getNpm() internal view returns (INonfungiblePositionManager) {
         return INonfungiblePositionManager(LibCoreStorage.coreStorage().npm);
     }
 
-    function _getTokens(uint256 tokenId) internal view returns (address token0, address token1) {
-        (,, token0, token1,,,,,,,,) = getNpm().positions(tokenId);
-    }
-
-    function _getTicks(uint256 tokenId) internal view returns (int24 tickLower, int24 tickUpper) {
-        (,,,,, tickLower, tickUpper,,,,,) = getNpm().positions(tokenId);
-    }
-
-    function _getPool(uint256 tokenId) internal view returns (address poolId) {
-        (address token0, address token1) = _getTokens(tokenId);
-        (,,,, uint24 fee,,,,,,,) = getNpm().positions(tokenId);
-        IPancakeV3Factory factory = IPancakeV3Factory(getNpm().factory());
-        poolId = factory.getPool(token0, token1, fee);
-    }
-
     function getTickSpacing(uint256 tokenId) internal view returns (int24 tickSpacing) {
-        IPancakeV3Pool pool = IPancakeV3Pool(_getPool(tokenId));
+        IPancakeV3Pool pool = IPancakeV3Pool(getPool(tokenId));
         tickSpacing = pool.tickSpacing();
     }
 
@@ -158,32 +153,20 @@ contract PositionManagerPancakeFacet is IPositionManagerFacet, Modifiers {
     }
 
     function getReward(uint256 tokenId) internal view returns (uint256 reward) {
-        IMasterChefV3 masterChef = IMasterChefV3(MASTER_CHEF_V3);
+        IMasterChefV3 masterChef = IMasterChefV3(LibCoreStorage.coreStorage().masterChefV3);
         reward = masterChef.pendingCake(tokenId);
-    }
-
-    function _getPositionAmounts(uint256 tokenId) internal view returns (uint256 amount0, uint256 amount1) {
-        address poolId = _getPool(tokenId);
-        (int24 tickLower, int24 tickUpper) = _getTicks(tokenId);
-        (uint160 sqrtRatioX96,,,,,,) = IPancakeV3Pool(poolId).slot0();
-        (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtRatioX96,
-            TickMath.getSqrtRatioAtTick(tickLower),
-            TickMath.getSqrtRatioAtTick(tickUpper),
-            getLiquidity(tokenId)
-        );
     }
 
     function getPositionInfo(uint256 tokenId) internal view returns (PositionInfo memory) {
         PositionInfo memory result;
         result.platform = "PCS";
         result.tokenId = tokenId;
-        (result.token0, result.token1) = _getTokens(tokenId);
-        (result.tickLower, result.tickUpper) = _getTicks(tokenId);
-        result.poolId = _getPool(tokenId);
+        (result.token0, result.token1) = getTokens(tokenId);
+        (result.tickLower, result.tickUpper) = getPositionTicks(tokenId);
+        result.poolId = getPool(tokenId);
         IPancakeV3Pool pool = IPancakeV3Pool(result.poolId);
         (, result.currentTick,,,,,) = pool.slot0();
-        (result.amount0, result.amount1) = _getPositionAmounts(tokenId);
+        (result.amount0, result.amount1) = getPositionAmounts(tokenId);
         (result.fee0, result.fee1) = getFees(tokenId);
         result.emissions = getReward(tokenId);
 
@@ -202,7 +185,7 @@ contract PositionManagerPancakeFacet is IPositionManagerFacet, Modifiers {
 
     function calculateChefPositionsLength(address wallet) internal view returns (uint256 length) {
         length = 0;
-        IMasterChefV3 masterChef = IMasterChefV3(MASTER_CHEF_V3);
+        IMasterChefV3 masterChef = IMasterChefV3(LibCoreStorage.coreStorage().masterChefV3);
         uint256 positionsLength = masterChef.balanceOf(wallet);
         for (uint256 i = 0; i < positionsLength; i++) {
             uint256 tokenId = masterChef.tokenOfOwnerByIndex(wallet, i);

@@ -1,5 +1,5 @@
 {
-  "address": "0x24C032f63Bd3De6AB47F4ADeE83D46A99a98a7F9",
+  "address": "0xab54c628e85e7c59c2e62e4e3f7bccd5d2874cef",
   "abi": [
     {
       "type": "function",
@@ -398,25 +398,6 @@
     },
     {
       "type": "function",
-      "name": "getPool",
-      "constant": true,
-      "stateMutability": "view",
-      "payable": false,
-      "gas": 3200000,
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "tokenId"
-        }
-      ],
-      "outputs": [
-        {
-          "type": "address"
-        }
-      ]
-    },
-    {
-      "type": "function",
       "name": "getPositionAmounts",
       "constant": true,
       "stateMutability": "view",
@@ -512,77 +493,6 @@
               "name": "isStaked"
             }
           ]
-        }
-      ]
-    },
-    {
-      "type": "function",
-      "name": "getTicks",
-      "constant": true,
-      "stateMutability": "view",
-      "payable": false,
-      "gas": 3200000,
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "tokenId"
-        }
-      ],
-      "outputs": [
-        {
-          "type": "int24"
-        },
-        {
-          "type": "int24"
-        }
-      ]
-    },
-    {
-      "type": "function",
-      "name": "getTokens",
-      "constant": true,
-      "stateMutability": "view",
-      "payable": false,
-      "gas": 3200000,
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "tokenId"
-        }
-      ],
-      "outputs": [
-        {
-          "type": "address"
-        },
-        {
-          "type": "address"
-        }
-      ]
-    },
-    {
-      "type": "function",
-      "name": "increaseLiquidity",
-      "constant": false,
-      "payable": false,
-      "gas": 3200000,
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "tokenId"
-        },
-        {
-          "type": "uint256",
-          "name": "amount0"
-        },
-        {
-          "type": "uint256",
-          "name": "amount1"
-        }
-      ],
-      "outputs": [
-        {
-          "type": "uint128",
-          "name": "liquidity"
         }
       ]
     },
@@ -1047,94 +957,6 @@
           "indexed": false
         }
       ]
-    },
-    {
-      "type": "function",
-      "name": "increase",
-      "constant": false,
-      "payable": false,
-      "gas": 3200000,
-      "inputs": [
-        {
-          "type": "tuple",
-          "name": "swapData",
-          "components": [
-            {
-              "type": "tuple[]",
-              "name": "inputs",
-              "components": [
-                {
-                  "type": "address",
-                  "name": "tokenAddress"
-                },
-                {
-                  "type": "uint256",
-                  "name": "amountIn"
-                }
-              ]
-            },
-            {
-              "type": "tuple[]",
-              "name": "outputs",
-              "components": [
-                {
-                  "type": "address",
-                  "name": "tokenAddress"
-                },
-                {
-                  "type": "address",
-                  "name": "receiver"
-                }
-              ]
-            },
-            {
-              "type": "bytes",
-              "name": "data"
-            }
-          ]
-        },
-        {
-          "type": "tuple",
-          "name": "paramsData",
-          "components": [
-            {
-              "type": "address",
-              "name": "pair"
-            },
-            {
-              "type": "int24[]",
-              "name": "tickRange"
-            },
-            {
-              "type": "uint256[]",
-              "name": "amountsOut"
-            }
-          ]
-        },
-        {
-          "type": "uint256",
-          "name": "tokenId"
-        }
-      ],
-      "outputs": []
-    },
-    {
-      "type": "function",
-      "name": "merge",
-      "constant": false,
-      "payable": false,
-      "gas": 3200000,
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "tokenIn"
-        },
-        {
-          "type": "uint256[]",
-          "name": "tokensOut"
-        }
-      ],
-      "outputs": []
     },
     {
       "type": "function",

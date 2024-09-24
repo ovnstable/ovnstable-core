@@ -9,7 +9,6 @@ pragma solidity ^0.8.0;
 /******************************************************************************/
 
 import {LibDiamond} from "./libraries/diamond/LibDiamond.sol";
-import {LibCoreStorage} from "./libraries/core/LibCoreStorage.sol";
 import {LibAccessControl} from "./libraries/core/LibAccessControl.sol";
 import {IDiamondLoupe} from "./interfaces/diamond/IDiamondLoupe.sol";
 import {IDiamondCut} from "./interfaces/diamond/IDiamondCut.sol";
@@ -38,8 +37,6 @@ contract Diamond {
         ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
         ds.supportedInterfaces[type(IERC173).interfaceId] = true;
-
-        LibCoreStorage.coreStorage().diamond = address(this);
     }
 
     // Find facet for function that is called and execute the

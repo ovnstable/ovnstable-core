@@ -89,6 +89,7 @@ let BASE = {
     chainlinkWeth: "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
 
     aerodromeNpm: "0x827922686190790b37229fd06084350e74485b72",
+    pancakeNpm: "0x46A15B0b27311cedF172AB29E4f4766fbE7F4364",
 };
 
 let LINEA = {

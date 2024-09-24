@@ -26,6 +26,10 @@ async function main() {
     let account = await initWallet();
     // await transferETH(0.000001, "0x0000000000000000000000000000000000000000");
 
+    let proportion = await zap.getProportionForZap("0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD",["-276344","-276343"],[{"tokenAddress":"0x4621b7A9c75199271F773Ebd9A499dbd165c3191","amount":"10000000000000000000","price":"992399292053266600"}],[{"tokenAddress":"0x4621b7A9c75199271F773Ebd9A499dbd165c3191","price":"992399292053266600"},{"tokenAddress":"0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376","price":"1000576644253528700"}]);
+    console.log(proportion.toString());
+    return;
+
     let aggregator = await ethers.getContract("PoolAggregator");
     for (let it = 1; it <= 20; it++) {
         let start = new Date().getTime();
