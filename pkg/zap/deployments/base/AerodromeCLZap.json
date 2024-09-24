@@ -373,25 +373,6 @@
     },
     {
       "type": "function",
-      "name": "checkForOwner",
-      "constant": true,
-      "stateMutability": "view",
-      "payable": false,
-      "gas": 20000000,
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "tokenId"
-        },
-        {
-          "type": "address",
-          "name": "sender"
-        }
-      ],
-      "outputs": []
-    },
-    {
-      "type": "function",
       "name": "closePosition",
       "constant": false,
       "payable": false,
@@ -427,7 +408,8 @@
       ],
       "outputs": [
         {
-          "type": "address"
+          "type": "address",
+          "name": "poolId"
         }
       ]
     },
@@ -446,10 +428,12 @@
       ],
       "outputs": [
         {
-          "type": "uint256"
+          "type": "uint256",
+          "name": "amount0"
         },
         {
-          "type": "uint256"
+          "type": "uint256",
+          "name": "amount1"
         }
       ]
     },
@@ -487,7 +471,7 @@
       "inputs": [
         {
           "type": "address",
-          "name": "wallet"
+          "name": "owner"
         }
       ],
       "outputs": [
@@ -570,10 +554,12 @@
       ],
       "outputs": [
         {
-          "type": "address"
+          "type": "address",
+          "name": "token0"
         },
         {
-          "type": "address"
+          "type": "address",
+          "name": "token1"
         }
       ]
     },
@@ -603,6 +589,55 @@
           "name": "liquidity"
         }
       ]
+    },
+    {
+      "type": "function",
+      "name": "isNotStakedPosition",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "isOwner",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        },
+        {
+          "type": "address",
+          "name": "sender"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "isValidPosition",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        }
+      ],
+      "outputs": []
     },
     {
       "type": "function",
@@ -1092,10 +1127,6 @@
               "name": "price"
             }
           ]
-        },
-        {
-          "type": "uint256",
-          "name": "tokenId"
         }
       ],
       "outputs": [
