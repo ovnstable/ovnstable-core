@@ -90,13 +90,6 @@ interface INpmFacet {
     function getPositionAmounts(uint256 tokenId) external view returns (uint256, uint256);
 
     /**
-     * @dev Checks if the sender is the owner of a position
-     * @param tokenId The ID of the position to check
-     * @param sender The address to check ownership for
-     */
-    function checkForOwner(uint256 tokenId, address sender) external view;
-
-    /**
      * @dev Gets the addresses of the tokens in a position
      * @param tokenId The ID of the position
      * @return The addresses of token0 and token1
@@ -117,10 +110,22 @@ interface INpmFacet {
      */
     function getPool(uint256 tokenId) external view returns (address);
 
-    // /**
-    //  * @dev Checks if the given position is valid.
-    //  * @param tokenId The ID of the position.
-    //  * @return A boolean value indicating whether the position is valid.
-    //  */
-    // function isValidPosition(uint256 tokenId) external view returns (bool);
+    /**
+     * @dev Checks if the sender is the owner of a position
+     * @param tokenId The ID of the position to check
+     * @param sender The address to check ownership for
+     */
+    function isOwner(uint256 tokenId, address sender) external view;
+
+    /**
+     * @dev Checks if the given position is valid.
+     * @param tokenId The ID of the position.
+     */
+    function isValidPosition(uint256 tokenId) external view;
+
+    /**
+     * @dev Checks if the given position is staked.
+     * @param tokenId The ID of the position.
+     */
+    function isNotStakedPosition(uint256 tokenId) external view;
 }

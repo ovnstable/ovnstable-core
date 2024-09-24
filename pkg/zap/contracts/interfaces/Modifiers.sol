@@ -20,9 +20,4 @@ contract Modifiers {
         require(LibAccessControl.hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to Admin");
         _;
     }
-
-    modifier validTokenId(uint256 tokenId) {
-        require(tokenId != 0, "Invalid tokenId");
-        _;
-    }
 }

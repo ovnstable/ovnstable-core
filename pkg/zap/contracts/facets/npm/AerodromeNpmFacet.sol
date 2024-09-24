@@ -53,6 +53,7 @@ contract AerodromeNpmFacet is INpmFacet, Modifiers {
     }
 
     function closePosition(uint256 tokenId, address recipient, address feeRecipient) onlyDiamond external {
+        require(recipient != address(0) && feeRecipient != address(0), "Invalid recipient");
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
             tokenId: tokenId,
             liquidity: getLiquidity(tokenId),
@@ -69,10 +70,10 @@ contract AerodromeNpmFacet is INpmFacet, Modifiers {
         getNpm().burn(tokenId);
     }
 
-    function getPositions(address wallet) external view returns (PositionInfo[] memory result) {
-        uint256 gaugePositionsLength = calculateGaugePositionsLength(wallet);
-        uint256 validPositionsLength = calculateUserPositionsLength(wallet);
-        uint256 positionsLength = getNpm().balanceOf(wallet);
+    function getPositions(address owner) external view returns (PositionInfo[] memory result) {
+        uint256 gaugePositionsLength = calculateGaugePositionsLength(owner);
+        uint256 validPositionsLength = calculateUserPositionsLength(owner);
+        uint256 positionsLength = getNpm().balanceOf(owner);
         uint256 positionCount;
         result = new PositionInfo[](gaugePositionsLength + validPositionsLength);
         ICLFactory factory = ICLFactory(getNpm().factory());
@@ -84,10 +85,10 @@ contract AerodromeNpmFacet is INpmFacet, Modifiers {
                 continue;
             }
             ICLGauge gauge = ICLGauge(pool.gauge());
-            uint256[] memory tokenIds = gauge.stakedValues(wallet);
+            uint256[] memory tokenIds = gauge.stakedValues(owner);
             for (uint j = 0; j < tokenIds.length; j++) {
                 if (getLiquidity(tokenIds[j]) > 0) {
-                    result[positionCount] = getPositionInfo(wallet, tokenIds[j]);
+                    result[positionCount] = getPositionInfo(owner, tokenIds[j]);
                     result[positionCount].isStaked = true;
                     positionCount++;
                 }
@@ -95,56 +96,55 @@ contract AerodromeNpmFacet is INpmFacet, Modifiers {
         }
 
         for (uint256 i = 0; i < positionsLength; i++) {
-            uint256 tokenId = getNpm().tokenOfOwnerByIndex(wallet, i);
+            uint256 tokenId = getNpm().tokenOfOwnerByIndex(owner, i);
             if (getLiquidity(tokenId) > 0) {
-                result[positionCount] = getPositionInfo(wallet, tokenId);
+                result[positionCount] = getPositionInfo(owner, tokenId);
                 positionCount++;
             }
         }
         return result;
     }
 
-    function checkForOwner(uint256 tokenId, address sender) external view {
-        bool ownerFound = false;
-        uint256 numPositions = getNpm().balanceOf(sender);
-        for (uint256 i = 0; i < numPositions; i++) {
-            uint256 curTokenId = getNpm().tokenOfOwnerByIndex(sender, i);
-            if (tokenId == curTokenId) {
-                ownerFound = true;
-                break;
-            }
-        }
-        require(ownerFound, "Caller doesn't own the token");
+    function isOwner(uint256 tokenId, address sender) external onlyDiamond view {
+        require(getNpm().ownerOf(tokenId) == sender, "Caller doesn't own the token");
     }
 
-    function getPositionAmounts(uint256 tokenId) external view returns (uint256, uint256) {
-        return _getPositionAmounts(tokenId);
+    function isValidPosition(uint256 tokenId) external onlyDiamond view {
+        require(tokenId != 0 && getNpm().ownerOf(tokenId) != address(0), "Invalid tokenId");
+    }
+
+    function isNotStakedPosition(uint256 tokenId) external onlyDiamond view {
+        require(getNpm().ownerOf(tokenId) != ICLPool(getPool(tokenId)).gauge(), "Position is staked");
+    }
+
+    function getPositionAmounts(uint256 tokenId) public view returns (uint256 amount0, uint256 amount1) {
+        address poolId = getPool(tokenId);
+        (int24 tickLower, int24 tickUpper) = getPositionTicks(tokenId);
+        (uint160 sqrtRatioX96,,,,,) = ICLPool(poolId).slot0();
+        (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtRatioX96,
+            TickMath.getSqrtRatioAtTick(tickLower),
+            TickMath.getSqrtRatioAtTick(tickUpper),
+            getLiquidity(tokenId)
+        );
     }
 
     function getPositionTicks(uint256 tokenId) public view returns (int24 tickLower, int24 tickUpper) {
         (,,,,, tickLower, tickUpper,,,,,) = getNpm().positions(tokenId);
     }
 
-    function getTokens(uint256 tokenId) external onlyDiamond view returns (address, address) {
-       return _getTokens(tokenId);
+    function getTokens(uint256 tokenId) public view returns (address token0, address token1) {
+        (,, token0, token1,,,,,,,,) = getNpm().positions(tokenId);
     }
 
-    function getPool(uint256 tokenId) external onlyDiamond view returns (address) {
-        return _getPool(tokenId);
+    function getPool(uint256 tokenId) public view returns (address poolId) {
+        (address token0, address token1) = getTokens(tokenId);
+        poolId = PoolAddress.computeAddress(getNpm().factory(),
+            PoolAddress.getPoolKey(token0, token1, getTickSpacing(tokenId)));
     }
 
     function getNpm() internal view returns (INonfungiblePositionManager) {
         return INonfungiblePositionManager(LibCoreStorage.coreStorage().npm);
-    }
-
-    function _getTokens(uint256 tokenId) internal view returns (address token0, address token1) {
-        (,, token0, token1,,,,,,,,) = getNpm().positions(tokenId);
-    }
-
-    function _getPool(uint256 tokenId) internal view returns (address poolId) {
-        (address token0, address token1) = _getTokens(tokenId);
-        poolId = PoolAddress.computeAddress(getNpm().factory(),
-            PoolAddress.getPoolKey(token0, token1, getTickSpacing(tokenId)));
     }
 
     function getTickSpacing(uint256 tokenId) internal view returns (int24 tickSpacing) {
@@ -159,28 +159,16 @@ contract AerodromeNpmFacet is INpmFacet, Modifiers {
         (fee0, fee1) = PositionValue.fees(getNpm(), tokenId);
     }
 
-    function _getPositionAmounts(uint256 tokenId) internal view returns (uint256 amount0, uint256 amount1) {
-        address poolId = _getPool(tokenId);
-        (int24 tickLower, int24 tickUpper) = getPositionTicks(tokenId);
-        (uint160 sqrtRatioX96,,,,,) = IUniswapV3Pool(poolId).slot0();
-        (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
-            sqrtRatioX96,
-            TickMath.getSqrtRatioAtTick(tickLower),
-            TickMath.getSqrtRatioAtTick(tickUpper),
-            getLiquidity(tokenId)
-        );
-    }
-
     function getPositionInfo(address wallet, uint256 tokenId) internal view returns (PositionInfo memory) {
         PositionInfo memory result;
         result.platform = "Aerodrome";
         result.tokenId = tokenId;
-        (result.token0, result.token1) = _getTokens(tokenId);
+        (result.token0, result.token1) = getTokens(tokenId);
         (result.tickLower, result.tickUpper) = getPositionTicks(tokenId);
-        result.poolId = _getPool(tokenId);
+        result.poolId = getPool(tokenId);
         ICLPool pool = ICLPool(result.poolId);
         (, result.currentTick,,,,) = pool.slot0();
-        (result.amount0, result.amount1) = _getPositionAmounts(tokenId);
+        (result.amount0, result.amount1) = getPositionAmounts(tokenId);
         (result.fee0, result.fee1) = getFees(tokenId);
         if (pool.gauge() != address(0)) {
             ICLGauge gauge = ICLGauge(pool.gauge());
@@ -231,8 +219,4 @@ contract AerodromeNpmFacet is INpmFacet, Modifiers {
             }
         }
     }
-
-    // function isValidPosition(uint256 tokenId) external view returns (bool) {
-    //     return true;
-    // }
 }

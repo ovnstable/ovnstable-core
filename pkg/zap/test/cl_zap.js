@@ -53,7 +53,7 @@ describe('Testing all zaps', function() {
             async function zapIn() {
                 console.log("zapIn");
                 await cookTestInput('zapin');
-                let {swapData, paramsData} = await buildInputData(0);
+                let {swapData, paramsData} = await buildInputData();
                 console.log('swapData:', swapData);
                 console.log('paramsData:', paramsData);
 
@@ -83,7 +83,7 @@ describe('Testing all zaps', function() {
                 let currentTick = await zap.getCurrentPoolTick(testCase.pool);
                 console.log("currentTick:", currentTick);
                 console.log("tickRange:", testCase.tickRange);
-                let {swapData, paramsData} = await buildInputData(tokenId);
+                let {swapData, paramsData} = await buildInputData();
                 console.log('swapData:', swapData);
                 console.log('paramsData:', paramsData);
                 
@@ -126,8 +126,8 @@ describe('Testing all zaps', function() {
                 }
             }
 
-            async function buildInputData(tokenId) {
-                let proportionResponse = await zap.getProportionForZap(testCase.pool, testCase.tickRange, testCase.inputTokens, tokenId);
+            async function buildInputData() {
+                let proportionResponse = await zap.getProportionForZap(testCase.pool, testCase.tickRange, testCase.inputTokens);
                 let proportion = handleProportionResponse(proportionResponse);
     
                 let odosRequestData = {

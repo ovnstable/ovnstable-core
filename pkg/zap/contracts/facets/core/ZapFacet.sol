@@ -13,15 +13,24 @@ contract ZapFacet is IZapFacet {
     }
 
     function zapOut(uint256 tokenId) external {
+        masterFacet().isValidPosition(tokenId);
+        masterFacet().isNotStakedPosition(tokenId);
+
         _zapOut(tokenId, msg.sender, msg.sender);
     }
 
     function rebalance(SwapData memory swapData, ZapInParams memory paramsData, uint256 tokenId) external {
+        masterFacet().isValidPosition(tokenId);
+        masterFacet().isNotStakedPosition(tokenId);
+
         _zapOut(tokenId, address(this), msg.sender);
         _zapIn(swapData, paramsData, false, 0);
     }
 
     function increase(SwapData memory swapData, ZapInParams memory paramsData, uint256 tokenId) external {
+        masterFacet().isValidPosition(tokenId);
+        masterFacet().isNotStakedPosition(tokenId);
+
         _zapIn(swapData, paramsData, true, tokenId);
     }
 
@@ -31,7 +40,12 @@ contract ZapFacet is IZapFacet {
         uint256 tokenIn, 
         uint256[] memory tokensOut
     ) external {
+        masterFacet().isValidPosition(tokenIn);
+        masterFacet().isNotStakedPosition(tokenIn); 
+
         for (uint256 i = 0; i < tokensOut.length; i++) {
+            masterFacet().isValidPosition(tokensOut[i]);
+            masterFacet().isNotStakedPosition(tokensOut[i]);
             _zapOut(tokensOut[i], address(this), msg.sender);
         }
         _zapIn(swapData, paramsData, false, tokenIn);
@@ -131,7 +145,7 @@ contract ZapFacet is IZapFacet {
     }
 
     function _zapOut(uint256 tokenId, address recipient, address feeRecipient) internal {
-        masterFacet().checkForOwner(tokenId, msg.sender);
+        masterFacet().isOwner(tokenId, msg.sender);
         masterFacet().closePosition(tokenId, recipient, feeRecipient);
     }
 
@@ -225,9 +239,7 @@ contract ZapFacet is IZapFacet {
         poolTokens.asset[0].approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[0]);
         poolTokens.asset[1].approve(LibCoreStorage.coreStorage().npm, paramsData.amountsOut[1]);
 
-        console.log("increaseLiquidity", paramsData.amountsOut[0], paramsData.amountsOut[1]);
         masterFacet().increaseLiquidity(tokenId, paramsData.amountsOut[0], paramsData.amountsOut[1]);
-        console.log("increaseLiquidity done");
     }
 
     struct BinSearchParams {

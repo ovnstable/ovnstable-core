@@ -292,6 +292,25 @@
     },
     {
       "type": "function",
+      "name": "isValidPool",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "address",
+          "name": "pair"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
       "name": "mulDiv",
       "constant": true,
       "stateMutability": "view",
@@ -357,25 +376,6 @@
     },
     {
       "type": "function",
-      "name": "checkForOwner",
-      "constant": true,
-      "stateMutability": "view",
-      "payable": false,
-      "gas": 20000000,
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "tokenId"
-        },
-        {
-          "type": "address",
-          "name": "sender"
-        }
-      ],
-      "outputs": []
-    },
-    {
-      "type": "function",
       "name": "closePosition",
       "constant": false,
       "payable": false,
@@ -411,7 +411,8 @@
       ],
       "outputs": [
         {
-          "type": "address"
+          "type": "address",
+          "name": "poolId"
         }
       ]
     },
@@ -430,10 +431,36 @@
       ],
       "outputs": [
         {
-          "type": "uint256"
+          "type": "uint256",
+          "name": "amount0"
         },
         {
-          "type": "uint256"
+          "type": "uint256",
+          "name": "amount1"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "getPositionTicks",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "int24",
+          "name": "tickLower"
+        },
+        {
+          "type": "int24",
+          "name": "tickUpper"
         }
       ]
     },
@@ -517,28 +544,6 @@
     },
     {
       "type": "function",
-      "name": "getTicks",
-      "constant": true,
-      "stateMutability": "view",
-      "payable": false,
-      "gas": 20000000,
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "tokenId"
-        }
-      ],
-      "outputs": [
-        {
-          "type": "int24"
-        },
-        {
-          "type": "int24"
-        }
-      ]
-    },
-    {
-      "type": "function",
       "name": "getTokens",
       "constant": true,
       "stateMutability": "view",
@@ -552,10 +557,12 @@
       ],
       "outputs": [
         {
-          "type": "address"
+          "type": "address",
+          "name": "token0"
         },
         {
-          "type": "address"
+          "type": "address",
+          "name": "token1"
         }
       ]
     },
@@ -585,6 +592,55 @@
           "name": "liquidity"
         }
       ]
+    },
+    {
+      "type": "function",
+      "name": "isNotStakedPosition",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "isOwner",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        },
+        {
+          "type": "address",
+          "name": "sender"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "isValidPosition",
+      "constant": true,
+      "stateMutability": "view",
+      "payable": false,
+      "gas": 20000000,
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "tokenId"
+        }
+      ],
+      "outputs": []
     },
     {
       "type": "function",
@@ -1043,74 +1099,6 @@
     },
     {
       "type": "function",
-      "name": "getProportionForRebalance",
-      "constant": true,
-      "stateMutability": "view",
-      "payable": false,
-      "gas": 20000000,
-      "inputs": [
-        {
-          "type": "uint256",
-          "name": "tokenId"
-        },
-        {
-          "type": "address",
-          "name": "poolId"
-        },
-        {
-          "type": "int24[]",
-          "name": "tickRange"
-        },
-        {
-          "type": "tuple[]",
-          "name": "prices",
-          "components": [
-            {
-              "type": "address",
-              "name": "tokenAddress"
-            },
-            {
-              "type": "uint256",
-              "name": "price"
-            }
-          ]
-        }
-      ],
-      "outputs": [
-        {
-          "type": "tuple",
-          "name": "result",
-          "components": [
-            {
-              "type": "address[]",
-              "name": "inputTokenAddresses"
-            },
-            {
-              "type": "uint256[]",
-              "name": "inputTokenAmounts"
-            },
-            {
-              "type": "address[]",
-              "name": "outputTokenAddresses"
-            },
-            {
-              "type": "uint256[]",
-              "name": "outputTokenProportions"
-            },
-            {
-              "type": "uint256[]",
-              "name": "outputTokenAmounts"
-            },
-            {
-              "type": "uint256[]",
-              "name": "poolProportionsUsd"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "function",
       "name": "getProportionForZap",
       "constant": true,
       "stateMutability": "view",
@@ -1448,10 +1436,6 @@
                   "name": "tokenAddress"
                 },
                 {
-                  "type": "address",
-                  "name": "receiver"
-                },
-                {
                   "type": "uint256",
                   "name": "amountMin"
                 }
@@ -1460,18 +1444,6 @@
             {
               "type": "bytes",
               "name": "data"
-            },
-            {
-              "type": "bool",
-              "name": "needToAdjust"
-            },
-            {
-              "type": "bool",
-              "name": "adjustSwapSide"
-            },
-            {
-              "type": "uint256",
-              "name": "adjustSwapAmount"
             }
           ]
         },
@@ -1481,7 +1453,7 @@
           "components": [
             {
               "type": "address",
-              "name": "pair"
+              "name": "pool"
             },
             {
               "type": "int24[]",
@@ -1494,6 +1466,14 @@
             {
               "type": "bool",
               "name": "isSimulation"
+            },
+            {
+              "type": "bool",
+              "name": "adjustSwapSide"
+            },
+            {
+              "type": "uint256",
+              "name": "adjustSwapAmount"
             }
           ]
         },
@@ -1538,10 +1518,6 @@
                   "name": "tokenAddress"
                 },
                 {
-                  "type": "address",
-                  "name": "receiver"
-                },
-                {
                   "type": "uint256",
                   "name": "amountMin"
                 }
@@ -1550,18 +1526,6 @@
             {
               "type": "bytes",
               "name": "data"
-            },
-            {
-              "type": "bool",
-              "name": "needToAdjust"
-            },
-            {
-              "type": "bool",
-              "name": "adjustSwapSide"
-            },
-            {
-              "type": "uint256",
-              "name": "adjustSwapAmount"
             }
           ]
         },
@@ -1571,7 +1535,7 @@
           "components": [
             {
               "type": "address",
-              "name": "pair"
+              "name": "pool"
             },
             {
               "type": "int24[]",
@@ -1584,6 +1548,14 @@
             {
               "type": "bool",
               "name": "isSimulation"
+            },
+            {
+              "type": "bool",
+              "name": "adjustSwapSide"
+            },
+            {
+              "type": "uint256",
+              "name": "adjustSwapAmount"
             }
           ]
         },
@@ -1632,10 +1604,6 @@
                   "name": "tokenAddress"
                 },
                 {
-                  "type": "address",
-                  "name": "receiver"
-                },
-                {
                   "type": "uint256",
                   "name": "amountMin"
                 }
@@ -1644,18 +1612,6 @@
             {
               "type": "bytes",
               "name": "data"
-            },
-            {
-              "type": "bool",
-              "name": "needToAdjust"
-            },
-            {
-              "type": "bool",
-              "name": "adjustSwapSide"
-            },
-            {
-              "type": "uint256",
-              "name": "adjustSwapAmount"
             }
           ]
         },
@@ -1665,7 +1621,7 @@
           "components": [
             {
               "type": "address",
-              "name": "pair"
+              "name": "pool"
             },
             {
               "type": "int24[]",
@@ -1678,6 +1634,14 @@
             {
               "type": "bool",
               "name": "isSimulation"
+            },
+            {
+              "type": "bool",
+              "name": "adjustSwapSide"
+            },
+            {
+              "type": "uint256",
+              "name": "adjustSwapAmount"
             }
           ]
         },
@@ -1722,10 +1686,6 @@
                   "name": "tokenAddress"
                 },
                 {
-                  "type": "address",
-                  "name": "receiver"
-                },
-                {
                   "type": "uint256",
                   "name": "amountMin"
                 }
@@ -1734,18 +1694,6 @@
             {
               "type": "bytes",
               "name": "data"
-            },
-            {
-              "type": "bool",
-              "name": "needToAdjust"
-            },
-            {
-              "type": "bool",
-              "name": "adjustSwapSide"
-            },
-            {
-              "type": "uint256",
-              "name": "adjustSwapAmount"
             }
           ]
         },
@@ -1755,7 +1703,7 @@
           "components": [
             {
               "type": "address",
-              "name": "pair"
+              "name": "pool"
             },
             {
               "type": "int24[]",
@@ -1768,6 +1716,14 @@
             {
               "type": "bool",
               "name": "isSimulation"
+            },
+            {
+              "type": "bool",
+              "name": "adjustSwapSide"
+            },
+            {
+              "type": "uint256",
+              "name": "adjustSwapAmount"
             }
           ]
         }

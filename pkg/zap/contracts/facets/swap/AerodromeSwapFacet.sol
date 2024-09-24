@@ -16,7 +16,7 @@ contract AerodromeSwapFacet is ISwapFacet, Modifiers {
         uint256 amountIn,
         uint160 sqrtPriceLimitX96,
         bool zeroForOne
-    ) public onlyDiamond {
+    ) public onlyDiamond amountIsNotZero(amountIn) {
         IMasterFacet master = IMasterFacet(address(this));
         (address token0Address, address token1Address) = master.getPoolTokens(pool);
         int24 tickSpacing = master.getTickSpacing(pool);
@@ -43,7 +43,7 @@ contract AerodromeSwapFacet is ISwapFacet, Modifiers {
         uint160 sqrtPriceLimitX96,
         bool zeroForOne,
         int24[] memory tickRange
-    ) external onlyDiamond {
+    ) external onlyDiamond amountIsNotZero(amountIn) {
         IMasterFacet master = IMasterFacet(address(this));
         (address token0Address, address token1Address) = master.getPoolTokens(pool);
         swap(pool, amountIn, sqrtPriceLimitX96, zeroForOne);
@@ -77,6 +77,10 @@ contract AerodromeSwapFacet is ISwapFacet, Modifiers {
         } else {
             IERC20(data.tokenB).transfer(msg.sender, amountToPay);
         }
+    }
 
+    modifier amountIsNotZero(uint256 amount) {
+        require(amount > 0, "Amount to swap is zero");
+        _;
     }
 }
