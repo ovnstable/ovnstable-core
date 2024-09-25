@@ -64,8 +64,6 @@ contract MotivationalFund is
         uint256 rebasingCreditsPerToken
     );
 
-    event ExchangerUpdated(address exchanger);
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -111,11 +109,7 @@ contract MotivationalFund is
      * @notice Sets the address of the exchanger contract.
      * @param _exchanger The address of the exchanger.
      */
-    function setExchanger(address _exchanger) external onlyAdmin {
-        require(_exchanger != address(0), "Exchanger is zero address");
-        exchange = _exchanger;
-        emit ExchangerUpdated(_exchanger);
-    }
+    
 
     // ============================== ERC-20 DATA =================================
 
@@ -451,10 +445,12 @@ contract MotivationalFund is
      * @param _account The recipient address.
      * @param _amount The amount to mint.
      */
-    function mint(
-        address _account,
-        uint256 _amount
-    ) external whenNotPaused onlyExchanger nonReentrant {
+    function mint(address _account, uint256 _amount) 
+        external 
+        whenNotPaused 
+        onlyExchanger 
+        nonReentrant 
+    {
         _mint(_account, _amount);
     }
 
@@ -485,10 +481,11 @@ contract MotivationalFund is
      * @param _account The recipient address.
      * @param _amount The amount of shares.
      */
-    function giveShares(
-        address _account,
-        uint256 _amount
-    ) external whenNotPaused onlyDepositor {
+    function giveShares(address _account, uint256 _amount) 
+        external 
+        whenNotPaused 
+        onlyDepositor 
+    {
         require(_account != address(0), "Mint to the zero address");
 
         _sharesBalances[_account] += _amount;
@@ -505,11 +502,13 @@ contract MotivationalFund is
      * @param _account The address to burn shares from.
      * @param _amount The amount of shares to burn.
      */
-    function burnShares(
-        address _account,
-        uint256 _amount
-    ) external whenNotPaused onlyDepositor {
+    function burnShares(address _account, uint256 _amount) 
+        external 
+        whenNotPaused 
+        onlyDepositor 
+    {
         require(_account != address(0), "Burn from zero address");
+        require(_sharesBalances[_account] >= _amount, "Account does not have enough shares");
 
         _totalShares -= _amount;
 
@@ -588,10 +587,12 @@ contract MotivationalFund is
      * @param _newTotalSupply The new total supply of tokens.
      * @param _totalDeposit The total deposit amount.
      */
-    function changeSupply(
-        uint256 _newTotalSupply,
-        uint256 _totalDeposit
-    ) external onlyExchanger nonReentrant whenNotPaused {
+    function changeSupply(uint256 _newTotalSupply, uint256 _totalDeposit) 
+        external 
+        onlyExchanger 
+        nonReentrant 
+        whenNotPaused 
+    {
         require(_totalSupply > 0, "Cannot increase zero supply");
         require(
             _newTotalSupply >= _totalSupply + _totalDeposit,
@@ -647,11 +648,7 @@ contract MotivationalFund is
      * @param to The address tokens are transferred to.
      * @param amount The amount of tokens transferred.
      */
-    function _afterTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal {
+    function _afterTokenTransfer(address from, address to, uint256 amount) internal {
         if (from == to) {
             return;
         }
@@ -661,12 +658,12 @@ contract MotivationalFund is
             owners.add(to);
         } else if (to == address(0)) {
             // Burn
-            if (balanceOf(from) == 0 && sharesBalanceOf(from) == 0) {
+            if (balanceOf(from) == 0 && _sharesBalances[from] == 0) {
                 owners.remove(from);
             }
         } else {
             // Transfer
-            if (balanceOf(from) == 0 && sharesBalanceOf(from) == 0) {
+            if (balanceOf(from) == 0 && _sharesBalances[from] == 0) {
                 owners.remove(from);
             } else if (amount > 0) {
                 owners.add(to);

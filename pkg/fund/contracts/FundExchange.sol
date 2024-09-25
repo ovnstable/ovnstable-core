@@ -440,18 +440,13 @@ contract FundExchange is
 
         // Calculate profit
         uint256 profit = totalNav - totalFund;
-        uint256 expectedTotalFund = totalFund + profit;
 
         // Adjust the fund supply
         fund.changeSupply(totalNav, totalDeposit);
 
-        // Ensure consistency
+
         require(
             fund.totalSupply() + totalDeposit == totalNav,
-            "Total supply mismatch with NAV"
-        );
-        require(
-            fund.totalSupply() + totalDeposit == expectedTotalFund,
             "Total supply mismatch with expected"
         );
 

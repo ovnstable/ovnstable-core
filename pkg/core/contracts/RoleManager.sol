@@ -18,7 +18,6 @@ contract RoleManager is Initializable, AccessControlEnumerableUpgradeable, UUPSU
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
     bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
     bytes32 public constant WHITELIST_ROLE = keccak256("WHITELIST_ROLE");
-    bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
 
     // ---  constructor
 
@@ -41,8 +40,6 @@ contract RoleManager is Initializable, AccessControlEnumerableUpgradeable, UUPSU
         _grantRole(PORTFOLIO_AGENT_ROLE, 0x0bE3f37201699F00C21dCba18861ed4F60288E1D); // PM Agent
         _grantRole(PORTFOLIO_AGENT_ROLE, 0xe497285e466227F4E8648209E34B465dAA1F90a0); // OVN Treasure
         _grantRole(PORTFOLIO_AGENT_ROLE, 0x05129E3CE8C566dE564203B0fd85111bBD84C424); // Dev
-
-        _grantRole(DEPOSITOR_ROLE, 0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46); // max
     }
 
     function _authorizeUpgrade(address newImplementation)

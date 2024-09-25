@@ -3,8 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
 import "@overnight-contracts/core/contracts/interfaces/IUsdPlusToken.sol";
-
-
+import "@overnight-contracts/core/contracts/Strategy.sol";
 
 contract StrategyUsdPlus is Strategy {
 
@@ -19,12 +18,6 @@ contract StrategyUsdPlus is Strategy {
     event StrategyUpdatedParams();
 
     // --- structs
-
-    struct MintParams {
-        address asset;  
-        uint256 amount;  
-        string referral; 
-    }
 
     struct StrategyParams {
         address usdc;
@@ -65,7 +58,7 @@ contract StrategyUsdPlus is Strategy {
 
         usdcToken.approve(address(exchange), _amount);
 
-        MintParams params;
+        IExchange.MintParams memory params;
         params.amount = _amount;
         params.asset = _asset;
 

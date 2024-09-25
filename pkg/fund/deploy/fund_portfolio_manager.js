@@ -5,7 +5,7 @@ const {ethers} = require("hardhat");
 
 module.exports = async ({ deployments }) => {
     const { save } = deployments;
-    await deployProxy('PortfolioManager', deployments, save);
+    await deployProxy('FundPortfolioManager', deployments, save);
 };
 
-module.exports.tags = ['PortfolioManager'];
+module.exports.tags = ['FundPortfolioManager'];

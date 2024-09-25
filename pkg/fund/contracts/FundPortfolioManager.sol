@@ -11,15 +11,13 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "./interfaces/IPortfolioManager.sol";
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IRoleManager.sol";
+import "./interfaces/Modifiers.sol";
 
-contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
-    bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
-    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
+contract FundPortfolioManager is Modifiers, IPortfolioManager, UUPSUpgradeable {
     uint256 public constant TOTAL_WEIGHT = 100000; // 100000 ~ 100%
 
     // ---  fields
 
-    address public exchanger;
     IERC20 asset;
     mapping(address => uint256) public strategyWeightPositions;
     StrategyWeight[] public strategyWeights;
@@ -27,12 +25,9 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     
     uint256 public totalRiskFactor;
     uint256 public navSlippageBp;
-    IRoleManager public roleManager;
 
     // ---  events
 
-    event ExchangerUpdated(address value);
-    event RoleManagerUpdated(address roleManager);
     event AssetUpdated(address value);
     event CashStrategyAlreadySet(address value);
     event CashStrategyUpdated(address value);
@@ -55,23 +50,8 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     // ---  modifiers
 
-    modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
-        _;
-    }
-
-    modifier onlyExchanger() {
-        require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
-        _;
-    }
-
     modifier cashStrategySet() {
         require(address(cashStrategy) != address(0), "Cash strategy not set yet");
-        _;
-    }
-
-    modifier onlyPortfolioAgent() {
-        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
         _;
     }
 
@@ -97,26 +77,9 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
 
     // ---  setters
 
-    function setExchanger(address _exchanger) public onlyAdmin {
-        require(_exchanger != address(0), "Zero address not allowed");
-
-        revokeRole(EXCHANGER, exchanger);
-        grantRole(EXCHANGER, _exchanger);
-
-        exchanger = _exchanger;
-        emit ExchangerUpdated(_exchanger);
-    }
-
-    function setRoleManager(address _roleManager) external onlyAdmin {
-        require(_roleManager != address(0), "Zero address not allowed");
-        roleManager= IRoleManager(_roleManager);
-        emit RoleManagerUpdated(_roleManager);
-    }
-
     function setNavSlippageBp(uint256 _navSlippageBp) public onlyPortfolioAgent {
         navSlippageBp = _navSlippageBp;
     }
-
 
     function setAsset(address _asset) public onlyAdmin {
         require(_asset != address(0), "Zero address not allowed");
@@ -206,7 +169,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         // if cash strategy has enough liquidity then prevent balancing
         uint256 liquidationValue = cashStrategy.liquidationValue();
 
-        // Flag needed for exchanger for check: oncePerBlock
+        // Flag needed for exchange for check: oncePerBlock
         bool isBalanced = false;
         if (liquidationValue > _amount) {
             cashStrategy.unstake(
@@ -236,7 +199,7 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
         }
 
         // transfer back tokens
-        asset.transfer(exchanger, _amount);
+        asset.transfer(exchange, _amount);
 
         return (_amount, isBalanced);
     }

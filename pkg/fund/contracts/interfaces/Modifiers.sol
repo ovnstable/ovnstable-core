@@ -10,9 +10,12 @@ import "hardhat/console.sol";
 contract Modifiers is AccessControlUpgradeable {
     
     address public exchange;
+    address public depositor;
     IRoleManager public roleManager;
 
     event RoleManagerUpdated(address roleManager);
+    event ExchangerUpdated(address exchange);
+    event DepositorUpdated(address depositor);
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
@@ -29,8 +32,11 @@ contract Modifiers is AccessControlUpgradeable {
         _;
     }
 
+    /**
+     * @dev Verifies that the caller is the Depositor
+     */
     modifier onlyDepositor(){
-        require(roleManager.hasRole(DEPOSITOR_ROLE, msg.sender), "Restricted to Depositor");
+        require(depositor == _msgSender(), "Restricted to Depositor");
         _;
     }
 
@@ -46,5 +52,17 @@ contract Modifiers is AccessControlUpgradeable {
         require(_roleManager != address(0), "Zero address not allowed");
         roleManager = IRoleManager(_roleManager);
         emit RoleManagerUpdated(_roleManager);
+    }
+
+    function setExchanger(address _exchanger) external onlyAdmin {
+        require(_exchanger != address(0), "Exchanger is zero address");
+        exchange = _exchanger;
+        emit ExchangerUpdated(_exchanger);
+    }
+
+    function setDepositor(address _depositor) external onlyAdmin {
+        require(_depositor != address(0), "Depositor is zero address");
+        depositor = _depositor;
+        emit DepositorUpdated(_depositor);
     }
 }
