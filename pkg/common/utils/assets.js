@@ -90,6 +90,9 @@ let BASE = {
 
     aerodromeNpm: "0x827922686190790b37229fd06084350e74485b72",
     pancakeNpm: "0x46A15B0b27311cedF172AB29E4f4766fbE7F4364",
+    uniswapNpm: "0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1",
+
+    pancakeMasterChef: "0xC6A2Db661D5a5690172d8eB0a7DEA2d3008665A3",
 };
 
 let LINEA = {
@@ -247,6 +250,8 @@ let ARBITRUM = {
     zyber3Pool: "0x969f7699fbB9C79d8B61315630CDeED95977Cfb8",
     wombatBasePool: "0xc6bc781E20f9323012F6e422bdf552Ff06bA6CD1",
     wombatOvnPool: "0xCF20fDA54e37f3fB456930f02fb07FccF49e4849",
+
+    pancakeMasterChef: "0x5e09ACf80C0296740eC5d6F643005a4ef8DaA694"
 }
 
 let BSC = {
