@@ -3,8 +3,9 @@ pragma solidity >=0.5.0;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
-interface INonfungiblePositionManager {
+interface INonfungiblePositionManager is IERC721Enumerable {
     /// @notice Emitted when liquidity is increased for a position NFT
     /// @dev Also emitted when a token is minted
     /// @param tokenId The ID of the token for which liquidity was increased
@@ -162,6 +163,9 @@ interface INonfungiblePositionManager {
     function burn(uint256 tokenId) external payable;
 
     function balanceOf(address account) external view returns (uint256);
+
+    /// @return Returns the address of the Uniswap V3 factory
+    function factory() external view returns (address);
 }
 
 
@@ -183,8 +187,6 @@ interface IUniswapV3SwapCallback {
         bytes calldata data
     ) external;
 }
-
-
 
 /// @title Router token swapping functionality
 /// @notice Functions for swapping tokens via Uniswap V3
@@ -389,6 +391,24 @@ interface IUniswapV3Pool {
     external
     view
     returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s);
+
+    /// @notice Swap token0 for token1, or token1 for token0
+    /// @dev The caller of this method receives a callback in the form of IUniswapV3SwapCallback#uniswapV3SwapCallback
+    /// @param recipient The address to receive the output of the swap
+    /// @param zeroForOne The direction of the swap, true for token0 to token1, false for token1 to token0
+    /// @param amountSpecified The amount of the swap, which implicitly configures the swap as exact input (positive), or exact output (negative)
+    /// @param sqrtPriceLimitX96 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this
+    /// value after the swap. If one for zero, the price cannot be greater than this value after the swap
+    /// @param data Any data to be passed through to the callback
+    /// @return amount0 The delta of the balance of token0 of the pool, exact when negative, minimum when positive
+    /// @return amount1 The delta of the balance of token1 of the pool, exact when negative, minimum when positive
+    function swap(
+        address recipient,
+        bool zeroForOne,
+        int256 amountSpecified,
+        uint160 sqrtPriceLimitX96,
+        bytes calldata data
+    ) external returns (int256 amount0, int256 amount1);
 }
 
 library PositionKey {
@@ -464,32 +484,32 @@ library FullMath {
         // Always >= 1.
         unchecked {
             uint256 twos = (type(uint256).max - denominator + 1) & denominator;
-            // Divide denominator by power of two
+        // Divide denominator by power of two
             assembly {
                 denominator := div(denominator, twos)
             }
 
-            // Divide [prod1 prod0] by the factors of two
+        // Divide [prod1 prod0] by the factors of two
             assembly {
                 prod0 := div(prod0, twos)
             }
-            // Shift in bits from prod1 into prod0. For this we need
-            // to flip `twos` such that it is 2**256 / twos.
-            // If twos is zero, then it becomes one
+        // Shift in bits from prod1 into prod0. For this we need
+        // to flip `twos` such that it is 2**256 / twos.
+        // If twos is zero, then it becomes one
             assembly {
                 twos := add(div(sub(0, twos), twos), 1)
             }
             prod0 |= prod1 * twos;
 
-            // Invert denominator mod 2**256
-            // Now that denominator is an odd number, it has an inverse
-            // modulo 2**256 such that denominator * inv = 1 mod 2**256.
-            // Compute the inverse by starting with a seed that is correct
-            // correct for four bits. That is, denominator * inv = 1 mod 2**4
+        // Invert denominator mod 2**256
+        // Now that denominator is an odd number, it has an inverse
+        // modulo 2**256 such that denominator * inv = 1 mod 2**256.
+        // Compute the inverse by starting with a seed that is correct
+        // correct for four bits. That is, denominator * inv = 1 mod 2**4
             uint256 inv = (3 * denominator) ^ 2;
-            // Now use Newton-Raphson iteration to improve the precision.
-            // Thanks to Hensel's lifting lemma, this also works in modular
-            // arithmetic, doubling the correct bits in each step.
+        // Now use Newton-Raphson iteration to improve the precision.
+        // Thanks to Hensel's lifting lemma, this also works in modular
+        // arithmetic, doubling the correct bits in each step.
             inv *= 2 - denominator * inv; // inverse mod 2**8
             inv *= 2 - denominator * inv; // inverse mod 2**16
             inv *= 2 - denominator * inv; // inverse mod 2**32
@@ -497,12 +517,12 @@ library FullMath {
             inv *= 2 - denominator * inv; // inverse mod 2**128
             inv *= 2 - denominator * inv; // inverse mod 2**256
 
-            // Because the division is now exact we can divide by multiplying
-            // with the modular inverse of denominator. This will give us the
-            // correct result modulo 2**256. Since the precoditions guarantee
-            // that the outcome is less than 2**256, this is the final result.
-            // We don't need to compute the high bits of the result and prod1
-            // is no longer required.
+        // Because the division is now exact we can divide by multiplying
+        // with the modular inverse of denominator. This will give us the
+        // correct result modulo 2**256. Since the precoditions guarantee
+        // that the outcome is less than 2**256, this is the final result.
+        // We don't need to compute the high bits of the result and prod1
+        // is no longer required.
             result = prod0 * inv;
             return result;
         }
@@ -614,11 +634,11 @@ library LiquidityAmounts {
         if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
 
         return
-        FullMath.mulDiv(
-            uint256(liquidity) << FixedPoint96.RESOLUTION,
-            sqrtRatioBX96 - sqrtRatioAX96,
-            sqrtRatioBX96
-        ) / sqrtRatioAX96;
+            FullMath.mulDiv(
+                uint256(liquidity) << FixedPoint96.RESOLUTION,
+                sqrtRatioBX96 - sqrtRatioAX96,
+                sqrtRatioBX96
+            ) / sqrtRatioAX96;
     }
 
     /// @notice Computes the amount of token1 for a given amount of liquidity and a price range
@@ -945,6 +965,12 @@ library UnsafeMath {
             z := add(div(x, y), gt(mod(x, y), 0))
         }
     }
+
+    function unsafe_sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        unchecked {
+            return a - b;
+        }
+    }
 }
 
 library SqrtPriceMath {
@@ -1012,20 +1038,20 @@ library SqrtPriceMath {
         // in both cases, avoid a mulDiv for most inputs
         if (add) {
             uint256 quotient =
-                (
-                    amount <= type(uint160).max
-                        ? (amount << FixedPoint96.RESOLUTION) / liquidity
-                        : FullMath.mulDiv(amount, FixedPoint96.Q96, liquidity)
-                );
+            (
+                amount <= type(uint160).max
+                    ? (amount << FixedPoint96.RESOLUTION) / liquidity
+                    : FullMath.mulDiv(amount, FixedPoint96.Q96, liquidity)
+            );
 
             return uint256(sqrtPX96).add(quotient).toUint160();
         } else {
             uint256 quotient =
-                (
-                    amount <= type(uint160).max
-                        ? UnsafeMath.divRoundingUp(amount << FixedPoint96.RESOLUTION, liquidity)
-                        : FullMath.mulDivRoundingUp(amount, FixedPoint96.Q96, liquidity)
-                );
+            (
+                amount <= type(uint160).max
+                    ? UnsafeMath.divRoundingUp(amount << FixedPoint96.RESOLUTION, liquidity)
+                    : FullMath.mulDivRoundingUp(amount, FixedPoint96.Q96, liquidity)
+            );
 
             require(sqrtPX96 > quotient);
             // always fits 160 bits
@@ -1103,9 +1129,9 @@ library SqrtPriceMath {
         return
             roundUp
                 ? UnsafeMath.divRoundingUp(
-                    FullMath.mulDivRoundingUp(numerator1, numerator2, sqrtRatioBX96),
-                    sqrtRatioAX96
-                )
+                FullMath.mulDivRoundingUp(numerator1, numerator2, sqrtRatioBX96),
+                sqrtRatioAX96
+            )
                 : FullMath.mulDiv(numerator1, numerator2, sqrtRatioBX96) / sqrtRatioAX96;
     }
 
@@ -1239,7 +1265,7 @@ library TransferHelper {
         uint256 value
     ) internal {
         (bool success, bytes memory data) =
-            token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
+                            token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))), 'STF');
     }
 
@@ -1278,5 +1304,224 @@ library TransferHelper {
     function safeTransferETH(address to, uint256 value) internal {
         (bool success, ) = to.call{value: value}(new bytes(0));
         require(success, 'STE');
+    }
+}
+
+/// @title The interface for the Uniswap V3 Factory
+/// @notice The Uniswap V3 Factory facilitates creation of Uniswap V3 pools and control over the protocol fees
+interface IUniswapV3Factory {
+    /// @notice Emitted when the owner of the factory is changed
+    /// @param oldOwner The owner before the owner was changed
+    /// @param newOwner The owner after the owner was changed
+    event OwnerChanged(address indexed oldOwner, address indexed newOwner);
+
+    /// @notice Emitted when a pool is created
+    /// @param token0 The first token of the pool by address sort order
+    /// @param token1 The second token of the pool by address sort order
+    /// @param fee The fee collected upon every swap in the pool, denominated in hundredths of a bip
+    /// @param tickSpacing The minimum number of ticks between initialized ticks
+    /// @param pool The address of the created pool
+    event PoolCreated(
+        address indexed token0,
+        address indexed token1,
+        uint24 indexed fee,
+        int24 tickSpacing,
+        address pool
+    );
+
+    /// @notice Emitted when a new fee amount is enabled for pool creation via the factory
+    /// @param fee The enabled fee, denominated in hundredths of a bip
+    /// @param tickSpacing The minimum number of ticks between initialized ticks for pools created with the given fee
+    event FeeAmountEnabled(uint24 indexed fee, int24 indexed tickSpacing);
+
+    /// @notice Returns the current owner of the factory
+    /// @dev Can be changed by the current owner via setOwner
+    /// @return The address of the factory owner
+    function owner() external view returns (address);
+
+    /// @notice Returns the tick spacing for a given fee amount, if enabled, or 0 if not enabled
+    /// @dev A fee amount can never be removed, so this value should be hard coded or cached in the calling context
+    /// @param fee The enabled fee, denominated in hundredths of a bip. Returns 0 in case of unenabled fee
+    /// @return The tick spacing
+    function feeAmountTickSpacing(uint24 fee) external view returns (int24);
+
+    /// @notice Returns the pool address for a given pair of tokens and a fee, or address 0 if it does not exist
+    /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
+    /// @param tokenA The contract address of either token0 or token1
+    /// @param tokenB The contract address of the other token
+    /// @param fee The fee collected upon every swap in the pool, denominated in hundredths of a bip
+    /// @return pool The pool address
+    function getPool(
+        address tokenA,
+        address tokenB,
+        uint24 fee
+    ) external view returns (address pool);
+
+    /// @notice Creates a pool for the given two tokens and fee
+    /// @param tokenA One of the two tokens in the desired pool
+    /// @param tokenB The other of the two tokens in the desired pool
+    /// @param fee The desired fee for the pool
+    /// @dev tokenA and tokenB may be passed in either order: token0/token1 or token1/token0. tickSpacing is retrieved
+    /// from the fee. The call will revert if the pool already exists, the fee is invalid, or the token arguments
+    /// are invalid.
+    /// @return pool The address of the newly created pool
+    function createPool(
+        address tokenA,
+        address tokenB,
+        uint24 fee
+    ) external returns (address pool);
+
+    /// @notice Updates the owner of the factory
+    /// @dev Must be called by the current owner
+    /// @param _owner The new owner of the factory
+    function setOwner(address _owner) external;
+
+    /// @notice Enables a fee amount with the given tickSpacing
+    /// @dev Fee amounts may never be removed once enabled
+    /// @param fee The fee amount to enable, denominated in hundredths of a bip (i.e. 1e-6)
+    /// @param tickSpacing The spacing between ticks to be enforced for all pools created with the given fee amount
+    function enableFeeAmount(uint24 fee, int24 tickSpacing) external;
+}
+
+library CallbackValidation {
+    struct PoolKey {
+        address token0;
+        address token1;
+        uint24 fee;
+    }
+
+    function verifyCallback(
+        address factory,
+        address tokenA,
+        address tokenB,
+        uint24 fee
+    ) internal view returns (IUniswapV3Pool pool) {
+        return verifyCallback(factory, PoolKey({token0: tokenA, token1: tokenB, fee: fee}));
+    }
+
+    function verifyCallback(address factory, PoolKey memory poolKey)
+    internal
+    view
+    returns (IUniswapV3Pool pool)
+    {
+        pool = IUniswapV3Pool(IUniswapV3Factory(factory).getPool(poolKey.token0, poolKey.token1, poolKey.fee));
+        require(msg.sender == address(pool), "swap validation failed");
+    }
+}
+
+/// @title FixedPoint128
+/// @notice A library for handling binary fixed point numbers, see https://en.wikipedia.org/wiki/Q_(number_format)
+library FixedPoint128 {
+    uint256 internal constant Q128 = 0x100000000000000000000000000000000;
+}
+
+/// @title Returns information about the token value held in a CL NFT
+library PositionValue {
+    struct FeeParams {
+        address token0;
+        address token1;
+        uint24 fee;
+        int24 tickLower;
+        int24 tickUpper;
+        uint128 liquidity;
+        uint256 positionFeeGrowthInside0LastX128;
+        uint256 positionFeeGrowthInside1LastX128;
+        uint256 tokensOwed0;
+        uint256 tokensOwed1;
+    }
+
+    /// @notice Calculates the total fees owed to the token owner
+    /// @param positionManager The CL NonfungiblePositionManager
+    /// @param tokenId The tokenId of the token for which to get the total fees owed
+    /// @return amount0 The amount of fees owed in token0
+    /// @return amount1 The amount of fees owed in token1
+    function fees(INonfungiblePositionManager positionManager, uint256 tokenId)
+    internal
+    view
+    returns (uint256 amount0, uint256 amount1)
+    {
+        (
+            ,
+            ,
+            address token0,
+            address token1,
+            uint24 fee,
+            int24 tickLower,
+            int24 tickUpper,
+            uint128 liquidity,
+            uint256 positionFeeGrowthInside0LastX128,
+            uint256 positionFeeGrowthInside1LastX128,
+            uint256 tokensOwed0,
+            uint256 tokensOwed1
+        ) = positionManager.positions(tokenId);
+
+        return _fees(
+            positionManager,
+            FeeParams({
+                token0: token0,
+                token1: token1,
+                fee: fee,
+                tickLower: tickLower,
+                tickUpper: tickUpper,
+                liquidity: liquidity,
+                positionFeeGrowthInside0LastX128: positionFeeGrowthInside0LastX128,
+                positionFeeGrowthInside1LastX128: positionFeeGrowthInside1LastX128,
+                tokensOwed0: tokensOwed0,
+                tokensOwed1: tokensOwed1
+            })
+        );
+    }
+
+    function _fees(INonfungiblePositionManager positionManager, FeeParams memory feeParams)
+    private
+    view
+    returns (uint256 amount0, uint256 amount1)
+    {
+        amount0 = feeParams.tokensOwed0;
+        amount1 = feeParams.tokensOwed1;
+        (uint256 poolFeeGrowthInside0LastX128, uint256 poolFeeGrowthInside1LastX128) = _getFeeGrowthInside(
+            IUniswapV3Pool(
+                IUniswapV3Factory(positionManager.factory()).getPool(
+                    feeParams.token0,
+                    feeParams.token1,
+                    feeParams.fee
+                )
+            ),
+            feeParams.tickLower,
+            feeParams.tickUpper
+        );
+        amount0 = amount0 + FullMath.mulDiv(
+            UnsafeMath.unsafe_sub(poolFeeGrowthInside0LastX128, feeParams.positionFeeGrowthInside0LastX128),
+            feeParams.liquidity,
+            FixedPoint128.Q128
+        );
+
+        amount1 = amount1 + FullMath.mulDiv(
+            UnsafeMath.unsafe_sub(poolFeeGrowthInside1LastX128, feeParams.positionFeeGrowthInside1LastX128),
+            feeParams.liquidity,
+            FixedPoint128.Q128
+        );
+    }
+
+    function _getFeeGrowthInside(IUniswapV3Pool pool, int24 tickLower, int24 tickUpper)
+    private
+    view
+    returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)
+    {
+        (, int24 tickCurrent,,,,,) = pool.slot0();
+        (,, uint256 lowerFeeGrowthOutside0X128, uint256 lowerFeeGrowthOutside1X128,,,,) = pool.ticks(tickLower);
+        (,, uint256 upperFeeGrowthOutside0X128, uint256 upperFeeGrowthOutside1X128,,,,) = pool.ticks(tickUpper);
+        if (tickCurrent < tickLower) {
+            feeGrowthInside0X128 = UnsafeMath.unsafe_sub(lowerFeeGrowthOutside0X128, upperFeeGrowthOutside0X128);
+            feeGrowthInside1X128 = UnsafeMath.unsafe_sub(lowerFeeGrowthOutside1X128, upperFeeGrowthOutside1X128);
+        } else if (tickCurrent < tickUpper) {
+            uint256 feeGrowthGlobal0X128 = pool.feeGrowthGlobal0X128();
+            uint256 feeGrowthGlobal1X128 = pool.feeGrowthGlobal1X128();
+            feeGrowthInside0X128 = UnsafeMath.unsafe_sub(UnsafeMath.unsafe_sub(feeGrowthGlobal0X128, lowerFeeGrowthOutside0X128), upperFeeGrowthOutside0X128);
+            feeGrowthInside1X128 = UnsafeMath.unsafe_sub(UnsafeMath.unsafe_sub(feeGrowthGlobal1X128, lowerFeeGrowthOutside1X128),  upperFeeGrowthOutside1X128);
+        } else {
+            feeGrowthInside0X128 = UnsafeMath.unsafe_sub(upperFeeGrowthOutside0X128, lowerFeeGrowthOutside0X128);
+            feeGrowthInside1X128 = UnsafeMath.unsafe_sub(upperFeeGrowthOutside1X128, lowerFeeGrowthOutside1X128);
+        }
     }
 }
