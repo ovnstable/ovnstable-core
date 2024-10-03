@@ -17,16 +17,16 @@ module.exports = async ({getNamedAccounts, deployments}) => {
 
     // setting ex for some contracts
     console.log('fund.setExchanger: ' + exchange.address)
-    await (await fund.setExchanger(exchange.address)).wait();
+    await (await fund.setExchanger(exchange.address, {gasPrice: 6896396})).wait();
     console.log("fund.setExchanger done");
 
     console.log('pm.setExchanger: ' + exchange.address)
-    await (await pm.setExchanger(exchange.address)).wait();
+    await (await pm.setExchanger(exchange.address, {gasPrice: 6896396})).wait();
     console.log("pm.setExchanger done");
 
     // setting depositor for some contracts
     console.log('fund.setDepositor: ' + wallet.address)
-    await (await fund.setDepositor(wallet.address)).wait();
+    await (await fund.setDepositor(wallet.address, {gasPrice: 6896396})).wait();
     console.log("fund.setDepositor done");
 
     console.log('ex.setDepositor: ' + wallet.address)
@@ -49,7 +49,7 @@ module.exports = async ({getNamedAccounts, deployments}) => {
     // setting ex
 
     console.log(`ex.setTokens: ${fund.address, BASE.usdc}`);
-    await (await exchange.setTokens(fund.address, BASE.usdc)).wait();
+    await (await exchange.setTokens(fund.address, BASE.usdc, {gasPrice: 6896396})).wait();
     console.log('exchange.setTokens done');
 
     console.log(`ex.setPM: ${pm.address}`);

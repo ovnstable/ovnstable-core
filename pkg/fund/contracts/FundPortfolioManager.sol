@@ -160,12 +160,12 @@ contract FundPortfolioManager is Modifiers, IPortfolioManager, UUPSUpgradeable {
 
 
     function withdraw(uint256 _amount)
-    external
-    override
-    onlyExchanger
-    cashStrategySet
-    returns (uint256, bool) {
-
+        external
+        override
+        onlyExchanger
+        cashStrategySet
+        returns (uint256, bool) 
+    {
         // if cash strategy has enough liquidity then prevent balancing
         uint256 liquidationValue = cashStrategy.liquidationValue();
 

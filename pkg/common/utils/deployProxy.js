@@ -5,6 +5,7 @@ const sampleModule = require('@openzeppelin/hardhat-upgrades/dist/utils/deploy-i
 const { getContract, checkTimeLockBalance, initWallet, sleep, getPrice } = require('./script-utils');
 const { Deployer } = require('@matterlabs/hardhat-zksync-deploy');
 const { isZkSync } = require('./network');
+const { parseEther } = require('ethers/lib/utils');
 
 async function deployProxy(contractName, deployments, save, params) {
     if (isZkSync()) {
@@ -155,7 +156,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
     if (hre.ovn && !hre.ovn.impl) {
         // Deploy a new implementation and upgradeProxy to new;
         // You need have permission for role UPGRADER_ROLE;
-
+        // , gasPrice: parseEther(0.005), gasLimit: 30000000
         try {
             impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow });
         } catch (e) {

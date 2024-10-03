@@ -129,7 +129,7 @@ async function settingSection(id, exec) {
             }
 
             console.log('Try to SetStrategyParams');
-            let pm = await getContract('PortfolioManager', process.env.STAND);
+            let pm = await getContract('FundPortfolioManager', process.env.STAND); // TODO: add fund pm
             let roleManager = await getContract('RoleManager', process.env.STAND);
             await (await strategy.setStrategyParams(pm.address, roleManager.address)).wait();
             await exec(strategy);
@@ -626,9 +626,9 @@ async function getPrice() {
         return { maxFeePerGas, maxPriorityFeePerGas, gasLimit: 200000000 }
     } else if (process.env.ETH_NETWORK === 'BASE') {
         let gasPrice = await ethers.provider.getGasPrice();
-        let percentage = gasPrice.mul(BigNumber.from('10')).div(100);
+        let percentage = gasPrice.mul(BigNumber.from('50')).div(100);
         gasPrice = gasPrice.add(percentage);
-        return { gasPrice: 1000000000, gasLimit: 30000000 }
+        return { gasPrice: gasPrice * 2, gasLimit: 30000000 }
     } else if (process.env.ETH_NETWORK === 'LINEA') {
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('5')).div(100);

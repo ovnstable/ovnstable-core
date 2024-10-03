@@ -610,8 +610,7 @@ contract MotivationalFund is
 
         uint256 delta = _newTotalSupply - _totalSupply - _totalDeposit;
 
-        uint256 baseDelta = (delta * _totalDeposit) /
-            (_totalSupply + _totalDeposit);
+        uint256 baseDelta = (delta * _totalDeposit) / (_totalSupply + _totalDeposit);
 
         uint256 teamDelta = delta - baseDelta;
 
@@ -624,14 +623,19 @@ contract MotivationalFund is
         _rebasingCreditsPerToken = _rebasingCredits.divPrecisely(_totalSupply);
 
         if (_totalShares > 0) {
-            for (uint256 i = 0; i < ownersCount; i++) {
+            for (uint256 i = 0; i < ownersCount - 1; i++) {
                 address curOwner = owners.at(i);
-                _mint(
-                    curOwner,
-                    (_sharesBalances[curOwner] * baseDelta) / _totalShares
-                );
+                if (_sharesBalances[curOwner] != 0) {
+                    _mint(
+                        curOwner,
+                        (_sharesBalances[curOwner] * baseDelta) / _totalShares
+                    );
+                }
             }
         }
+
+        uint256 precisionDelta = _newTotalSupply - _totalSupply - _totalDeposit;    
+        _mint(owners.at(ownersCount - 1), precisionDelta);        
 
         require(_rebasingCreditsPerToken > 0, "Invalid change in supply");
 

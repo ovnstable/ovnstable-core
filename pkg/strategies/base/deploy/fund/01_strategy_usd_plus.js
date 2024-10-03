@@ -17,7 +17,7 @@ module.exports = async ({deployments}) => {
 async function getParams() {
     return {
         usdc: BASE.usdc,
-        exchange: BASE.fundEx,
+        exchange: BASE.ex,
         usdPlus: BASE.usdPlus 
     };
 }

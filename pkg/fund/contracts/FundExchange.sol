@@ -39,15 +39,6 @@ contract FundExchange is
     /// @notice Total amount of assets deposited by DEPOSITOR.
     uint256 public totalDeposit;
 
-    /// @notice The next payout time in epoch seconds.
-    uint256 public nextPayoutTime;
-
-    /// @notice The period between payouts in seconds.
-    uint256 public payoutPeriod;
-
-    /// @notice The time range around the next payout time when payouts can be initiated.
-    uint256 public payoutTimeRange;
-
     /// @notice The last block number when a buy/redeem was executed.
     uint256 public lastBlockNumber;
 
@@ -58,16 +49,11 @@ contract FundExchange is
 
     event TokensUpdated(address fund, address asset);
     event PortfolioManagerUpdated(address portfolioManager);
-    event PayoutTimesUpdated(
-        uint256 nextPayoutTime,
-        uint256 payoutPeriod,
-        uint256 payoutTimeRange
-    );
     event BlockGetterUpdated(address blockGetter);
 
     event EventExchange(string label, uint256 amount, address sender);
     event PayoutEvent(uint256 profit);
-    event NextPayoutTime(uint256 nextPayoutTime);
+    
 
     // --- Constructor ---
 
@@ -85,12 +71,6 @@ contract FundExchange is
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-
-        payoutPeriod = 24 * 60 * 60 * 30; // Default to 30 days
-
-        payoutTimeRange = 24 * 60 * 60 * 30; // 30 days time range
-
-        nextPayoutTime = block.timestamp + payoutPeriod;
     }
 
     /**
@@ -142,29 +122,6 @@ contract FundExchange is
     }
 
     // --- Portfolio Manager Setters ---
-
-    /**
-     * @notice Sets payout timing configurations.
-     * @param _nextPayoutTime The next payout time in epoch seconds.
-     * @param _payoutPeriod The period between payouts in seconds.
-     * @param _payoutTimeRange The time range around the next payout time when payouts can be initiated.
-     */
-    function setPayoutTimes(
-        uint256 _nextPayoutTime,
-        uint256 _payoutPeriod,
-        uint256 _payoutTimeRange
-    ) external onlyPortfolioAgent {
-        require(_nextPayoutTime != 0, "Zero _nextPayoutTime not allowed");
-        require(_payoutPeriod != 0, "Zero _payoutPeriod not allowed");
-        require(
-            _nextPayoutTime > _payoutTimeRange,
-            "_nextPayoutTime should be more than _payoutTimeRange"
-        );
-        nextPayoutTime = _nextPayoutTime;
-        payoutPeriod = _payoutPeriod;
-        payoutTimeRange = _payoutTimeRange;
-        emit PayoutTimesUpdated(nextPayoutTime, payoutPeriod, payoutTimeRange);
-    }
 
     // --- Contract Logic ---
 
@@ -331,8 +288,7 @@ contract FundExchange is
         require(_amount > 0, "Amount of asset is zero");
 
         // Transfer assets to the PortfolioManager
-        uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) +
-            _amount;
+        uint256 _targetBalance = usdc.balanceOf(address(portfolioManager)) + _amount;
         SafeERC20.safeTransferFrom(
             usdc,
             msg.sender,
@@ -412,15 +368,10 @@ contract FundExchange is
     function payout()
         external
         whenNotPaused
-        onlyUnit
+        onlyPortfolioAgent
         nonReentrant
         returns (int256 swapAmount)
     {
-        // Check if it's time for payout
-        if (block.timestamp + payoutTimeRange < nextPayoutTime) {
-            return 0;
-        }
-
         // Claim rewards and rebalance the portfolio
         portfolioManager.claimAndBalance();
 
@@ -445,18 +396,13 @@ contract FundExchange is
         fund.changeSupply(totalNav, totalDeposit);
 
 
+
         require(
             fund.totalSupply() + totalDeposit == totalNav,
             "Total supply mismatch with expected"
         );
 
         emit PayoutEvent(profit);
-
-        // Update the next payout time, ensuring consistent scheduling
-        while (block.timestamp >= nextPayoutTime - payoutTimeRange) {
-            nextPayoutTime += payoutPeriod;
-        }
-        emit NextPayoutTime(nextPayoutTime);
 
         // Return the net profit or loss (unused in this implementation)
         return 0;
