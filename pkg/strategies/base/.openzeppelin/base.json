@@ -293,6 +293,11 @@
       "address": "0x77187c59DB3Be1de90F5Ac56AA48992DD8f32aAe",
       "txHash": "0xfab2c4bc64aa8dae74cbdb926dc4875958176de532e10140c7503a8a4fb18be7",
       "kind": "uups"
+    },
+    {
+      "address": "0xC4dDdfd7f03557DD66503b46Bdf5C7AdCf3412EC",
+      "txHash": "0x8d8110e03f657746a03c84864558bb9a2de1b8f71ae77d08ca6cb4e3e36ef4d3",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -19846,7 +19851,7 @@
             "label": "roleManager",
             "offset": 0,
             "slot": "255",
-            "type": "t_contract(IRoleManager)7745",
+            "type": "t_contract(IRoleManager)3623",
             "contract": "Strategy",
             "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
           },
@@ -19870,7 +19875,7 @@
             "label": "usdPlus",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(IUsdPlusToken)8022",
+            "type": "t_contract(IUsdPlusToken)3900",
             "contract": "StrategyUsdPlus",
             "src": "contracts/fund/StrategyUsdPlus.sol:13"
           },
@@ -19878,7 +19883,7 @@
             "label": "exchange",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IExchange)7655",
+            "type": "t_contract(IExchange)3533",
             "contract": "StrategyUsdPlus",
             "src": "contracts/fund/StrategyUsdPlus.sol:14"
           }
@@ -19912,15 +19917,15 @@
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IExchange)7655": {
+          "t_contract(IExchange)3533": {
             "label": "contract IExchange",
             "numberOfBytes": "20"
           },
-          "t_contract(IRoleManager)7745": {
+          "t_contract(IRoleManager)3623": {
             "label": "contract IRoleManager",
             "numberOfBytes": "20"
           },
-          "t_contract(IUsdPlusToken)8022": {
+          "t_contract(IUsdPlusToken)3900": {
             "label": "contract IUsdPlusToken",
             "numberOfBytes": "20"
           },
