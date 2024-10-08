@@ -55,7 +55,7 @@ function isZkSync() {
 function getGasPrice() {
     let gasPrice = Number.parseFloat(process.env.GAS_PRICE);
 
-    if (gasPrice === undefined || gasPrice === 0) throw new Error('Unknown gasPpice');
+    if (!gasPrice) throw new Error('Unknown gasPrice. Please specify GAS_PRICE in env');
 
     let wei = gasPrice * 1e9;
     console.log(`[Node] Gas price:  Gwei: [${gasPrice}] Wei: [${wei}]`);
