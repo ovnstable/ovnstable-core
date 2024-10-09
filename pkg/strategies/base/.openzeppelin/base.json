@@ -283,6 +283,21 @@
     {
       "address": "0xb91107e0B01b0Cd2167abf3a0C1ed14E9C58cCa1",
       "kind": "uups"
+    },
+    {
+      "address": "0xa10E33EE38DE024E61e93ECB8B5F2994DDaD57A0",
+      "txHash": "0x88254b670dd12efeb86a2516a4439065567460cbad45f551c503f0b75f19be06",
+      "kind": "uups"
+    },
+    {
+      "address": "0x77187c59DB3Be1de90F5Ac56AA48992DD8f32aAe",
+      "txHash": "0xfab2c4bc64aa8dae74cbdb926dc4875958176de532e10140c7503a8a4fb18be7",
+      "kind": "uups"
+    },
+    {
+      "address": "0xC4dDdfd7f03557DD66503b46Bdf5C7AdCf3412EC",
+      "txHash": "0x8d8110e03f657746a03c84864558bb9a2de1b8f71ae77d08ca6cb4e3e36ef4d3",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -19836,7 +19851,7 @@
             "label": "roleManager",
             "offset": 0,
             "slot": "255",
-            "type": "t_contract(IRoleManager)7600",
+            "type": "t_contract(IRoleManager)3623",
             "contract": "Strategy",
             "src": "@overnight-contracts/core/contracts/Strategy.sol:22"
           },

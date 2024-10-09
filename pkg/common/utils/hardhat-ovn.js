@@ -366,7 +366,7 @@ task('simulateByData', 'Simulate transaction on local node')
                 value: 0,
                 nonce: await hre.ethers.provider.getTransactionCount(from, "latest"),
                 gasLimit: 15000000,
-                gasPrice: 150000000000, // 150 GWEI
+                gasPrice: 250000000000, // 150 GWEI
                 data: data
             }
         }
@@ -456,7 +456,7 @@ function updateFeedData(hre) {
                 let gasPrice = await provider.getGasPrice();
                 console.log(`Get gasPrice: ${gasPrice.toString()}`);
                 return {
-                    gasPrice: gasPrice
+                    gasPrice: gasPrice * 2
                 }
             }
         };

@@ -129,6 +129,7 @@ async function settingSection(id, exec) {
             }
 
             console.log('Try to SetStrategyParams');
+            // let pm = await getContract('FundPortfolioManager', process.env.STAND); // NOTE: for fund
             let pm = await getContract('PortfolioManager', process.env.STAND);
             let roleManager = await getContract('RoleManager', process.env.STAND);
             await (await strategy.setStrategyParams(pm.address, roleManager.address)).wait();
@@ -626,9 +627,9 @@ async function getPrice() {
         return { maxFeePerGas, maxPriorityFeePerGas, gasLimit: 200000000 }
     } else if (process.env.ETH_NETWORK === 'BASE') {
         let gasPrice = await ethers.provider.getGasPrice();
-        let percentage = gasPrice.mul(BigNumber.from('10')).div(100);
+        let percentage = gasPrice.mul(BigNumber.from('50')).div(100);
         gasPrice = gasPrice.add(percentage);
-        return { gasPrice: 1000000000, gasLimit: 30000000 }
+        return { gasPrice: gasPrice * 2, gasLimit: 30000000 }
     } else if (process.env.ETH_NETWORK === 'LINEA') {
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('5')).div(100);
@@ -1078,6 +1079,7 @@ async function transferAsset(assetAddress, to, amount) {
         amount = await asset.balanceOf(from);
     }
     await asset.connect(account).transfer(to, amount, await getPrice());
+    
     await hre.network.provider.request({
         method: "hardhat_stopImpersonatingAccount",
         params: [from],
