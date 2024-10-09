@@ -177,7 +177,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
             {
                 kind: 'uups',
                 unsafeAllow: unsafeAllow,
-                // redeployImplementation: 'always'
+                // redeployImplementation: "always"
                 // unsafeSkipStorageCheck: true,
                 // unsafeAllowRenames: true
             },
