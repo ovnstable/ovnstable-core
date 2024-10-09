@@ -56,8 +56,8 @@ describe("Token", function () {
 
         await fund.setExchanger(account);
         await fund.setRoleManager(rm.address);
-        await execTimelock(async timelock => {
-            await rm.connect(timelock).grantRole(Roles.DEPOSITOR_ROLE, "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")});
+        // await execTimelock(async timelock => {
+        //     await rm.connect(timelock).grantRole(Roles.DEPOSITOR_ROLE, "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")});
         
         console.log(await rm.hasRole(Roles.DEPOSITOR_ROLE, account));
         // await rm.grantRole(Roles.DEPOSITOR_ROLE, account);

@@ -129,7 +129,8 @@ async function settingSection(id, exec) {
             }
 
             console.log('Try to SetStrategyParams');
-            let pm = await getContract('FundPortfolioManager', process.env.STAND); // TODO: add fund pm
+            // let pm = await getContract('FundPortfolioManager', process.env.STAND); // NOTE: for fund
+            let pm = await getContract('PortfolioManager', process.env.STAND);
             let roleManager = await getContract('RoleManager', process.env.STAND);
             await (await strategy.setStrategyParams(pm.address, roleManager.address)).wait();
             await exec(strategy);
