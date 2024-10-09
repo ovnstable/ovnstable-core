@@ -1111,11 +1111,31 @@ interface ICLPoolState {
     returns (uint256 rewardGrowthInsideX128);
 }
 
+interface ICLPoolActions {
+    /// @notice Swap token0 for token1, or token1 for token0
+    /// @dev The caller of this method receives a callback in the form of ICLSwapCallback#uniswapV3SwapCallback
+    /// @param recipient The address to receive the output of the swap
+    /// @param zeroForOne The direction of the swap, true for token0 to token1, false for token1 to token0
+    /// @param amountSpecified The amount of the swap, which implicitly configures the swap as exact input (positive), or exact output (negative)
+    /// @param sqrtPriceLimitX96 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this
+    /// value after the swap. If one for zero, the price cannot be greater than this value after the swap
+    /// @param data Any data to be passed through to the callback
+    /// @return amount0 The delta of the balance of token0 of the pool, exact when negative, minimum when positive
+    /// @return amount1 The delta of the balance of token1 of the pool, exact when negative, minimum when positive
+    function swap(
+        address recipient,
+        bool zeroForOne,
+        int256 amountSpecified,
+        uint160 sqrtPriceLimitX96,
+        bytes calldata data
+    ) external returns (int256 amount0, int256 amount1);
+}
+
 /// @title The interface for a CL Pool
 /// @notice A CL pool facilitates swapping and automated market making between any two assets that strictly conform
 /// to the ERC20 specification
 /// @dev The pool interface is broken up into many smaller pieces
-interface ICLPool is ICLPoolConstants, ICLPoolState
+interface ICLPool is ICLPoolConstants, ICLPoolState, ICLPoolActions
 {}
 
 /// @title FixedPoint128
@@ -2510,6 +2530,46 @@ library SqrtPriceMath {
                 ? -getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(-liquidity), false).toInt256()
                 : getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, uint128(liquidity), true).toInt256();
     }
+
+    function estimateAmount0(uint256 amount1, uint128 liquidity, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
+        internal
+        pure
+        returns (uint256 amount0)
+    {
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLow);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickHigh);
+
+        if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
+
+        if (sqrtRatioX96 <= sqrtRatioAX96 && sqrtRatioX96 >= sqrtRatioBX96) {
+            return 0;
+        }
+
+        if (liquidity == 0) {
+            liquidity = LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioX96, amount1);
+        }
+        amount0 = getAmount0Delta(sqrtRatioX96, sqrtRatioBX96, liquidity, false);
+    }
+
+    function estimateAmount1(uint256 amount0, uint128 liquidity, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
+        internal
+        pure
+        returns (uint256 amount1)
+    {
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLow);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickHigh);
+
+        if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
+
+        if (sqrtRatioX96 <= sqrtRatioAX96 && sqrtRatioX96 >= sqrtRatioBX96) {
+            return 0;
+        }
+
+        if (liquidity == 0) {
+            liquidity = LiquidityAmounts.getLiquidityForAmount0(sqrtRatioX96, sqrtRatioBX96, amount0);
+        }
+        amount1 = getAmount1Delta(sqrtRatioAX96, sqrtRatioX96, liquidity, false);
+    }
 }
 
 library UniswapV3Library {
@@ -2576,4 +2636,22 @@ interface IUniswapV3Pair {
 
 }
 
+library CallbackValidation {
+    function verifyCallback(
+        address factory,
+        address tokenA,
+        address tokenB,
+        int24 tickSpacing
+    ) internal view returns (ICLPool pool) {
+        return verifyCallback(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing));
+    }
 
+    function verifyCallback(address factory, PoolAddress.PoolKey memory poolKey)
+        internal
+        view
+        returns (ICLPool pool)
+    {   
+        pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
+        require(msg.sender == address(pool), "swap validation failed");
+    }
+}
