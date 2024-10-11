@@ -62,6 +62,8 @@ let BASE = {
     // compound
     compoundUsdbc: '0x9c4ec768c28520B50860ea7a15bd7213a9fF58bf',
     compoundRewards: '0x123964802e6ABabBE1Bc9547D72Ef1B69B00A6b1',
+    //silo
+    siloLens: '0x196D312fd81412B6443620Ca81B41103b4E123FD',
     // sonne
     sonneUnitroller: '0x1DB2466d9F5e10D7090E7152B68d62703a2245F0',
     sonneUsdbc: '0x225886C9beb5eeE254F79d58bbD80cf9F200D4d0',

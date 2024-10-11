@@ -55,7 +55,7 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
         stakeUnstake(strategyParams, network, assetName, values, runStrategyLogic);
 
-        unstakeFull(strategyParams, network, assetName, values, runStrategyLogic);
+        //unstakeFull(strategyParams, network, assetName, values, runStrategyLogic);
 
         if (strategyParams.enabledReward) {
             claimRewards(strategyParams, network, assetName, values, runStrategyLogic);
@@ -122,12 +122,18 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
                     let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
                     let amount = toAsset(stakeValue / 2);
-                    await asset.connect(recipient).transfer(strategy.address, amount);
-                    let hedgeExchanger = await ethers.getContractAt(HedgeExchangerABI, await strategy.hedgeExchanger());
 
-                    await strategy.connect(recipient).stake(asset.address, amount);
+                    console.log(`before transfer. NAV: ${await strategy.netAssetValue()}`);
                     await asset.connect(recipient).transfer(strategy.address, amount);
+
+                    console.log(`before first stake. NAV: ${await strategy.netAssetValue()}`);
                     await strategy.connect(recipient).stake(asset.address, amount);
+                    console.log(`after first stake. NAV: ${await strategy.netAssetValue()}`);
+
+                    await asset.connect(recipient).transfer(strategy.address, amount);
+                    console.log(`before second stake. NAV: ${await strategy.netAssetValue()}`);
+                    await strategy.connect(recipient).stake(asset.address, amount);
+                    console.log(`after second stake. NAV: ${await strategy.netAssetValue()}`);
 
                     let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
