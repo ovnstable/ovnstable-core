@@ -123,7 +123,7 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
 
                     let amount = toAsset(stakeValue / 2);
                     await asset.connect(recipient).transfer(strategy.address, amount);
-                    let hedgeExchanger = await ethers.getContractAt(HedgeExchangerABI, await strategy.hedgeExchanger());
+                    // let hedgeExchanger = await ethers.getContractAt(HedgeExchangerABI, await strategy.hedgeExchanger());
 
                     await strategy.connect(recipient).stake(asset.address, amount);
                     await asset.connect(recipient).transfer(strategy.address, amount);
