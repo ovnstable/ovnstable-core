@@ -46,11 +46,13 @@ contract StrategyAerodromeUsdc is Strategy {
 
     IERC20 public usdc;
     IERC20 public usdcPlus;
+    IERC20 public aero;
 
     int24[] public tickRange;
     uint256 public binSearchIterations;
 
-    address public rewardsWallet;
+    address public rewardSwapPool;
+    uint256 rewardSwapSlippageBP;
 
     ICLPool public pool;
     INonfungiblePositionManager public npm;
@@ -70,11 +72,13 @@ contract StrategyAerodromeUsdc is Strategy {
 
     struct StrategyParams {
         address pool;
-        address rewardsWallet;
+        address rewardSwapPool;
         int24[] tickRange;
         uint256 binSearchIterations;
         address swapSimulatorAddress;
         address npmAddress;
+        address aeroTokenAddress;
+        uint256 rewardSwapSlippageBP;
     }
 
     struct BinSearchParams {
@@ -99,12 +103,14 @@ contract StrategyAerodromeUsdc is Strategy {
         pool = ICLPool(params.pool);
         usdc = IERC20(pool.token0());
         usdcPlus = IERC20(pool.token1());
-        rewardsWallet = params.rewardsWallet;
+        rewardSwapPool = params.rewardSwapPool;
         tickRange = params.tickRange;
         binSearchIterations = params.binSearchIterations;
         swapSimulator = ISwapSimulator(params.swapSimulatorAddress);
         npm = INonfungiblePositionManager(params.npmAddress);
         gauge = ICLGauge(pool.gauge());
+        aero = IERC20(params.aeroTokenAddress);
+        rewardSwapSlippageBP = params.rewardSwapSlippageBP;
         emit StrategyUpdatedParams();
     }
 
@@ -160,7 +166,26 @@ contract StrategyAerodromeUsdc is Strategy {
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        return 0;
+        if (stakedTokenId == 0) {
+            return 0;
+        }
+        uint256 claimedUsdc;
+        uint256 balanceUsdcBefore = usdc.balanceOf(address(this));
+
+        gauge.claimRewards(stakedTokenId, _beneficiary);
+        if (aero.balanceOf(address(this)) > 0) {
+            swapSimulator.swap(
+                address(rewardSwapPool), 
+                aero.balanceOf(address(this)), 
+                _getSqrtPriceLimitX96(rewardSwapPool, rewardSwapSlippageBP, true), 
+                true
+            );
+            if (usdc.balanceOf(address(this)) > 0) {
+                claimedUsdc = usdc.balanceOf(address(this)) - balanceUsdcBefore;
+                usdc.transfer(_beneficiary, claimedUsdc);
+            }
+        }
+        return claimedUsdc;
     }
 
     function _deposit() internal {
@@ -258,6 +283,15 @@ contract StrategyAerodromeUsdc is Strategy {
             }
         }
         amountToSwap = binSearchParams.mid;
+    }
+
+    function _getSqrtPriceLimitX96(ICLPool _pool, uint256 _slippageBP, bool _zeroForOne) internal view returns (uint160) {
+        (uint160 sqrtRatioX96,,,,,) = _pool.slot0();
+        if (_zeroForOne) {
+            return sqrtRatioX96 * (10000 - _slippageBP) / 10000;
+        } else {
+            return sqrtRatioX96 * (10000 + _slippageBP) / 10000;
+        }
     }
 
     function _compareRatios(uint256 a, uint256 b, uint256 c, uint256 d) internal pure returns (bool) {
