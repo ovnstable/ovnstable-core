@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "./interfaces/IInsuranceExchange.sol";
 import "./interfaces/IMark2Market.sol";
 import "./interfaces/IPortfolioManager.sol";
-import "./interfaces/IBlockGetter.sol";
+import "./interfaces/IBlockGetter.sol";     
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./interfaces/IStrategy.sol";
@@ -21,9 +21,10 @@ import "./interfaces/IUsdPlusToken.sol";
 contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
     bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
+    bytes32 public constant FREE_RIDER_ROLE = keccak256("FREE_RIDER_ROLE");
 
     uint256 public constant LIQ_DELTA_DM   = 1e6;
-    uint256 public constant FISK_FACTOR_DM = 1e5;
+    uint256 public constant RISK_FACTOR_DM = 1e5;
 
     uint256 private constant _NOT_ENTERED = 1;
     uint256 private constant _ENTERED = 2;
@@ -452,6 +453,10 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 feeAmount = (_amount * fee) / feeDenominator;
         uint256 resultAmount = _amount - feeAmount;
 
+        if (hasRole(FREE_RIDER_ROLE, msg.sender)) {
+            return (_amount, 0);
+        }
+
         return (resultAmount, feeAmount);
     }
 
@@ -577,7 +582,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
                 totalNav = totalNav - _assetToRebase(profitRecipientAmount);
             }
 
-            premium = _rebaseToAsset((totalNav - totalUsdPlus) * portfolioManager.getTotalRiskFactor() / FISK_FACTOR_DM);
+            premium = _rebaseToAsset((totalNav - totalUsdPlus) * portfolioManager.getTotalRiskFactor() / RISK_FACTOR_DM);
 
             if (simulate) {
                 return int256(premium);
