@@ -15,9 +15,14 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 describe("BASE", function () {
     let params = {
         name: process.env.TEST_STRATEGY,
-        enabledReward: false,
+        enabledReward: true,
         isRunStrategyLogic: true,
-        unstakeDelay: 1000000,  // 11.57 days
+        //unstakeDelay: 1000000,  // 11.57 days
+        unstakeDelay: 30*24*60*60,    // around a month
+        //unstakeDelay: delay,
+        delay: 1*60*60,
+        doubleStakeReward: true,
+        doubleFarm: true,
     }
 
     console.log(`Strategy ID ${params.name}`);

@@ -3,10 +3,9 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import '@overnight-contracts/core/contracts/Strategy.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
-import '@overnight-contracts/connectors/contracts/stuff/Camelot.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Chainlink.sol';
-import '@overnight-contracts/connectors/contracts/stuff/Angle.sol';
-import '@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol';
+import '@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol';
+import {AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 
 import "hardhat/console.sol";
 
@@ -14,11 +13,15 @@ contract StrategySiloUsdc is Strategy {
     // --- params
 
     IERC20 public usdc;
+    address public weth;
     ISilo public silo;
+    ISiloIncentivesController public siloIncentivesController;
     address public siloLens;
     IERC20 public siloToken;
-
+    IRouter public aerodromeRouter;
     uint256 public assetDm;
+    address public siloWethPool;
+    address public wethUsdcPool;
 
     // --- events
 
@@ -28,8 +31,14 @@ contract StrategySiloUsdc is Strategy {
 
     struct StrategyParams {
         address usdc;
+        address weth;
         address silo;
+        address siloIncentivesController;
         address siloLens;
+        address siloToken;
+        address aerodromeRouter;
+        address siloWethPool;
+        address wethUsdcPool;
     }
 
     // ---  constructor
@@ -45,20 +54,31 @@ contract StrategySiloUsdc is Strategy {
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
         usdc = IERC20(params.usdc);
+        weth = params.weth;
         silo = ISilo(params.silo);
+        siloIncentivesController = ISiloIncentivesController(params.siloIncentivesController);
         siloLens = params.siloLens;
+        siloToken = IERC20(params.siloToken);        
+        aerodromeRouter = IRouter(params.aerodromeRouter);
+        siloWethPool = params.siloWethPool;
+        wethUsdcPool = params.wethUsdcPool;
+
         assetDm = 10 ** IERC20Metadata(params.usdc).decimals();
     }
 
     // --- logic
 
     function _stake(address _asset, uint256 _amount) internal override {
+        console.log("GEORGII: stake. debtToken balance:", IERC20(0x720b4D1b73152DF126cC26fE1756F277F6b0D0bc).balanceOf(address(this)));
         uint256 amount = usdc.balanceOf(address(this));
         if (amount == 0) {
             return;
         }
+        console.log("before approve: usdc amount:", amount);
         usdc.approve(address(silo), amount);
+        console.log("after approve");
         silo.deposit(address(usdc), amount, false);
+        console.log("after deposit");
     }
 
     function _unstake(address _asset, uint256 _amount, address _beneficiary) internal override returns (uint256) {
@@ -96,6 +116,61 @@ contract StrategySiloUsdc is Strategy {
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
-        revert("_claimRewards not implemented");
+        console.log("GEORGII claim rewards");
+
+        uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
+        console.log("usdcBalanceBefore:", usdcBalanceBefore);
+
+        IShareToken collateralToken = silo.assetStorage(address(usdc)).collateralToken;
+        address[] memory assets = new address[](1);
+        assets[0] = address(collateralToken);
+
+        siloIncentivesController.claimRewards(assets, type(uint256).max, address(this));
+
+        uint256 siloBalance = siloToken.balanceOf(address(this));
+        console.log("siloBalance:", siloBalance);
+
+        if (siloBalance == 0) {
+            return 0;
+        }
+
+        uint256 outSwapUsdcBalance = AerodromeLibrary.getAmountsOut(
+            address(aerodromeRouter), 
+            address(siloToken),
+            weth,
+            address(usdc),
+            siloWethPool,
+            wethUsdcPool,
+            siloBalance
+        );
+
+        console.log("outSwapUsdcBalance:", outSwapUsdcBalance);
+        
+        if (outSwapUsdcBalance == 0) {
+            return 0;
+        }
+
+        AerodromeLibrary.multiSwap(
+            address(aerodromeRouter), 
+            address(siloToken), 
+            weth,
+            address(usdc),
+            siloWethPool,
+            wethUsdcPool,
+            siloBalance,
+            outSwapUsdcBalance * 99 / 100,
+            address(this)
+        );
+
+        uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
+        uint256 totalRewardsClaimedUsdc = usdcBalanceAfter - usdcBalanceBefore;
+        console.log("usdcBalanceAfter:", usdcBalanceAfter);
+        console.log("totalRewardsClaimedUsdc:", totalRewardsClaimedUsdc);
+
+        if (totalRewardsClaimedUsdc > 0) {
+            usdc.transfer(_to, totalRewardsClaimedUsdc);
+        }
+
+        return totalRewardsClaimedUsdc;
     }
 }
