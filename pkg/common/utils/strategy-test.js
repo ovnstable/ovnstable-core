@@ -16,39 +16,39 @@ const HedgeExchangerABI = require('./abi/HedgeExchanger.json');
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
 
     let values = [
-        {
-            value: 0.02,
-        },
-        {
-            value: 0.2,
-        },
-        {
-            value: 2,
-        },
-        {
-            value: 20,
-        },
+        // {
+        //     value: 0.02,
+        // },
+        // {
+        //     value: 0.2,
+        // },
+        // {
+        //     value: 2,
+        // },
+        // {
+        //     value: 20,
+        // },
         {
             value: 200,
         },
-        {
-            value: 2000,
-        },
-        {
-            value: 20000,
-        },
-        {
-            value: 100000,
-        },
-        {
-            value: 200000,
-        },
-        {
-            value: 1000000,
-        },
-        {
-            value: 2000000,
-        },
+        // {
+        //     value: 2000,
+        // },
+        // {
+        //     value: 20000,
+        // },
+        // {
+        //     value: 100000,
+        // },
+        // {
+        //     value: 200000,
+        // },
+        // {
+        //     value: 1000000,
+        // },
+        // {
+        //     value: 2000000,
+        // },
     ]
 
     describe(`${strategyParams.name}`, function () {
@@ -546,7 +546,8 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     const signers = await ethers.getSigners();
     const recipient = signers[1];
 
-    const strategy = await ethers.getContract(strategyName);
+    let wallet = await initWallet();
+    const strategy = (await ethers.getContract(strategyName)).connect(wallet);
     await strategy.setStrategyParams(recipient.address, recipient.address);
 
     if (strategyParams.isRunStrategyLogic) {

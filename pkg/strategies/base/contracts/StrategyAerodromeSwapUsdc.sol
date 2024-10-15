@@ -3,7 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
-import "hardhat/console.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 interface ISwapSimulator {
 
@@ -43,7 +43,7 @@ interface ISwapSimulator {
     function withdrawAll(address pair) external;
 }
 
-contract StrategyAerodromeUsdc is Strategy {
+contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
     IERC20 public usdc;
     IERC20 public usdcPlus;
@@ -106,6 +106,7 @@ contract StrategyAerodromeUsdc is Strategy {
         usdcPlus = IERC20(pool.token1());
         rewardSwapPool = ICLPool(params.rewardSwapPool);
         tickRange = params.tickRange;
+        
         binSearchIterations = params.binSearchIterations;
         swapSimulator = ISwapSimulator(params.swapSimulatorAddress);
         npm = INonfungiblePositionManager(params.npmAddress);
@@ -125,11 +126,15 @@ contract StrategyAerodromeUsdc is Strategy {
         return _totalValue();
     }
 
+    function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
+    }
+
     function _stake(
         address _asset,
         uint256 _amount
     ) internal override {
-        _deposit(usdc.balanceOf(address(this)), usdcPlus.balanceOf(address(this)));
+        _deposit(usdc.balanceOf(address(this)), usdcPlus.balanceOf(address(this)), 0, 0);
     }
 
     function _unstake(
@@ -168,43 +173,71 @@ contract StrategyAerodromeUsdc is Strategy {
                 liquidity
             );
         }
-        return amount0 + amount1 + usdc.balanceOf(address(this)) + usdcPlus.balanceOf(address(this));
+        uint256 totalValue = amount0 + amount1 + usdc.balanceOf(address(this)) + usdcPlus.balanceOf(address(this));
+        return totalValue;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
         if (stakedTokenId == 0) {
             return 0;
         }
-        uint256 claimedUsdc;
         uint256 balanceUsdcBefore = usdc.balanceOf(address(this));
-        gauge.getReward(stakedTokenId);
-        
-        if (aero.balanceOf(address(this)) > 0) {
+        if (gauge.stakedContains(address(this), stakedTokenId)) {
+            gauge.withdraw(stakedTokenId);
+        }
+        _collect();
+
+        uint256 amountAero = aero.balanceOf(address(this));
+        uint256 amountUsdcPlus = usdcPlus.balanceOf(address(this));
+
+        if (amountAero > 0) {
             bool zeroForOne = rewardSwapPool.token0() == address(aero);
+            aero.transfer(address(swapSimulator), amountAero);
             swapSimulator.swap(
                 address(rewardSwapPool), 
-                aero.balanceOf(address(this)), 
+                amountAero, 
                 _getSqrtPriceLimitX96(rewardSwapPool, rewardSwapSlippageBP, zeroForOne), 
                 zeroForOne
             );
-            if (usdc.balanceOf(address(this)) > 0) {
-                claimedUsdc = usdc.balanceOf(address(this)) - balanceUsdcBefore;
-                usdc.transfer(_beneficiary, claimedUsdc);
-            }
         }
+        if (amountUsdcPlus > 0) {
+            usdcPlus.transfer(address(swapSimulator), amountUsdcPlus);
+            swapSimulator.swap(
+                address(pool), 
+                amountUsdcPlus, 
+                _getSqrtPriceLimitX96(pool, rewardSwapSlippageBP, false), 
+                false
+            );
+        }
+        swapSimulator.withdrawAll(address(pool));
+        swapSimulator.withdrawAll(address(rewardSwapPool));
+        uint256 claimedUsdc = usdc.balanceOf(address(this)) - balanceUsdcBefore;
+
+        if (claimedUsdc > 0) {
+            usdc.transfer(_beneficiary, claimedUsdc);
+        }
+        npm.approve(address(gauge), stakedTokenId);
+        gauge.deposit(stakedTokenId);
         return claimedUsdc;
     }
 
-    function _deposit(uint256 amount0, uint256 amount1) internal {
+    function _deposit(uint256 amount0, uint256 amount1, uint256 lockedAmount0, uint256 lockedAmount1) internal {
+
         usdc.transfer(address(swapSimulator), amount0);
         usdcPlus.transfer(address(swapSimulator), amount1);
 
-        (uint256 amountToSwap, bool zeroForOne) = _simulateSwap();
-        console.log("amountToSwap!!", amountToSwap);
+        (uint256 amountToSwap, bool zeroForOne) = _simulateSwap(amount0, amount1);
+
         if (amountToSwap > 0) {
             swapSimulator.swap(address(pool), amountToSwap, 0, zeroForOne);
         }
         swapSimulator.withdrawAll(address(pool));
+
+        amount0 = usdc.balanceOf(address(this)) - lockedAmount0;
+        amount1 = usdcPlus.balanceOf(address(this)) - lockedAmount1;
+
+        usdc.approve(address(npm), amount0);
+        usdcPlus.approve(address(npm), amount1);
 
         if (stakedTokenId == 0) {
             INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
@@ -222,11 +255,15 @@ contract StrategyAerodromeUsdc is Strategy {
                 sqrtPriceX96: 0
             });
             (stakedTokenId,,,) = npm.mint(params);
+
+            npm.approve(address(gauge), stakedTokenId);
             gauge.deposit(stakedTokenId);
 
             emit Staked(stakedTokenId);
         } else {
-            gauge.withdraw(stakedTokenId);
+            if (gauge.stakedContains(address(this), stakedTokenId)) {
+                gauge.withdraw(stakedTokenId);
+            }
 
             INonfungiblePositionManager.IncreaseLiquidityParams memory params = INonfungiblePositionManager.IncreaseLiquidityParams({
                 tokenId: stakedTokenId,
@@ -237,12 +274,15 @@ contract StrategyAerodromeUsdc is Strategy {
                 deadline: block.timestamp
             });
             npm.increaseLiquidity(params);
+            npm.approve(address(gauge), stakedTokenId);
             gauge.deposit(stakedTokenId);
         }
     }
 
     function _withdraw(address asset, uint256 amount, bool isFull) internal returns (uint256) {
-        gauge.withdraw(stakedTokenId);
+        if (gauge.stakedContains(address(this), stakedTokenId)) {
+            gauge.withdraw(stakedTokenId);
+        }
 
         (,,,,,,, uint128 liquidity,,,,) = npm.positions(stakedTokenId);
         if (liquidity == 0) {
@@ -257,47 +297,60 @@ contract StrategyAerodromeUsdc is Strategy {
             deadline: block.timestamp
         });
         npm.decreaseLiquidity(params);
+        _collect();
 
         if (!isFull) {
             uint256 amountToStake0 = usdc.balanceOf(address(this));
             uint256 amountToStake1 = usdcPlus.balanceOf(address(this));
+            uint256 lockedAmount0;
+            uint256 lockedAmount1;
             if (asset == address(usdc) && amountToStake0 > amount) {
                 amountToStake0 -= amount;
+                lockedAmount0 = amount;
             } else if (asset == address(usdcPlus) && amountToStake1 > amount) {
                 amountToStake1 -= amount;
+                lockedAmount1 = amount;
             } else {
                 return 0;
             }
-            _deposit(amountToStake0, amountToStake1);
+            _deposit(amountToStake0, amountToStake1, lockedAmount0, lockedAmount1);
         } else {
-            INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
-                tokenId: stakedTokenId,
-                recipient: address(this),
-                amount0Max: type(uint128).max,
-                amount1Max: type(uint128).max
-            });
-            npm.collect(collectParams);
             npm.burn(stakedTokenId);
             stakedTokenId = 0;
 
             if (asset == address(usdc)) {
-                if (usdcPlus.balanceOf(address(this)) > 0) {
-                    swapSimulator.swap(address(pool), usdcPlus.balanceOf(address(this)), 0, false);
+                amount = usdcPlus.balanceOf(address(this));
+                if (amount > 0) {
+                    usdcPlus.transfer(address(swapSimulator), amount);
+                    swapSimulator.swap(address(pool), amount, 0, false);
                 }
             } else {
-                if (usdc.balanceOf(address(this)) > 0) {
-                    swapSimulator.swap(address(pool), usdc.balanceOf(address(this)), 0, false);
+                amount = usdc.balanceOf(address(this));
+                if (amount > 0) {
+                    usdc.transfer(address(swapSimulator), amount);
+                    swapSimulator.swap(address(pool), amount, 0, true);
                 }
             }
+            swapSimulator.withdrawAll(address(pool));
         }
         return IERC20(asset).balanceOf(address(this));
     }
 
-    function _simulateSwap() internal returns (uint256 amountToSwap, bool zeroForOne) {
-        zeroForOne = usdc.balanceOf(address(this)) > usdcPlus.balanceOf(address(this));
+    function _collect() internal {
+        INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
+            tokenId: stakedTokenId,
+            recipient: address(this),
+            amount0Max: type(uint128).max,
+            amount1Max: type(uint128).max
+        });
+        npm.collect(collectParams);
+    }
+
+    function _simulateSwap(uint256 amount0, uint256 amount1) internal returns (uint256 amountToSwap, bool zeroForOne) {
+        zeroForOne = amount0 > amount1;
 
         BinSearchParams memory binSearchParams;
-        binSearchParams.right = zeroForOne ? usdc.balanceOf(address(this)) : usdcPlus.balanceOf(address(this));
+        binSearchParams.right = zeroForOne ? amount0 : amount1;
         for (uint256 i = 0; i < binSearchIterations; i++) {
             binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;
             if (binSearchParams.mid == 0) {
@@ -365,12 +418,12 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
     address factory;
 
     modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "!admin");
         _;
     }
 
     modifier onlyStrategy() {
-        require(strategy == msg.sender, "Restricted to strategy");
+        require(strategy == msg.sender, "!strategy");
         _;
     }
 
@@ -459,8 +512,12 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         ICLPool pool = ICLPool(pair);
         IERC20 token0 = IERC20(pool.token0());
         IERC20 token1 = IERC20(pool.token1());
-        token0.transfer(msg.sender, token0.balanceOf(address(this)));
-        token1.transfer(msg.sender, token1.balanceOf(address(this)));
+        if (token0.balanceOf(address(this)) > 0) {
+            token0.transfer(msg.sender, token0.balanceOf(address(this)));
+        }
+        if (token1.balanceOf(address(this)) > 0) {
+            token1.transfer(msg.sender, token1.balanceOf(address(this)));
+        }
     }
 
     function _getProportion(
