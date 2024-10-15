@@ -28,9 +28,9 @@ async function main() {
     addProposalItem(rm, 'grantRole', [Roles.FREE_RIDER_ROLE, '0xC4dDdfd7f03557DD66503b46Bdf5C7AdCf3412EC']); // strategy usdplus (fund)
 
     
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
     
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
