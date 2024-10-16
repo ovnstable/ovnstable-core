@@ -69,16 +69,12 @@ contract StrategySiloUsdc is Strategy {
     // --- logic
 
     function _stake(address _asset, uint256 _amount) internal override {
-        console.log("GEORGII: stake. debtToken balance:", IERC20(0x720b4D1b73152DF126cC26fE1756F277F6b0D0bc).balanceOf(address(this)));
         uint256 amount = usdc.balanceOf(address(this));
         if (amount == 0) {
             return;
         }
-        console.log("before approve: usdc amount:", amount);
         usdc.approve(address(silo), amount);
-        console.log("after approve");
         silo.deposit(address(usdc), amount, false);
-        console.log("after deposit");
     }
 
     function _unstake(address _asset, uint256 _amount, address _beneficiary) internal override returns (uint256) {
@@ -116,10 +112,7 @@ contract StrategySiloUsdc is Strategy {
     }
 
     function _claimRewards(address _to) internal override returns (uint256) {
-        console.log("GEORGII claim rewards");
-
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
-        console.log("usdcBalanceBefore:", usdcBalanceBefore);
 
         IShareToken collateralToken = silo.assetStorage(address(usdc)).collateralToken;
         address[] memory assets = new address[](1);
@@ -128,7 +121,6 @@ contract StrategySiloUsdc is Strategy {
         siloIncentivesController.claimRewards(assets, type(uint256).max, address(this));
 
         uint256 siloBalance = siloToken.balanceOf(address(this));
-        console.log("siloBalance:", siloBalance);
 
         if (siloBalance == 0) {
             return 0;
@@ -143,8 +135,6 @@ contract StrategySiloUsdc is Strategy {
             wethUsdcPool,
             siloBalance
         );
-
-        console.log("outSwapUsdcBalance:", outSwapUsdcBalance);
         
         if (outSwapUsdcBalance == 0) {
             return 0;
@@ -164,8 +154,6 @@ contract StrategySiloUsdc is Strategy {
 
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
         uint256 totalRewardsClaimedUsdc = usdcBalanceAfter - usdcBalanceBefore;
-        console.log("usdcBalanceAfter:", usdcBalanceAfter);
-        console.log("totalRewardsClaimedUsdc:", totalRewardsClaimedUsdc);
 
         if (totalRewardsClaimedUsdc > 0) {
             usdc.transfer(_to, totalRewardsClaimedUsdc);
