@@ -20,18 +20,18 @@ async function main() {
     const StrategySiloUsdcWstETH = await getContract('StrategySiloUsdcWstETH', 'base');
     const StrategySiloUsdcCbETH = await getContract('StrategySiloUsdcCbETH', 'base');
 
-    addProposalItem(StrategySiloUsdcUsdPlus.address);
-    addProposalItem(StrategySiloUsdcCbBTC.address);
-    addProposalItem(StrategySiloUsdcWstETH.address);
-    addProposalItem(StrategySiloUsdcCbETH.address);
+    addProposalItem(pm, "addStrategy", [StrategySiloUsdcUsdPlus.address]);
+    addProposalItem(pm, "addStrategy", [StrategySiloUsdcCbBTC.address]);
+    addProposalItem(pm, "addStrategy", [StrategySiloUsdcWstETH.address]);
+    addProposalItem(pm, "addStrategy", [StrategySiloUsdcCbETH.address]);
 
-    await testProposal(addresses, values, abis);
-    //await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
-    function addProposalItem(strategyAddress) {
-        addresses.push(pm.address);
+    function addProposalItem(contract, methodName, params) {
+        addresses.push(contract.address);
         values.push(0);
-        abis.push(pm.interface.encodeFunctionData("addStrategy", [strategyAddress]));
+        abis.push(contract.interface.encodeFunctionData(methodName, params));
     }
 }
 
