@@ -10,7 +10,7 @@ module.exports = async ({ deployments }) => {
     });
 
     await settingSection('', async strategy => {
-        await (await strategy.setParams(await getParams())).wait();
+        await (await strategy.setParams(await getParams(), {gasPrice: "1000000000", gasLimit: "10000000"})).wait();
     });
 };
 
@@ -28,5 +28,5 @@ async function getParams() {
     };
 }
 
-module.exports.tags = ['StrategySiloUsdWUsdPlus'];
+module.exports.tags = ['StrategySiloUsdcUsdPlus'];
 module.exports.strategySiloUsdc = getParams;

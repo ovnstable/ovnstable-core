@@ -15,22 +15,23 @@ async function main() {
 
     let pm = await getContract('PortfolioManager', 'base');
 
-    const StrategySiloUsdcWUsdPlus = await getContract('StrategySiloUsdcWUsdPlus', 'base');
+    const StrategySiloUsdcUsdPlus = await getContract('StrategySiloUsdcUsdPlus', 'base');
     const StrategySiloUsdcCbBTC = await getContract('StrategySiloUsdcCbBTC', 'base');
     const StrategySiloUsdcWstETH = await getContract('StrategySiloUsdcWstETH', 'base');
     const StrategySiloUsdcCbETH = await getContract('StrategySiloUsdcCbETH', 'base');
 
-    addProposalItem(StrategySiloUsdcWUsdPlus, [StrategySiloUsdcWUsdPlus.address]);
-    addProposalItem(StrategySiloUsdcCbBTC, [StrategySiloUsdcCbBTC.address]);
-    addProposalItem(StrategySiloUsdcWstETH, [StrategySiloUsdcWstETH.address]);
-    addProposalItem(StrategySiloUsdcCbETH, [StrategySiloUsdcCbETH.address]);
+    addProposalItem(StrategySiloUsdcUsdPlus.address);
+    addProposalItem(StrategySiloUsdcCbBTC.address);
+    addProposalItem(StrategySiloUsdcWstETH.address);
+    addProposalItem(StrategySiloUsdcCbETH.address);
 
-    await createProposal(filename, addresses, values, abis);
+    await testProposal(addresses, values, abis);
+    //await createProposal(filename, addresses, values, abis);
 
-    function addProposalItem(contract, params) {
-        addresses.push(contract.address);
+    function addProposalItem(strategyAddress) {
+        addresses.push(pm.address);
         values.push(0);
-        abis.push(pm.interface.encodeFunctionData("addStrategy", params));
+        abis.push(pm.interface.encodeFunctionData("addStrategy", [strategyAddress]));
     }
 }
 
