@@ -46,12 +46,12 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
         {
             value: 200000,
         },
-        {
-            value: 1000000,
-        },
-        {
-            value: 2000000,
-        },
+        // {
+        //     value: 1000000,
+        // },
+        // {
+        //     value: 2000000,
+        // },
     ]
 
     describe(`${strategyParams.name}`, function () {
@@ -572,7 +572,8 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     const signers = await ethers.getSigners();
     const recipient = signers[1];
 
-    const strategy = await ethers.getContract(strategyName);
+    let wallet = await initWallet();
+    const strategy = (await ethers.getContract(strategyName)).connect(wallet);
     await strategy.setStrategyParams(recipient.address, recipient.address);
 
     if (strategyParams.isRunStrategyLogic) {

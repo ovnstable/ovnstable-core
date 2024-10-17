@@ -94,7 +94,7 @@ async function deploySection(exec) {
     }
 }
 
-async function settingSection(id, exec) {
+async function settingSection(id, exec, wallet) {
 
     if (hre.ovn === undefined)
         hre.ovn = {};
@@ -104,6 +104,10 @@ async function settingSection(id, exec) {
         let strategyName = hre.ovn.tags;
         try {
             let strategy = await ethers.getContract(strategyName);
+
+            if (wallet) {
+                strategy = strategy.connect(wallet);
+            }
 
             // Ethers by default connect default wallet
             // For ZkSync we should use special zkSync wallet object
