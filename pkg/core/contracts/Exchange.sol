@@ -453,7 +453,7 @@ contract Exchange is Initializable, AccessControlUpgradeable, UUPSUpgradeable, P
         uint256 feeAmount = (_amount * fee) / feeDenominator;
         uint256 resultAmount = _amount - feeAmount;
 
-        if (hasRole(FREE_RIDER_ROLE, msg.sender)) {
+        if (roleManager.hasRole(FREE_RIDER_ROLE, msg.sender)) {
             return (_amount, 0);
         }
 
