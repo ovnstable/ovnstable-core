@@ -119,11 +119,6 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-        // console.log("in unstakeFull");
-        // console.log("_asset:", _asset);
-        // console.log("0:", usdc.balanceOf(address(this)));
-        // console.log("1:", usdcPlus.balanceOf(address(this)));
-
         require(_asset == address(usdc) || _asset == address(usdcPlus), "Some tokens are not compatible");
         require(stakedTokenId != 0, "Not staked");
 
@@ -163,7 +158,7 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        console.log("in claimRewards");
+        // console.log("in claimRewards");
         if (stakedTokenId == 0) {
             return 0;
         }
@@ -306,7 +301,6 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         });
         console.log("decreaseLiquidity");
         npm.decreaseLiquidity(params);
-        console.log("decreasedLiquidity");
         _collect();
         console.log("collected");
 

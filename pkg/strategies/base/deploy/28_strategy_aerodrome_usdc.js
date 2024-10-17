@@ -29,7 +29,6 @@ async function getParams() {
         rewardSwapPool: '0xBE00fF35AF70E8415D0eB605a286D8A45466A4c1',
         tickRange: [0, 1],
         binSearchIterations: 20,
-        swapSimulatorAddress: '',
         npmAddress: BASE.aerodromeNpm,
         aeroTokenAddress: BASE.aero,
         rewardSwapSlippageBP: 50
