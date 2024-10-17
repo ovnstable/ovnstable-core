@@ -158,7 +158,7 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        // console.log("in claimRewards");
+        console.log("in claimRewards");
         if (stakedTokenId == 0) {
             return 0;
         }
@@ -212,12 +212,22 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
     }
 
     function _deposit(int256 _amount0, int256 _amount1) internal {
+        console.log("in deposit");
+
+        console.logInt(_amount0);
+        console.logInt(_amount1);
+        console.log("balance0:", usdc.balanceOf(address(this)));
+        console.log("balance1:", usdcPlus.balanceOf(address(this)));
+
         (uint256 amount0, uint256 amount1) = _rebalance(_amount0, _amount1);
+
+        console.log("amount0:", amount0);
+        console.log("amount1:", amount1);
+        console.log("balance0:", usdc.balanceOf(address(this)));
+        console.log("balance1:", usdcPlus.balanceOf(address(this)));
 
         usdc.approve(address(npm), amount0);
         usdcPlus.approve(address(npm), amount1);
-
-        // console.log("approved");
 
         if (stakedTokenId == 0) {
             // console.log("minting");
@@ -333,6 +343,9 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
     }
 
     function _mint(uint256 amount) internal {
+        if (amount == 0) {
+            return;
+        }
         usdc.approve(address(exchange), amount);
         IExchange.MintParams memory params = IExchange.MintParams({
             asset: address(usdc),
@@ -343,6 +356,9 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
     }
 
     function _redeem(uint256 amount) internal {
+        if (amount == 0) {
+            return;
+        }
         exchange.redeem(address(usdc), amount);
     }
 
@@ -367,10 +383,17 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         newAmount0 = FullMath.mulDiv(totalValue, ratio0, ratio0 + ratio1);
         newAmount1 = FullMath.mulDiv(totalValue, ratio1, ratio0 + ratio1);
 
+        console.log("newAmount0:", newAmount0);
+        console.log("newAmount1:", newAmount1);
+
         if (amount0 > int256(newAmount0)) {
+            console.log("minting:", uint256(amount0) - newAmount0);
             _mint(uint256(amount0) - newAmount0);
+            console.log("exchange minted");
         } else {
+            console.log("redeeming:", uint256(amount1) - newAmount1);
             _redeem(uint256(amount1) - newAmount1);
+            console.log("exchange redeemed");
         }
     }
 

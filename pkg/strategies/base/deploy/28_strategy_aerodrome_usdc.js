@@ -8,7 +8,7 @@ module.exports = async ({deployments}) => {
 
     let wallet = await initWallet();
 
-    // await transferETH(1, wallet.address);
+    await transferETH(1, wallet.address);
 
     await deploySection(async (name) => {
         await deployProxy(name, deployments, save, {
@@ -27,11 +27,13 @@ async function getParams() {
     return {
         pool: '0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147',
         rewardSwapPool: '0xBE00fF35AF70E8415D0eB605a286D8A45466A4c1',
-        tickRange: [0, 1],
+        tickRange: [-2, 1],
         binSearchIterations: 20,
         npmAddress: BASE.aerodromeNpm,
         aeroTokenAddress: BASE.aero,
-        rewardSwapSlippageBP: 50
+        rewardSwapSlippageBP: 50,
+        swapRouter: BASE.aerodromeRouter,
+        exchange: "0x868D69875BF274E7Bd3d8b97b1Acd89dbdeb67af"
     };
 }
 
