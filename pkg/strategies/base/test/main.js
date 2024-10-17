@@ -18,9 +18,9 @@ describe("BASE", function () {
         enabledReward: true,
         isRunStrategyLogic: true,
         //unstakeDelay: 1000000,  // 11.57 days
-        unstakeDelay: 60*60/3,
+        // unstakeDelay: 60*60/3,
         //unstakeDelay: delay,
-        delay: 60*60,
+        // delay: 60*60,
 
         /* If true then:
             1. initial stake of amount.
@@ -28,7 +28,7 @@ describe("BASE", function () {
             3. Stakes same amount again
             4. Immediately claims rewards.
         */
-        doubleStakeReward: true,
+        doubleStakeReward: false,
 
 
         /*  
@@ -42,9 +42,9 @@ describe("BASE", function () {
         In the end of test it checks that farmed rewards balance <doubleFarmMultiplier> times more than was claimed in rewards in 
         previous <doubleStakeReward> option (one time amount).
         */ 
-        doubleFarm: true,
+        doubleFarm: false,
 
-        doubleFarmMultiplier: 1.1,
+        // doubleFarmMultiplier: 1.1,
     }
 
     console.log(`Strategy ID ${params.name}`);

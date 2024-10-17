@@ -5,7 +5,6 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
-import "hardhat/console.sol";
 
 contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
 
@@ -100,7 +99,6 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         uint256 _amount
     ) internal override {
         _deposit(int256(usdc.balanceOf(address(this))), int256(usdcPlus.balanceOf(address(this))));
-        console.log("staked");
     }
 
     function _unstake(
@@ -126,22 +124,12 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
     }
 
     function _totalValue() internal view returns (uint256) {
-        // console.log("in totalValue");
-        // console.log("usdc:", address(usdc));
-        // console.log("usdcPlus:", address(usdcPlus));
-        // console.log("usdc.balanceOf(address(this)):", usdc.balanceOf(address(this)));
-        // console.log("usdcPlus.balanceOf(address(this)):", usdcPlus.balanceOf(address(this)));
-
         uint256 amount0;
         uint256 amount1;
 
-        console.log(stakedTokenId);
-
         if (stakedTokenId != 0) {
             (uint160 sqrtRatioX96,,,,,) = pool.slot0();
-            // console.log("sqrtRatioX96:", sqrtRatioX96);
             (,,,,,,, uint128 liquidity,,,,) = npm.positions(stakedTokenId);
-            // console.log("liquidity:", liquidity);
             (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtRatioX96,
                 TickMath.getSqrtRatioAtTick(tickRange[0]),
@@ -149,16 +137,12 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
                 liquidity
             );
         }
-        // console.log("amount0:", amount0);
-        // console.log("amount1:", amount1);
 
         uint256 totalValue = amount0 + amount1 + usdc.balanceOf(address(this)) + usdcPlus.balanceOf(address(this));
-        console.log("totalValue:", totalValue);
         return totalValue;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        console.log("in claimRewards");
         if (stakedTokenId == 0) {
             return 0;
         }
@@ -171,9 +155,6 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
 
         uint256 amountAero = aero.balanceOf(address(this));
         uint256 amountUsdcPlus = usdcPlus.balanceOf(address(this)) - balanceUsdcPlusBefore;
-
-        console.log("aero", amountAero);
-        console.log("usdc+", amountUsdcPlus);
 
         if (amountAero > 0) {
             uint256 usdcAfterSwap = AerodromeLibrary.getAmountsOut(
@@ -195,7 +176,6 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
                 );
             }
         }
-        console.log("111");
         if (amountUsdcPlus > 0) {
             _redeem(amountUsdcPlus);
         }
@@ -204,44 +184,17 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         if (claimedUsdc > 0) {
             usdc.transfer(_beneficiary, claimedUsdc);
         }
-        console.log("666");
         npm.approve(address(gauge), stakedTokenId);
         gauge.deposit(stakedTokenId);
-        console.log("777");
         return claimedUsdc;
     }
 
     function _deposit(int256 _amount0, int256 _amount1) internal {
-        console.log("in deposit");
-
-        console.logInt(_amount0);
-        console.logInt(_amount1);
-        console.log("balance0:", usdc.balanceOf(address(this)));
-        console.log("balance1:", usdcPlus.balanceOf(address(this)));
-
         (uint256 amount0, uint256 amount1) = _rebalance(_amount0, _amount1);
-
-        console.log("amount0:", amount0);
-        console.log("amount1:", amount1);
-        console.log("balance0:", usdc.balanceOf(address(this)));
-        console.log("balance1:", usdcPlus.balanceOf(address(this)));
-
         usdc.approve(address(npm), amount0);
         usdcPlus.approve(address(npm), amount1);
 
         if (stakedTokenId == 0) {
-            // console.log("minting");
-            // console.log("mint params:");
-            // console.log("token0:", pool.token0());
-            // console.log("token1:", pool.token1());
-            // console.log("tickSpacing:", uint256(int256(pool.tickSpacing())));
-            // console.log("tickLower:", uint256(int256(tickRange[0])));
-            // console.log("tickUpper:", uint256(int256(tickRange[1])));
-            // console.log("amount0Desired:", amount0);
-            // console.log("amount1Desired:", amount1);
-            // console.log("amount0Min:", 0);
-            // console.log("amount1Min:", 0);
-            // console.log("recipient:", address(this));
             INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
                 token0: pool.token0(),
                 token1: pool.token1(),
@@ -257,18 +210,14 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
                 sqrtPriceX96: 0
             });
             (stakedTokenId,,,) = npm.mint(params);
-            console.log("minted");
 
             npm.approve(address(gauge), stakedTokenId);
             gauge.deposit(stakedTokenId);
-            console.log("deposited");
 
             emit Staked(stakedTokenId);
         } else {
-            console.log("IL");
             if (gauge.stakedContains(address(this), stakedTokenId)) {
                 gauge.withdraw(stakedTokenId);
-                console.log("nft W");
             }
 
             INonfungiblePositionManager.IncreaseLiquidityParams memory params = INonfungiblePositionManager.IncreaseLiquidityParams({
@@ -286,18 +235,11 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
     }
 
     function _withdraw(address asset, uint256 amount, bool isFull) internal returns (uint256) {
-        // console.log("in withdraw");
-        console.log("asset:", asset);
-        console.log("amount:", amount);
-        // console.log("isFull:", isFull);
-        // console.log("stakedTokenId:", stakedTokenId);
         if (gauge.stakedContains(address(this), stakedTokenId)) {
             gauge.withdraw(stakedTokenId);
-            console.log("nft withdrew");
         }
 
         (,,,,,,, uint128 liquidity,,,,) = npm.positions(stakedTokenId);
-        console.log("liquidity:", liquidity);
         if (liquidity == 0) {
             return 0;
         }
@@ -309,26 +251,20 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
             amount1Min: 0,
             deadline: block.timestamp
         });
-        console.log("decreaseLiquidity");
         npm.decreaseLiquidity(params);
         _collect();
-        console.log("collected");
 
         if (!isFull) {
             int256 amount0 = int256(usdc.balanceOf(address(this)));
             int256 amount1 = int256(usdcPlus.balanceOf(address(this)));
-            console.log("amount0:", uint256(amount0));
-            console.log("amount1:", uint256(amount1));
 
             if (asset == address(usdc) ) {
                 amount0 -= int256(amount);
             } else {
                 amount1 -= int256(amount);
             }
-            console.log("depositing");
             _deposit(amount0, amount1);
         } else {
-            console.log("burning");
             npm.burn(stakedTokenId);
             stakedTokenId = 0;
 
@@ -338,7 +274,6 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
                 _mint(usdc.balanceOf(address(this)));
             }
         }
-        console.log("returning:", IERC20(asset).balanceOf(address(this)));
         return IERC20(asset).balanceOf(address(this));
     }
 
@@ -383,17 +318,10 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         newAmount0 = FullMath.mulDiv(totalValue, ratio0, ratio0 + ratio1);
         newAmount1 = FullMath.mulDiv(totalValue, ratio1, ratio0 + ratio1);
 
-        console.log("newAmount0:", newAmount0);
-        console.log("newAmount1:", newAmount1);
-
         if (amount0 > int256(newAmount0)) {
-            console.log("minting:", uint256(amount0) - newAmount0);
             _mint(uint256(amount0) - newAmount0);
-            console.log("exchange minted");
         } else {
-            console.log("redeeming:", uint256(amount1) - newAmount1);
             _redeem(uint256(amount1) - newAmount1);
-            console.log("exchange redeemed");
         }
     }
 

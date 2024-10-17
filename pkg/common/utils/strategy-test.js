@@ -34,18 +34,18 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
         {
             value: 200,
         },
-        // {
-        //     value: 2000,
-        // },
-        // {
-        //     value: 20000,
-        // },
-        // {
-        //     value: 100000,
-        // },
-        // {
-        //     value: 200000,
-        // },
+        {
+            value: 2000,
+        },
+        {
+            value: 20000,
+        },
+        {
+            value: 100000,
+        },
+        {
+            value: 200000,
+        },
         // {
         //     value: 1000000,
         // },
