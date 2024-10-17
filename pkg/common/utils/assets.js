@@ -7,6 +7,12 @@ let COMMON = {
 }
 
 let BASE = {
+    // fund
+    fund: "0xEA4eE8e40109EC34C5eac187919427bcD9645D4E",
+    fundEx: "0x92AB4cb069Ce1C0598bEBE24e3915484F82337B5",
+
+    ex: "0x7cb1B38591021309C64f451859d79312d8Ca2789",
+
     // tokens
     usdPlus: "0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376",
     daiPlus: "0x65a2508C429a6078a7BC2f7dF81aB575BD9D9275",
@@ -162,6 +168,7 @@ let ZKSYNC = {
 }
 
 let ARBITRUM = {
+
     // tokens
     usdPlus: "0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65",
     daiPlus: "0xeb8E93A0c7504Bffd8A8fFa56CD754c63aAeBFe8",

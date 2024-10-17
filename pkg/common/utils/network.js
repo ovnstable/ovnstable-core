@@ -58,7 +58,7 @@ function getGasPrice() {
     if (!gasPrice) throw new Error('Unknown gasPrice. Please specify GAS_PRICE in env');
 
     let wei = gasPrice * 1e9;
-    console.log(`[Node] Gas price:  Gwei: [${gasPrice}] Wei: [${wei}]`);
+    console.log(`[Node] Gas price: Gwei: [${gasPrice}] Wei: [${wei}]`);
 
     return wei;
 }
