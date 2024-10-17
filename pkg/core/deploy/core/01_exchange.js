@@ -5,4 +5,4 @@ module.exports = async ({deployments}) => {
     await deployProxy('Exchange', deployments, save);
 };
 
-module.exports.tags = ['bsc', 'Exchange'];
+module.exports.tags = ['Exchange'];
