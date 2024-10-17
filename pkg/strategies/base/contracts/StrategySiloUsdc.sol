@@ -10,8 +10,11 @@ import {AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/
 import "hardhat/console.sol";
 
 contract StrategySiloUsdc is Strategy {
-    // --- params
+    // minimum USDC balance to withdraw in rewards
+    uint256 internal constant MIN_USDC_REWARDS = 1_000_000;
 
+    // --- params
+    
     IERC20 public usdc;
     address public weth;
     ISilo public silo;
@@ -74,6 +77,7 @@ contract StrategySiloUsdc is Strategy {
             return;
         }
         usdc.approve(address(silo), amount);
+         // deposit with collateralOnly=false in order to earn interest. Withdraw also with collateralOnly=false.
         silo.deposit(address(usdc), amount, false);
     }
 
@@ -89,7 +93,9 @@ contract StrategySiloUsdc is Strategy {
 
         // Need to update internal cumulative rate for recalculating full nav.
         // If you don’t do this, you’ll have pennies in nav (0.000001 for example ) left after unstakeFull
+        // Georgii: I leave it as is although no difference noticed b/w this and straigthforward withdrawal.
         silo.withdraw(address(usdc), 1, false);
+
         ISiloLens siloLens_ = ISiloLens(siloLens);
 
         uint256 balanceInCollateral = siloLens_.collateralBalanceOfUnderlying(silo, address(usdc), address(this));
@@ -101,10 +107,12 @@ contract StrategySiloUsdc is Strategy {
 
     function netAssetValue() external view override returns (uint256) {
         ISiloLens siloLens_ = ISiloLens(siloLens);
-        uint256 balanceInCollateral = siloLens_.collateralBalanceOfUnderlying(silo, address(usdc), address(this));
         uint256 balanceInCash = usdc.balanceOf(address(this));
 
-        return balanceInCollateral + balanceInCash;
+        // calculate user deposited amount with interest
+        uint256 uint256depAmount = siloLens_.getDepositAmount(silo, address(usdc), address(this), block.timestamp);
+
+        return uint256depAmount + balanceInCash;
     }
 
     function liquidationValue() external view override returns (uint256) {
@@ -136,7 +144,7 @@ contract StrategySiloUsdc is Strategy {
             siloBalance
         );
         
-        if (outSwapUsdcBalance == 0) {
+        if (outSwapUsdcBalance < MIN_USDC_REWARDS) {
             return 0;
         }
 

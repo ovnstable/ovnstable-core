@@ -64,6 +64,7 @@ let BASE = {
     compoundRewards: '0x123964802e6ABabBE1Bc9547D72Ef1B69B00A6b1',
     //silo
     siloLens: '0x196D312fd81412B6443620Ca81B41103b4E123FD',
+    siloIncentivesController: '0x626e6A8D4EB33D77A8b631ABfE2E98dA69E3100e',
     // sonne
     sonneUnitroller: '0x1DB2466d9F5e10D7090E7152B68d62703a2245F0',
     sonneUsdbc: '0x225886C9beb5eeE254F79d58bbD80cf9F200D4d0',

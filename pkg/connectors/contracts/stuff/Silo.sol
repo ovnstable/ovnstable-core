@@ -409,6 +409,19 @@ interface IPriceProvider {
 /// @notice Utility contract that simplifies reading data from Silo protocol contracts
 /// @custom:security-contact security@silo.finance
 interface ISiloLens {
+    /// @notice Calculates current deposit (with interest) for user
+    /// Collateral only deposits are not counted here. To get collateral only deposit call:
+    /// `_silo.assetStorage(_asset).collateralOnlyDeposits`
+    /// @dev Interest is calculated based on the provided timestamp with is expected to be current time.
+    /// @param _silo Silo address from which to read data
+    /// @param _asset token address for which calculation are done
+    /// @param _user account for which calculation are done
+    /// @param _timestamp timestamp used for interest calculations
+    /// @return totalUserDeposits amount of asset user posses
+    function getDepositAmount(ISilo _silo, address _asset, address _user, uint256 _timestamp)
+        external
+        view
+        returns (uint256 totalUserDeposits);
 
     /// @dev Amount of token that is available for borrowing.
     /// @param _silo Silo address from which to read data

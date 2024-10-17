@@ -304,6 +304,7 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
                         await ethers.provider.send('evm_mine');
                     }
                     console.log("----a----");
+                    const navBeforeUnstake = new BigNumber((await strategy.netAssetValue()).toString());
                     let tx = await (await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true)).wait();
                     console.log("----b----");
                     let rewardEvent = tx.events.find((e) => e.event === 'Reward');
@@ -320,6 +321,8 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
                     freeAsset = new BigNumber((await asset.balanceOf(strategy.address)).toString());
 
                     let items = [
+                        ...createCheck('unstakeFull', 'rewardAmount', assetValue, rewardAmount),
+                        ...createCheck('unstakeFull', 'NAV before unstake', assetValue, navBeforeUnstake),
                         ...createCheck('unstakeFull', 'balance', assetValue, balanceAsset, VALUE.times(9996).div(10000), undefined),
                         ...createCheck('unstakeFull', 'netAssetValue', assetValue, netAssetValue, new BigNumber(0), new BigNumber(0)),
                         ...createCheck('unstakeFull', 'liquidationValue', assetValue, liquidationValue, new BigNumber(0), new BigNumber(0)),

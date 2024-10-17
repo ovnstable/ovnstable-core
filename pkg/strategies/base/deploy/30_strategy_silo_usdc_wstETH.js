@@ -18,7 +18,7 @@ async function getParams() {
     return {
         usdc: BASE.usdc,
         weth: BASE.weth,
-        silo: '0xb82a644a112AD609B89C684Ce2B73757f00D9C3D', // wUSD+, WETH, USDC market
+        silo: '0xEB42de7d17dfAFfD03AF48c2A51c3FB7274d3396', // wstETH, WETH, USDC market
         siloIncentivesController: BASE.siloIncentivesController,
         siloLens: BASE.siloLens,
         siloToken: BASE.siloToken,        
@@ -28,5 +28,5 @@ async function getParams() {
     };
 }
 
-module.exports.tags = ['StrategySiloUsdWUsdPlus'];
+module.exports.tags = ['StrategySiloUsdcWstETH'];
 module.exports.strategySiloUsdc = getParams;

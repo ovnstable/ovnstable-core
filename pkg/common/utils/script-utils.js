@@ -628,7 +628,7 @@ async function getPrice() {
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('10')).div(100);
         gasPrice = gasPrice.add(percentage);
-        return { gasPrice: 1000000000, gasLimit: 30000000 }
+        return { gasPrice: 100000000000, gasLimit: 30000000 }
     } else if (process.env.ETH_NETWORK === 'LINEA') {
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('5')).div(100);

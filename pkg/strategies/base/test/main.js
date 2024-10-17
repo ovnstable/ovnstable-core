@@ -18,9 +18,9 @@ describe("BASE", function () {
         enabledReward: true,
         isRunStrategyLogic: true,
         //unstakeDelay: 1000000,  // 11.57 days
-        unstakeDelay: 3*24*60*60,    // around a month
+        unstakeDelay: 60*60/3,
         //unstakeDelay: delay,
-        delay: 1*60*60/3,
+        delay: 60*60,
 
         /* If true then:
             1. initial stake of amount.
