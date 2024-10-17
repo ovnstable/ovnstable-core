@@ -29,6 +29,9 @@ function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
             value: 20,
         },
         {
+            value: 100,
+        },
+        {
             value: 200,
         },
         {
@@ -122,12 +125,18 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
                     let balanceAssetBefore = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
                     let amount = toAsset(stakeValue / 2);
-                    await asset.connect(recipient).transfer(strategy.address, amount);
-                    let hedgeExchanger = await ethers.getContractAt(HedgeExchangerABI, await strategy.hedgeExchanger());
 
-                    await strategy.connect(recipient).stake(asset.address, amount);
+                    console.log(`before transfer. NAV: ${await strategy.netAssetValue()}`);
                     await asset.connect(recipient).transfer(strategy.address, amount);
+
+                    console.log(`before first stake. NAV: ${await strategy.netAssetValue()}`);
                     await strategy.connect(recipient).stake(asset.address, amount);
+                    console.log(`after first stake. NAV: ${await strategy.netAssetValue()}`);
+
+                    await asset.connect(recipient).transfer(strategy.address, amount);
+                    console.log(`before second stake. NAV: ${await strategy.netAssetValue()}`);
+                    await strategy.connect(recipient).stake(asset.address, amount);
+                    console.log(`after second stake. NAV: ${await strategy.netAssetValue()}`);
 
                     let balanceAssetAfter = new BigNumber((await asset.balanceOf(recipient.address)).toString());
 
@@ -295,6 +304,7 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
                         await ethers.provider.send('evm_mine');
                     }
                     console.log("----a----");
+                    const navBeforeUnstake = new BigNumber((await strategy.netAssetValue()).toString());
                     let tx = await (await strategy.connect(recipient).unstake(asset.address, 0, recipient.address, true)).wait();
                     console.log("----b----");
                     let rewardEvent = tx.events.find((e) => e.event === 'Reward');
@@ -311,7 +321,9 @@ function unstakeFull(strategyParams, network, assetName, values, runStrategyLogi
                     freeAsset = new BigNumber((await asset.balanceOf(strategy.address)).toString());
 
                     let items = [
-                        ...createCheck('unstakeFull', 'balance', assetValue, balanceAsset, VALUE.times(9996).div(10000), new BigNumber(-1)),
+                        ...createCheck('unstakeFull', 'rewardAmount', assetValue, rewardAmount),
+                        ...createCheck('unstakeFull', 'NAV before unstake', assetValue, navBeforeUnstake),
+                        ...createCheck('unstakeFull', 'balance', assetValue, balanceAsset, VALUE.times(9996).div(10000), undefined),
                         ...createCheck('unstakeFull', 'netAssetValue', assetValue, netAssetValue, new BigNumber(0), new BigNumber(0)),
                         ...createCheck('unstakeFull', 'liquidationValue', assetValue, liquidationValue, new BigNumber(0), new BigNumber(0)),
                         ...createCheck('unstakeFull', 'freeAsset', assetValue, freeAsset, new BigNumber(0), new BigNumber(0)),
@@ -381,40 +393,52 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
 
                 sharedBeforeEach(`rewards ${stakeValue}`, async () => {
 
-                    let assetValue = toAsset(stakeValue);
-                    FREE_ASSET_DELTA = new BigNumber(assetValue).times(new BigNumber(freeAssetPercent)).div(100);
+                    try {
+                        balanceAsset = new BigNumber("-999999999999999999999");
+                        let assetValue = toAsset(stakeValue);
+                        FREE_ASSET_DELTA = new BigNumber(assetValue).times(new BigNumber(freeAssetPercent)).div(100);
 
-                    await asset.transfer(recipient.address, assetValue);
-                    await asset.connect(recipient).transfer(strategy.address, assetValue);
-                    await strategy.connect(recipient).stake(asset.address, assetValue);
-
-                    let delay;
-                    if (strategyParams.delay) {
-                        delay = strategyParams.delay;
-                    } else {
-                        delay = 7 * 24 * 60 * 60 * 1000;
-                    }
-                    await ethers.provider.send("evm_increaseTime", [delay]);
-                    await ethers.provider.send('evm_mine');
-
-                    if (strategyParams.doubleStakeReward) {
                         await asset.transfer(recipient.address, assetValue);
+                        console.log(`Stake/claim rewards`);
+                        console.log(`before transfer. strategy NAV: ${await strategy.netAssetValue()}`);
                         await asset.connect(recipient).transfer(strategy.address, assetValue);
+                        console.log(`before stake. strategy NAV: ${await strategy.netAssetValue()}`);
                         await strategy.connect(recipient).stake(asset.address, assetValue);
+                        console.log(`after stake. strategy NAV: ${await strategy.netAssetValue()}`);
+
+                        let delay;
+                        if (strategyParams.delay) {
+                            delay = strategyParams.delay;
+                        } else {
+                            delay = 7 * 24 * 60 * 60;
+                        }
+                        await ethers.provider.send("evm_increaseTime", [delay]);
+                        await ethers.provider.send('evm_mine');
+
+                        if (strategyParams.doubleStakeReward) {
+                            console.log(`doubleStakeReward. before transfer. NAV: ${await strategy.netAssetValue()}`);
+                            await asset.transfer(recipient.address, assetValue);
+                            await asset.connect(recipient).transfer(strategy.address, assetValue);
+                            console.log(`doubleStakeReward. before stake. NAV: ${await strategy.netAssetValue()}`);
+                            await strategy.connect(recipient).stake(asset.address, assetValue);
+                            console.log(`doubleStakeReward. after stake. NAV: ${await strategy.netAssetValue()}`);
+                        }
+
+                        await strategy.connect(recipient).claimRewards(recipient.address);
+
+                        balanceAsset = new BigNumber((await asset.balanceOf(recipient.address)).toString());
+                        //balances.push(balanceAsset.toString());
+                        freeAsset = new BigNumber((await asset.balanceOf(strategy.address)).toString());
+                        let items = [
+                            ...createCheck('claimRewards', 'rewards', new BigNumber(0), balanceAsset, new BigNumber(0), undefined, true),
+                            ...createCheck('claimRewards', 'freeAsset', new BigNumber(0), freeAsset, new BigNumber(0), FREE_ASSET_DELTA.plus(FREE_ASSET_DELTA)),
+                        ]
+    
+                        console.table(items);    
                     }
-
-                    await strategy.connect(recipient).claimRewards(recipient.address);
-
-                    balanceAsset = new BigNumber((await asset.balanceOf(recipient.address)).toString());
-                    balances.push(balanceAsset.toString());
-                    freeAsset = new BigNumber((await asset.balanceOf(strategy.address)).toString());
-
-                    let items = [
-                        ...createCheck('claimRewards', 'rewards', new BigNumber(0), balanceAsset, new BigNumber(0), new BigNumber(-1), true),
-                        ...createCheck('claimRewards', 'freeAsset', new BigNumber(0), freeAsset, new BigNumber(0), FREE_ASSET_DELTA.plus(FREE_ASSET_DELTA)),
-                    ]
-
-                    console.table(items);
+                    finally {
+                        balances.push(balanceAsset.toString());
+                    }                   
                 });
 
                 it(`Rewards > 0`, async function () {
@@ -467,30 +491,30 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
 
                     sharedBeforeEach(`rewards ${stakeValue}`, async () => {
 
-                        let assetValue = toAsset(stakeValue);
-                        let totalStaked = assetValue;
+                        let assetValue = new BigNumber(toAsset(stakeValue));
+                        let totalStaked = new BigNumber(assetValue);
                         FREE_ASSET_DELTA = new BigNumber(assetValue).times(new BigNumber(freeAssetPercent)).div(100);
 
-                        await asset.transfer(recipient.address, assetValue);
-                        await asset.connect(recipient).transfer(strategy.address, assetValue);
-                        await strategy.connect(recipient).stake(asset.address, assetValue);
+                        await asset.transfer(recipient.address, assetValue.toString());
+                        await asset.connect(recipient).transfer(strategy.address, assetValue.toString());
+                        await strategy.connect(recipient).stake(asset.address, assetValue.toString());
 
                         if (strategyParams.doubleStakeReward) {
-                            await asset.transfer(recipient.address, assetValue);
-                            await asset.connect(recipient).transfer(strategy.address, assetValue);
-                            await strategy.connect(recipient).stake(asset.address, assetValue);
-                            totalStaked += assetValue;
+                            await asset.transfer(recipient.address, assetValue.toString());
+                            await asset.connect(recipient).transfer(strategy.address, assetValue.toString());
+                            await strategy.connect(recipient).stake(asset.address, assetValue.toString());
+                            totalStaked = totalStaked.plus(assetValue);
                         }
 
-                        await asset.transfer(recipient.address, totalStaked);
-                        await asset.connect(recipient).transfer(strategy.address, totalStaked);
-                        await strategy.connect(recipient).stake(asset.address, totalStaked);
+                        await asset.transfer(recipient.address, totalStaked.toString());
+                        await asset.connect(recipient).transfer(strategy.address, totalStaked.toString());
+                        await strategy.connect(recipient).stake(asset.address, totalStaked.toString());
 
                         let delay;
                         if (strategyParams.delay) {
                             delay = strategyParams.delay;
                         } else {
-                            delay = 7 * 24 * 60 * 60 * 1000;
+                            delay = 7 * 24 * 60 * 60;
                         }
                         await ethers.provider.send("evm_increaseTime", [delay]);
                         await ethers.provider.send('evm_mine');
@@ -503,16 +527,18 @@ function claimRewards(strategyParams, network, assetName, values, runStrategyLog
                         freeAsset = new BigNumber((await asset.balanceOf(strategy.address)).toString());
 
                         let items = [
-                            ...createCheck('claimRewards', 'double rewards', new BigNumber(0), balanceAssetDoubleFarm, balanceAsset.times(new BigNumber(1.2)), new BigNumber(-1), true),
+                            ...createCheck('claimRewards', 'double rewards', new BigNumber(0), balanceAssetDoubleFarm,
+                            balanceAsset.times(new BigNumber(strategyParams.doubleFarmMultiplier)), undefined, true),
                             ...createCheck('claimRewards', 'freeAsset', new BigNumber(0), freeAsset, new BigNumber(0), FREE_ASSET_DELTA.plus(FREE_ASSET_DELTA)),
                         ]
 
                         console.table(items);
                     });
 
-                    it(`Balance asset after double farm 1.2 times greater than balance asset after single farm`, async function () {
-                        if (balanceAssetDoubleFarm > 0) {
-                            expect(balanceAssetDoubleFarm.toNumber()).to.greaterThan(balanceAsset.times(new BigNumber(1.2)).toNumber());
+                    it(`Balance asset after double farm ${strategyParams.doubleFarmMultiplier} times greater than balance asset after single farm`, async function () {
+                        // if number is negative it means there was an error during rewards stake/claim (prev test set), so we don't compare.
+                        if (balanceAssetDoubleFarm > 0 && !balanceAsset.isNegative()) { 
+                            expect(balanceAssetDoubleFarm.toNumber()).to.greaterThan(balanceAsset.times(new BigNumber(strategyParams.doubleFarmMultiplier)).toNumber());
                         }
                     });
 
@@ -582,7 +608,34 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     }
 }
 
-function createCheck(type, name, assetValue, currentValue, minValue, maxValue, isGt, isLt) {
+// Provider better visual representation – one check parameter is printer on one line, with min/max, distances from min / to max, etc.
+function createCheck(type, name, assetValue, providedAssetValue, minExpectedValue, maxExpectedValue, strictlyGreaterMin, strictlyLessMax) {
+    const minValProvided = typeof minExpectedValue !== "undefined";
+    const maxValProvided = typeof maxExpectedValue !== "undefined";
+
+    const minValDisplay = minValProvided ? fromAsset(minExpectedValue.toString()) : "-∞";
+    const maxValDisplay = maxValProvided ? fromAsset(maxExpectedValue.toString()) : "∞";
+
+    const minBracket = strictlyGreaterMin || !minValProvided ? "(" : "[";
+    const maxBracket = strictlyLessMax || !maxValProvided ? ")" : "]";
+    const line = {        
+        type,
+        asset: fromAsset(assetValue.toString()),
+        name,
+        interval: `${minBracket}${minValDisplay}; ${maxValDisplay}${maxBracket}`,
+        provided: fromAsset(providedAssetValue.toString()),
+        fromMin: minValProvided ? fromAsset(providedAssetValue.minus(minExpectedValue).toString()) : "-",
+        toMax: maxValProvided ? fromAsset(maxExpectedValue.minus(providedAssetValue).toString()) : "-",
+        status: (
+                (!minValProvided || (strictlyGreaterMin ? providedAssetValue.gt(minExpectedValue) : providedAssetValue.gte(minExpectedValue))) && 
+                (!maxValProvided || (strictlyLessMax ? providedAssetValue.lt(maxExpectedValue) : providedAssetValue.lte(maxExpectedValue)))
+        ) ? '✔' : '✘',
+    };
+
+    return [line];
+}
+
+function createCheck_old(type, name, assetValue, currentValue, minValue, maxValue, isGt, isLt) {
 
     if (minValue.eq(maxValue)) {
 
