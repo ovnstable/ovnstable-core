@@ -5,6 +5,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@overnight-contracts/core/contracts/interfaces/IExchange.sol";
+import "hardhat/console.sol";
 
 contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
 
@@ -44,12 +45,6 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         uint256 rewardSwapSlippageBP;
         address swapRouter;
         address exchange;
-    }
-
-    struct BinSearchParams {
-        uint256 left;
-        uint256 right;
-        uint256 mid;
     }
 
     // ---  constructor
@@ -98,7 +93,7 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         address _asset,
         uint256 _amount
     ) internal override {
-        _deposit(int256(usdc.balanceOf(address(this))), int256(usdcPlus.balanceOf(address(this))));
+        _deposit(usdc.balanceOf(address(this)), usdcPlus.balanceOf(address(this)), 0);
     }
 
     function _unstake(
@@ -106,21 +101,21 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
-        require(_asset == address(usdc) || _asset == address(usdcPlus), "Some tokens are not compatible");
+        require(_asset == address(usdc), "Some tokens are not compatible");
         require(_amount > 0, "Amount is 0");
         require(stakedTokenId != 0, "Not staked");
 
-        return _withdraw(_asset, _amount, false);
+        return _withdraw(_amount, false);
     }
 
     function _unstakeFull(
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-        require(_asset == address(usdc) || _asset == address(usdcPlus), "Some tokens are not compatible");
+        require(_asset == address(usdc), "Some tokens are not compatible");
         require(stakedTokenId != 0, "Not staked");
 
-        return _withdraw(_asset, 0, true);
+        return _withdraw(0, true);
     }
 
     function _totalValue() internal view returns (uint256) {
@@ -189,8 +184,8 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         return claimedUsdc;
     }
 
-    function _deposit(int256 _amount0, int256 _amount1) internal {
-        (uint256 amount0, uint256 amount1) = _rebalance(_amount0, _amount1);
+    function _deposit(uint256 _amount0, uint256 _amount1, uint256 _negativeAmount0) internal {
+        (uint256 amount0, uint256 amount1) = _rebalance(_amount0, _amount1, _negativeAmount0);
         usdc.approve(address(npm), amount0);
         usdcPlus.approve(address(npm), amount1);
 
@@ -234,7 +229,7 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         }
     }
 
-    function _withdraw(address asset, uint256 amount, bool isFull) internal returns (uint256) {
+    function _withdraw(uint256 amount, bool isFull) internal returns (uint256) {
         if (gauge.stakedContains(address(this), stakedTokenId)) {
             gauge.withdraw(stakedTokenId);
         }
@@ -255,26 +250,13 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         _collect();
 
         if (!isFull) {
-            int256 amount0 = int256(usdc.balanceOf(address(this)));
-            int256 amount1 = int256(usdcPlus.balanceOf(address(this)));
-
-            if (asset == address(usdc) ) {
-                amount0 -= int256(amount);
-            } else {
-                amount1 -= int256(amount);
-            }
-            _deposit(amount0, amount1);
+            _deposit(usdc.balanceOf(address(this)), usdcPlus.balanceOf(address(this)), amount);
         } else {
             npm.burn(stakedTokenId);
             stakedTokenId = 0;
-
-            if (asset == address(usdc)) {
-                _redeem(usdcPlus.balanceOf(address(this)));
-            } else {
-                _mint(usdc.balanceOf(address(this)));
-            }
+            _redeem(usdcPlus.balanceOf(address(this)));
         }
-        return IERC20(asset).balanceOf(address(this));
+        return usdc.balanceOf(address(this));
     }
 
     function _mint(uint256 amount) internal {
@@ -287,14 +269,16 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
             amount: amount,
             referral: ""
         });
-        exchange.mint(params);
+        uint256 _amount = exchange.mint(params);
+        require(_amount == amount, "mint amount != requested amount");
     }
 
     function _redeem(uint256 amount) internal {
         if (amount == 0) {
             return;
         }
-        exchange.redeem(address(usdc), amount);
+        uint256 _amount = exchange.redeem(address(usdc), amount);
+        require(_amount == amount, "redeem amount != requested amount");
     }
 
     function _collect() internal {
@@ -308,20 +292,28 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
     }
 
     function _rebalance(
-        int256 amount0,
-        int256 amount1
+        uint256 amount0,
+        uint256 amount1,
+        uint256 negativeAmount0
     ) internal returns (uint256 newAmount0, uint256 newAmount1) {
-        require(amount0 + amount1 > 0, "Negative rebalance");
+        require(amount0 + amount1 > negativeAmount0, "Negative rebalance");
         (uint256 ratio0, uint256 ratio1) = _getProportion();
 
-        uint256 totalValue = uint256(amount0 + amount1);
-        newAmount0 = FullMath.mulDiv(totalValue, ratio0, ratio0 + ratio1);
+        if (negativeAmount0 < amount0) {
+            amount0 -= negativeAmount0;
+            negativeAmount0 = 0;
+        } else {
+            negativeAmount0 -= amount0;
+            amount0 = 0;
+        }
+        uint256 totalValue = uint256(amount0 + amount1 - negativeAmount0);
+        newAmount0 = FullMath.mulDiv(totalValue, ratio0, ratio0 + ratio1) + negativeAmount0;
         newAmount1 = FullMath.mulDiv(totalValue, ratio1, ratio0 + ratio1);
 
-        if (amount0 > int256(newAmount0)) {
-            _mint(uint256(amount0) - newAmount0);
+        if (amount0 > newAmount0) {
+            _mint(amount0 - newAmount0);
         } else {
-            _redeem(uint256(amount1) - newAmount1);
+            _redeem(amount1 - newAmount1);
         }
     }
 
