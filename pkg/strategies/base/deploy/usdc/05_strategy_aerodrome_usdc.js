@@ -44,3 +44,4 @@ async function getParams() {
 }
 
 module.exports.tags = ['StrategyAerodromeUsdc'];
+module.exports.strategyAerodromeUsdcParams = getParams;

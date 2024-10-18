@@ -15,16 +15,27 @@ const {ethers} = require("hardhat");
 
 async function main() {
 
-    let strategy = await getContract('StrategyMoonwell', 'base');
+    let wallet = await initWallet();
 
+    let strategy = await getContract('StrategyAerodromeUsdc', 'base_usdc');
+    let pm = await getContract('PortfolioManager', "base_usdc");
+    let roleManager = await getContract('RoleManager', "base_usdc");
     let usdc = await getERC20ByAddress(BASE.usdc);
 
-    // await usdc.transfer(strategy.address, "2000000");
+    // await (await strategy.setStrategyParams(wallet.address, roleManager.address)).wait();
 
-    console.log((await strategy.netAssetValue()).toString());
-    // await strategy.stake(BASE.usdc, "2000000");
-    // await strategy.unstake(BASE.usdc, "1000000", "0xcd8562CD85fD93C7e2E80B4Cf69097E5562a76f9", false);
+    // await usdc.connect(wallet).transfer(strategy.address, toE6(1));
+
+    // console.log((await strategy.swapRouter()).toString());
     // console.log((await strategy.netAssetValue()).toString());
+
+    // await strategy.stake(BASE.usdc, toE6(1));
+    // console.log((await strategy.netAssetValue()).toString());
+
+    // await strategy.unstake(BASE.usdc, 0, wallet.address, true);
+    // console.log((await strategy.netAssetValue()).toString());
+
+    await (await strategy.setStrategyParams(pm.address, roleManager.address)).wait();
 }
 
 main()
