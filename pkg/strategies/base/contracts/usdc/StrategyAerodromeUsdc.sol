@@ -306,7 +306,7 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
             negativeAmount0 -= amount0;
             amount0 = 0;
         }
-        uint256 totalValue = uint256(amount0 + amount1 - negativeAmount0);
+        uint256 totalValue = amount0 + amount1 - negativeAmount0;
         newAmount0 = FullMath.mulDiv(totalValue, ratio0, ratio0 + ratio1) + negativeAmount0;
         newAmount1 = FullMath.mulDiv(totalValue, ratio1, ratio0 + ratio1);
 
