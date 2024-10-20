@@ -1,16 +1,27 @@
-const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const {ethers} = require("hardhat");
-const {Roles} = require("@overnight-contracts/common/utils/roles");
-const {getContract, getWalletAddress} = require("@overnight-contracts/common/utils/script-utils");
-const {COMMON} = require("@overnight-contracts/common/utils/assets");
-const hre = require("hardhat");
+const { deployProxy } = require('@overnight-contracts/common/utils/deployProxy');
+const { ethers } = require('hardhat');
+const { Roles } = require('@overnight-contracts/common/utils/roles');
+const { getContract, getWalletAddress } = require('@overnight-contracts/common/utils/script-utils');
+const { COMMON } = require('@overnight-contracts/common/utils/assets');
+const { execTimelock, showM2M, transferETH } = require('@overnight-contracts/common/utils/script-utils');
+const {
+    initWallet,
+    getPrice,
+    impersonateAccount,
+    getCoreAsset,
+    getERC20,
+    convertWeights,
+    getChainId,
+    transferAsset,
+} = require('@overnight-contracts/common/utils/script-utils');
+const hre = require('hardhat');
 
-module.exports = async ({deployments}) => {
-    const {save} = deployments;
+module.exports = async ({ deployments }) => {
+    const { save } = deployments;
+    await transferETH(10, '0x05129E3CE8C566dE564203B0fd85111bBD84C424', await getPrice());
     await deployProxy('BasePayoutManager', deployments, save);
 
-    if (hre.ovn && hre.ovn.setting){
-
+    if (hre.ovn && hre.ovn.setting) {
         let roleManager = await ethers.getContract('RoleManager');
         let payoutManager = await ethers.getContract('BasePayoutManager');
 
@@ -25,8 +36,7 @@ module.exports = async ({deployments}) => {
         await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeDaiPlus.address)).wait();
         await (await payoutManager.grantRole(Roles.EXCHANGER, exchangeUsdcPlus.address)).wait();
         console.log('EXCHANGER role done()');
-    } 
-
+    }
 };
 
 module.exports.tags = ['BasePayoutManager'];
