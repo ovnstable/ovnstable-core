@@ -29,4 +29,4 @@ async function getParams() {
 }
 
 module.exports.tags = ['StrategySiloUsdcCbBTC'];
-module.exports.strategySiloUsdc = getParams;
+module.exports.strategySiloUsdcCbBTCParams = getParams;

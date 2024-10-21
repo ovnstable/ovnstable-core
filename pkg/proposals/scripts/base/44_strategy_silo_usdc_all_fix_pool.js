@@ -3,6 +3,10 @@ const { getContract, transferETH, initWallet } = require("@overnight-contracts/c
 const { createProposal, testProposal } = require("@overnight-contracts/common/utils/governance");
 const { Roles } = require("@overnight-contracts/common/utils/roles");
 const { BASE } = require('@overnight-contracts/common/utils/assets');
+const { strategySiloUsdcUsdPlusParams } = require('@overnight-contracts/strategies-base/deploy/28_strategy_silo_usdc_wUSDPlus');
+const { strategySiloUsdcCbBTCParams } = require('@overnight-contracts/strategies-base/deploy/29_strategy_silo_usdc_cbBTC');
+const { strategySiloUsdcWstETHParams } = require('@overnight-contracts/strategies-base/deploy/30_strategy_silo_usdc_wstETH');
+const { strategySiloUsdcCbETHParams } = require('@overnight-contracts/strategies-base/deploy/31_strategy_silo_usdc_cbETH');
 
 const path = require('path');
 let filename = path.basename(__filename);
@@ -15,7 +19,6 @@ async function main() {
     const StrategySiloUsdcCbETH = await getContract('StrategySiloUsdcCbETH', 'base');
 
     // Localhost impersonate begin (for test)
-
 /*
     function sleep(ms) {
         return new Promise((resolve) => setTimeout(resolve, ms));
@@ -49,7 +52,6 @@ async function main() {
     let values = [];
     let abis = [];
 
-
     console.log(`StrategySiloUsdcUsdPlus wethUsdcPool before: ${(await StrategySiloUsdcUsdPlus.wethUsdcPool()).toString()}`);
     console.log(`StrategySiloUsdcCbBTC wethUsdcPool before: ${(await StrategySiloUsdcCbBTC.wethUsdcPool()).toString()}`);
     console.log(`StrategySiloUsdcWstETH wethUsdcPool before: ${(await StrategySiloUsdcWstETH.wethUsdcPool()).toString()}`);
@@ -58,63 +60,19 @@ async function main() {
     // we update pool to the one with more liquidity.
     const wethUsdcPool = "0xcDAC0d6c6C59727a65F871236188350531885C43"; // vAMM-WETH/USDC Basic Volatile 0.3%
 
-    addProposalItem(StrategySiloUsdcUsdPlus, "setParams", [{
-        usdc: BASE.usdc,
-        weth: BASE.weth,
-        silo: '0xb82a644a112AD609B89C684Ce2B73757f00D9C3D', // wUSD+, WETH, USDC market
-        siloIncentivesController: BASE.siloIncentivesController,
-        siloLens: BASE.siloLens,
-        siloToken: BASE.siloToken,        
-        aerodromeRouter: BASE.aerodromeRouter,
-        siloWethPool: "0x57bd5C33c8002A634b389Ab4de5e09eC1C31Dce7",
-        wethUsdcPool
-    }]);
-
-    addProposalItem(StrategySiloUsdcCbBTC, "setParams", [{
-        usdc: BASE.usdc,
-        weth: BASE.weth,
-        silo: '0xDa79416990e7FA79E310Ab938B01ED75CBB64a90', // cbBTC, WETH, USDC market
-        siloIncentivesController: BASE.siloIncentivesController,
-        siloLens: BASE.siloLens,
-        siloToken: BASE.siloToken,        
-        aerodromeRouter: BASE.aerodromeRouter,
-        siloWethPool: "0x57bd5C33c8002A634b389Ab4de5e09eC1C31Dce7",
-        wethUsdcPool
-    }]);
-
-    addProposalItem(StrategySiloUsdcWstETH, "setParams", [{
-        usdc: BASE.usdc,
-        weth: BASE.weth,
-        silo: '0xEB42de7d17dfAFfD03AF48c2A51c3FB7274d3396', // wstETH, WETH, USDC market
-        siloIncentivesController: BASE.siloIncentivesController,
-        siloLens: BASE.siloLens,
-        siloToken: BASE.siloToken,        
-        aerodromeRouter: BASE.aerodromeRouter,
-        siloWethPool: "0x57bd5C33c8002A634b389Ab4de5e09eC1C31Dce7",
-        wethUsdcPool
-    }]);
-
-    addProposalItem(StrategySiloUsdcCbETH, "setParams", [{
-        usdc: BASE.usdc,
-        weth: BASE.weth,
-        silo: '0x839Aa8B0641b77db2C9eFFEC724DD2dF46290FA2', // cbETH, WETH, USDC market
-        siloIncentivesController: BASE.siloIncentivesController,
-        siloLens: BASE.siloLens,
-        siloToken: BASE.siloToken,        
-        aerodromeRouter: BASE.aerodromeRouter,
-        siloWethPool: "0x57bd5C33c8002A634b389Ab4de5e09eC1C31Dce7",
-        wethUsdcPool
-    }]);
+    addProposalItem(StrategySiloUsdcUsdPlus, "setParams", [{...(await strategySiloUsdcUsdPlusParams()), wethUsdcPool }]);
+    addProposalItem(StrategySiloUsdcCbBTC, "setParams", [{ ...(await strategySiloUsdcCbBTCParams()), wethUsdcPool }]);
+    addProposalItem(StrategySiloUsdcWstETH, "setParams", [{ ...(await strategySiloUsdcWstETHParams()), wethUsdcPool }]);
+    addProposalItem(StrategySiloUsdcCbETH, "setParams", [{ ...(await strategySiloUsdcCbETHParams()), wethUsdcPool }]);
 
     //await testProposal(addresses, values, abis);
-
-
+    
     await createProposal(filename, addresses, values, abis);
 
-    console.log(`StrategySiloUsdcUsdPlus wethUsdcPool after: ${(await StrategySiloUsdcUsdPlus.wethUsdcPool()).toString()}`);
-    console.log(`StrategySiloUsdcCbBTC wethUsdcPool after: ${(await StrategySiloUsdcCbBTC.wethUsdcPool()).toString()}`);
-    console.log(`StrategySiloUsdcWstETH wethUsdcPool after: ${(await StrategySiloUsdcWstETH.wethUsdcPool()).toString()}`);
-    console.log(`StrategySiloUsdcCbETH wethUsdcPool after: ${(await StrategySiloUsdcCbETH.wethUsdcPool()).toString()}`);
+    console.log(`StrategySiloUsdcUsdPlus wethUsdcPool after: ${(await StrategySiloUsdcUsdPlus.wethUsdcPool()).toString()} silo: ${(await StrategySiloUsdcUsdPlus.silo()).toString()}`);
+    console.log(`StrategySiloUsdcCbBTC wethUsdcPool after: ${(await StrategySiloUsdcCbBTC.wethUsdcPool()).toString()} silo: ${(await StrategySiloUsdcCbBTC.silo()).toString()}`);
+    console.log(`StrategySiloUsdcWstETH wethUsdcPool after: ${(await StrategySiloUsdcWstETH.wethUsdcPool()).toString()} silo: ${(await StrategySiloUsdcWstETH.silo()).toString()}`);
+    console.log(`StrategySiloUsdcCbETH wethUsdcPool after: ${(await StrategySiloUsdcCbETH.wethUsdcPool()).toString()} silo: ${(await StrategySiloUsdcCbETH.silo()).toString()}`);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
