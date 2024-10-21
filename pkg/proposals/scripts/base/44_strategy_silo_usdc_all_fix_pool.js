@@ -57,13 +57,10 @@ async function main() {
     console.log(`StrategySiloUsdcWstETH wethUsdcPool before: ${(await StrategySiloUsdcWstETH.wethUsdcPool()).toString()}`);
     console.log(`StrategySiloUsdcCbETH wethUsdcPool before: ${(await StrategySiloUsdcCbETH.wethUsdcPool()).toString()}`);
     
-    // we update pool to the one with more liquidity.
-    const wethUsdcPool = "0xcDAC0d6c6C59727a65F871236188350531885C43"; // vAMM-WETH/USDC Basic Volatile 0.3%
-
-    addProposalItem(StrategySiloUsdcUsdPlus, "setParams", [{...(await strategySiloUsdcUsdPlusParams()), wethUsdcPool }]);
-    addProposalItem(StrategySiloUsdcCbBTC, "setParams", [{ ...(await strategySiloUsdcCbBTCParams()), wethUsdcPool }]);
-    addProposalItem(StrategySiloUsdcWstETH, "setParams", [{ ...(await strategySiloUsdcWstETHParams()), wethUsdcPool }]);
-    addProposalItem(StrategySiloUsdcCbETH, "setParams", [{ ...(await strategySiloUsdcCbETHParams()), wethUsdcPool }]);
+    addProposalItem(StrategySiloUsdcUsdPlus, "setParams", [ await strategySiloUsdcUsdPlusParams() ]);
+    addProposalItem(StrategySiloUsdcCbBTC, "setParams", [ await strategySiloUsdcCbBTCParams()]);
+    addProposalItem(StrategySiloUsdcWstETH, "setParams", [ await strategySiloUsdcWstETHParams()]);
+    addProposalItem(StrategySiloUsdcCbETH, "setParams", [ await strategySiloUsdcCbETHParams()] );
 
     //await testProposal(addresses, values, abis);
     
