@@ -18,7 +18,6 @@ const hre = require('hardhat');
 
 module.exports = async ({ deployments }) => {
     const { save } = deployments;
-    await transferETH(10, '0x05129E3CE8C566dE564203B0fd85111bBD84C424', await getPrice());
     await deployProxy('BasePayoutManager', deployments, save);
 
     if (hre.ovn && hre.ovn.setting) {

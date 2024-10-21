@@ -25,10 +25,6 @@ contract BasePayoutManager is PayoutManager {
         }
     }
 
-    function addLiquidity(address pool, address tokenA, address tokenB, uint256 amountA, uint256 amountB) public {
-        IERC20(tokenA).safeApprove(AERODROME_ROUTER, amountA);
-    }
-
     function _customAerodrome(NonRebaseInfo memory info, Item memory item) internal {
         IERC20 token = IERC20(item.token);
         uint256 amountToken = info.amount;

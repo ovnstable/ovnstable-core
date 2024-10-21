@@ -11,14 +11,14 @@ async function main() {
 
     const dolaBribeBalanceBefore = fromE18(
         await asset.balanceOf('0xfC996Abd85Bcf64C3fA7DA20f33278Cd46f25ab7', {
-            blockTag: 21231866,
+            blockTag: 21210166,
         }),
     );
     console.log('dolaBribeBalanceBefore', dolaBribeBalanceBefore);
 
     const dolaBribeBalanceAfter = fromE18(
         await asset.balanceOf('0xfC996Abd85Bcf64C3fA7DA20f33278Cd46f25ab7', {
-            blockTag: 21231867,
+            blockTag: 21210167,
         }),
     );
 
