@@ -24,9 +24,9 @@ async function getParams() {
         siloToken: BASE.siloToken,        
         aerodromeRouter: BASE.aerodromeRouter,
         siloWethPool: "0x57bd5C33c8002A634b389Ab4de5e09eC1C31Dce7",
-        wethUsdcPool: "0x3548029694fbB241D45FB24Ba0cd9c9d4E745f16", // sAMM-WETH/USDC 0.05%
+        wethUsdcPool: "0xcDAC0d6c6C59727a65F871236188350531885C43" // vAMM-WETH/USDC Basic Volatile 0.3%
     };
 }
 
 module.exports.tags = ['StrategySiloUsdcUsdPlus'];
-module.exports.strategySiloUsdc = getParams;
+module.exports.strategySiloUsdcUsdPlusParams = getParams;
