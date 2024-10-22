@@ -103,3 +103,8 @@ This repository contains is next modules:
    npx hardhat run scripts/proposalName.js --network networkName
 6. Move rules of strategy to governance in pkg/governance
    npx hardhat run scripts/move_strategies_to_gov.js --network networkName
+
+
+# DEBUG:
+
+```ProviderError: Sender doesn't have enough funds to send tx. The max upfront cost is: 43660859593337616 and the sender's balance is: 9128357391882676.```

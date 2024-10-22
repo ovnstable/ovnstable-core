@@ -6,7 +6,6 @@ import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 interface ISwapSimulator {
-
     /// @notice Error containing information about a swap (for a simulation)
     /// @param balance0 The balance of token0 after the swap
     /// @param balance1 The balance of token1 after the swap
@@ -160,8 +159,8 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _totalValue() internal view returns (uint256) {
-        uint256 amount0;
-        uint256 amount1;
+        uint256 amount0 = 0;
+        uint256 amount1 = 0;
 
         if (stakedTokenId != 0) {
             (uint160 sqrtRatioX96,,,,,) = pool.slot0();

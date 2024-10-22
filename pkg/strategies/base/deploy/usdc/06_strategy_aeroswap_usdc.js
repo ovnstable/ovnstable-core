@@ -18,15 +18,17 @@ module.exports = async ({deployments}) => {
     // await transferETH(10, wallet.address);
 
     await deploySection(async (name) => {
+        // await deployProxy("SwapSimulatorAerodrome", deployments, save);
         await deployProxy(name, deployments, save, {
             factoryOptions: {
                 signer: wallet
-            }
+            },
+            gasPrice: 4221834
         });
     });
 
     await settingSection('', async (strategy) => {
-        await (await strategy.setParams(await getParams())).wait();
+        await (await strategy.setParams(await getParams(), {gasPrice: 4221834})).wait();
     }, wallet);
 };
     
@@ -35,13 +37,15 @@ async function getParams() {
         pool: '0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147',
         rewardSwapPool: '0x6cDcb1C4A4D1C3C6d054b27AC5B77e89eAFb971d',
         tickRange: [0, 1],
+        binSearchIterations: 10,
+        swapSimulatorAddress: "0x8F573ABeb41c232faA1661E222c8E4F658b83B06",
         npmAddress: BASE.aerodromeNpm,
         aeroTokenAddress: BASE.aero,
         rewardSwapSlippageBP: 50,
-        swapRouter: BASE.aerodromeRouter,
-        exchange: "0x868D69875BF274E7Bd3d8b97b1Acd89dbdeb67af"
+        // swapRouter: BASE.aerodromeRouter,
+        // exchange: "0x868D69875BF274E7Bd3d8b97b1Acd89dbdeb67af"
     };
 }
 
-module.exports.tags = ['StrategyAerodromeUsdc'];
+module.exports.tags = ['StrategyAerodromeSwapUsdc'];
 module.exports.strategyAerodromeUsdcParams = getParams;

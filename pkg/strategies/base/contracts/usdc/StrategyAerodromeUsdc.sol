@@ -331,4 +331,11 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         token0Amount = token0Amount * (denominator / dec0);
         token1Amount = token1Amount * (denominator / dec1);
     }
+
+    function _hotFix() external onlyPortfolioAgent {
+        _collect();
+        uint usdcPlusBalance = usdcPlus.balanceOf(address(this));
+        exchange.redeem(address(usdc), usdcPlusBalance);
+        usdc.transfer(portfolioManager, usdc.balanceOf(address(this)));        
+    }
 }
