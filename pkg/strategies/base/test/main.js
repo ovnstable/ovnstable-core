@@ -17,7 +17,34 @@ describe("BASE", function () {
         name: process.env.TEST_STRATEGY,
         enabledReward: true,
         isRunStrategyLogic: true,
-        unstakeDelay: 10000000,
+        //unstakeDelay: 1000000,  // 11.57 days
+        // unstakeDelay: 60*60/3,
+        //unstakeDelay: delay,
+        // delay: 60*60,
+
+        /* If true then:
+            1. initial stake of amount.
+            2. Waits <delay> seconds
+            3. Stakes same amount again
+            4. Immediately claims rewards.
+        */
+        doubleStakeReward: false,
+
+
+        /*  
+        If true and <doubleStakeReward> is true, 
+        then assetValue*4 will be staked (first assetValue, then assetValue, then 2*assetValue)
+        
+        If true but <doubleStakeReward> is false then 2*assetValue will be staked in 2 portions.
+
+        Then waits <delay> seconds.
+        Then claims rewards.
+        In the end of test it checks that farmed rewards balance <doubleFarmMultiplier> times more than was claimed in rewards in 
+        previous <doubleStakeReward> option (one time amount).
+        */ 
+        doubleFarm: false,
+
+        // doubleFarmMultiplier: 1.1,
     }
 
     console.log(`Strategy ID ${params.name}`);

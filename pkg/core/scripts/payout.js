@@ -56,12 +56,19 @@ async function main() {
         odosParams = getEmptyOdosData();
     }
 
-    let gasLimit 
+    const manAddress = "0xb8f55cdd8330b9bf9822137Bc8A6cCB89bc0f055";
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [manAddress],
+      });
+    const manager = await ethers.getSigner(manAddress);
+
+    let gasLimit;
     try {
         if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
-            gasLimit = await exchange.estimateGas.payout(false, odosParams);
+            gasLimit = await exchange.connect(manager).estimateGas.payout(false, odosParams);
         } else {
-            gasLimit = await exchange.estimateGas.payout();
+            gasLimit = await exchange.connect(manager).estimateGas.payout();
         }
         console.log("Test success");
     } catch (e) {
@@ -70,10 +77,11 @@ async function main() {
     }
     gasLimit = gasLimit.mul(150).div(100)
     let tx;
+    
     if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
-        tx = await (await exchange.payout(false, odosParams, {...(await getPrice()), gasLimit}  )).wait();
+        tx = await (await exchange.connect(manager).payout(false, odosParams, {...(await getPrice()), gasLimit}  )).wait();
     } else {
-        tx = await (await exchange.payout({...(await getPrice()), gasLimit})).wait();
+        tx = await (await exchange.connect(manager).payout({...(await getPrice()), gasLimit})).wait();
     }
     console.log("Payout success");
 
