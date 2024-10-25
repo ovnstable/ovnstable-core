@@ -5,6 +5,8 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
+import "hardhat/console.sol";
+
 interface ISwapSimulator {
     /// @notice Error containing information about a swap (for a simulation)
     /// @param balance0 The balance of token0 after the swap
@@ -222,14 +224,26 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
     function _deposit(uint256 amount0, uint256 amount1, uint256 lockedAmount0, uint256 lockedAmount1) internal {
 
+        console.log("usdc bal this:", usdc.balanceOf(address(this)));
+        console.log("usdc+ bal this:", usdcPlus.balanceOf(address(this)));
+
         usdc.transfer(address(swapSimulator), amount0);
         usdcPlus.transfer(address(swapSimulator), amount1);
 
+        console.log("usdc after bal this:", usdc.balanceOf(address(this)));
+        console.log("usdc+ after bal this:", usdcPlus.balanceOf(address(this)));
+
         (uint256 amountToSwap, bool zeroForOne) = _simulateSwap(amount0, amount1);
+
+        console.log("simulation completed");
 
         if (amountToSwap > 0) {
             swapSimulator.swap(address(pool), amountToSwap, 0, zeroForOne);
         }
+
+        console.log("usdc after swap bal this:", usdc.balanceOf(address(this)));
+        console.log("usdc+ after swap bal this:", usdcPlus.balanceOf(address(this)));
+
         swapSimulator.withdrawAll(address(pool));
 
         amount0 = usdc.balanceOf(address(this)) - lockedAmount0;
@@ -239,6 +253,8 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         usdcPlus.approve(address(npm), amount1);
 
         if (stakedTokenId == 0) {
+            console.log("start minting");
+
             INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
                 token0: pool.token0(),
                 token1: pool.token1(),
@@ -260,6 +276,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
             emit Staked(stakedTokenId);
         } else {
+            console.log("start adding");
             if (gauge.stakedContains(address(this), stakedTokenId)) {
                 gauge.withdraw(stakedTokenId);
             }
@@ -346,12 +363,22 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _simulateSwap(uint256 amount0, uint256 amount1) internal returns (uint256 amountToSwap, bool zeroForOne) {
+        // usdc / usdc+
         zeroForOne = amount0 > amount1;
 
         BinSearchParams memory binSearchParams;
         binSearchParams.right = zeroForOne ? amount0 : amount1;
+
+        
+
         for (uint256 i = 0; i < binSearchIterations; i++) {
+            console.log("left: ", binSearchParams.left);
+            console.log("right: ", binSearchParams.right);
+
             binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;
+
+            console.log("mid: ", binSearchParams.mid);
+
             if (binSearchParams.mid == 0) {
                 break;
             }
@@ -453,6 +480,18 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
             tickSpacing: pool.tickSpacing()
         });
 
+        uint160 maxSqrtRatio = uint160(79236085330515764027303304732); // 1.0002
+        uint160 minSqrtRatio = uint160(79224201403219477170569942574); // 0.999
+
+        // console.log("start swap: ");
+        // console.log("amountIn: ", amountIn);
+        // console.log("zeroForOne: ", zeroForOne);
+        // console.log("limit: ", sqrtPriceLimitX96);
+        (uint160 sqrtRatioX96,,,,,) = pool.slot0();
+        console.log("cur sqrt ratio: ", sqrtRatioX96);
+        // console.log("token0 before swap bal this:", IERC20(pool.token0()).balanceOf(address(this)));
+        // console.log("token1 before swap bal this:", IERC20(pool.token1()).balanceOf(address(this)));
+
         pool.swap(
             address(this), 
             zeroForOne, 
@@ -462,6 +501,12 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
                 : sqrtPriceLimitX96, 
             abi.encode(data)
         );
+
+        (sqrtRatioX96,,,,,) = pool.slot0();
+        console.log("cur sqrt ratio: ", sqrtRatioX96);
+
+        console.log("token0 after swap bal this:", IERC20(pool.token0()).balanceOf(address(this)));
+        console.log("token1 after swap bal this:", IERC20(pool.token1()).balanceOf(address(this)));
     }
 
     function simulateSwap(
@@ -471,6 +516,8 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         bool zeroForOne,
         int24[] memory tickRange
     ) external onlyStrategy {
+        // console.log("start simulation");
+
         ICLPool pool = ICLPool(pair);
         address token0 = pool.token0();
         address token1 = pool.token1();
@@ -479,6 +526,12 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
 
         uint256[] memory ratio = new uint256[](2);
         (ratio[0], ratio[1]) = _getProportion(pool, tickRange);
+
+        // console.log("bal0", IERC20(token0).balanceOf(address(this)));
+        // console.log("bal1", IERC20(token1).balanceOf(address(this)));
+        // console.log("r0", ratio[0]);
+        // console.log("r1", ratio[1]);
+
         revert SwapError(
             IERC20(token0).balanceOf(address(this)),
             IERC20(token1).balanceOf(address(this)),

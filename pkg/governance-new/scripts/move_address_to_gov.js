@@ -38,9 +38,8 @@ async function main() {
 
 
     let names = [
-        "0xEA4eE8e40109EC34C5eac187919427bcD9645D4E",
-        "0x92AB4cb069Ce1C0598bEBE24e3915484F82337B5",
-        "0xEDDe5f5bE99Ad89Cfc99Ca369662C8A5DC83555F"
+        "0xcc9c1edae4D3b8d151Ebc56e749aD08b09f50248",
+        "0x8F573ABeb41c232faA1661E222c8E4F658b83B06"
     ]
 
     await showRules(names);

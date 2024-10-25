@@ -158,10 +158,10 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         // You need have permission for role UPGRADER_ROLE;
         // , gasPrice: parseEther(0.005), gasLimit: 30000000
         try {
-            impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow });
+            impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: "always" });
         } catch (e) {
             console.log(e);
-            impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow });
+            impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: "always" });
         }
         implAddress = await getImplementationAddress(ethers.provider, proxy.address);
         console.log(`Deploy ${contractName} Impl done -> proxy [` + proxy.address + '] impl [' + implAddress + ']');
@@ -177,7 +177,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
             {
                 kind: 'uups',
                 unsafeAllow: unsafeAllow,
-                // redeployImplementation: "always"
+                redeployImplementation: "always"
                 // unsafeSkipStorageCheck: true,
                 // unsafeAllowRenames: true
             },
