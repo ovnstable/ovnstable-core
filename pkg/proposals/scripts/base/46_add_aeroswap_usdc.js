@@ -23,15 +23,15 @@ async function main() {
     const StrategyAerodromeSwapUsdc = await getContract('StrategyAerodromeSwapUsdc', 'base_usdc');
     const StrategyAerodromeUsdc = await getContract('StrategyAerodromeUsdc', 'base_usdc');
     const newSwapImpl = "0x26473D5dAa367fA117Cfb3e3b8505b0B8270F1A3";
-    const newMintImpl = "0x3B7Bff094e1150Fd740A6b2982AD271416f6a8a6";
+    const newMintImpl = "0xC218B426f3F586b4CdD27746C72C5e031e05b2cE";
 
     
-    await StrategyAerodromeSwapUsdc.upgradeTo(newSwapImpl);
-    await StrategyAerodromeSwapUsdc.setParams(await strategyAerodromeUsdcParams());
+    // await StrategyAerodromeSwapUsdc.upgradeTo(newSwapImpl);
+    // await StrategyAerodromeSwapUsdc.setParams(await strategyAerodromeUsdcParams());
 
     
-    
-    
+    addProposalItem(StrategyAerodromeSwapUsdc, "upgradeTo", [newSwapImpl]);
+    addProposalItem(StrategyAerodromeSwapUsdc, "setParams", [await strategyAerodromeUsdcParams()]);
     addProposalItem(StrategyAerodromeUsdc, "upgradeTo", [newMintImpl]);
 
 

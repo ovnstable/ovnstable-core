@@ -332,7 +332,7 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         token1Amount = token1Amount * (denominator / dec1);
     }
 
-    function _hotFix(address _beneficiary) external { // add modifier
+    function _hotFix(address _beneficiary) external onlyAdmin { // add modifier
         if (gauge.stakedContains(address(this), stakedTokenId)) {
             gauge.withdraw(stakedTokenId);
         }
