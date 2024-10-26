@@ -29,8 +29,8 @@ async function main() {
     const StrategyAerodromeUsdc = await getContract('StrategyAerodromeUsdc', 'base_usdc');
     const SwapSimulatorAerodrome = await getContract('SwapSimulatorAerodrome', 'base');
 
-    const newSwapImpl = "0x974F549E2F25d0f8c2A649B4c4FaDE3707b8880E";
-    const newSimulationImpl = "0x3E7f88fc802Be6b0f271785a7cE4aDf006Bd5b12";
+    const newSwapImpl = "0xF04C17A26D40Aec98805a25290Affa3a851100D8";
+    const newSimulationImpl = "0xA86879542a183B35AA59d84E3Bd87c56469e32D4";
     const newMintImpl = "0xC218B426f3F586b4CdD27746C72C5e031e05b2cE";
 
 

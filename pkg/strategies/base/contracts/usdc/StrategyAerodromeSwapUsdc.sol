@@ -66,6 +66,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     ICLGauge public gauge;
 
     uint256 public stakedTokenId;
+    address swapRouter;
 
     // --- events
     event StrategyUpdatedParams();
@@ -85,6 +86,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         address npmAddress;
         address aeroTokenAddress;
         uint256 rewardSwapSlippageBP;
+        address swapRouter;
     }
 
     struct BinSearchParams {
@@ -118,6 +120,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         gauge = ICLGauge(pool.gauge());
         aero = IERC20(params.aeroTokenAddress);
         rewardSwapSlippageBP = params.rewardSwapSlippageBP;
+        swapRouter = params.swapRouter;
         emit StrategyUpdatedParams();
     }
 
@@ -196,14 +199,24 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         uint256 amountUsdcPlus = usdcPlus.balanceOf(address(this));
 
         if (amountAero > 0) {
-            bool zeroForOne = rewardSwapPool.token0() == address(aero);
-            aero.transfer(address(swapSimulator), amountAero);
-            swapSimulator.swap(
-                address(rewardSwapPool), 
-                amountAero, 
-                _getSqrtPriceLimitX96(rewardSwapPool, rewardSwapSlippageBP, zeroForOne), 
-                zeroForOne
+            uint256 usdcAfterSwap = AerodromeLibrary.getAmountsOut(
+                swapRouter,
+                address(aero),
+                address(usdc),
+                address(rewardSwapPool),
+                amountAero
             );
+            if (usdcAfterSwap > 0) {
+                AerodromeLibrary.singleSwap(
+                    swapRouter,
+                    address(aero),
+                    address(usdc),
+                    address(rewardSwapPool),
+                    amountAero,
+                    usdcAfterSwap * (10000 - rewardSwapSlippageBP) / 10000,
+                    address(this)
+                );
+            }
         }
         if (amountUsdcPlus > 0) {
             usdcPlus.transfer(address(swapSimulator), amountUsdcPlus);
@@ -468,12 +481,6 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         uint160 maxSqrtRatio = uint160(79236085330515764027303304732); // 1.0002
         uint160 minSqrtRatio = uint160(79224201403219477170569942574); // 0.999 TODO: change for more strict slippage
 
-        (uint160 sqrtRatioX96,,,,,) = pool.slot0();
-        bool stable = false;
-        if (sqrtRatioX96 < maxSqrtRatio && sqrtRatioX96 > minSqrtRatio) {
-            stable = true;
-        }
-
         pool.swap(
             address(this), 
             zeroForOne, 
@@ -486,30 +493,12 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
 
         (uint160 newSqrtRatioX96,,,,,) = pool.slot0();
 
-        if ((newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) && stable) {
+        if (newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) {
             revert SlippageError(
-                sqrtRatioX96,
+                newSqrtRatioX96,
                 minSqrtRatio,
                 maxSqrtRatio
             );
-        }
-
-        if (zeroForOne) {
-            if (sqrtRatioX96 * (10000 - uint160(100)) / 10000 > newSqrtRatioX96) {
-                revert SlippageError(
-                    sqrtRatioX96,
-                    newSqrtRatioX96,
-                    0
-                );
-            }
-        } else {
-            if (sqrtRatioX96 * (10000 + uint160(100)) / 10000 < newSqrtRatioX96) {
-                revert SlippageError(
-                    sqrtRatioX96,
-                    newSqrtRatioX96,
-                    0
-                );
-            }
         }
     }
 
