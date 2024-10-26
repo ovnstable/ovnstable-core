@@ -484,14 +484,32 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
             abi.encode(data)
         );
 
-        (sqrtRatioX96,,,,,) = pool.slot0();
+        (uint160 newSqrtRatioX96,,,,,) = pool.slot0();
 
-        if ((sqrtRatioX96 > maxSqrtRatio || sqrtRatioX96 < minSqrtRatio) && stable) {
+        if ((newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) && stable) {
             revert SlippageError(
                 sqrtRatioX96,
                 minSqrtRatio,
                 maxSqrtRatio
             );
+        }
+
+        if (zeroForOne) {
+            if (sqrtRatioX96 * (10000 - uint160(100)) / 10000 > newSqrtRatioX96) {
+                revert SlippageError(
+                    sqrtRatioX96,
+                    newSqrtRatioX96,
+                    0
+                );
+            }
+        } else {
+            if (sqrtRatioX96 * (10000 + uint160(100)) / 10000 < newSqrtRatioX96) {
+                revert SlippageError(
+                    sqrtRatioX96,
+                    newSqrtRatioX96,
+                    0
+                );
+            }
         }
     }
 

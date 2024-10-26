@@ -29,8 +29,8 @@ async function main() {
     const StrategyAerodromeUsdc = await getContract('StrategyAerodromeUsdc', 'base_usdc');
     const SwapSimulatorAerodrome = await getContract('SwapSimulatorAerodrome', 'base');
 
-    const newSwapImpl = "0x282f1DeAF6EcBb74e5E6674eDaA33F475FBab762";
-    const newSimulationImpl = "0xc22a4f4b923174aD8E9Fc5E86b7c3eB924222128";
+    const newSwapImpl = "0x974F549E2F25d0f8c2A649B4c4FaDE3707b8880E";
+    const newSimulationImpl = "0x3E7f88fc802Be6b0f271785a7cE4aDf006Bd5b12";
     const newMintImpl = "0xC218B426f3F586b4CdD27746C72C5e031e05b2cE";
 
 
@@ -100,7 +100,7 @@ async function main() {
     nav = await StrategyAerodromeSwapUsdc.netAssetValue();
     console.log("nav2", nav.toString());
 
-    // await testUsdPlus(filename, 'base_usdc');
+    await testUsdPlus(filename, 'base_usdc');
     await testStrategy(filename, StrategyAerodromeSwapUsdc);
     
     // await createProposal(filename, addresses, values, abis);
