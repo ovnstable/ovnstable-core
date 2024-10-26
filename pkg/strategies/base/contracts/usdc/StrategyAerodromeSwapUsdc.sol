@@ -20,6 +20,12 @@ interface ISwapSimulator {
         uint256 ratio1
     );
 
+    error SlippageError(
+        uint160 curSqrtRatio,
+        uint160 minSqrtRatio,
+        uint160 maxSqrtRatio        
+    );
+
     function swap(
         address pair,
         uint256 amountIn,
@@ -206,7 +212,8 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             swapSimulator.swap(
                 address(pool), 
                 amountUsdcPlus, 
-                _getSqrtPriceLimitX96(pool, rewardSwapSlippageBP, false), 
+                // _getSqrtPriceLimitX96(pool, rewardSwapSlippageBP, false),
+                0, 
                 false
             );
         }
@@ -230,9 +237,6 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         usdc.transfer(address(swapSimulator), amount0);
         usdcPlus.transfer(address(swapSimulator), amount1);
 
-        console.log("usdc after bal this:", usdc.balanceOf(address(this)));
-        console.log("usdc+ after bal this:", usdcPlus.balanceOf(address(this)));
-
         (uint256 amountToSwap, bool zeroForOne) = _simulateSwap(amount0, amount1);
 
         console.log("simulation completed");
@@ -241,10 +245,10 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             swapSimulator.swap(address(pool), amountToSwap, 0, zeroForOne);
         }
 
+        swapSimulator.withdrawAll(address(pool));
+
         console.log("usdc after swap bal this:", usdc.balanceOf(address(this)));
         console.log("usdc+ after swap bal this:", usdcPlus.balanceOf(address(this)));
-
-        swapSimulator.withdrawAll(address(pool));
 
         amount0 = usdc.balanceOf(address(this)) - lockedAmount0;
         amount1 = usdcPlus.balanceOf(address(this)) - lockedAmount1;
@@ -253,8 +257,6 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         usdcPlus.approve(address(npm), amount1);
 
         if (stakedTokenId == 0) {
-            console.log("start minting");
-
             INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
                 token0: pool.token0(),
                 token1: pool.token1(),
@@ -276,7 +278,6 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
             emit Staked(stakedTokenId);
         } else {
-            console.log("start adding");
             if (gauge.stakedContains(address(this), stakedTokenId)) {
                 gauge.withdraw(stakedTokenId);
             }
@@ -305,6 +306,10 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             return 0;
         }
 
+        console.log("usdc before withdraw:", usdc.balanceOf(address(this)));
+        console.log("usdc+ before withdraw:", usdcPlus.balanceOf(address(this)));
+
+
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
             tokenId: stakedTokenId,
             liquidity: liquidity,
@@ -315,17 +320,17 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         npm.decreaseLiquidity(params);
         _collect();
 
+        console.log("usdc after withdraw:", usdc.balanceOf(address(this)));
+        console.log("usdc+ after withdraw:", usdcPlus.balanceOf(address(this)));
+
         if (!isFull) {
             uint256 amountToStake0 = usdc.balanceOf(address(this));
             uint256 amountToStake1 = usdcPlus.balanceOf(address(this));
             uint256 lockedAmount0;
             uint256 lockedAmount1;
-            if (asset == address(usdc) && amountToStake0 > amount) {
+            if (amountToStake0 > amount) {
                 amountToStake0 -= amount;
                 lockedAmount0 = amount;
-            } else if (asset == address(usdcPlus) && amountToStake1 > amount) {
-                amountToStake1 -= amount;
-                lockedAmount1 = amount;
             } else {
                 return 0;
             }
@@ -340,13 +345,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
                     usdcPlus.transfer(address(swapSimulator), amount);
                     swapSimulator.swap(address(pool), amount, 0, false);
                 }
-            } else {
-                amount = usdc.balanceOf(address(this));
-                if (amount > 0) {
-                    usdc.transfer(address(swapSimulator), amount);
-                    swapSimulator.swap(address(pool), amount, 0, true);
-                }
-            }
+            } 
             swapSimulator.withdrawAll(address(pool));
         }
         return IERC20(asset).balanceOf(address(this));
@@ -372,12 +371,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         
 
         for (uint256 i = 0; i < binSearchIterations; i++) {
-            console.log("left: ", binSearchParams.left);
-            console.log("right: ", binSearchParams.right);
-
             binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;
-
-            console.log("mid: ", binSearchParams.mid);
 
             if (binSearchParams.mid == 0) {
                 break;
@@ -415,6 +409,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
     function _getSqrtPriceLimitX96(ICLPool _pool, uint256 _slippageBP, bool _zeroForOne) internal view returns (uint160) {
         (uint160 sqrtRatioX96,,,,,) = _pool.slot0();
+        
         if (_zeroForOne) {
             return sqrtRatioX96 * (10000 - uint160(_slippageBP)) / 10000;
         } else {
@@ -481,16 +476,13 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         });
 
         uint160 maxSqrtRatio = uint160(79236085330515764027303304732); // 1.0002
-        uint160 minSqrtRatio = uint160(79224201403219477170569942574); // 0.999
+        uint160 minSqrtRatio = uint160(79224201403219477170569942574); // 0.999 TODO: change for more strict slippage
 
-        // console.log("start swap: ");
-        // console.log("amountIn: ", amountIn);
-        // console.log("zeroForOne: ", zeroForOne);
-        // console.log("limit: ", sqrtPriceLimitX96);
         (uint160 sqrtRatioX96,,,,,) = pool.slot0();
-        console.log("cur sqrt ratio: ", sqrtRatioX96);
-        // console.log("token0 before swap bal this:", IERC20(pool.token0()).balanceOf(address(this)));
-        // console.log("token1 before swap bal this:", IERC20(pool.token1()).balanceOf(address(this)));
+        bool stable = false;
+        if (sqrtRatioX96 < maxSqrtRatio && sqrtRatioX96 > minSqrtRatio) {
+            stable = true;
+        }
 
         pool.swap(
             address(this), 
@@ -503,10 +495,14 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         );
 
         (sqrtRatioX96,,,,,) = pool.slot0();
-        console.log("cur sqrt ratio: ", sqrtRatioX96);
 
-        console.log("token0 after swap bal this:", IERC20(pool.token0()).balanceOf(address(this)));
-        console.log("token1 after swap bal this:", IERC20(pool.token1()).balanceOf(address(this)));
+        if ((sqrtRatioX96 > maxSqrtRatio || sqrtRatioX96 < minSqrtRatio) && stable) {
+            revert SlippageError(
+                sqrtRatioX96,
+                minSqrtRatio,
+                maxSqrtRatio
+            );
+        }
     }
 
     function simulateSwap(
@@ -516,7 +512,6 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         bool zeroForOne,
         int24[] memory tickRange
     ) external onlyStrategy {
-        // console.log("start simulation");
 
         ICLPool pool = ICLPool(pair);
         address token0 = pool.token0();
@@ -526,11 +521,6 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
 
         uint256[] memory ratio = new uint256[](2);
         (ratio[0], ratio[1]) = _getProportion(pool, tickRange);
-
-        // console.log("bal0", IERC20(token0).balanceOf(address(this)));
-        // console.log("bal1", IERC20(token1).balanceOf(address(this)));
-        // console.log("r0", ratio[0]);
-        // console.log("r1", ratio[1]);
 
         revert SwapError(
             IERC20(token0).balanceOf(address(this)),

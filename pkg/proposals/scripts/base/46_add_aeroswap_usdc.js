@@ -29,41 +29,11 @@ async function main() {
     const StrategyAerodromeUsdc = await getContract('StrategyAerodromeUsdc', 'base_usdc');
     const SwapSimulatorAerodrome = await getContract('SwapSimulatorAerodrome', 'base');
     // const newSwapImpl = "0x005F14B53448a6C75B42ACFB5B6c72120A28d3C3";
-    const newSwapImpl = "0x77EA60AacB0B3E87c174Cf904d49A531ccA664ed";
-    const newSimulationImpl = "0xeaf5364FDFd0fA82a199d2de6A2d46F233EedA5C";
+    const newSwapImpl = "0x7a887369F688f84145D1a2Ce142606AA16AA59Fc";
+    const newSimulationImpl = "0x72d82947aB8d1E5eC70545f33752a060e127F4bd";
     const newMintImpl = "0xC218B426f3F586b4CdD27746C72C5e031e05b2cE";
 
-    
-    // await StrategyAerodromeSwapUsdc.upgradeTo(newSwapImpl);
-    // await StrategyAerodromeSwapUsdc.setParams(await strategyAerodromeUsdcParams());
 
-    
-    addProposalItem(StrategyAerodromeSwapUsdc, "upgradeTo", [newSwapImpl]);
-    addProposalItem(SwapSimulatorAerodrome, "upgradeTo", [newSimulationImpl]);
-    addProposalItem(StrategyAerodromeSwapUsdc, "setParams", [await strategyAerodromeUsdcParams()]);
-    addProposalItem(StrategyAerodromeUsdc, "upgradeTo", [newMintImpl]);
-    addProposalItem(StrategyAerodromeUsdc, "_hotFix", [StrategyAerodromeSwapUsdc.address]);
-    addProposalItem(pm, "addStrategy", [StrategyAerodromeSwapUsdc.address]);
-    addProposalItem(SwapSimulatorAerodrome, "setSimulationParams", [{
-        strategy: StrategyAerodromeSwapUsdc.address, 
-        factory: BASE.aerodromeFactory
-    }]);
-    addProposalItem(StrategyAerodromeSwapUsdc, "setStrategyParams", [timelock.address, rm.address]);
-    addProposalItem(StrategyAerodromeSwapUsdc, "stake", [BASE.usdc, 0n]);
-    addProposalItem(StrategyAerodromeSwapUsdc, "setStrategyParams", [pm.address, rm.address]);
-
-    // addProposalItem(pm, "removeStrategy", [StrategyAerodromeUsdc.address]);
-
-    // addProposalItem(SwapSimulatorAerodrome, "setSimulationParams", [await swapSimulatorAerodrome()]);
-
-
-    let nav = await StrategyAerodromeSwapUsdc.netAssetValue();
-    console.log("nav1", nav.toString());
-    
-
-    await testProposal(addresses, values, abis);
-    cleanProposalItems();
-    
     let w = await pm.getAllStrategyWeights();
 
     let wCopy = w.map((element) => {
@@ -85,50 +55,57 @@ async function main() {
         return arr;
       });
 
+      const tempTargetWeight = wCopy[4].targetWeight;
+      const tempMaxWeight = wCopy[4].maxWeight;
 
-    const tempTargetWeight = wCopy[4].targetWeight;
-    const tempMaxWeight = wCopy[4].maxWeight;
+    wCopy.push(
+        {
+            strategy: StrategyAerodromeSwapUsdc.address,
+            minWeight: 0,
+            targetWeight: tempTargetWeight,
+            maxWeight: tempMaxWeight,
+            riskFactor: 0,
+            enabled: true,
+            enabledReward: true
+        }
+    )
 
-    const tempTargetWeightIndex = wCopy[4][2];
-    wCopy[4][2] = wCopy[5][2];
-    wCopy[5][2] = tempTargetWeightIndex;
+    wCopy[4][2] = wCopy[4][1];
+    wCopy[4].targetWeight = wCopy[4][1];
+    wCopy[4][3] = wCopy[4][1];
 
-    const tempTargetMaxIndex = wCopy[4][3];
-    wCopy[4][3] = wCopy[5][3];
-    wCopy[5][3] = tempTargetMaxIndex;
-
-    
-    wCopy[5][5] = true;
-    wCopy[5][6] = true;
-
-    wCopy[4].targetWeight = wCopy[5].targetWeight;
-    wCopy[5].targetWeight = tempTargetWeight;
-
-    wCopy[4].maxWeight = wCopy[5].maxWeight;
-    wCopy[5].maxWeight = tempMaxWeight;
-
-    wCopy[5].enabled = true;
-    wCopy[5].enabledReward = true;
-
-    // console.log("w2", wCopy);
-
-    addProposalItem(pm, "setStrategyWeights", [wCopy]);
+    addProposalItem(pm, "addStrategy", [StrategyAerodromeSwapUsdc.address]);    
+    addProposalItem(StrategyAerodromeSwapUsdc, "upgradeTo", [newSwapImpl]);
+    addProposalItem(SwapSimulatorAerodrome, "upgradeTo", [newSimulationImpl]);
+    addProposalItem(StrategyAerodromeSwapUsdc, "setParams", [await strategyAerodromeUsdcParams()]);
+    addProposalItem(StrategyAerodromeUsdc, "upgradeTo", [newMintImpl]);
+    addProposalItem(StrategyAerodromeUsdc, "_hotFix", [StrategyAerodromeSwapUsdc.address]);
+    addProposalItem(pm, "setStrategyWeights", [wCopy]);   
     addProposalItem(pm, "removeStrategy", [StrategyAerodromeUsdc.address]);
-    // addProposalItem()
+    
+    addProposalItem(SwapSimulatorAerodrome, "setSimulationParams", [{
+        strategy: StrategyAerodromeSwapUsdc.address, 
+        factory: BASE.aerodromeFactory
+    }]);
+    addProposalItem(StrategyAerodromeSwapUsdc, "setStrategyParams", [timelock.address, rm.address]);
+    addProposalItem(StrategyAerodromeSwapUsdc, "stake", [BASE.usdc, 0n]);
+    addProposalItem(StrategyAerodromeSwapUsdc, "setStrategyParams", [pm.address, rm.address]);
+
+
+    let nav = await StrategyAerodromeUsdc.netAssetValue();
+    console.log("nav1", nav.toString());
+    
     await testProposal(addresses, values, abis);
-
-    // let w2 = await pm.getAllStrategyWeights();
-    // console.log("w3", w2);
-
-    console.log("addr: ", StrategyAerodromeSwapUsdc.address)
-
-    console.log("usdc:", await StrategyAerodromeSwapUsdc.usdc())
 
     nav = await StrategyAerodromeSwapUsdc.netAssetValue();
     console.log("nav2", nav.toString());
 
     await testUsdPlus(filename, 'base_usdc');
+    nav = await StrategyAerodromeSwapUsdc.netAssetValue();
+    console.log("nav3", nav.toString());
+    nav = await StrategyAerodromeSwapUsdc.netAssetValue();
     await testStrategy(filename, StrategyAerodromeSwapUsdc);
+    console.log("nav4", nav.toString());
     // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {

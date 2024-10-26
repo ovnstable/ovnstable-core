@@ -35,7 +35,8 @@ module.exports = async ({deployments}) => {
 async function getParams() {
     return {
         pool: '0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147',
-        rewardSwapPool: '0x6cDcb1C4A4D1C3C6d054b27AC5B77e89eAFb971d',
+        // rewardSwapPool: '0x6cDcb1C4A4D1C3C6d054b27AC5B77e89eAFb971d', // v2 pool
+        rewardSwapPool: '0xBE00fF35AF70E8415D0eB605a286D8A45466A4c1', // cl pool
         tickRange: [-1, 0],
         binSearchIterations: 20,
         swapSimulatorAddress: "0x8F573ABeb41c232faA1661E222c8E4F658b83B06",

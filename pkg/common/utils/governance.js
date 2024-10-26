@@ -279,7 +279,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
 
     tables.push(
         await testCase(async () => {
-            await strategy.netAssetValue();
+            console.log("nav", (await strategy.netAssetValue()).toString());
         }, 'strategy.netAssetValue'),
     );
 
