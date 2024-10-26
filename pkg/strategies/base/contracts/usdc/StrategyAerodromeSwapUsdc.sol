@@ -5,8 +5,6 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-import "hardhat/console.sol";
-
 interface ISwapSimulator {
     /// @notice Error containing information about a swap (for a simulation)
     /// @param balance0 The balance of token0 after the swap
@@ -231,24 +229,16 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
     function _deposit(uint256 amount0, uint256 amount1, uint256 lockedAmount0, uint256 lockedAmount1) internal {
 
-        console.log("usdc bal this:", usdc.balanceOf(address(this)));
-        console.log("usdc+ bal this:", usdcPlus.balanceOf(address(this)));
-
         usdc.transfer(address(swapSimulator), amount0);
         usdcPlus.transfer(address(swapSimulator), amount1);
 
         (uint256 amountToSwap, bool zeroForOne) = _simulateSwap(amount0, amount1);
-
-        console.log("simulation completed");
 
         if (amountToSwap > 0) {
             swapSimulator.swap(address(pool), amountToSwap, 0, zeroForOne);
         }
 
         swapSimulator.withdrawAll(address(pool));
-
-        console.log("usdc after swap bal this:", usdc.balanceOf(address(this)));
-        console.log("usdc+ after swap bal this:", usdcPlus.balanceOf(address(this)));
 
         amount0 = usdc.balanceOf(address(this)) - lockedAmount0;
         amount1 = usdcPlus.balanceOf(address(this)) - lockedAmount1;
@@ -306,10 +296,6 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             return 0;
         }
 
-        console.log("usdc before withdraw:", usdc.balanceOf(address(this)));
-        console.log("usdc+ before withdraw:", usdcPlus.balanceOf(address(this)));
-
-
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
             tokenId: stakedTokenId,
             liquidity: liquidity,
@@ -320,9 +306,6 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         npm.decreaseLiquidity(params);
         _collect();
 
-        console.log("usdc after withdraw:", usdc.balanceOf(address(this)));
-        console.log("usdc+ after withdraw:", usdcPlus.balanceOf(address(this)));
-
         if (!isFull) {
             uint256 amountToStake0 = usdc.balanceOf(address(this));
             uint256 amountToStake1 = usdcPlus.balanceOf(address(this));
@@ -332,7 +315,14 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
                 amountToStake0 -= amount;
                 lockedAmount0 = amount;
             } else {
-                return 0;
+                usdcPlus.transfer(address(swapSimulator), amountToStake1);
+                swapSimulator.swap(
+                    address(pool), 
+                    amount - amountToStake0, 
+                    // _getSqrtPriceLimitX96(pool, rewardSwapSlippageBP, false),
+                    0, 
+                    false
+                );
             }
             _deposit(amountToStake0, amountToStake1, lockedAmount0, lockedAmount1);
         } else {

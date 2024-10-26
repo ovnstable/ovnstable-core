@@ -28,9 +28,9 @@ async function main() {
     const StrategyAerodromeSwapUsdc = await getContract('StrategyAerodromeSwapUsdc', 'base_usdc');
     const StrategyAerodromeUsdc = await getContract('StrategyAerodromeUsdc', 'base_usdc');
     const SwapSimulatorAerodrome = await getContract('SwapSimulatorAerodrome', 'base');
-    // const newSwapImpl = "0x005F14B53448a6C75B42ACFB5B6c72120A28d3C3";
-    const newSwapImpl = "0x7a887369F688f84145D1a2Ce142606AA16AA59Fc";
-    const newSimulationImpl = "0x72d82947aB8d1E5eC70545f33752a060e127F4bd";
+
+    const newSwapImpl = "0x282f1DeAF6EcBb74e5E6674eDaA33F475FBab762";
+    const newSimulationImpl = "0xc22a4f4b923174aD8E9Fc5E86b7c3eB924222128";
     const newMintImpl = "0xC218B426f3F586b4CdD27746C72C5e031e05b2cE";
 
 
@@ -100,24 +100,15 @@ async function main() {
     nav = await StrategyAerodromeSwapUsdc.netAssetValue();
     console.log("nav2", nav.toString());
 
-    await testUsdPlus(filename, 'base_usdc');
-    nav = await StrategyAerodromeSwapUsdc.netAssetValue();
-    console.log("nav3", nav.toString());
-    nav = await StrategyAerodromeSwapUsdc.netAssetValue();
+    // await testUsdPlus(filename, 'base_usdc');
     await testStrategy(filename, StrategyAerodromeSwapUsdc);
-    console.log("nav4", nav.toString());
+    
     // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
         values.push(0);
         abis.push(contract.interface.encodeFunctionData(methodName, params));
-    }
-
-    function cleanProposalItems() {
-        addresses = [];
-        values = [];
-        abis = [];
     }
 }
 
