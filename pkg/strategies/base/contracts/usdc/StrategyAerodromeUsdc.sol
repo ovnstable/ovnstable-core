@@ -357,4 +357,8 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         usdc.transfer(_beneficiary, usdc.balanceOf(address(this)));  
         usdcPlus.transfer(_beneficiary, usdcPlus.balanceOf(address(this)));      
     }
+
+    function _transferAero(address _beneficiary) external onlyAdmin { 
+        aero.transfer(_beneficiary, aero.balanceOf(address(this)));
+    }
 }
