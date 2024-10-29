@@ -161,7 +161,7 @@ async function testUsdPlus(id, stand = process.env.STAND) {
     tables.push(
         await testCase(async () => {
             let amountAsset = await asset.balanceOf(walletAddress);
-            // amountAsset = 1000000000
+            amountAsset = 1061896
             await (await asset.approve(exchange.address, amountAsset, await getPrice())).wait();
             await (await exchange.buy(asset.address, amountAsset, await getPrice())).wait();
         }, 'exchange.mint'),
@@ -237,6 +237,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     let walletAddress = await getWalletAddress();
     await transferETH(10, walletAddress, await getPrice());
     let roleManager = await getContract('RoleManager', stand);
+    let pm = await getContract('PortfolioManager', stand);
 
     let tables = [];
 
@@ -278,7 +279,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
 
     tables.push(
         await testCase(async () => {
-            await strategy.netAssetValue();
+            console.log("nav", (await strategy.netAssetValue()).toString());
         }, 'strategy.netAssetValue'),
     );
 
@@ -295,6 +296,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
                 let amount = toAsset(10_0, stand);
                 await asset.transfer(strategy.address, amount);
                 await strategy.connect(timelock).stake(asset.address, amount, await getPrice());
+                // await strategy.connect(pm).stake(asset.address, amount, await getPrice());
             });
         }, 'strategy.stake'),
     );
@@ -302,7 +304,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(
         await testCase(async () => {
             await execTimelock(async timelock => {
-                let amount = toAsset(5_0, stand);
+                let amount = toAsset(1_000, stand);
                 await strategy.connect(timelock).unstake(asset.address, amount, walletAddress, false, await getPrice());
             });
         }, 'strategy.unstake'),
