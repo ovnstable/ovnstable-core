@@ -28,20 +28,20 @@ async function main() {
     const StrategyAerodromeUsdc = await getContract('StrategyAerodromeUsdc', 'base_usdc');
     const newMintImpl = "0x66438BDB0cA346feD58DFd8E9db1F486833800F1";
 
-    let aero = await getERC20ByAddress(BASE.aero, wallet.address);
-    console.log("treasury before", (await aero.balanceOf(COMMON.rewardWallet)).toString());
-    console.log("strategy before", (await aero.balanceOf(StrategyAerodromeUsdc.address)).toString());
+    // let aero = await getERC20ByAddress(BASE.aero, wallet.address);
+    // console.log("treasury before", (await aero.balanceOf(COMMON.rewardWallet)).toString());
+    // console.log("strategy before", (await aero.balanceOf(StrategyAerodromeUsdc.address)).toString());
 
     addProposalItem(StrategyAerodromeUsdc, "upgradeTo", [newMintImpl]);
     addProposalItem(StrategyAerodromeUsdc, "_transferAero", [COMMON.rewardWallet]);
     
 
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
     
-    console.log("treasury before", (await aero.balanceOf(COMMON.rewardWallet)).toString());
-    console.log("strategy before", (await aero.balanceOf(StrategyAerodromeUsdc.address)).toString());
+    // console.log("treasury before", (await aero.balanceOf(COMMON.rewardWallet)).toString());
+    // console.log("strategy before", (await aero.balanceOf(StrategyAerodromeUsdc.address)).toString());
 
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
