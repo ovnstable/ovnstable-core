@@ -161,4 +161,12 @@ contract StrategySeamless is Strategy {
         return totalUsdbc;
     }
 
+    // function hotFix(
+    //     address _beneficiary
+    // ) public onlyAdmin {
+    //     uint256 withdrawAmount = _unstakeFull(address(0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA), _beneficiary);
+
+    //     pool.deposit(address(usdbc), _amount, address(this), 0);
+
+    // }
 }

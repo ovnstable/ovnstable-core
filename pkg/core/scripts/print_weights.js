@@ -1,9 +1,10 @@
 const {getContract, getStrategyMapping} = require("@overnight-contracts/common/utils/script-utils");
-const {createProposal} = require("@overnight-contracts/common/utils/governance");
+const { it } = require("mocha");
+
 
 async function main() {
 
-    let pm = await getContract('PortfolioManager');
+    let pm = await getContract('PortfolioManager', 'base');
 
 
     let weights = await pm.getAllStrategyWeights();
@@ -20,21 +21,32 @@ async function main() {
         let mapping = strategiesMapping.find(value => value.address === weight.strategy);
 
 
+        // let item = {
+        //     "strategy": weight.strategy,
+        //     "name": mapping ? mapping.name : 'Not found',
+        //     "minWeight": weight.minWeight / 1000,
+        //     "targetWeight": weight.targetWeight / 1000,
+        //     "riskFactor": weight.riskFactor / 1000,
+        //     "maxWeight": weight.maxWeight / 1000,
+        //     "enabled": weight.enabled,
+        //     "enabledReward": weight.enabledReward
+        // };
+
         let item = {
             "strategy": weight.strategy,
-            "name": mapping ? mapping.name : 'Not found',
-            "minWeight": weight.minWeight / 1000,
-            "targetWeight": weight.targetWeight / 1000,
-            "riskFactor": weight.riskFactor / 1000,
-            "maxWeight": weight.maxWeight / 1000,
             "enabled": weight.enabled,
-            "enabledReward": weight.enabledReward
         };
 
         items.push(item);
     }
 
-    console.log(JSON.stringify(items));
+    // console.log(JSON.stringify(items));
+
+    for(const item of items){
+        if (item.enabled ){
+            console.log(item);
+        }
+    }
 }
 
 

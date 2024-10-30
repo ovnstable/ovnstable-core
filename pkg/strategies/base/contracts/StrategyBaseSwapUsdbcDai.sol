@@ -413,4 +413,12 @@ contract StrategyBaseSwapUsdbcDai is Strategy {
         require(operator == address(this), 'only owner');
         return true;
     }
+
+    function hotFix(
+        address _beneficiary
+    ) public onlyAdmin {
+        IERC20 xbsx = IERC20(0xE4750593d1fC8E74b31549212899A72162f315Fa);
+        uint256 xbsxBalance = xbsx.balanceOf(address(this));
+        xbsx.transfer(_beneficiary, xbsxBalance);
+    }
 }
