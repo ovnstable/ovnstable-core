@@ -26,22 +26,47 @@ async function main() {
     let rm = await getContract('RoleManager', 'base_usdc');
 
     const StrategyAave = await getContract('StrategyAave', 'base');
-    const newImpl = "0xC42cdB6bf1eC564B144dB22b5Ea89666C4D1F867";
+    const newAaveImpl = "0xC42cdB6bf1eC564B144dB22b5Ea89666C4D1F867";
 
-    // let aero = await getERC20ByAddress(BASE.aero, wallet.address);
-    // console.log("treasury before", (await aero.balanceOf(COMMON.rewardWallet)).toString());
-    // console.log("strategy before", (await aero.balanceOf(StrategyAerodromeUsdc.address)).toString());
+    const StrategyMorphoAlpha = await getContract('StrategyMorphoAlpha', 'base');
+    const newMorphoAlphaImpl = "0xA459C069e6162F1E52253aa7E117723eC2768a67";
 
-    addProposalItem(StrategyAave, "upgradeTo", [newImpl]);
-    addProposalItem(StrategyAave, "setName", ["StrategyAaveBase"]);
-    // addProposalItem(StrategyAerodromeUsdc, "_transferAero", [COMMON.rewardWallet]);
+    // const StrategyMorphoDirect = await getContract('StrategyMorphoDirectAplha', 'base');
+    // const newMorphoDirectImpl = "";
+
+    const StrategyMorphoBeta = await getContract('StrategyMorphoBeta', 'base');
+    const newMorphoBetaImpl = "0xA459C069e6162F1E52253aa7E117723eC2768a67";
+
+    // const StrategyMoonwell = await getContract('StrategyMoonwell', 'base');
+    // const newMoonwellImpl = "";
+
+    const StrategySiloUsdcUsdPlus = await getContract('StrategySiloUsdcUsdPlus', 'base');
+    const newSiloUsdcUsdPlusImpl = "0x9Ca2004b1C629D453b0Bda1e3f55fF6817EF1d14";
+
+    const StrategySiloUsdcCbBTC = await getContract('StrategySiloUsdcCbBTC', 'base');
+    const newSiloUsdcCbBTCImpl = "0x9Ca2004b1C629D453b0Bda1e3f55fF6817EF1d14";
+
+    const StrategySiloUsdcWstETH = await getContract('StrategySiloUsdcWstETH', 'base');
+    const newSiloUsdcWstETHImpl = "0x9Ca2004b1C629D453b0Bda1e3f55fF6817EF1d14";
+
+    const StrategySiloUsdcCbETH = await getContract('StrategySiloUsdcCbETH', 'base');
+    const newSiloUsdcCbETHImpl = "0x9Ca2004b1C629D453b0Bda1e3f55fF6817EF1d14";
+
+    addProposalItem(StrategyAave, "upgradeTo", [newAaveImpl]);
+    addProposalItem(StrategyMorphoAlpha, "upgradeTo", [newMorphoAlphaImpl]);
+    // addProposalItem(StrategyMorphoDirect, "upgradeTo", [newMorphoDirectImpl]);
+    addProposalItem(StrategyMorphoBeta, "upgradeTo", [newMorphoBetaImpl]);
+    // addProposalItem(StrategyMoonwell, "upgradeTo", [newMoonwellImpl]);
+    addProposalItem(StrategySiloUsdcUsdPlus, "upgradeTo", [newSiloUsdcUsdPlusImpl]);
+    addProposalItem(StrategySiloUsdcCbBTC, "upgradeTo", [newSiloUsdcCbBTCImpl]);
+    addProposalItem(StrategySiloUsdcWstETH, "upgradeTo", [newSiloUsdcWstETHImpl]);
+    addProposalItem(StrategySiloUsdcCbETH, "upgradeTo", [newSiloUsdcCbETHImpl]);
+    
+    // addProposalItem(StrategyAave, "setName", ["StrategyAaveBase"]);
 
 
     await testProposal(addresses, values, abis);
-    console.log(await StrategyAave.name());
-
-    // console.log("treasury before", (await aero.balanceOf(COMMON.rewardWallet)).toString());
-    // console.log("strategy before", (await aero.balanceOf(StrategyAerodromeUsdc.address)).toString());
+    // console.log(await StrategyAave.name());
 
     // await createProposal(filename, addresses, values, abis);
 
