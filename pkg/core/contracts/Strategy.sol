@@ -20,6 +20,8 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     uint256 public navSlippageBP;
     uint256 public stakeSlippageBP;
     IRoleManager public roleManager;
+    
+    string public name;
 
     function __Strategy_init() internal initializer {
         __AccessControl_init();
@@ -74,6 +76,10 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         navSlippageBP = _navSlippageBP;
         stakeSlippageBP = _stakeSlippageBP;
         emit SlippagesUpdated(_swapSlippageBP, _navSlippageBP, _stakeSlippageBP);
+    }
+
+    function setName(string memory _name) public onlyPortfolioAgent {
+        name = _name;
     }
 
 
@@ -162,5 +168,5 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
 
-    uint256[45] private __gap;
+    uint256[44] private __gap;
 }
