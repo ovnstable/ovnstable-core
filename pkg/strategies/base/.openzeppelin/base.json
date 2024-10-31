@@ -29750,7 +29750,12 @@
           }
         },
         "namespaces": {}
-      }
+      },
+      "allAddresses": [
+        "0xf4B4C24018A19C42e7165AAB72FaF82C9EA24cd1",
+        "0xf9aB2C1a5d0bf5cDf2944eA2711bE462Ae5AbE62",
+        "0x4808039c509081407012d1A6E76CE5E454D2a7aF"
+      ]
     }
   }
 }

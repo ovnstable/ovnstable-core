@@ -231,7 +231,22 @@ function getNetworks() {
                 },
                 59144: {
                     hardforkHistory: {
-                        london: 6510720
+                        london: 11452127
+                    }
+                },
+                81457: {
+                    hardforkHistory: {
+                        london: 10779929
+                    }
+                },
+                137: {
+                    hardforkHistory: {
+                        london: 63652199
+                    }
+                },
+                56: {
+                    hardforkHistory: {
+                        london: 43605085
                     }
                 }
             },
@@ -259,7 +274,7 @@ function getChainFromNetwork(network) {
         }
     }
 
-    throw new Error(`Unknown network: ${network}`)
+    throw new Error(`Unknown network: ${ network }`)
 
 }
 

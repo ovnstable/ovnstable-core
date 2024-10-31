@@ -37,8 +37,8 @@ async function main() {
     const StrategyMorphoBeta = await getContract('StrategyMorphoBeta', 'base');
     const newMorphoBetaImpl = "0xA459C069e6162F1E52253aa7E117723eC2768a67";
 
-    // const StrategyMoonwell = await getContract('StrategyMoonwell', 'base');
-    // const newMoonwellImpl = "";
+    const StrategyMoonwell = await getContract('StrategyMoonwell', 'base');
+    const newMoonwellImpl = "0xf9aB2C1a5d0bf5cDf2944eA2711bE462Ae5AbE62";
 
     const StrategySiloUsdcUsdPlus = await getContract('StrategySiloUsdcUsdPlus', 'base');
     const newSiloUsdcUsdPlusImpl = "0x9Ca2004b1C629D453b0Bda1e3f55fF6817EF1d14";
@@ -56,7 +56,7 @@ async function main() {
     addProposalItem(StrategyMorphoAlpha, "upgradeTo", [newMorphoAlphaImpl]);
     // addProposalItem(StrategyMorphoDirect, "upgradeTo", [newMorphoDirectImpl]);
     addProposalItem(StrategyMorphoBeta, "upgradeTo", [newMorphoBetaImpl]);
-    // addProposalItem(StrategyMoonwell, "upgradeTo", [newMoonwellImpl]);
+    addProposalItem(StrategyMoonwell, "upgradeTo", [newMoonwellImpl]);
     addProposalItem(StrategySiloUsdcUsdPlus, "upgradeTo", [newSiloUsdcUsdPlusImpl]);
     addProposalItem(StrategySiloUsdcCbBTC, "upgradeTo", [newSiloUsdcCbBTCImpl]);
     addProposalItem(StrategySiloUsdcWstETH, "upgradeTo", [newSiloUsdcWstETHImpl]);

@@ -26,25 +26,25 @@ async function main() {
     let rm = await getContract('RoleManager', 'arbitrum');
 
     const StrategySiloUsdc = await getContract('StrategySiloUsdc', 'arbitrum');
-    const newSiloUsdcImpl = "";
+    const newSiloUsdcImpl = "0x883fE48c9E49f401E7E6f3C8D9F6beA76f7B8e43";
 
     const StrategySiloUsdcArb = await getContract('StrategySiloUsdcArb', 'arbitrum');
-    const newSiloUsdcArbImpl = "";
+    const newSiloUsdcArbImpl = "0x883fE48c9E49f401E7E6f3C8D9F6beA76f7B8e43";
 
     const StrategySiloUsdcWbtc = await getContract('StrategySiloUsdcWbtc', 'arbitrum');
-    const newSiloUsdcWbtcImpl = "";
+    const newSiloUsdcWbtcImpl = "0x883fE48c9E49f401E7E6f3C8D9F6beA76f7B8e43";
 
     const StrategySperAlpha = await getContract('StrategySperAlpha', 'arbitrum');
-    const newSperAlphaImpl = "";
+    const newSperAlphaImpl = "0xf64Bf9E4026cDDed00270a50dB8B60F520699556";
 
     const StrategySperGamma = await getContract('StrategySperGamma', 'arbitrum');
-    const newSperGammaImpl = "";
+    const newSperGammaImpl = "0xf64Bf9E4026cDDed00270a50dB8B60F520699556";
 
     const StrategyAaveUsdc = await getContract('StrategyAaveUsdc', 'arbitrum');
-    const newAaveUsdcImpl = "";
+    const newAaveUsdcImpl = "0xE0f4B739EcFefd322a6e09543098431d93d5BDF4";
 
     const StrategyCompoundUsdc = await getContract('StrategyCompoundUsdc', 'arbitrum');
-    const newCompoundUsdcImpl = "";
+    const newCompoundUsdcImpl = "0x52bfB4FAFE5F0ADC9c1654e247415C4736d768c5";
 
     addProposalItem(StrategySiloUsdc, "upgradeTo", [newSiloUsdcImpl]);
     addProposalItem(StrategySiloUsdcArb, "upgradeTo", [newSiloUsdcArbImpl]);
