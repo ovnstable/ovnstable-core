@@ -12,12 +12,14 @@ filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
     let wallet = (await initWallet()).address;
+
+    await transferETH(1, COMMON.rewardWallet);
     
     let addresses = [];
     let values = [];
     let abis = [];
 
-    const StrategyAave = await getContract('StrategyAave', 'polygon'); 
+    const StrategyAave = await getContract('StrategyAave', 'polygon_ins'); 
     const newMintImpl = "0x0E6273D9d54d29B4103e33078F90041D8DD7e2EB";  
 
     let usdc = await getERC20ByAddress(POLYGON.usdc, wallet.address);
