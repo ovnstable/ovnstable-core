@@ -52,6 +52,32 @@ async function main() {
     const StrategySiloUsdcCbETH = await getContract('StrategySiloUsdcCbETH', 'base');
     const newSiloUsdcCbETHImpl = "0x9Ca2004b1C629D453b0Bda1e3f55fF6817EF1d14";
 
+    const AlhphaBase = await getContract('StrategyEtsAlpha', 'base');
+    const newAlphaBaseImpl = "0x5544C60B67074044C6221aFd4583B35Bc70FFd48";
+
+    const RhoBase = await getContract('StrategyEtsRho', 'base');
+    const newRhoBaseImpl = "0x5544C60B67074044C6221aFd4583B35Bc70FFd48";
+
+    let alphaParams = {
+        rebaseToken: '0xF575a5bF866b14ebb57E344Dbce4Bb44dCeDbfE4',
+        hedgeExchanger: '0xe8CCF8F04dE2460313315abEAE9BE079813AE2FF',
+        asset: BASE.usdc,
+        underlyingAsset: BASE.usdc,
+        oracleAsset: BASE.chainlinkUsdc,
+        oracleUnderlyingAsset: BASE.chainlinkUsdc,
+        inchSwapper: BASE.inchSwapper,
+    };
+
+    let rhoParams = {
+        rebaseToken: '0x7ccAE37033Ef476477BB98693D536D87fdb8d2aF',
+        hedgeExchanger: '0x0f67BceF1804612523D61a86A2FFC9849bBd00cA',
+        asset: BASE.usdc,
+        underlyingAsset: BASE.usdc,
+        oracleAsset: BASE.chainlinkUsdc,
+        oracleUnderlyingAsset: BASE.chainlinkUsdc,
+        inchSwapper: BASE.inchSwapper,
+    };
+
     addProposalItem(StrategyAave, "upgradeTo", [newAaveImpl]);
     addProposalItem(StrategyMorphoAlpha, "upgradeTo", [newMorphoAlphaImpl]);
     // addProposalItem(StrategyMorphoDirect, "upgradeTo", [newMorphoDirectImpl]);
@@ -61,6 +87,10 @@ async function main() {
     addProposalItem(StrategySiloUsdcCbBTC, "upgradeTo", [newSiloUsdcCbBTCImpl]);
     addProposalItem(StrategySiloUsdcWstETH, "upgradeTo", [newSiloUsdcWstETHImpl]);
     addProposalItem(StrategySiloUsdcCbETH, "upgradeTo", [newSiloUsdcCbETHImpl]);
+    addProposalItem(AlhphaBase, 'upgradeTo', [newAlphaBaseImpl]);
+    addProposalItem(AlhphaBase, 'setParams', [alphaParams]);
+    addProposalItem(RhoBase, 'upgradeTo', [newRhoBaseImpl]);
+    addProposalItem(RhoBase, 'setParams', [rhoParams]);
     
     // addProposalItem(StrategyAave, "setName", ["StrategyAaveBase"]);
 

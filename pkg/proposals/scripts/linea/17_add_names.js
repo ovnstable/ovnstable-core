@@ -28,7 +28,18 @@ async function main() {
     const StrategyMendiUsdc = await getContract('StrategyMendiUsdc', 'linea');
     const newMendiUsdcImpl = "0x39D7306c04A4a6f163733510f0910AfA765349bd";
 
+    const StrategyEtsAlpha = await getContract("StrategyEtsAlpha", "linea");
+    const newEtsAlphaImpl = "0x0A0Ff17E92A50FE4517715A1104c4D545bdd78Cc";
+
+    let alphaParams = {
+        asset: LINEA.usdc,
+        rebaseToken: "0xC98C43CADfC611eABC08940a86B910C6433FA12A",
+        hedgeExchanger: "0xa2dbE1D92d9C66DbB3e4C9358d91988907bC9Ad4"
+    };
+
     addProposalItem(StrategyMendiUsdc, "upgradeTo", [newMendiUsdcImpl]);
+    addProposalItem(StrategyEtsAlpha, "upgradeTo", [newEtsAlphaImpl]);
+    addProposalItem(StrategyEtsAlpha, 'setParams', [alphaParams]);
 
 
     await testProposal(addresses, values, abis);
