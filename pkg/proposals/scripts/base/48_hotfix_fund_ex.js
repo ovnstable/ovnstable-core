@@ -15,7 +15,7 @@ filename = filename.substring(0, filename.indexOf(".js"));
 async function main() {
 
     let wallet = (await initWallet()).address;
-    await transferETH(100, wallet);
+    // await transferETH(100, wallet);
 
     let addresses = [];
     let values = [];
@@ -30,24 +30,24 @@ async function main() {
 
     addProposalItem(fund_ex, "upgradeTo", [newExImpl]);
     
-    await testProposal(addresses, values, abis); 
+    // await testProposal(addresses, values, abis); 
 
-    await hre.network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: ["0xE3Bad39b9A2330104D0399b17333d994F38C509D"],
-    });
+    // await hre.network.provider.request({
+    //     method: "hardhat_impersonateAccount",
+    //     params: ["0xE3Bad39b9A2330104D0399b17333d994F38C509D"],
+    // });
 
-    const account3 = await hre.ethers.getSigner("0xE3Bad39b9A2330104D0399b17333d994F38C509D");
-    await transferETH(100, account3.address);
+    // const account3 = await hre.ethers.getSigner("0xE3Bad39b9A2330104D0399b17333d994F38C509D");
+    // await transferETH(100, account3.address);
 
-    console.log("user: ", account3.address)
-    console.log("before: ", (await usdc.balanceOf(account3.address)).toString())
+    // console.log("user: ", account3.address)
+    // console.log("before: ", (await usdc.balanceOf(account3.address)).toString())
 
-    await fund_ex.connect(account3).withdraw(400_000_000n);
+    // await fund_ex.connect(account3).withdraw(400_000_000n);
 
-    console.log("after: ", (await usdc.balanceOf(account3.address)).toString())
+    // console.log("after: ", (await usdc.balanceOf(account3.address)).toString())
 
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
