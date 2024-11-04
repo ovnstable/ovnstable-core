@@ -958,6 +958,10 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x2b8804c2b652f05f7fdd8e0a02f01ee58f01667e';
                     break
 
+                case BASE.usdcPlus:
+                    from = '0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46';
+                    break
+
                 default:
                     throw new Error('Unknown asset address');
             }
