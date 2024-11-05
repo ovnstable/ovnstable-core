@@ -1,4 +1,4 @@
-const {getContract, getStrategyMapping} = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, getStrategyMapping, getStrategy} = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal} = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
@@ -8,8 +8,6 @@ async function main() {
 
     let weights = await pm.getAllStrategyWeights();
 
-    let strategiesMapping = await getStrategyMapping();
-
 
     let items = [];
 
@@ -17,12 +15,12 @@ async function main() {
         let weight = weights[i];
 
 
-        let mapping = strategiesMapping.find(value => value.address === weight.strategy);
+        let name = await getStrategy(weight.strategy).name();
 
 
         let item = {
             "strategy": weight.strategy,
-            "name": mapping ? mapping.name : 'Not found',
+            "name": name,
             "minWeight": weight.minWeight / 1000,
             "targetWeight": weight.targetWeight / 1000,
             "riskFactor": weight.riskFactor / 1000,
