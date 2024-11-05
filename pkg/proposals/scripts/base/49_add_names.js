@@ -26,7 +26,7 @@ async function main() {
     let rm = await getContract('RoleManager', 'base_usdc');
 
     const StrategyAave = await getContract('StrategyAave', 'base');
-    const newAaveImpl = "0xC42cdB6bf1eC564B144dB22b5Ea89666C4D1F867";
+    const newAaveImpl = "0x520583E2EFC5cf55eB71394F817E381Ef9506bB0";
 
     const StrategyMorphoAlpha = await getContract('StrategyMorphoAlpha', 'base');
     const newMorphoAlphaImpl = "0xA459C069e6162F1E52253aa7E117723eC2768a67";
@@ -88,15 +88,35 @@ async function main() {
     addProposalItem(StrategySiloUsdcWstETH, "upgradeTo", [newSiloUsdcWstETHImpl]);
     addProposalItem(StrategySiloUsdcCbETH, "upgradeTo", [newSiloUsdcCbETHImpl]);
     addProposalItem(AlhphaBase, 'upgradeTo', [newAlphaBaseImpl]);
-    addProposalItem(AlhphaBase, 'setParams', [alphaParams]);
     addProposalItem(RhoBase, 'upgradeTo', [newRhoBaseImpl]);
+
+    addProposalItem(AlhphaBase, 'setParams', [alphaParams]);
     addProposalItem(RhoBase, 'setParams', [rhoParams]);
     
-    // addProposalItem(StrategyAave, "setName", ["StrategyAaveBase"]);
+    addProposalItem(StrategyAave, 'setStrategyParams', [pm.address, rm.address, "AAVE"]);
+    addProposalItem(StrategyMorphoAlpha, 'setStrategyParams', [pm.address, rm.address, "MorphoAlpha"]);
+    addProposalItem(StrategyMorphoBeta, 'setStrategyParams', [pm.address, rm.address, "MorphoBeta"]);
+    addProposalItem(StrategyMoonwell, 'setStrategyParams', [pm.address, rm.address, "Moonwell"]);
+    addProposalItem(StrategySiloUsdcUsdPlus, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/USD+"]);
+    addProposalItem(StrategySiloUsdcCbBTC, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/cbBTC"]);
+    addProposalItem(StrategySiloUsdcWstETH, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/wstETH"]);
+    addProposalItem(StrategySiloUsdcCbETH, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/cbETH"]);
+    addProposalItem(AlhphaBase, 'setStrategyParams', [pm.address, rm.address, "AlhphaBase"]);
+    addProposalItem(RhoBase, 'setStrategyParams', [pm.address, rm.address, "RhoBase"]);
 
 
     await testProposal(addresses, values, abis);
-    // console.log(await StrategyAave.name());
+    
+    console.log(await StrategyAave.name());
+    console.log(await StrategyMorphoAlpha.name());
+    console.log(await StrategyMorphoBeta.name());
+    console.log(await StrategyMoonwell.name());
+    console.log(await StrategySiloUsdcUsdPlus.name());
+    console.log(await StrategySiloUsdcCbBTC.name());
+    console.log(await StrategySiloUsdcWstETH.name());
+    console.log(await StrategySiloUsdcCbETH.name());
+    console.log(await AlhphaBase.name());
+    console.log(await RhoBase.name());
 
     // await createProposal(filename, addresses, values, abis);
 

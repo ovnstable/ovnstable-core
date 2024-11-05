@@ -34,9 +34,14 @@ async function main() {
     addProposalItem(StrategyZerolend, "upgradeTo", [newZerolendImpl]);
     addProposalItem(StrategySperAlpha, "upgradeTo", [newSperAlphaImpl]);
 
+    addProposalItem(StrategyZerolend, 'setStrategyParams', [pm.address, rm.address, "Zerolend USDB"]);
+    addProposalItem(StrategySperAlpha, 'setStrategyParams', [pm.address, rm.address, "SperAlphaBlast"]);
+
 
     await testProposal(addresses, values, abis);
-    // console.log(await StrategyAave.name());
+    
+    console.log(await StrategyZerolend.name());
+    console.log(await StrategySperAlpha.name());
 
     // await createProposal(filename, addresses, values, abis);
 

@@ -30,9 +30,12 @@ async function main() {
 
     addProposalItem(StrategyVenusUsdc, "upgradeTo", [newVenusUsdcImpl]);
 
+    addProposalItem(StrategyVenusUsdc, 'setStrategyParams', [pm.address, rm.address, "Venus USDC"]);
+
 
     await testProposal(addresses, values, abis);
-    // console.log(await StrategyAave.name());
+    
+    console.log(await StrategyVenusUsdc.name());
 
     // await createProposal(filename, addresses, values, abis);
 

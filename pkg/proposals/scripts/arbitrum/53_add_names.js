@@ -26,13 +26,13 @@ async function main() {
     let rm = await getContract('RoleManager', 'arbitrum');
 
     const StrategySiloUsdc = await getContract('StrategySiloUsdc', 'arbitrum');
-    const newSiloUsdcImpl = "0x883fE48c9E49f401E7E6f3C8D9F6beA76f7B8e43";
+    const newSiloUsdcImpl = "0xF5F09ebB16A0b0436487F66523b1c4426734F753";
 
     const StrategySiloUsdcArb = await getContract('StrategySiloUsdcArb', 'arbitrum');
-    const newSiloUsdcArbImpl = "0x883fE48c9E49f401E7E6f3C8D9F6beA76f7B8e43";
+    const newSiloUsdcArbImpl = "0xF5F09ebB16A0b0436487F66523b1c4426734F753";
 
     const StrategySiloUsdcWbtc = await getContract('StrategySiloUsdcWbtc', 'arbitrum');
-    const newSiloUsdcWbtcImpl = "0x883fE48c9E49f401E7E6f3C8D9F6beA76f7B8e43";
+    const newSiloUsdcWbtcImpl = "0xF5F09ebB16A0b0436487F66523b1c4426734F753";
 
     const StrategySperAlpha = await getContract('StrategySperAlpha', 'arbitrum');
     const newSperAlphaImpl = "0xf64Bf9E4026cDDed00270a50dB8B60F520699556";
@@ -54,11 +54,24 @@ async function main() {
     addProposalItem(StrategyAaveUsdc, "upgradeTo", [newAaveUsdcImpl]);
     addProposalItem(StrategyCompoundUsdc, "upgradeTo", [newCompoundUsdcImpl]);
     
-    // addProposalItem(StrategyAave, "setName", ["StrategyAaveBase"]);
+    addProposalItem(StrategySiloUsdc, 'setStrategyParams', [pm.address, rm.address, "Silo USDC"]);
+    addProposalItem(StrategySiloUsdcArb, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/ARB"]);
+    addProposalItem(StrategySiloUsdcWbtc, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/wBTC"]);
+    addProposalItem(StrategySperAlpha, 'setStrategyParams', [pm.address, rm.address, "SperAlphaArb"]);
+    addProposalItem(StrategySperGamma, 'setStrategyParams', [pm.address, rm.address, "SperGammaArb"]);
+    addProposalItem(StrategyAaveUsdc, 'setStrategyParams', [pm.address, rm.address, "Aave USDC"]);
+    addProposalItem(StrategyCompoundUsdc, 'setStrategyParams', [pm.address, rm.address, "Compound USDC"]);
 
 
     await testProposal(addresses, values, abis);
-    // console.log(await StrategyAave.name());
+    
+    console.log(await StrategySiloUsdc.name());
+    console.log(await StrategySiloUsdcArb.name());
+    console.log(await StrategySiloUsdcWbtc.name());
+    console.log(await StrategySperAlpha.name());
+    console.log(await StrategySperGamma.name());
+    console.log(await StrategyAaveUsdc.name());
+    console.log(await StrategyCompoundUsdc.name());
 
     // await createProposal(filename, addresses, values, abis);
 

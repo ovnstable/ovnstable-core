@@ -30,9 +30,12 @@ async function main() {
 
     addProposalItem(StrategyAave, "upgradeTo", [newAaveImpl]);
 
+    addProposalItem(StrategyAave, 'setStrategyParams', [pm.address, rm.address, "AAVE"]);
+
 
     await testProposal(addresses, values, abis);
-    // console.log(await StrategyAave.name());
+    
+    console.log(await StrategyAave.name());
 
     // await createProposal(filename, addresses, values, abis);
 

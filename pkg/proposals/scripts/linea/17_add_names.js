@@ -2,6 +2,7 @@ const hre = require("hardhat");
 const { getContract, initWallet, transferETH, getERC20ByAddress } = require("@overnight-contracts/common/utils/script-utils");
 const { createProposal, testProposal, testUsdPlus, testStrategy } = require("@overnight-contracts/common/utils/governance");
 const { Roles } = require("@overnight-contracts/common/utils/roles");
+const { LINEA } = require("@overnight-contracts/common/utils/assets");
 
 const path = require('path');
 // const { strategyAerodromeUsdcParams } = require('@overnight-contracts/strategies-base/deploy/usdc/06_strategy_aeroswap_usdc');
@@ -39,11 +40,17 @@ async function main() {
 
     addProposalItem(StrategyMendiUsdc, "upgradeTo", [newMendiUsdcImpl]);
     addProposalItem(StrategyEtsAlpha, "upgradeTo", [newEtsAlphaImpl]);
+
     addProposalItem(StrategyEtsAlpha, 'setParams', [alphaParams]);
+
+    addProposalItem(StrategyMendiUsdc, 'setStrategyParams', [pm.address, rm.address, "Mendi USDC"]);
+    addProposalItem(StrategyEtsAlpha, 'setStrategyParams', [pm.address, rm.address, "AlphaLinea"]);
 
 
     await testProposal(addresses, values, abis);
-    // console.log(await StrategyAave.name());
+    
+    console.log(await StrategyMendiUsdc.name());
+    console.log(await StrategyEtsAlpha.name());
 
     // await createProposal(filename, addresses, values, abis);
 
