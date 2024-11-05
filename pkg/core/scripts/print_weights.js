@@ -1,5 +1,5 @@
-const {getContract, getStrategyMapping, getStrategy} = require("@overnight-contracts/common/utils/script-utils");
-const {createProposal} = require("@overnight-contracts/common/utils/governance");
+const { getContract, getStrategyMapping, getStrategy } = require("@overnight-contracts/common/utils/script-utils");
+const { createProposal } = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
 
@@ -15,7 +15,7 @@ async function main() {
         let weight = weights[i];
 
 
-        let name = await getStrategy(weight.strategy).name();
+        let name = await (await getStrategy(weight.strategy)).name();
 
 
         let item = {
