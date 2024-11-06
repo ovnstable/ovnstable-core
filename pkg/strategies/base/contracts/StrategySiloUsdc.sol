@@ -126,7 +126,18 @@ contract StrategySiloUsdc is Strategy {
         address[] memory assets = new address[](1);
         assets[0] = address(collateralToken);
 
-        siloIncentivesController.claimRewards(assets, type(uint256).max, address(this));
+        uint256 controllerBalance = siloToken.balanceOf(address(siloIncentivesController));
+        uint256 accruedRewards = siloIncentivesController.getRewardsBalance(assets, address(this));
+
+        uint256 rewardsClaimable;
+        // sometimes controller balance can be low to claim all our rewards.
+        // so let's check if balance is low then claim all controller's rewards.
+        if (accruedRewards > controllerBalance) {
+            rewardsClaimable = controllerBalance;
+        } else {
+            rewardsClaimable = type(uint256).max;
+        }
+        siloIncentivesController.claimRewards(assets, rewardsClaimable, address(this));
 
         uint256 siloBalance = siloToken.balanceOf(address(this));
 
