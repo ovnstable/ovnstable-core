@@ -82,4 +82,7 @@ contract MockPortfolioManager is IPortfolioManager, IMark2Market {
         return totalRiskFactor;
     }
 
+    function getAllStrategyWeightsWithNames() external override view returns (StrategyWeightWithName[] memory) {
+        revert('not implement');
+    }
 }

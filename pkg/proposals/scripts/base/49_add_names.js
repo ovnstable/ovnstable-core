@@ -31,9 +31,6 @@ async function main() {
     const StrategyMorphoAlpha = await getContract('StrategyMorphoAlpha', 'base');
     const newMorphoAlphaImpl = "0xA459C069e6162F1E52253aa7E117723eC2768a67";
 
-    // const StrategyMorphoDirect = await getContract('StrategyMorphoDirectAplha', 'base');
-    // const newMorphoDirectImpl = "";
-
     const StrategyMorphoBeta = await getContract('StrategyMorphoBeta', 'base');
     const newMorphoBetaImpl = "0xA459C069e6162F1E52253aa7E117723eC2768a67";
 
@@ -58,29 +55,17 @@ async function main() {
     const RhoBase = await getContract('StrategyEtsRho', 'base');
     const newRhoBaseImpl = "0x5544C60B67074044C6221aFd4583B35Bc70FFd48";
 
-    let alphaParams = {
-        rebaseToken: '0xF575a5bF866b14ebb57E344Dbce4Bb44dCeDbfE4',
-        hedgeExchanger: '0xe8CCF8F04dE2460313315abEAE9BE079813AE2FF',
-        asset: BASE.usdc,
-        underlyingAsset: BASE.usdc,
-        oracleAsset: BASE.chainlinkUsdc,
-        oracleUnderlyingAsset: BASE.chainlinkUsdc,
-        inchSwapper: BASE.inchSwapper,
-    };
+    const UpsilonBase = await getContract('StrategyEtsUpsilon', 'base');
+    const newUpsilonBaseImpl = "0x742524aD08aDe8313f2bD9625961abF14C56204F";
 
-    let rhoParams = {
-        rebaseToken: '0x7ccAE37033Ef476477BB98693D536D87fdb8d2aF',
-        hedgeExchanger: '0x0f67BceF1804612523D61a86A2FFC9849bBd00cA',
-        asset: BASE.usdc,
-        underlyingAsset: BASE.usdc,
-        oracleAsset: BASE.chainlinkUsdc,
-        oracleUnderlyingAsset: BASE.chainlinkUsdc,
-        inchSwapper: BASE.inchSwapper,
-    };
+    const PhiBase = await getContract('StrategyEtsPhi', 'base');
+    const newPhiBaseImpl = "0x742524aD08aDe8313f2bD9625961abF14C56204F";
+
+    const TauBase = await getContract('StrategyEtsTau', 'base');
+    const newTauBaseImpl = "0x742524aD08aDe8313f2bD9625961abF14C56204F";
 
     addProposalItem(StrategyAave, "upgradeTo", [newAaveImpl]);
     addProposalItem(StrategyMorphoAlpha, "upgradeTo", [newMorphoAlphaImpl]);
-    // addProposalItem(StrategyMorphoDirect, "upgradeTo", [newMorphoDirectImpl]);
     addProposalItem(StrategyMorphoBeta, "upgradeTo", [newMorphoBetaImpl]);
     addProposalItem(StrategyMoonwell, "upgradeTo", [newMoonwellImpl]);
     addProposalItem(StrategySiloUsdcUsdPlus, "upgradeTo", [newSiloUsdcUsdPlusImpl]);
@@ -89,9 +74,9 @@ async function main() {
     addProposalItem(StrategySiloUsdcCbETH, "upgradeTo", [newSiloUsdcCbETHImpl]);
     addProposalItem(AlhphaBase, 'upgradeTo', [newAlphaBaseImpl]);
     addProposalItem(RhoBase, 'upgradeTo', [newRhoBaseImpl]);
-
-    addProposalItem(AlhphaBase, 'setParams', [alphaParams]);
-    addProposalItem(RhoBase, 'setParams', [rhoParams]);
+    addProposalItem(UpsilonBase, 'upgradeTo', [newUpsilonBaseImpl]);
+    addProposalItem(PhiBase, 'upgradeTo', [newPhiBaseImpl]);
+    addProposalItem(TauBase, 'upgradeTo', [newTauBaseImpl]);
     
     addProposalItem(StrategyAave, 'setStrategyParams', [pm.address, rm.address, "AAVE"]);
     addProposalItem(StrategyMorphoAlpha, 'setStrategyParams', [pm.address, rm.address, "MorphoAlpha"]);
@@ -103,20 +88,14 @@ async function main() {
     addProposalItem(StrategySiloUsdcCbETH, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/cbETH"]);
     addProposalItem(AlhphaBase, 'setStrategyParams', [pm.address, rm.address, "AlhphaBase"]);
     addProposalItem(RhoBase, 'setStrategyParams', [pm.address, rm.address, "RhoBase"]);
+    addProposalItem(UpsilonBase, 'setStrategyParams', [pm.address, rm.address, "UpsilonBase"]);
+    addProposalItem(PhiBase, 'setStrategyParams', [pm.address, rm.address, "PhiBase"]);
+    addProposalItem(TauBase, 'setStrategyParams', [pm.address, rm.address, "TauBase"]);
 
 
+    await testUsdPlus(filename, 'base');
     await testProposal(addresses, values, abis);
-    
-    console.log(await StrategyAave.name());
-    console.log(await StrategyMorphoAlpha.name());
-    console.log(await StrategyMorphoBeta.name());
-    console.log(await StrategyMoonwell.name());
-    console.log(await StrategySiloUsdcUsdPlus.name());
-    console.log(await StrategySiloUsdcCbBTC.name());
-    console.log(await StrategySiloUsdcWstETH.name());
-    console.log(await StrategySiloUsdcCbETH.name());
-    console.log(await AlhphaBase.name());
-    console.log(await RhoBase.name());
+    await testUsdPlus(filename, 'base');
 
     // await createProposal(filename, addresses, values, abis);
 

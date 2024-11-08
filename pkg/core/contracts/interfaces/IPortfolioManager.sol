@@ -24,6 +24,11 @@ interface IPortfolioManager {
         bool enabledReward;
     }
 
+    struct StrategyWeightWithName {
+        StrategyWeight weight;
+        string name;
+    }
+
     function deposit() external;
 
     /**
@@ -45,4 +50,6 @@ interface IPortfolioManager {
     function balance() external;
 
     function getTotalRiskFactor() external view returns (uint256);
+
+    function getAllStrategyWeightsWithNames() external view returns (StrategyWeightWithName[] memory); 
 }
