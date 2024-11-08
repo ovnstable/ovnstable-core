@@ -2,8 +2,20 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract SwapSimulatorAerodrome {
+contract AeroSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
+
+    function initialize() initializer public {
+        __AccessControl_init();
+        __UUPSUpgradeable_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
     error SlippageError(
         uint160 curSqrtRatio,
@@ -17,17 +29,16 @@ contract SwapSimulatorAerodrome {
         int24 tickSpacing;
     }
 
-    struct SimulationParams {
-        address strategy;
-        address factory;
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "!admin");
+        _;
     }
 
-    address strategy;
+    
     address factory;
 
-    function setSimulationParams(SimulationParams calldata params) external {
-        strategy = params.strategy;
-        factory = params.factory;
+    function setSimulationParams(address _factory) external {
+        factory = _factory;
     }
 
     function swap(
@@ -61,16 +72,14 @@ contract SwapSimulatorAerodrome {
 
         (uint160 newSqrtRatioX96,,,,,) = pool.slot0();
 
-        // if (newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) {
-        //     revert SlippageError(
-        //         newSqrtRatioX96,
-        //         minSqrtRatio,
-        //         maxSqrtRatio
-        //     );
-        // }
-    }
-
-    
+        if (newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) {
+            revert SlippageError(
+                newSqrtRatioX96,
+                minSqrtRatio,
+                maxSqrtRatio
+            );
+        }
+    }   
 
     function uniswapV3SwapCallback(
         int256 amount0Delta,
