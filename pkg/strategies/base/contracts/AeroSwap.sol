@@ -55,7 +55,12 @@ contract AeroSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
             tickSpacing: pool.tickSpacing()
         });
 
-        IERC20(pool.token0()).transfer(msg.sender, IERC20(pool.token0()).balanceOf(msg.sender));
+        if (zeroForOne) {
+            IERC20(pool.token0()).transferFrom(msg.sender, address(this), amountIn);
+        } else {
+            IERC20(pool.token1()).transferFrom(msg.sender, address(this), amountIn);
+        }
+        
 
         uint160 maxSqrtRatio = uint160(79236085330515764027303304732); // 1.0002
         uint160 minSqrtRatio = uint160(79224201403219477170569942574); // 0.999 TODO: change for more strict slippage
@@ -79,6 +84,9 @@ contract AeroSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
                 maxSqrtRatio
             );
         }
+
+        IERC20(pool.token0()).transfer(msg.sender, IERC20(pool.token0()).balanceOf(address(this)));
+        IERC20(pool.token1()).transfer(msg.sender, IERC20(pool.token1()).balanceOf(address(this)));
     }   
 
     function uniswapV3SwapCallback(
