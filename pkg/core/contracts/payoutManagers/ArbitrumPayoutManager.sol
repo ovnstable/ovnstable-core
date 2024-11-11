@@ -5,6 +5,9 @@ import { PancakeSwapV3Library } from '@overnight-contracts/connectors/contracts/
 import { DistributionCreator, CampaignParameters } from '@overnight-contracts/connectors/contracts/stuff/Angle.sol';
 import 'hardhat/console.sol';
 
+error UnsupportedToken();
+error UnsupportedPool();
+
 contract ArbitrumPayoutManager is PayoutManager {
     address public constant PANCAKE_ROUTER = 0x32226588378236Fd0c7c4053999F88aC0e5cAc77;
     address public constant QUOTER_V2 = 0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997;
@@ -61,7 +64,7 @@ contract ArbitrumPayoutManager is PayoutManager {
 
     function _swapTokensPancakeV3(address tokenIn, address tokenOut, uint256 amountIn) internal returns (uint256) {
         if (tokenIn != USD_PLUS && tokenIn != USDT_PLUS) {
-            revert('Unsupported token for PancakeV3 swap');
+            revert UnsupportedToken();
         }
 
         uint24 fee0 = IPancakeV3Pool(CL_OVN).fee();
@@ -111,7 +114,7 @@ contract ArbitrumPayoutManager is PayoutManager {
         } else if (token1 == USD_PLUS || token1 == USDT_PLUS) {
             return (0, 6500, 3500);
         }
-        revert('Unsupported pool for Merkle campaign');
+        revert UnsupportedPool();
     }
 
     function _calculateStartTimestamp() internal view returns (uint32) {
@@ -127,7 +130,7 @@ contract ArbitrumPayoutManager is PayoutManager {
 
     function _calculateSwapAmountOut(address tokenIn, uint256 amountIn) internal returns (uint256) {
         if (tokenIn != USD_PLUS && tokenIn != USDT_PLUS) {
-            revert('Unsupported token for swap');
+            revert UnsupportedToken();
         }
 
         if (tokenIn == USD_PLUS) {

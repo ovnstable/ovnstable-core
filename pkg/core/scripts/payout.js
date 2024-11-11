@@ -61,26 +61,17 @@ async function main() {
         odosParams = getEmptyOdosData();
     }
 
-    const manAddress = '0xb8f55cdd8330b9bf9822137Bc8A6cCB89bc0f055';
-    await hre.network.provider.request({
-        method: 'hardhat_impersonateAccount',
-        params: [manAddress],
-    });
-    const manager = await ethers.getSigner(manAddress);
-
     let gasLimit;
     try {
         if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
-            gasLimit = await exchange
-                .connect(manager)
-                .estimateGas.payout(false, {
-                    inputTokenAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
-                    outputTokenAddress: '0xA3d1a8DEB97B111454B294E2324EfAD13a9d8396',
-                    amountIn: 107776387,
-                    data: '0x83bd37f9000a0001a3d1a8deb97b111454b294e2324efad13a9d839604066c8983084d8e07446c119000028f5c0001c3f3a07ae7d2a125ef81a5950c4d0dd54c74025100000001726207f272b22899762bc35faef01a8672257b680000000004010205000b0100010201020b0001030400ff00000000000000000000000000007548bd60cb8f627a9b8ed94f8ca174348dbe6a05af88d065e77c8cc2239327c5edb3a432268e5831714d48cb99b87f274b33a89fbb16ead191b40b6ce80772eaf6e2e18b651f160bc9158b2a5cafca6500000000000000000000000000000000',
-                });
+            gasLimit = await exchange.estimateGas.payout(false, {
+                inputTokenAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+                outputTokenAddress: '0xA3d1a8DEB97B111454B294E2324EfAD13a9d8396',
+                amountIn: 107776387,
+                data: '0x83bd37f9000a0001a3d1a8deb97b111454b294e2324efad13a9d839604066c8983084d8e07446c119000028f5c0001c3f3a07ae7d2a125ef81a5950c4d0dd54c74025100000001726207f272b22899762bc35faef01a8672257b680000000004010205000b0100010201020b0001030400ff00000000000000000000000000007548bd60cb8f627a9b8ed94f8ca174348dbe6a05af88d065e77c8cc2239327c5edb3a432268e5831714d48cb99b87f274b33a89fbb16ead191b40b6ce80772eaf6e2e18b651f160bc9158b2a5cafca6500000000000000000000000000000000',
+            });
         } else {
-            gasLimit = await exchange.connect(manager).estimateGas.payout();
+            gasLimit = await exchange.estimateGas.payout();
         }
         console.log('Test success');
     } catch (e) {
@@ -91,9 +82,20 @@ async function main() {
     let tx;
 
     if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
-        tx = await (await exchange.connect(manager).payout(false, odosParams, { ...(await getPrice()), gasLimit })).wait();
+        tx = await (
+            await exchange.payout(
+                false,
+                {
+                    inputTokenAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+                    outputTokenAddress: '0xA3d1a8DEB97B111454B294E2324EfAD13a9d8396',
+                    amountIn: 107776387,
+                    data: '0x83bd37f9000a0001a3d1a8deb97b111454b294e2324efad13a9d839604066c8983084d8e07446c119000028f5c0001c3f3a07ae7d2a125ef81a5950c4d0dd54c74025100000001726207f272b22899762bc35faef01a8672257b680000000004010205000b0100010201020b0001030400ff00000000000000000000000000007548bd60cb8f627a9b8ed94f8ca174348dbe6a05af88d065e77c8cc2239327c5edb3a432268e5831714d48cb99b87f274b33a89fbb16ead191b40b6ce80772eaf6e2e18b651f160bc9158b2a5cafca6500000000000000000000000000000000',
+                },
+                { ...(await getPrice()), gasLimit },
+            )
+        ).wait();
     } else {
-        tx = await (await exchange.connect(manager).payout({ ...(await getPrice()), gasLimit })).wait();
+        tx = await (await exchange.payout({ ...(await getPrice()), gasLimit })).wait();
     }
     console.log('Payout success');
 
