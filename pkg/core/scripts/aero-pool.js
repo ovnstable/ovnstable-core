@@ -3,7 +3,9 @@ const {
     transferAsset,
     initWallet,
     getCoreAsset,
-    impersonateAccount
+    impersonateAccount,
+    getERC20ByAddress,
+    transferETH
 } = require("@overnight-contracts/common/utils/script-utils");
 const { BASE } = require("@overnight-contracts/common/utils/assets");
 const { toAsset } = require("@overnight-contracts/common/utils/decimals");
@@ -13,19 +15,33 @@ async function main() {
     let amount = 10000;
     let iterations = 1;
 
-    let pm = await getContract('PortfolioManager');
-    let aeroSwap = await getContract('AeroSwap');
+    // const signers = await ethers.getSigners();
+    let wallet = await initWallet();
+    // const wallet = signers[0];
+    await transferETH(100, wallet.address);
+    console.log("wallet: ", wallet.address);
+
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: ["0x086dFe298907DFf27BD593BD85208D57e0155c94"],
+    });
+
+    const dev5 = await hre.ethers.getSigner("0x086dFe298907DFf27BD593BD85208D57e0155c94");
+
+    let pm = await getContract('PortfolioManager', 'base_usdc');
+    let aeroSwap = await getContract('AeroSwap', 'base');
     let exchange = await getContract('Exchange', 'base_usdc');
-    let usdcplus = await getContract('UsdPlusToken', 'base_usdc');
-    let usdc = await getCoreAsset();
+    let usdcPlus = await getContract('UsdPlusToken', 'base_usdc');
+    let usdc = await getERC20ByAddress(BASE.usdc, wallet.address);
     let poolAddress = "0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147";
+    
     let devAddress = "0x086dFe298907DFf27BD593BD85208D57e0155c94";
-    // let wallet = await initWallet();
+    
 
-    const signers = await ethers.getSigners();
-    const wallet = signers[0];
+    await aeroSwap.setSimulationParams(BASE.aerodromeFactory);
+    
 
-    const dev5 = await impersonateAccount(devAddress);
+    // const dev5 = await impersonateAccount(devAddress);
 
 
     let balInit = await usdc.balanceOf(wallet.address);
@@ -39,26 +55,28 @@ async function main() {
     console.log("balAfterTransfer " + balAfterTransfer.toString());
 
     for (let i = 0; i < iterations; i++) {
-        let plusBalance1 = await usdcplus.balanceOf(wallet.address);
+        let plusBalance1 = await usdcPlus.balanceOf(wallet.address);
+        console.log("usdc+ bal before: ", plusBalance1.toString());
 
-        await (await usdc.approve(exchange.address, toAsset(amount))).wait();
-        console.log("approve usdc");
+        await (await usdc.connect(wallet).approve(exchange.address, toAsset(amount))).wait();
+        console.log("approve usdc", toAsset(amount));
 
-        await (await exchange.mint({
+        await (await exchange.connect(wallet).mint({
             asset: usdc.address,
             amount: toAsset(amount),
             referral: ''
         })).wait();
-        console.log("mint");
+        
 
-        let plusBalance2 = await usdcplus.balanceOf(wallet.address);
+        let plusBalance2 = await usdcPlus.balanceOf(wallet.address);
+        
 
         let usdcplusAmount = (plusBalance2 - plusBalance1).toString();
 
         console.log("usdcplusAmount " + usdcplusAmount.toString());
 
-        await (await usdcplus.approve(aeroSwap.address, usdcplusAmount)).wait();
-        console.log("approve usdcplus");
+        await (await usdcPlus.approve(aeroSwap.address, usdcplusAmount)).wait();
+        
 
         await (await aeroSwap.swap(poolAddress, usdcplusAmount, 0n, false)).wait();
         console.log("swap");
