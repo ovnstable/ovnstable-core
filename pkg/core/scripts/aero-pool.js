@@ -34,7 +34,7 @@ async function main() {
     let usdcPlus = await getContract('UsdPlusToken', 'base_usdc');
     let usdc = await getERC20ByAddress(BASE.usdc, wallet.address);
     let poolAddress = "0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147";
-    
+    let pool = await getContract("ICLPool")
     let devAddress = "0x086dFe298907DFf27BD593BD85208D57e0155c94";
     
 
