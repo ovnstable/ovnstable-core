@@ -226,7 +226,7 @@ function getNetworks() {
                 },
                 8453: {
                     hardforkHistory: {
-                        london: 21715187
+                        london: 22299541
                     }
                 },
                 59144: {
