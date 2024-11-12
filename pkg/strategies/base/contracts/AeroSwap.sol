@@ -5,7 +5,6 @@ import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "hardhat/console.sol";
 
 contract AeroSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -56,23 +55,15 @@ contract AeroSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
             tickSpacing: pool.tickSpacing()
         });
 
-        console.logAddress(pool.token0());
-        console.logAddress(pool.token1());
-
         if (zeroForOne) {
             IERC20(pool.token0()).transferFrom(msg.sender, address(this), amountIn);
         } else {
             IERC20(pool.token1()).transferFrom(msg.sender, address(this), amountIn);
         }
-
-        console.logString("transfered");
         
 
         uint160 maxSqrtRatio = uint160(79236085330515764027303304732); // 1.0002
         uint160 minSqrtRatio = uint160(79224201403219477170569942574); // 0.999 TODO: change for more strict slippage
-
-        console.logUint(maxSqrtRatio);
-        console.logUint(minSqrtRatio);
 
         pool.swap(
             address(this), 
@@ -83,8 +74,6 @@ contract AeroSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
                 : sqrtPriceLimitX96, 
             abi.encode(data)
         );
-
-        console.logString("swapped");
 
         (uint160 newSqrtRatioX96,,,,,) = pool.slot0();
 
