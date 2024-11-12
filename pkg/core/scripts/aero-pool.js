@@ -13,13 +13,12 @@ const hre = require("hardhat");
 
 async function main() {
     let amount = 10000;
-    let iterations = 1;
+    let iterations = 10;
 
     // const signers = await ethers.getSigners();
     let wallet = await initWallet();
     // const wallet = signers[0];
-    await transferETH(100, wallet.address);
-    console.log("wallet: ", wallet.address);
+    
 
     await hre.network.provider.request({
         method: "hardhat_impersonateAccount",
@@ -34,9 +33,11 @@ async function main() {
     let usdcPlus = await getContract('UsdPlusToken', 'base_usdc');
     let usdc = await getERC20ByAddress(BASE.usdc, wallet.address);
     let poolAddress = "0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147";
-    let pool = await getContract("ICLPool")
+    let pool = await hre.ethers.getContractAt("ICLPool", "0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147");
     let devAddress = "0x086dFe298907DFf27BD593BD85208D57e0155c94";
     
+    await transferETH(10, wallet.address);
+    await transferETH(10, devAddress);
 
     await aeroSwap.setSimulationParams(BASE.aerodromeFactory);
     
@@ -46,13 +47,16 @@ async function main() {
 
     let balInit = await usdc.balanceOf(wallet.address);
 
-    await transferAsset(BASE.usdc, wallet.address, toAsset(amount));
+    await transferAsset(BASE.usdc, wallet.address, toAsset(amount * 10));
 
     let balAfterTransfer = await usdc.balanceOf(wallet.address);
 
 
     console.log("balInit " + balInit.toString());
     console.log("balAfterTransfer " + balAfterTransfer.toString());
+
+    let slot0 = await pool.slot0();
+    console.log("cur price: ", slot0[0].toString());
 
     for (let i = 0; i < iterations; i++) {
         let plusBalance1 = await usdcPlus.balanceOf(wallet.address);
@@ -77,12 +81,15 @@ async function main() {
 
         await (await usdcPlus.approve(aeroSwap.address, usdcplusAmount)).wait();
         
-
+        slot0 = await pool.slot0();
+        console.log("price before swap: ", slot0[0].toString());
         await (await aeroSwap.swap(poolAddress, usdcplusAmount, 0n, false)).wait();
-        console.log("swap");
+        slot0 = await pool.slot0();
+        console.log("price after swap: ", slot0[0].toString());
 
         await (await pm.connect(dev5).balance()).wait();
-        console.log("rebalance");
+        slot0 = await pool.slot0();
+        console.log("price after rebalance: ", slot0[0].toString());
     }
 
     let balFinish = await usdc.balanceOf(wallet.address);
