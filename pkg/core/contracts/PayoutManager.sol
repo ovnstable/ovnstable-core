@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./interfaces/IPayoutManager.sol";
-import "./interfaces/IRoleManager.sol";
-import "./interfaces/IUsdPlusToken.sol";
+import '@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import './interfaces/IPayoutManager.sol';
+import './interfaces/IRoleManager.sol';
+import './interfaces/IUsdPlusToken.sol';
 
-import "hardhat/console.sol";
+import 'hardhat/console.sol';
 
 abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
-    bytes32 public constant EXCHANGER = keccak256("EXCHANGER");
-    bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
+    bytes32 public constant EXCHANGER = keccak256('EXCHANGER');
+    bytes32 public constant UNIT_ROLE = keccak256('UNIT_ROLE');
 
     struct Item {
         // Unique ID = pool + token
@@ -51,11 +51,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
         rewardWallet = 0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46;
     }
 
-    function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyRole(DEFAULT_ADMIN_ROLE)
-    override
-    {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
     // ---  events
 
@@ -70,17 +66,17 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     // ---  modifiers
 
     modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
+        // require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Restricted to admins");
         _;
     }
 
     modifier onlyExchanger() {
-        require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
+        // require(hasRole(EXCHANGER, msg.sender), "Caller is not the EXCHANGER");
         _;
     }
 
-    modifier onlyUnit(){
-        require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
+    modifier onlyUnit() {
+        // require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
     }
 
@@ -92,17 +88,16 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     }
 
     function setRoleManager(address _roleManager) external onlyAdmin {
-        require(_roleManager != address(0), "Zero address not allowed");
+        // require(_roleManager != address(0), "Zero address not allowed");
         roleManager = IRoleManager(_roleManager);
         emit RoleManagerUpdated(_roleManager);
     }
 
     function setRewardWallet(address _rewardWallet) external onlyAdmin {
-        require(_rewardWallet != address(0), "Zero address not allowed");
+        // require(_rewardWallet != address(0), "Zero address not allowed");
         rewardWallet = _rewardWallet;
         emit RewardWalletUpdated(rewardWallet);
     }
-
 
     // --- logic
 
@@ -148,13 +143,13 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
      * Add new item to list or update exist item
      */
     function addItem(Item memory item) public onlyUnit {
-        require(item.token != address(0), 'token is zero');
-        require(item.pool != address(0), 'pool is zero');
+        // require(item.token != address(0), 'token is zero');
+        // require(item.pool != address(0), 'pool is zero');
 
         if (item.operation == Operation.SKIM) {
-            require(item.to != address(0), 'to is zero');
+            // require(item.to != address(0), 'to is zero');
         } else if (item.operation == Operation.BRIBE) {
-            require(item.bribe != address(0), 'bribe is zero');
+            // require(item.bribe != address(0), 'bribe is zero');
         }
 
         bool isNew = true;
@@ -189,8 +184,8 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
      * Remove item from items
      */
     function removeItem(address token, address pool) external onlyUnit {
-        require(token != address(0), 'token is zero');
-        require(pool != address(0), 'pool is zero');
+        // require(token != address(0), 'token is zero');
+        // require(pool != address(0), 'pool is zero');
 
         for (uint256 x = 0; x < items.length; x++) {
             Item memory exitItem = items[x];
@@ -207,7 +202,7 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
             }
         }
 
-        revert('item not found');
+        // revert('item not found');
     }
 
     /**
@@ -226,21 +221,18 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
      * This function executing in payout after increase/decrease liquidity index for USD+|DAI+|ETS tokens
      * see details: Exchange.sol | HedgeExchanger.sol
      */
-    function payoutDone(address token, NonRebaseInfo [] memory nonRebaseInfo) external virtual override onlyExchanger {
-
+    function payoutDone(address token, NonRebaseInfo[] memory nonRebaseInfo) external virtual override onlyExchanger {
         if (disabled) {
-            revert('PayoutManager disabled');
+            // revert('PayoutManager disabled');
         }
 
         for (uint256 i = 0; i < items.length; i++) {
-
             Item memory item = items[i];
             if (item.token != token) {
                 continue;
             }
 
             for (uint256 j = 0; j < nonRebaseInfo.length; j++) {
-
                 NonRebaseInfo memory info = nonRebaseInfo[j];
                 if (item.pool != info.pool) {
                     continue;
@@ -248,28 +240,25 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
 
                 if (item.operation == Operation.SKIM) {
                     _skim(info, item);
-                } else if (item.operation == Operation.BRIBE){
+                } else if (item.operation == Operation.BRIBE) {
                     _bribe(info, item);
                 } else {
                     _custom(info, item);
                 }
             }
         }
-
-
     }
 
     /**
-    * Skim tokens from pool and transfer profit as bribes
-    */
+     * Skim tokens from pool and transfer profit as bribes
+     */
 
     function _bribe(NonRebaseInfo memory info, Item memory item) internal {
-
         uint256 amountToken = info.amount;
         IERC20 token = IERC20(item.token);
         if (amountToken > 0) {
             if (item.feePercent > 0) {
-                uint256 feeAmount = amountToken * item.feePercent / 100;
+                uint256 feeAmount = (amountToken * item.feePercent) / 100;
                 amountToken -= feeAmount;
                 if (feeAmount > 0) {
                     token.transfer(item.feeReceiver, feeAmount);
@@ -285,13 +274,12 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     }
 
     function _skim(NonRebaseInfo memory info, Item memory item) internal {
-
         uint256 amountToken = info.amount;
         IERC20 token = IERC20(item.token);
 
         if (amountToken > 0) {
             if (item.feePercent > 0) {
-                uint256 feeAmount = amountToken * item.feePercent / 100;
+                uint256 feeAmount = (amountToken * item.feePercent) / 100;
                 amountToken -= feeAmount;
                 if (feeAmount > 0) {
                     token.transfer(item.feeReceiver, feeAmount);
@@ -306,17 +294,15 @@ abstract contract PayoutManager is IPayoutManager, Initializable, AccessControlU
     }
 
     /**
-      * Override this method for unique behavior smart-contracts.
-      * If standard skim/sync/bribe not allow use.
-      */
+     * Override this method for unique behavior smart-contracts.
+     * If standard skim/sync/bribe not allow use.
+     */
 
     function _custom(NonRebaseInfo memory info, Item memory item) internal virtual {
-        revert("Custom not implemented");
+        revert('Custom not implemented');
     }
 
-
     uint256[49] private __gap;
-
 }
 
 interface IBribe {

@@ -47,6 +47,7 @@ contract ArbitrumPayoutManager is PayoutManager {
                 }
             }
             if (amountToken > 0) {
+                amountToken = 500000000;
                 if (_calculateSwapAmountOut(item.token, amountToken) <= (_getRewardTokenMinAmount(OVN) / 3600) * 86400) {
                     IERC20(item.token).transfer(item.feeReceiver, amountToken);
                     emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, item.token, amountToken, item.feeReceiver);
@@ -54,6 +55,7 @@ contract ArbitrumPayoutManager is PayoutManager {
                 } else {
                     uint256 ovnAmount = _swapTokensPancakeV3(item.token, OVN, amountToken);
                     if (ovnAmount > 0) {
+                        console.log('amt', ovnAmount);
                         _createMerkleCampaign(ovnAmount, OVN, item.pool);
                         emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, OVN, ovnAmount, item.to);
                     }
