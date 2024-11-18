@@ -21,6 +21,7 @@ module.exports = async () => {
     items.push(...curve());
     items.push(...extraFi());
     items.push(...pancakeswap());
+    items.push(...uniswap());
     await (await payoutManager.addItems(items)).wait();
 
     console.log('BasePayoutManager setting done');
@@ -96,7 +97,6 @@ module.exports = async () => {
         items.push(createBribeWithFee('0x3FF5bfE3ff5e1877664Fe25862871554e632b9C9', usdPlus.address, 'sAMM-USD+/MAI', dex, '0xDA50fC7185703FAE4B113d1d4fca57D13B30f9a2', 20, COMMON.rewardWallet));
         items.push(createSkim('0x8f72e491E293ecB223E77123A046521d6d7cAd49', usdPlus.address, 'vAMM-TKN/USD+', dex));
         items.push(createSkim('0x2DcBed774baC201D3C2f69564041E70c05437962', usdPlus.address, 'sAMM-EURC/USD+', dex));
-        items.push(createSkim('0xe05ce080119b33dd30482A6eC9b8911508AE226e', usdPlus.address, 'USD+/cbBTC', dex));
         items.push(createCustom('0xE96c788E66a97Cf455f46C5b27786191fD3bC50B', usdPlus.address, 'USDC+/USD+', dex, '0x9E9278867C250D003d27A025E272e62ff824ef22', 20, COMMON.rewardWallet));
         items.push(createCustom('0xE96c788E66a97Cf455f46C5b27786191fD3bC50B', usdcPlus.address, 'USDC+/USD+', dex, '0x9E9278867C250D003d27A025E272e62ff824ef22', 20, COMMON.rewardWallet));
         items.push(createCustom('0x8E9154AC849e839d60299E85156bcb589De2693A', usdPlus.address, 'sAMM-DOLA/USD+', dex, '0xfC996Abd85Bcf64C3fA7DA20f33278Cd46f25ab7', 20, COMMON.rewardWallet));
@@ -118,6 +118,7 @@ module.exports = async () => {
         items.push(createCustom('0xaeA775CB2879F54E197eC085f9bB08E4B59f1d9E', usdPlus.address, 'CL200-MIGGLES/USD+', dex, '0x4013E1d815f8F3C2f6c47D054b1B04ab04e4B208', 20, COMMON.rewardWallet));
         items.push(createCustom('0x5D7411A51442D287d742FfefC02658D2c9865F29', usdPlus.address, 'CL200-KEYCAT/USD+', dex, '0xf7C15869515C3AEb4705C22A2F1585a9DC2f206F', 20, COMMON.rewardWallet));
         items.push(createCustom('0x6f8e210030f6eE6933b032628a0e148a1CcfF6a6', usdPlus.address, 'CL200-TKN/USD+', dex, '0x056296F9D3A0fA5E2bD80AdE628078367472ba76', 20, COMMON.rewardWallet));
+        items.push(createCustom('0xe05ce080119b33dd30482A6eC9b8911508AE226e', usdPlus.address, 'CL100-USD+/cbBTC', dex, '0x499DbB21848Dbe1eB5e4173d16a641b26Bd88535', 20, COMMON.rewardWallet));
         
       
         return items;
@@ -185,6 +186,14 @@ module.exports = async () => {
         items.push(createSkim('0x504fbeb4fe5e76a3e9747a88b4836f6dfa94185f', usdPlus.address, 'USD+/USDbC', dex));
 
 
+        return items;
+    }
+
+    function uniswap() {
+        let dex = 'Uniswap';
+        let items = [];
+        items.push(createSkim('0xEC6B4558f6737A2F3807eF79b9F02D5C64e3D57a', usdPlus.address, 'USD+/WETH', dex));
+        items.push(createSkim('0x4959e3b68c28162417f5378112f382ce97d9f226', usdPlus.address, 'USD+/cbBTC', dex));
         return items;
     }
 };
