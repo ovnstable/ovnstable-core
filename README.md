@@ -108,3 +108,5 @@ This repository contains is next modules:
 # DEBUG:
 
 ```ProviderError: Sender doesn't have enough funds to send tx. The max upfront cost is: 43660859593337616 and the sender's balance is: 9128357391882676.```
+
+Error message contains word: <b>history</b> -> go to this file: ```pkg/common/utils/hardhat-config.js``` and ctrl+f for ```history```. May be you'll also need to update block number there.
