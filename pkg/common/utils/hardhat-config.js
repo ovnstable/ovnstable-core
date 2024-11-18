@@ -218,23 +218,23 @@ function getNetworks() {
                 ignoreUnknownTxType: true,
             },
             // uncomment to fix history error
-            chains: {
-                10: {
-                    hardforkHistory: {
-                        london: 121293553
-                    }
-                },
-                8453: {
-                    hardforkHistory: {
-                        london: 22299541
-                    }
-                },
-                59144: {
-                    hardforkHistory: {
-                        london: 6510720
-                    }
-                }
-            },
+            // chains: {
+            //     10: {
+            //         hardforkHistory: {
+            //             london: 121293553
+            //         }
+            //     },
+            //     8453: {
+            //         hardforkHistory: {
+            //             london: 22299541
+            //         }
+            //     },
+            //     59144: {
+            //         hardforkHistory: {
+            //             london: 6510720
+            //         }
+            //     }
+            // },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
             },
