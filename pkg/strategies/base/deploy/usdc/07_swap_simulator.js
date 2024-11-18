@@ -20,8 +20,8 @@ module.exports = async ({deployments}) => {
 
 async function getParams() {
     return {
-        // strategy: "0xcc9c1edae4D3b8d151Ebc56e749aD08b09f50248", 
-        strategy: wallet.address, // for tests
+        strategy: "0xcc9c1edae4D3b8d151Ebc56e749aD08b09f50248", 
+        // strategy: wallet.address, // for tests
         factory: BASE.aerodromeNpm
     };
 }

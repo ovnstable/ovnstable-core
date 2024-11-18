@@ -579,8 +579,10 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     let strategyName = strategyParams.name;
     await deployments.fixture([strategyName]);
 
-    
-    const strategy = (await ethers.getContract(strategyName)).connect(wallet);
+    // Georgii. commented out since this was causing 'Restricted to admins' error.
+    // Probably was added by mistake, since we don't need to connect as wallet, we already as wallet.
+    //const strategy = (await ethers.getContract(strategyName)).connect(wallet);
+    const strategy = await ethers.getContract(strategyName);
     await strategy.setStrategyParams(recipient.address, recipient.address);
 
     if (strategyParams.isRunStrategyLogic) {

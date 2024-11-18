@@ -183,7 +183,6 @@ contract FundExchange is
     function _withdraw(uint256 _amount)
         internal
         whenNotPaused
-        nonReentrant
         returns (uint256 withdrawAmount)
     {
         require(
