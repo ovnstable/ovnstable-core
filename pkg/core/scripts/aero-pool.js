@@ -12,7 +12,7 @@ const hre = require("hardhat");
 
 async function main() {
     
-    let iterations = 40;
+    let iterations = 100;
 
     let poolAddress = "0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147";
     let devAddress = "0x086dFe298907DFf27BD593BD85208D57e0155c94";
@@ -35,11 +35,27 @@ async function main() {
     // await transferAsset(BASE.usdc, wallet.address, toAsset(amount * 10));
 
     // let gas = { gasLimit: 20000000, gasPrice: 10000000, gasPriorityFee: 10000000, maxFeePerGas: 100000000, maxPriorityFeePerGas: 10000000};
+    
+
+    let provider = new hre.ethers.providers.StaticJsonRpcProvider(process.env.ETH_NODE_URI_BASE);
+    let gasPrice = await provider.getGasPrice();
+    let feeData = await provider.getFeeData();
+
     let gas = { 
-        gasLimit: 20000000,
-        maxFeePerGas: "15000000",
-        maxPriorityFeePerGas: "2000000",
+        // gasLimit: 20000000,
+        // baseFeePerGas: "7122959",
+        // maxFeePerGas: feeData.maxFeePerGas,
+        // maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+        maxFeePerGas: "19500000",
+        maxPriorityFeePerGas: "1200000",
     };
+
+    console.log("maxFeePerGas", gas.maxFeePerGas.toString());
+    console.log("maxPriorityFeePerGas", gas.maxPriorityFeePerGas.toString());
+
+    console.log("gasPrice", gasPrice.toString());
+    console.log("feeData", feeData);
+
 
     for (let i = 0; i < iterations; i++) {
         console.log("-----iteration ", i, "-----");
@@ -66,7 +82,7 @@ async function main() {
         let plusBalance2 = await usdcPlus.balanceOf(wallet.address);
         
 
-        let usdcplusAmount = (plusBalance2 - plusBalance1).toString();
+        let usdcplusAmount = (plusBalance2).toString();
 
         console.log("usdcplusAmount " + usdcplusAmount.toString());
 
