@@ -1,6 +1,6 @@
 const hre = require('hardhat');
-const { getContract } = require('@overnight-contracts/common/utils/script-utils');
-const { createProposal, testProposal } = require('@overnight-contracts/common/utils/governance');
+const { getContract, showM2M, execTimelock } = require('@overnight-contracts/common/utils/script-utils');
+const { createProposal, testProposal, testUsdPlus, testStrategy } = require('@overnight-contracts/common/utils/governance');
 
 const path = require('path');
 let filename = path.basename(__filename);
@@ -11,11 +11,12 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let pm = await getContract('PortfolioManager', 'base');
+    let pm = await getContract('PortfolioManager', 'linea');
     
-    addProposalItem(pm, 'upgradeTo', ['0xb008d09D25F06799e4081877A6bB185d89D893d3']);
+    // addProposalItem(pm, 'upgradeTo', ['']);
     
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    // await testUsdPlus(filename, 'arbitrum');
 
     // await createProposal(filename, addresses, values, abis);
 

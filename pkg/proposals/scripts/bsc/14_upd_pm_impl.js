@@ -11,9 +11,9 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let pm = await getContract('PortfolioManager', 'base');
+    let pm = await getContract('PortfolioManager', 'bsc');
     
-    addProposalItem(pm, 'upgradeTo', ['0xb008d09D25F06799e4081877A6bB185d89D893d3']);
+    addProposalItem(pm, 'upgradeTo', ['0x84210dB73775fF1DeFe5037A3E1B4C24048c336c']);
     
     await testProposal(addresses, values, abis);
 

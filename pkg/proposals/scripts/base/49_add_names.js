@@ -1,28 +1,18 @@
 const hre = require("hardhat");
-const { getContract, initWallet, transferETH, getERC20ByAddress } = require("@overnight-contracts/common/utils/script-utils");
-const { createProposal, testProposal, testUsdPlus, testStrategy } = require("@overnight-contracts/common/utils/governance");
-const { Roles } = require("@overnight-contracts/common/utils/roles");
+const { getContract, initWallet } = require("@overnight-contracts/common/utils/script-utils");
+const { createProposal, testProposal } = require("@overnight-contracts/common/utils/governance");
 
 const path = require('path');
-// const { strategyAerodromeUsdcParams } = require('@overnight-contracts/strategies-base/deploy/usdc/06_strategy_aeroswap_usdc');
-// const { swapSimulatorAerodrome } = require('@overnight-contracts/strategies-base/deploy/usdc/07_swap_simulator');
-const { BigNumber } = require("ethers");
-const { BASE, COMMON } = require("@overnight-contracts/common/utils/assets");
 
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
-
-    let wallet = (await initWallet()).address;
-    // await transferETH(100, mainAddress);
-
     let addresses = [];
     let values = [];
     let abis = [];
 
     let pm = await getContract('PortfolioManager', 'base_usdc');
-    let timelock = await getContract('AgentTimelock', 'base_usdc');
     let rm = await getContract('RoleManager', 'base_usdc');
 
     const StrategyAave = await getContract('StrategyAave', 'base');
@@ -33,6 +23,9 @@ async function main() {
 
     const StrategyMorphoBeta = await getContract('StrategyMorphoBeta', 'base');
     const newMorphoBetaImpl = "0xA459C069e6162F1E52253aa7E117723eC2768a67";
+
+    const StrategyMorphoDirectAlpha = await getContract('StrategyMorphoDirectAlpha', 'base');
+    const newMorphoDirectAlphaImpl = "0xA459C069e6162F1E52253aa7E117723eC2768a67";
 
     const StrategyMoonwell = await getContract('StrategyMoonwell', 'base');
     const newMoonwellImpl = "0xf9aB2C1a5d0bf5cDf2944eA2711bE462Ae5AbE62";
@@ -67,6 +60,7 @@ async function main() {
     addProposalItem(StrategyAave, "upgradeTo", [newAaveImpl]);
     addProposalItem(StrategyMorphoAlpha, "upgradeTo", [newMorphoAlphaImpl]);
     addProposalItem(StrategyMorphoBeta, "upgradeTo", [newMorphoBetaImpl]);
+    addProposalItem(StrategyMorphoDirectAlpha, "upgradeTo", [newMorphoDirectAlphaImpl]);
     addProposalItem(StrategyMoonwell, "upgradeTo", [newMoonwellImpl]);
     addProposalItem(StrategySiloUsdcUsdPlus, "upgradeTo", [newSiloUsdcUsdPlusImpl]);
     addProposalItem(StrategySiloUsdcCbBTC, "upgradeTo", [newSiloUsdcCbBTCImpl]);
@@ -81,6 +75,7 @@ async function main() {
     addProposalItem(StrategyAave, 'setStrategyParams', [pm.address, rm.address, "AAVE"]);
     addProposalItem(StrategyMorphoAlpha, 'setStrategyParams', [pm.address, rm.address, "MorphoAlpha"]);
     addProposalItem(StrategyMorphoBeta, 'setStrategyParams', [pm.address, rm.address, "MorphoBeta"]);
+    addProposalItem(StrategyMorphoDirectAlpha, 'setStrategyParams', [pm.address, rm.address, "MorphoDirectAlpha"]);
     addProposalItem(StrategyMoonwell, 'setStrategyParams', [pm.address, rm.address, "Moonwell"]);
     addProposalItem(StrategySiloUsdcUsdPlus, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/USD+"]);
     addProposalItem(StrategySiloUsdcCbBTC, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/cbBTC"]);
@@ -93,9 +88,7 @@ async function main() {
     addProposalItem(TauBase, 'setStrategyParams', [pm.address, rm.address, "TauBase"]);
 
 
-    await testUsdPlus(filename, 'base');
     await testProposal(addresses, values, abis);
-    await testUsdPlus(filename, 'base');
 
     // await createProposal(filename, addresses, values, abis);
 
