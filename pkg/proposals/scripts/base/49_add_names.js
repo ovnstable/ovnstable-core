@@ -31,7 +31,7 @@ async function main() {
     const newMoonwellImpl = "0xf9aB2C1a5d0bf5cDf2944eA2711bE462Ae5AbE62";
 
     const StrategySiloUsdcUsdPlus = await getContract('StrategySiloUsdcUsdPlus', 'base');
-    const newSiloUsdcUsdPlusImpl = "0x9Ca2004b1C629D453b0Bda1e3f55fF6817EF1d14";
+    const newSiloUsdcUsdPlusImpl = "0x17d9bf313559D4D42be277B1AA0E8d84b2dd99c8";
 
     const StrategySiloUsdcCbBTC = await getContract('StrategySiloUsdcCbBTC', 'base');
     const newSiloUsdcCbBTCImpl = "0x9Ca2004b1C629D453b0Bda1e3f55fF6817EF1d14";
