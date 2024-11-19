@@ -1,4 +1,5 @@
 const {
+    initWallet,
     getContract,
     showM2M,
     showRewardsFromPayout, execTimelock, findEvent, showPoolOperationsFromPayout, showPayoutEvent, transferETH,
@@ -34,6 +35,38 @@ class TypePayout {
 }
 
 async function main() {
+    // Localhost impersonate begin (for test)
+
+/*    
+    const adminAddress = "0xa44dF8A8581C2cb536234E6640112fFf932ED2c4"; // Arb Timelock - change to your network
+
+        // "0x8ab9012D1BfF1b62c2ad82AE0106593371e6b247"; // Base Timelock
+
+    const roleManager = await getContract('RoleManager');
+
+    function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+    
+    await transferETH(1, adminAddress);
+    if (hre.network.name === 'localhost') {
+        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    }
+    await sleep(1000);
+    await hre.network.provider.request({ method: "hardhat_impersonateAccount", params: [adminAddress] });
+
+    const adminAccount = await hre.ethers.getSigner(adminAddress);    
+    const myAddress = (await initWallet()).address;
+
+    // Impersonate under AgentTimelock and grant current user role Unit 
+    await (await roleManager.connect(adminAccount).grantRole(await roleManager.UNIT_ROLE(), myAddress)).wait();
+    //await (await roleManager.connect(adminAccount).grantRole(await roleManager.PORTFOLIO_AGENT_ROLE(), myAddress)).wait();
+
+    await hre.network.provider.request({ method: "hardhat_stopImpersonatingAccount", params: [adminAddress] });
+    console.log("role granted");
+*/
+    // Localhost impersonate end
+
 
     let exchange = await getContract('Exchange');
     let typePayout = getTypePayout();
