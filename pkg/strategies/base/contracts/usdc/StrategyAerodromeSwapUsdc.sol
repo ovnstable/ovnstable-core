@@ -67,6 +67,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
     uint256 public stakedTokenId;
     address swapRouter;
+    address bribeVotingReward;
 
     // --- events
     event StrategyUpdatedParams();
@@ -87,6 +88,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         address aeroTokenAddress;
         uint256 rewardSwapSlippageBP;
         address swapRouter;
+        address bribeVotingReward;
     }
 
     struct BinSearchParams {
@@ -121,6 +123,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         aero = IERC20(params.aeroTokenAddress);
         rewardSwapSlippageBP = params.rewardSwapSlippageBP;
         swapRouter = params.swapRouter;
+        bribeVotingReward = params.bribeVotingReward;
         emit StrategyUpdatedParams();
     }
 
@@ -195,16 +198,17 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         }
         _collect();
 
-        uint256 amountAero = aero.balanceOf(address(this));
+        uint256 sellAmountAero = aero.balanceOf(address(this)) / 5;
+        uint256 bribeAmountAero = usdcPlus.balanceOf(address(this)) - sellAmountAero;
         uint256 amountUsdcPlus = usdcPlus.balanceOf(address(this));
 
-        if (amountAero > 0) {
+        if (sellAmountAero > 0) {
             uint256 usdcAfterSwap = AerodromeLibrary.getAmountsOut(
                 swapRouter,
                 address(aero),
                 address(usdc),
                 address(rewardSwapPool),
-                amountAero
+                sellAmountAero
             );
             if (usdcAfterSwap > 0) {
                 AerodromeLibrary.singleSwap(
@@ -212,11 +216,14 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
                     address(aero),
                     address(usdc),
                     address(rewardSwapPool),
-                    amountAero,
+                    sellAmountAero,
                     usdcAfterSwap * (10000 - rewardSwapSlippageBP) / 10000,
                     address(this)
                 );
             }
+
+            aero.approve(bribeVotingReward, bribeAmountAero);
+            IReward(bribeVotingReward).notifyRewardAmount(address(aero), bribeAmountAero);
         }
         if (amountUsdcPlus > 0) {
             usdcPlus.transfer(address(swapSimulator), amountUsdcPlus);
