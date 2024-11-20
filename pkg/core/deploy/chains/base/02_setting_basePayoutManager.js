@@ -101,7 +101,6 @@ module.exports = async () => {
         items.push(createCustom('0xE96c788E66a97Cf455f46C5b27786191fD3bC50B', usdcPlus.address, 'USDC+/USD+', dex, '0x9E9278867C250D003d27A025E272e62ff824ef22', 20, COMMON.rewardWallet));
         items.push(createCustom('0x8E9154AC849e839d60299E85156bcb589De2693A', usdPlus.address, 'sAMM-DOLA/USD+', dex, '0xfC996Abd85Bcf64C3fA7DA20f33278Cd46f25ab7', 20, COMMON.rewardWallet));
         items.push(createCustom('0x4D69971CCd4A636c403a3C1B00c85e99bB9B5606', usdPlus.address, 'CL100-WETH/USD+', dex, '0xEE54fEB29aC27b0730d4F030DAFeECA20Ab197e8', 20, COMMON.rewardWallet));
-        items.push(createCustom('0x0c1A09d5D0445047DA3Ab4994262b22404288A3B', usdPlus.address, 'CL1-USDC/USD+', dex, '0x738c2F1A3210FF102A131106CE6F6928800a29BC', 20, COMMON.rewardWallet  ));
         items.push(createCustom('0x96331Fcb46A7757854d9E26AFf3aCA2815D623fD', usdPlus.address, 'CL1-DOLA/USD+', dex, '0xFFE07a47B9BcE9598eD2D4dE6eD05776153F0aFa', 20, COMMON.rewardWallet));
         items.push(createCustom('0x20086910E220D5f4c9695B784d304A72a0de403B', usdPlus.address, 'CL1-USD+/USDbC', dex, '0xe44B90DaD8300d18C99a0a8F57d6780C84B60109', 20, COMMON.rewardWallet));
         items.push(createCustom('0x8e62bE92c6Fb091428d0d6cBa0C0e32529B27e51', usdPlus.address, 'CL50-USD+/sFRAX', dex, '0x5Fb4789ff0E81Bda8A9A81bC19C9e6153C4256e2', 20, COMMON.rewardWallet));
@@ -119,6 +118,7 @@ module.exports = async () => {
         items.push(createCustom('0x5D7411A51442D287d742FfefC02658D2c9865F29', usdPlus.address, 'CL200-KEYCAT/USD+', dex, '0xf7C15869515C3AEb4705C22A2F1585a9DC2f206F', 20, COMMON.rewardWallet));
         items.push(createCustom('0x6f8e210030f6eE6933b032628a0e148a1CcfF6a6', usdPlus.address, 'CL200-TKN/USD+', dex, '0x056296F9D3A0fA5E2bD80AdE628078367472ba76', 20, COMMON.rewardWallet));
         items.push(createCustom('0xe05ce080119b33dd30482A6eC9b8911508AE226e', usdPlus.address, 'CL100-USD+/cbBTC', dex, '0x499DbB21848Dbe1eB5e4173d16a641b26Bd88535', 20, COMMON.rewardWallet));
+        items.push(createSkim('0x0c1A09d5D0445047DA3Ab4994262b22404288A3B', usdPlus.address, 'CL1-USDC/USD+', dex));
         
       
         return items;
