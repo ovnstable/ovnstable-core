@@ -19,14 +19,5 @@ module.exports = {
     zksolc: config.zksolc,
     etherscan: config.etherscan(),
     mocha: config.mocha,
-    gasReporter: config.gasReport,
-    paths: {
-        sources: "./contracts",
-        tests: "./test",
-        cache: "./cache",
-        artifacts: "./artifacts",
-        root: ".",
-        nodeModules: "/Users/ramych/ovn/core/node_modules"
-    }
-
+    gasReporter: config.gasReport
 };
