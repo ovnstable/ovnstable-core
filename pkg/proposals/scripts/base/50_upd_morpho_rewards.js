@@ -17,7 +17,7 @@ filename = filename.substring(0, filename.indexOf(".js"));
 async function main() {
 
     let wallet = await initWallet();
-    await transferETH(1, wallet.address);
+    // await transferETH(1, wallet.address);
     
     let addresses = [];
     let values = [];
@@ -28,21 +28,23 @@ async function main() {
     
     let morphoAlpha = await getContract('StrategyMorphoAlpha', 'base');
     let morphoBeta = await getContract('StrategyMorphoBeta', 'base'); 
-    let morphoDirect = await getContract('StrategyMorphoDirectAlpha', 'base');
+    let morphoDirect = await getContract('StrategyMorphoDirect', 'base');
     
     addProposalItem(rm, 'grantRole', [Roles.PORTFOLIO_AGENT_ROLE, timelock.address]);
     
     let newMorphoAlphaImpl = "0xeb05E0B2ed461cB9A24042F0888D5911b6C3E302";  
     let newMorphoBetaImpl = "0xBa2a670c5C289Ba58af2711D1abcBA34c1d19264";
-    let newMorphoDirectImpl = "0x0Cb73DC61365D564E92Ae2F8C28D779fd291A696";
+    let newMorphoDirectImpl = "0xA21193B9a945d96445b00b84B8e7345E9084951A";
 
-
+    
     addProposalItem(morphoAlpha, 'upgradeTo', [newMorphoAlphaImpl]);
     addProposalItem(morphoBeta, 'upgradeTo', [newMorphoBetaImpl]);
     addProposalItem(morphoDirect, 'upgradeTo', [newMorphoDirectImpl]);
+
     addProposalItem(morphoAlpha, 'setParams', [strategyMorphoAlpha()]);
     addProposalItem(morphoBeta, 'setParams', [strategyMorphoBeta()]);
     addProposalItem(morphoDirect, 'setParams', [strategyMorphoDirect()]);
+    
     
 
     let well = await getERC20ByAddress(BASE.well, wallet.address);
@@ -85,10 +87,10 @@ async function main() {
 
     
 
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
     // await testUsdPlus(filename, 'base');
     // await testStrategy(filename, morpho, 'base');
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     console.log("alpha morpho", (await morphoToken.balanceOf(morphoAlpha.address)).toString());
     console.log("beta morpho", (await morphoToken.balanceOf(morphoBeta.address)).toString());

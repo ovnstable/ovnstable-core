@@ -392,6 +392,11 @@
       "address": "0xA60aCEbb0cc0E84d6904d9fD0E0cafFb1572bEce",
       "txHash": "0x51441af93c450eade2730c2d3699c8a52149e5b1161147d3a896f9b154992f02",
       "kind": "uups"
+    },
+    {
+      "address": "0x2fCA1570c293c155eFC5906D2E00211805976094",
+      "txHash": "0xb336f3ca0be55135e9f918065936d882ec7aed4112d614d9252c3e0a7553694a",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -30113,7 +30118,13 @@
           }
         },
         "namespaces": {}
-      }
+      },
+      "allAddresses": [
+        "0x0Cb73DC61365D564E92Ae2F8C28D779fd291A696",
+        "0xd3E1c54Fa09aF82A6Da4463088a7E10ed3D80F93",
+        "0xA21193B9a945d96445b00b84B8e7345E9084951A",
+        "0x1168873D461d65Bc2Acc088B7C2B27e8d166482c"
+      ]
     }
   }
 }
