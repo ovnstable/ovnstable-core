@@ -22,7 +22,7 @@ async function main() {
     let abis = [];
 
     const StrategyAerodromeSwapUsdc = await getContract('StrategyAerodromeSwapUsdc', 'base_usdc');
-    const newSwapImpl = "0xB64104e78c44897041Ea56423e4d2Bd3Da6FdAF4";
+    const newSwapImpl = "0xD1c7A53B2A44690806eFc453f33Fd37bcb25EA43";
 
     addProposalItem(StrategyAerodromeSwapUsdc, "upgradeTo", [newSwapImpl]);
     addProposalItem(StrategyAerodromeSwapUsdc, "setParams", [await strategyAerodromeUsdcParams()]);
