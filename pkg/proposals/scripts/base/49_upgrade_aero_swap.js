@@ -15,7 +15,7 @@ filename = filename.substring(0, filename.indexOf(".js"));
 async function main() {
 
     let mainAddress = (await initWallet()).address;
-    await transferETH(100, mainAddress);
+    // await transferETH(100, mainAddress);
 
     let addresses = [];
     let values = [];
@@ -33,14 +33,14 @@ async function main() {
 
     addProposalItem(pm, "balance", []);
     
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
 
     console.log("treasury after", (await aero.balanceOf(COMMON.rewardWallet)).toString());
 
-    await testUsdPlus(filename, 'base_usdc');
-    await testStrategy(filename, StrategyAerodromeSwapUsdc);
+    // await testUsdPlus(filename, 'base_usdc');
+    // await testStrategy(filename, StrategyAerodromeSwapUsdc);
     
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
