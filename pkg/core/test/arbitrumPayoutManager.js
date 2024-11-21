@@ -7,6 +7,14 @@ const { main: payout } = require('../scripts/payout');
 const { getOdosSwapData, getOdosAmountOut, getEmptyOdosData } = require('@overnight-contracts/common/utils/odos-helper');
 const { ARBITRUM } = require('@overnight-contracts/common/utils/assets');
 
-(async function main() {
+async function main() {
     await transferAsset(ARBITRUM.usdPlus, '0x764424B7Dc62c4cB57898Ee47DcDeEe8CCC5D5b8');
-})();
+}
+
+
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
