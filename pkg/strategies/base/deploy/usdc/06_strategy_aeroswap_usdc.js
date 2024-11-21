@@ -45,6 +45,7 @@ async function getParams() {
         rewardSwapSlippageBP: 50,
         swapRouter: BASE.aerodromeRouter,
         treasury: COMMON.rewardWallet,
+        treasuryShare: 8000,
         // bribeVotingReward: '0xf8a309b830873eeb39d07b33071f93493594b5f3',
         // exchange: "0x868D69875BF274E7Bd3d8b97b1Acd89dbdeb67af"
     };
