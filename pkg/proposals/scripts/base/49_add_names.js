@@ -25,7 +25,7 @@ async function main() {
     const newMorphoBetaImpl = "0xA459C069e6162F1E52253aa7E117723eC2768a67";
 
     const StrategyMorphoDirectAlpha = await getContract('StrategyMorphoDirectAlpha', 'base');
-    const newMorphoDirectAlphaImpl = "0xA459C069e6162F1E52253aa7E117723eC2768a67";
+    const newMorphoDirectAlphaImpl = "0x70d86d4AB8e4A3bab5E6aa9d720B608D3Da467d8";
 
     const StrategyMoonwell = await getContract('StrategyMoonwell', 'base');
     const newMoonwellImpl = "0xf9aB2C1a5d0bf5cDf2944eA2711bE462Ae5AbE62";
