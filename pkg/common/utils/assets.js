@@ -44,6 +44,7 @@ let BASE = {
 
     // morpho
     morpho: '0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb',
+    morphoToken: '0xBAa5CC21fd487B8Fcc2F632f3F4E8D37262a0842',
     mwUsdc: '0xc1256Ae5FF1cf2719D4937adb3bbCCab2E00A2Ca',
     gcUsdc: '0xc0c5689e6f4D256E861F65465b691aeEcC0dEb12',
     morphoChainAgnosticBundler: '0x23055618898e202386e6c13955a58D3C68200BFB',

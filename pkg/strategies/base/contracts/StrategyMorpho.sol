@@ -10,12 +10,12 @@ contract StrategyMorpho is Strategy {
 
     IERC20 public usdcToken;
     IERC20 public wellToken;
-    // IERC20 public morphoToken;
+    
 
     IMetaMorpho public mUsdcToken;
     ISwapRouter public uniswapV3Router;
     // IUniversalRewardsDistributor rewardsDistrubutor;
-    
+    IERC20 public morphoToken;
     // --- events
 
     event StrategyUpdatedParams();
@@ -27,7 +27,7 @@ contract StrategyMorpho is Strategy {
         address usdc;
         address mUsdc;
         address well;
-        // address morpho;
+        address morpho;
         // address rewardsDistrubutor;
         address uniswapV3Router;
     }
@@ -49,7 +49,7 @@ contract StrategyMorpho is Strategy {
         usdcToken = IERC20(params.usdc);
         mUsdcToken = IMetaMorpho(params.mUsdc);
         wellToken = IERC20(params.well);
-        // morphoToken = IERC20(params.morpho);
+        morphoToken = IERC20(params.morpho);
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
 
         emit StrategyUpdatedParams();
@@ -115,6 +115,9 @@ contract StrategyMorpho is Strategy {
         }
         if (usdcToken.balanceOf(address(this)) > startUsdcBalance) {
             usdcToken.transfer(_beneficiary, usdcToken.balanceOf(address(this)) - startUsdcBalance);
+        }
+        if (morphoToken.balanceOf(address(this)) > 0) {
+            morphoToken.transfer(_beneficiary, morphoToken.balanceOf(address(this)));
         }
     }
 }

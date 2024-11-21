@@ -15,7 +15,7 @@ module.exports = async ({deployments}) => {
 
     let wallet = await initWallet();
 
-    // await transferETH(10, wallet.address);
+    await transferETH(10, wallet.address);
 
     await deploySection(async (name) => {
         // await deployProxy("SwapSimulatorAerodrome", deployments, save);

@@ -23,7 +23,7 @@ async function main() {
 
     const StrategyAerodromeSwapUsdc = await getContract('StrategyAerodromeSwapUsdc', 'base_usdc');
     const pm = await getContract('PortfolioManager', 'base_usdc');
-    const newSwapImpl = "0x2Aa0e9289C9c1517e4E5CfCc15d185ac1b0169e3";
+    const newSwapImpl = "0xD1c7A53B2A44690806eFc453f33Fd37bcb25EA43";
 
     let aero = await getERC20ByAddress(BASE.aero, mainAddress);
     console.log("treasury before", (await aero.balanceOf(COMMON.rewardWallet)).toString());
@@ -31,9 +31,9 @@ async function main() {
     addProposalItem(StrategyAerodromeSwapUsdc, "upgradeTo", [newSwapImpl]);
     addProposalItem(StrategyAerodromeSwapUsdc, "setParams", [await strategyAerodromeUsdcParams()]);
 
-    addProposalItem(pm, "balance", []);
+    // addProposalItem(pm, "balance", []);
     
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
 
     console.log("treasury after", (await aero.balanceOf(COMMON.rewardWallet)).toString());
 

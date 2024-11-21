@@ -10,11 +10,11 @@ module.exports = async ({deployments}) => {
     });
 
     await settingSection('', async (strategy) => {
-        await (await strategy.setParams(await getParams())).wait();
+        await (await strategy.setParams(getParamsDirect())).wait();
     });
 };
 
-async function getParams() {
+function getParamsDirect() {
     return {
         usdc: BASE.usdc,
         morpho: BASE.morpho,
@@ -27,8 +27,11 @@ async function getParams() {
             lltv: "770000000000000000"
         },
         treasury: COMMON.rewardWallet,
-        fee: 2000
+        fee: 2000,
+        well: BASE.well,
+        morphoToken: BASE.morphoToken
     };
 }
 
+module.exports.strategyMorphoDirect = getParamsDirect;
 module.exports.tags = ['StrategyMorphoDirect'];
