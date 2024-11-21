@@ -67,7 +67,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
     uint256 public stakedTokenId;
     address swapRouter;
-    address bribeVotingReward;
+    address treasury;
 
     // --- events
     event StrategyUpdatedParams();
@@ -88,7 +88,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         address aeroTokenAddress;
         uint256 rewardSwapSlippageBP;
         address swapRouter;
-        address bribeVotingReward;
+        address treasury;
     }
 
     struct BinSearchParams {
@@ -123,7 +123,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         aero = IERC20(params.aeroTokenAddress);
         rewardSwapSlippageBP = params.rewardSwapSlippageBP;
         swapRouter = params.swapRouter;
-        bribeVotingReward = params.bribeVotingReward;
+        treasury = params.treasury;
         emit StrategyUpdatedParams();
     }
 
@@ -222,8 +222,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
                 );
             }
 
-            aero.approve(bribeVotingReward, bribeAmountAero);
-            IReward(bribeVotingReward).notifyRewardAmount(address(aero), bribeAmountAero);
+            aero.transfer(treasury, bribeAmountAero);
         }
         if (amountUsdcPlus > 0) {
             usdcPlus.transfer(address(swapSimulator), amountUsdcPlus);
