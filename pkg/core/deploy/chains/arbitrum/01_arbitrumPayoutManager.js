@@ -7,7 +7,6 @@ const hre = require('hardhat');
 
 module.exports = async ({ deployments }) => {
     const { save } = deployments;
-    await transferETH(100, '0x66B439c0a695cc3Ed3d9f50aA4E6D2D917659FfD');
     await deployProxy('ArbitrumPayoutManager', deployments, save);
 
     if (hre.ovn && hre.ovn.setting) {

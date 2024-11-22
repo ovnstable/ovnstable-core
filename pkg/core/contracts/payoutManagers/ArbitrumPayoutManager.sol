@@ -55,8 +55,8 @@ contract ArbitrumPayoutManager is PayoutManager {
                 } else {
                     uint256 ovnAmount = _swapTokensPancakeV3(item.token, OVN, amountToken);
                     if (ovnAmount > 0) {
-                        console.log('amt', ovnAmount);
-                        _createMerkleCampaign(ovnAmount, OVN, item.pool);
+                        bytes32 campaignId = _createMerkleCampaign(ovnAmount, OVN, item.pool);
+                        console.logBytes32(campaignId);
                         emit PoolOperation(item.dexName, 'Bribe', item.poolName, item.pool, OVN, ovnAmount, item.to);
                     }
                 }
