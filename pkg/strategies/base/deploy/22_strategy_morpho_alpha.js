@@ -19,6 +19,7 @@ function getParamsAlpha() {
         usdc: BASE.usdc,
         mUsdc: BASE.mwUsdc,
         well: BASE.well,
+        morpho: BASE.morphoToken,
         uniswapV3Router: BASE.uniswapV3Router
     };
 };
