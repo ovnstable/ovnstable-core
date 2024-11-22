@@ -27,6 +27,8 @@ async function main() {
     addProposalItem(StrategyMendiUsdc, 'setStrategyParams', [pm.address, rm.address, "Mendi USDC"]);
     addProposalItem(StrategyEtsAlpha, 'setStrategyParams', [pm.address, rm.address, "AlphaLinea"]);
 
+    addProposalItem(pm, 'upgradeTo', ['0x1c592E055Ec06A68f89499fe0aCDd262b30Da361']);
+
 
     await testProposal(addresses, values, abis);
 

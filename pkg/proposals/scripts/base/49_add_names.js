@@ -87,6 +87,8 @@ async function main() {
     addProposalItem(PhiBase, 'setStrategyParams', [pm.address, rm.address, "PhiBase"]);
     addProposalItem(TauBase, 'setStrategyParams', [pm.address, rm.address, "TauBase"]);
 
+    addProposalItem(pm, 'upgradeTo', ['0xb008d09D25F06799e4081877A6bB185d89D893d3']);
+
 
     await testProposal(addresses, values, abis);
 

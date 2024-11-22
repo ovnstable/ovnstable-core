@@ -27,6 +27,8 @@ async function main() {
     addProposalItem(StrategyZerolend, 'setStrategyParams', [pm.address, rm.address, "Zerolend USDB"]);
     addProposalItem(StrategySperAlpha, 'setStrategyParams', [pm.address, rm.address, "SperAlphaBlast"]);
 
+    addProposalItem(pm, 'upgradeTo', ['0xB5900912Ee8A80375f85603149693971e84C72F2']);
+
 
     await testProposal(addresses, values, abis);
 

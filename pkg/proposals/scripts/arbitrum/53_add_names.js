@@ -52,6 +52,8 @@ async function main() {
     addProposalItem(StrategyAaveUsdc, 'setStrategyParams', [pm.address, rm.address, "Aave USDC"]);
     addProposalItem(StrategyCompoundUsdc, 'setStrategyParams', [pm.address, rm.address, "Compound USDC"]);
 
+    addProposalItem(pm, 'upgradeTo', ['0xBB25FB79c4a111255168B563d6F640Ed9D8fe257']);
+    
 
     await testProposal(addresses, values, abis);
     

@@ -22,6 +22,8 @@ async function main() {
 
     addProposalItem(StrategyVenusUsdc, 'setStrategyParams', [pm.address, rm.address, "Venus USDC"]);
 
+    addProposalItem(pm, 'upgradeTo', ['0x84210dB73775fF1DeFe5037A3E1B4C24048c336c']);
+
 
     await testProposal(addresses, values, abis);
 

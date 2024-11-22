@@ -23,6 +23,8 @@ async function main() {
 
     addProposalItem(StrategyAave, 'setStrategyParams', [pm.address, rm.address, "AAVE"]);
 
+    addProposalItem(pm, 'upgradeTo', ['0x80212Fc2baa3782eC0B5384fFe6E1ED8306340b0']);
+
 
     await testProposal(addresses, values, abis);
 
