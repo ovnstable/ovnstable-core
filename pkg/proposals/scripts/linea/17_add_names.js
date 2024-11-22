@@ -30,9 +30,9 @@ async function main() {
     addProposalItem(pm, 'upgradeTo', ['0x1c592E055Ec06A68f89499fe0aCDd262b30Da361']);
 
 
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
 
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
