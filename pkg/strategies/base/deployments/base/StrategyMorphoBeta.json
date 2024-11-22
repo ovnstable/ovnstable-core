@@ -591,6 +591,11 @@
           "internalType": "address",
           "name": "_roleManager",
           "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "_name",
+          "type": "string"
         }
       ],
       "name": "setStrategyParams",
@@ -882,7 +887,7 @@
         "type": "t_array(t_uint256)50_storage"
       },
       {
-        "astId": 7838,
+        "astId": 23563,
         "contract": "contracts/StrategyMorpho.sol:StrategyMorpho",
         "label": "portfolioManager",
         "offset": 0,
@@ -890,7 +895,7 @@
         "type": "t_address"
       },
       {
-        "astId": 7840,
+        "astId": 23565,
         "contract": "contracts/StrategyMorpho.sol:StrategyMorpho",
         "label": "swapSlippageBP",
         "offset": 0,
@@ -898,7 +903,7 @@
         "type": "t_uint256"
       },
       {
-        "astId": 7842,
+        "astId": 23567,
         "contract": "contracts/StrategyMorpho.sol:StrategyMorpho",
         "label": "navSlippageBP",
         "offset": 0,
@@ -906,7 +911,7 @@
         "type": "t_uint256"
       },
       {
-        "astId": 7844,
+        "astId": 23569,
         "contract": "contracts/StrategyMorpho.sol:StrategyMorpho",
         "label": "stakeSlippageBP",
         "offset": 0,
@@ -914,47 +919,55 @@
         "type": "t_uint256"
       },
       {
-        "astId": 7847,
+        "astId": 23572,
         "contract": "contracts/StrategyMorpho.sol:StrategyMorpho",
         "label": "roleManager",
         "offset": 0,
         "slot": "255",
-        "type": "t_contract(IRoleManager)8240"
+        "type": "t_contract(IRoleManager)24212"
       },
       {
-        "astId": 8227,
+        "astId": 23574,
+        "contract": "contracts/StrategyMorpho.sol:StrategyMorpho",
+        "label": "name",
+        "offset": 0,
+        "slot": "256",
+        "type": "t_string_storage"
+      },
+      {
+        "astId": 23960,
         "contract": "contracts/StrategyMorpho.sol:StrategyMorpho",
         "label": "__gap",
         "offset": 0,
-        "slot": "256",
-        "type": "t_array(t_uint256)45_storage"
+        "slot": "257",
+        "type": "t_array(t_uint256)44_storage"
       },
       {
-        "astId": 8315,
+        "astId": 28288,
         "contract": "contracts/StrategyMorpho.sol:StrategyMorpho",
         "label": "usdcToken",
         "offset": 0,
         "slot": "301",
-        "type": "t_contract(IERC20)2907"
+        "type": "t_contract(IERC20)2987"
       },
       {
-        "astId": 8318,
+        "astId": 28291,
         "contract": "contracts/StrategyMorpho.sol:StrategyMorpho",
         "label": "wellToken",
         "offset": 0,
         "slot": "302",
-        "type": "t_contract(IERC20)2907"
+        "type": "t_contract(IERC20)2987"
       },
       {
-        "astId": 8321,
+        "astId": 28294,
         "contract": "contracts/StrategyMorpho.sol:StrategyMorpho",
         "label": "mUsdcToken",
         "offset": 0,
         "slot": "303",
-        "type": "t_contract(IMetaMorpho)4237"
+        "type": "t_contract(IMetaMorpho)18875"
       },
       {
-        "astId": 8324,
+        "astId": 28297,
         "contract": "contracts/StrategyMorpho.sol:StrategyMorpho",
         "label": "uniswapV3Router",
         "offset": 0,
@@ -976,11 +989,11 @@
         "label": "address",
         "numberOfBytes": "20"
       },
-      "t_array(t_uint256)45_storage": {
+      "t_array(t_uint256)44_storage": {
         "base": "t_uint256",
         "encoding": "inplace",
-        "label": "uint256[45]",
-        "numberOfBytes": "1440"
+        "label": "uint256[44]",
+        "numberOfBytes": "1408"
       },
       "t_array(t_uint256)49_storage": {
         "base": "t_uint256",
@@ -1004,22 +1017,22 @@
         "label": "bytes32",
         "numberOfBytes": "32"
       },
-      "t_contract(IERC20)2907": {
+      "t_contract(IERC20)2987": {
         "encoding": "inplace",
         "label": "contract IERC20",
         "numberOfBytes": "20"
       },
-      "t_contract(IMetaMorpho)4237": {
+      "t_contract(IMetaMorpho)18875": {
         "encoding": "inplace",
         "label": "contract IMetaMorpho",
         "numberOfBytes": "20"
       },
-      "t_contract(IRoleManager)8240": {
+      "t_contract(IRoleManager)24212": {
         "encoding": "inplace",
         "label": "contract IRoleManager",
         "numberOfBytes": "20"
       },
-      "t_contract(ISwapRouter)5101": {
+      "t_contract(ISwapRouter)20826": {
         "encoding": "inplace",
         "label": "contract ISwapRouter",
         "numberOfBytes": "20"
@@ -1037,6 +1050,11 @@
         "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
         "numberOfBytes": "32",
         "value": "t_struct(RoleData)23_storage"
+      },
+      "t_string_storage": {
+        "encoding": "bytes",
+        "label": "string",
+        "numberOfBytes": "32"
       },
       "t_struct(RoleData)23_storage": {
         "encoding": "inplace",
