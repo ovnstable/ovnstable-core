@@ -259,7 +259,7 @@ function getChainFromNetwork(network) {
         }
     }
 
-    throw new Error(`Unknown network: ${network}`)
+    throw new Error(`Unknown network: ${ network }`)
 
 }
 

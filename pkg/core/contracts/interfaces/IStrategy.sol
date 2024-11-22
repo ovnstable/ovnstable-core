@@ -11,6 +11,8 @@ interface IStrategy {
     event Stake(uint256 amount);
     event Unstake(uint256 amount, uint256 amountReceived);
 
+    function name() external view returns (string memory);
+
     function stake(
         address _asset,
         uint256 _amount

@@ -20,6 +20,8 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     uint256 public navSlippageBP;
     uint256 public stakeSlippageBP;
     IRoleManager public roleManager;
+    
+    string public name;
 
     function __Strategy_init() internal initializer {
         __AccessControl_init();
@@ -58,11 +60,12 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     // --- setters
 
-    function setStrategyParams(address _portfolioManager, address _roleManager) public onlyAdmin {
+    function setStrategyParams(address _portfolioManager, address _roleManager, string memory _name) public onlyAdmin {
         require(_portfolioManager != address(0), "Zero address not allowed");
         require(_roleManager != address(0), "Zero address not allowed");
         portfolioManager = _portfolioManager;
         roleManager = IRoleManager(_roleManager);
+        name = _name;
     }
 
     function setSlippages(
@@ -75,7 +78,6 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         stakeSlippageBP = _stakeSlippageBP;
         emit SlippagesUpdated(_swapSlippageBP, _navSlippageBP, _stakeSlippageBP);
     }
-
 
     // --- logic
 
@@ -162,5 +164,5 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     }
 
 
-    uint256[45] private __gap;
+    uint256[44] private __gap;
 }
