@@ -42,10 +42,10 @@ async function main() {
 
     console.log(account.address);
     console.log(account3.address);
-    console.log(await account3.getBalance());
+    console.log((await account3.getBalance()).toString());
 
     console.log(account.address);
-    console.log(await account.getBalance());
+    console.log((await account.getBalance()).toString());
 
     let ex = await getContract('FundExchange');
     let fund = await getContract('MotivationalFund');
@@ -59,6 +59,7 @@ async function main() {
 
     console.log("bal1", bal1.toString());
     console.log("bal2", bal2.toString());
+    console.log("total deposit", ex.totalDeposit());
 }
 
 main()

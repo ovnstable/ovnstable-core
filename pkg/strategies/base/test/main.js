@@ -1,9 +1,12 @@
+const { initWallet } = require('@overnight-contracts/common/utils/script-utils');
 const { strategyTest } = require('@overnight-contracts/common/utils/strategy-test');
 const { impersonatingEtsGrantRole, impersonatingStaker } = require("@overnight-contracts/common/utils/tests");
 const {Wallets} = require("@overnight-contracts/common/utils/wallets");
 
 async function runStrategyLogic(strategyName, strategyAddress) {
-
+    let mainAddress = (await initWallet()).address;
+    
+     
 
     if ((strategyName.indexOf('StrategyEts') !== -1) || (strategyName.indexOf('StrategySmm') !== -1)) {
         let hedgeExchangerAddress = "0xce8CB94CB04D5E29926E8E8Db1431bbCc6B8A941";
@@ -13,6 +16,7 @@ async function runStrategyLogic(strategyName, strategyAddress) {
 }
 
 describe("BASE", function () {
+    
     let params = {
         name: process.env.TEST_STRATEGY,
         enabledReward: true,

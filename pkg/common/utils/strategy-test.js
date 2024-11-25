@@ -10,11 +10,12 @@ const { evmCheckpoint, evmRestore, sharedBeforeEach } = require("./sharedBeforeE
 const { transferAsset, getERC20, transferETH, initWallet, execTimelock } = require("./script-utils");
 const ERC20 = require("./abi/IERC20.json");
 const { Roles } = require("./roles");
+const {Wallets} = require("@overnight-contracts/common/utils/wallets");
 const HedgeExchangerABI = require('./abi/HedgeExchanger.json');
 
 
 function strategyTest(strategyParams, network, assetName, runStrategyLogic) {
-
+    
     let values = [
         {
             value: 0.02,
@@ -79,7 +80,7 @@ function stakeUnstake(strategyParams, network, assetName, values, runStrategyLog
         let toAsset = function () { };
 
         sharedBeforeEach("deploy", async () => {
-
+            await transferETH(100, Wallets.DEV);  
             let values = await setUp(network, strategyParams, assetName, runStrategyLogic);
 
             recipient = values.recipient;
@@ -560,6 +561,15 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     await hre.run("compile");
     await resetHardhat(network);
 
+    const signers = await ethers.getSigners();
+    const recipient = signers[1];
+
+    let wallet = await initWallet();
+    let mainAddress = (await initWallet()).address;
+    await transferETH(100, mainAddress);
+    await transferETH(100, recipient.address);
+    await transferETH(100, signers[0].address);
+
     hre.ovn = {
         setting: true,
         noDeploy: false,
@@ -569,11 +579,10 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
     let strategyName = strategyParams.name;
     await deployments.fixture([strategyName]);
 
-    const signers = await ethers.getSigners();
-    const recipient = signers[1];
-
-    let wallet = await initWallet();
-    const strategy = (await ethers.getContract(strategyName)).connect(wallet);
+    // Georgii. commented out since this was causing 'Restricted to admins' error.
+    // Probably was added by mistake, since we don't need to connect as wallet, we already as wallet.
+    //const strategy = (await ethers.getContract(strategyName)).connect(wallet);
+    const strategy = await ethers.getContract(strategyName);
     await strategy.setStrategyParams(recipient.address, recipient.address);
 
     if (strategyParams.isRunStrategyLogic) {
@@ -581,9 +590,8 @@ async function setUp(network, strategyParams, assetName, runStrategyLogic) {
         await runStrategyLogic(strategyName, strategy.address);
     }
 
-    let mainAddress = (await initWallet()).address;
-    await transferETH(100, mainAddress);
-
+    
+    
 
     // Support ETH+
     // Remove it -> throw error: ERC20 token not found.

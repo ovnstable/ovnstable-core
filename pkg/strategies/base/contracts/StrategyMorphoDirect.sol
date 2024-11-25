@@ -22,6 +22,9 @@ contract StrategyMorphoDirect is Strategy {
     uint256 public balance;
     uint256 public limit; // in basis points
 
+    IERC20 public wellToken;
+    IERC20 public morphoToken;
+
     
     // --- events
 
@@ -41,6 +44,8 @@ contract StrategyMorphoDirect is Strategy {
         address treasury;
         uint256 fee;
         uint256 limit;
+        address wellToken;
+        address morphoToken;
     }
 
 
@@ -64,6 +69,8 @@ contract StrategyMorphoDirect is Strategy {
         treasury = params.treasury;
         fee = params.fee;
         limit = params.limit;
+        wellToken = IERC20(params.wellToken);
+        morphoToken = IERC20(params.morphoToken);
         
         balance = usdcToken.balanceOf(address(this)) + currentDepositValue();
          
@@ -182,5 +189,23 @@ contract StrategyMorphoDirect is Strategy {
         limit = _limit;
 
         emit StrategyUpdatedLimit();
+    }
+
+
+    function claimMerkleTreeRewards(address _beneficiary, bytes[] memory data, address chainAgnosticBundler) public onlyPortfolioAgent {
+        IChainAgnosticBundlerV2 bundler = IChainAgnosticBundlerV2(chainAgnosticBundler);
+
+        uint256 startUsdcBalance = usdcToken.balanceOf(address(this));
+
+        bundler.multicall(data);
+        if (wellToken.balanceOf(address(this)) > 0) {
+            wellToken.transfer(_beneficiary, wellToken.balanceOf(address(this)));
+        }
+        if (usdcToken.balanceOf(address(this)) > startUsdcBalance) {
+            usdcToken.transfer(_beneficiary, usdcToken.balanceOf(address(this)) - startUsdcBalance);
+        }
+        if (morphoToken.balanceOf(address(this)) > 0) {
+            morphoToken.transfer(_beneficiary, morphoToken.balanceOf(address(this)));
+        }
     }
 }

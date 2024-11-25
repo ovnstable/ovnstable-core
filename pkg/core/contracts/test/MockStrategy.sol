@@ -22,6 +22,11 @@ contract MockStrategy is IStrategy {
 
     // --- logic
 
+    function name() external view returns (string memory) {
+        string memory _name = "MockStrategy";
+        return _name;
+    }
+
     function stake(
         address _asset,
         uint256 _amount

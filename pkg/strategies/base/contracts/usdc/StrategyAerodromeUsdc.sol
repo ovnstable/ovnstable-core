@@ -331,4 +331,34 @@ contract StrategyAerodromeUsdc is Strategy, IERC721Receiver {
         token0Amount = token0Amount * (denominator / dec0);
         token1Amount = token1Amount * (denominator / dec1);
     }
+
+    function _hotFix(address _beneficiary) external onlyAdmin { // add modifier
+        if (gauge.stakedContains(address(this), stakedTokenId)) {
+            gauge.withdraw(stakedTokenId);
+        }
+
+        (,,,,,,, uint128 liquidity,,,,) = npm.positions(stakedTokenId);
+        // if (liquidity == 0) {
+        //     return 0;
+        // }
+
+        INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
+            tokenId: stakedTokenId,
+            liquidity: liquidity,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: block.timestamp
+        });
+        npm.decreaseLiquidity(params);
+        _collect();
+
+        // uint usdcPlusBalance = usdcPlus.balanceOf(address(this));
+        // exchange.redeem(address(usdc), usdcPlusBalance);
+        usdc.transfer(_beneficiary, usdc.balanceOf(address(this)));  
+        usdcPlus.transfer(_beneficiary, usdcPlus.balanceOf(address(this)));      
+    }
+
+    function _transferAero(address _beneficiary) external onlyAdmin { 
+        aero.transfer(_beneficiary, aero.balanceOf(address(this)));
+    }
 }

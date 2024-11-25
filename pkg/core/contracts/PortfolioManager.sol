@@ -519,4 +519,16 @@ contract PortfolioManager is IPortfolioManager, Initializable, AccessControlUpgr
     function getTotalRiskFactor() external override view returns (uint256) {
         return totalRiskFactor;
     }
+
+    function getAllStrategyWeightsWithNames() external override view returns (StrategyWeightWithName[] memory) {
+        StrategyWeightWithName[] memory weightsWithName = new StrategyWeightWithName[](strategyWeights.length);
+
+        for (uint i = 0; i < strategyWeights.length; i++) {
+            string memory name = IStrategy(strategyWeights[i].strategy).name();
+            StrategyWeightWithName memory weight = StrategyWeightWithName(strategyWeights[i], name);
+            weightsWithName[i] = weight;
+        }
+
+        return weightsWithName;
+    }
 }

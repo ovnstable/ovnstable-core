@@ -6,7 +6,6 @@ import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 interface ISwapSimulator {
-
     /// @notice Error containing information about a swap (for a simulation)
     /// @param balance0 The balance of token0 after the swap
     /// @param balance1 The balance of token1 after the swap
@@ -17,6 +16,12 @@ interface ISwapSimulator {
         uint256 balance1,
         uint256 ratio0,
         uint256 ratio1
+    );
+
+    error SlippageError(
+        uint160 curSqrtRatio,
+        uint160 minSqrtRatio,
+        uint160 maxSqrtRatio        
     );
 
     function swap(
@@ -61,6 +66,9 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     ICLGauge public gauge;
 
     uint256 public stakedTokenId;
+    address swapRouter;
+    address treasury;
+    uint256 public treasuryShare;
 
     // --- events
     event StrategyUpdatedParams();
@@ -80,6 +88,9 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         address npmAddress;
         address aeroTokenAddress;
         uint256 rewardSwapSlippageBP;
+        address swapRouter;
+        address treasury;
+        uint256 treasuryShare;
     }
 
     struct BinSearchParams {
@@ -113,6 +124,9 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         gauge = ICLGauge(pool.gauge());
         aero = IERC20(params.aeroTokenAddress);
         rewardSwapSlippageBP = params.rewardSwapSlippageBP;
+        swapRouter = params.swapRouter;
+        treasury = params.treasury;
+        treasuryShare = params.treasuryShare;
         emit StrategyUpdatedParams();
     }
 
@@ -160,8 +174,8 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _totalValue() internal view returns (uint256) {
-        uint256 amount0;
-        uint256 amount1;
+        uint256 amount0 = 0;
+        uint256 amount1 = 0;
 
         if (stakedTokenId != 0) {
             (uint160 sqrtRatioX96,,,,,) = pool.slot0();
@@ -187,25 +201,39 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         }
         _collect();
 
-        uint256 amountAero = aero.balanceOf(address(this));
+        uint256 treasuryAmountAero = aero.balanceOf(address(this)) * treasuryShare / 10000;
+        uint256 sellAmountAero = aero.balanceOf(address(this)) - treasuryAmountAero;
         uint256 amountUsdcPlus = usdcPlus.balanceOf(address(this));
 
-        if (amountAero > 0) {
-            bool zeroForOne = rewardSwapPool.token0() == address(aero);
-            aero.transfer(address(swapSimulator), amountAero);
-            swapSimulator.swap(
-                address(rewardSwapPool), 
-                amountAero, 
-                _getSqrtPriceLimitX96(rewardSwapPool, rewardSwapSlippageBP, zeroForOne), 
-                zeroForOne
+        if (sellAmountAero > 0) {
+            uint256 usdcAfterSwap = AerodromeLibrary.getAmountsOut(
+                swapRouter,
+                address(aero),
+                address(usdc),
+                address(rewardSwapPool),
+                sellAmountAero
             );
+            if (usdcAfterSwap > 0) {
+                AerodromeLibrary.singleSwap(
+                    swapRouter,
+                    address(aero),
+                    address(usdc),
+                    address(rewardSwapPool),
+                    sellAmountAero,
+                    usdcAfterSwap * (10000 - rewardSwapSlippageBP) / 10000,
+                    address(this)
+                );
+            }
+
+            aero.transfer(treasury, treasuryAmountAero);
         }
         if (amountUsdcPlus > 0) {
             usdcPlus.transfer(address(swapSimulator), amountUsdcPlus);
             swapSimulator.swap(
                 address(pool), 
                 amountUsdcPlus, 
-                _getSqrtPriceLimitX96(pool, rewardSwapSlippageBP, false), 
+                // _getSqrtPriceLimitX96(pool, rewardSwapSlippageBP, false),
+                0, 
                 false
             );
         }
@@ -231,6 +259,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         if (amountToSwap > 0) {
             swapSimulator.swap(address(pool), amountToSwap, 0, zeroForOne);
         }
+
         swapSimulator.withdrawAll(address(pool));
 
         amount0 = usdc.balanceOf(address(this)) - lockedAmount0;
@@ -304,14 +333,18 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             uint256 amountToStake1 = usdcPlus.balanceOf(address(this));
             uint256 lockedAmount0;
             uint256 lockedAmount1;
-            if (asset == address(usdc) && amountToStake0 > amount) {
+            if (amountToStake0 > amount) {
                 amountToStake0 -= amount;
                 lockedAmount0 = amount;
-            } else if (asset == address(usdcPlus) && amountToStake1 > amount) {
-                amountToStake1 -= amount;
-                lockedAmount1 = amount;
             } else {
-                return 0;
+                usdcPlus.transfer(address(swapSimulator), amountToStake1);
+                swapSimulator.swap(
+                    address(pool), 
+                    amount - amountToStake0, 
+                    // _getSqrtPriceLimitX96(pool, rewardSwapSlippageBP, false),
+                    0, 
+                    false
+                );
             }
             _deposit(amountToStake0, amountToStake1, lockedAmount0, lockedAmount1);
         } else {
@@ -324,13 +357,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
                     usdcPlus.transfer(address(swapSimulator), amount);
                     swapSimulator.swap(address(pool), amount, 0, false);
                 }
-            } else {
-                amount = usdc.balanceOf(address(this));
-                if (amount > 0) {
-                    usdc.transfer(address(swapSimulator), amount);
-                    swapSimulator.swap(address(pool), amount, 0, true);
-                }
-            }
+            } 
             swapSimulator.withdrawAll(address(pool));
         }
         return IERC20(asset).balanceOf(address(this));
@@ -347,12 +374,17 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _simulateSwap(uint256 amount0, uint256 amount1) internal returns (uint256 amountToSwap, bool zeroForOne) {
+        // usdc / usdc+
         zeroForOne = amount0 > amount1;
 
         BinSearchParams memory binSearchParams;
         binSearchParams.right = zeroForOne ? amount0 : amount1;
+
+        
+
         for (uint256 i = 0; i < binSearchIterations; i++) {
             binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;
+
             if (binSearchParams.mid == 0) {
                 break;
             }
@@ -389,6 +421,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
     function _getSqrtPriceLimitX96(ICLPool _pool, uint256 _slippageBP, bool _zeroForOne) internal view returns (uint160) {
         (uint160 sqrtRatioX96,,,,,) = _pool.slot0();
+        
         if (_zeroForOne) {
             return sqrtRatioX96 * (10000 - uint160(_slippageBP)) / 10000;
         } else {
@@ -454,6 +487,9 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
             tickSpacing: pool.tickSpacing()
         });
 
+        uint160 maxSqrtRatio = uint160(79236085330515764027303304732); // 1.0002
+        uint160 minSqrtRatio = uint160(79224201403219477170569942574); // 0.999 TODO: change for more strict slippage
+
         pool.swap(
             address(this), 
             zeroForOne, 
@@ -463,6 +499,16 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
                 : sqrtPriceLimitX96, 
             abi.encode(data)
         );
+
+        (uint160 newSqrtRatioX96,,,,,) = pool.slot0();
+
+        if (newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) {
+            revert SlippageError(
+                newSqrtRatioX96,
+                minSqrtRatio,
+                maxSqrtRatio
+            );
+        }
     }
 
     function simulateSwap(
@@ -472,6 +518,7 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         bool zeroForOne,
         int24[] memory tickRange
     ) external onlyStrategy {
+
         ICLPool pool = ICLPool(pair);
         address token0 = pool.token0();
         address token1 = pool.token1();
@@ -480,6 +527,7 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
 
         uint256[] memory ratio = new uint256[](2);
         (ratio[0], ratio[1]) = _getProportion(pool, tickRange);
+
         revert SwapError(
             IERC20(token0).balanceOf(address(this)),
             IERC20(token1).balanceOf(address(this)),

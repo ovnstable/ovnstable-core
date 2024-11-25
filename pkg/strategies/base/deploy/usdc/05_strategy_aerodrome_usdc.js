@@ -29,7 +29,7 @@ module.exports = async ({deployments}) => {
         await (await strategy.setParams(await getParams())).wait();
     }, wallet);
 };
-
+    
 async function getParams() {
     return {
         pool: '0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147',
