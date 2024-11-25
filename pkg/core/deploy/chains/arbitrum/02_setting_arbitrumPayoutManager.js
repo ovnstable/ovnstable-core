@@ -14,20 +14,16 @@ module.exports = async () => {
     const usdtPlus = await getContract('UsdPlusToken', 'arbitrum_usdt');
     const ethPlus = await getContract('UsdPlusToken', 'arbitrum_eth');
     const daiPlus = await getContract('UsdPlusToken', 'arbitrum_dai');
-    await transferETH(100, '0x086dFe298907DFf27BD593BD85208D57e0155c94');
 
     let items = [];
 
-    // items.push(...wombat());
-    // items.push(...chronos());
-    // items.push(...curve());
-    // items.push(...pancakeswap());
-    // items.push(...traderjoe());
+    items.push(...wombat());
+    items.push(...chronos());
+    items.push(...curve());
+    items.push(...pancakeswap());
+    items.push(...traderjoe());
     items.push(...uniswap());
-    await (await payoutManager.removeItem(usdPlus.address, '0x3dD2FdBA71282083D440687cce9e4231AAAc534E')).wait();
-    await (await payoutManager.removeItem(usdPlus.address, '0x7548BD60CB8f627A9b8ed94f8ca174348DbE6A05')).wait();
-    await (await payoutManager.removeItem(usdPlus.address, '0x67ab7DC903A10838a0de8861dfDFF3287cF98e5c')).wait();
-    await (await payoutManager.removeItem(usdPlus.address, '0x421803dA50d3932Caa36bD1731d36a0E2AF93542')).wait();
+
     await (await payoutManager.addItems(items)).wait();
 
     console.log('ArbitrumPayoutManager setting done');
