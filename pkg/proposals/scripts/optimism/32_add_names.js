@@ -13,22 +13,22 @@ async function main() {
     let abis = [];
 
     let pm = await getContract('PortfolioManager', 'optimism');
-    let timelock = await getContract('AgentTimelock', 'optimism');
-    let rm = await getContract('RoleManager', 'optimism');
 
     const StrategyAave = await getContract('StrategyAave', 'optimism');
-    const newAaveImpl = "0xEAEd84c2676F76760b9354153546484F488Fd9A6";
+    const newAaveImpl = "0x0A0Ff17E92A50FE4517715A1104c4D545bdd78Cc";
 
     addProposalItem(StrategyAave, "upgradeTo", [newAaveImpl]);
 
-    addProposalItem(StrategyAave, 'setStrategyParams', [pm.address, rm.address, "AAVE"]);
+    addProposalItem(StrategyAave, 'setStrategyName', ["AAVE"]);
 
     addProposalItem(pm, 'upgradeTo', ['0x80212Fc2baa3782eC0B5384fFe6E1ED8306340b0']);
 
 
-    // await testProposal(addresses, values, abis);
+    await testProposal(addresses, values, abis);
 
-    await createProposal(filename, addresses, values, abis);
+    await testUsdPlus(filename, 'optimism');
+
+    // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);

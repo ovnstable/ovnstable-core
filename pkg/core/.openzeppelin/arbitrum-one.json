@@ -18612,7 +18612,11 @@
           }
         },
         "namespaces": {}
-      }
+      },
+      "allAddresses": [
+        "0xBB25FB79c4a111255168B563d6F640Ed9D8fe257",
+        "0xfBa189090550C2E87FA7833638C305d4c80200F2"
+      ]
     }
   }
 }

@@ -12,8 +12,8 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let pm = await getContract('PortfolioManager', 'base_usdc');
-    let rm = await getContract('RoleManager', 'base_usdc');
+    let pm = await getContract('PortfolioManager', 'base');
+    let pm_usdc = await getContract('PortfolioManager', 'base_usdc');
 
     const StrategyAave = await getContract('StrategyAave', 'base');
     const newAaveImpl = "0x520583E2EFC5cf55eB71394F817E381Ef9506bB0";
@@ -57,6 +57,21 @@ async function main() {
     const TauBase = await getContract('StrategyEtsTau', 'base');
     const newTauBaseImpl = "0x742524aD08aDe8313f2bD9625961abF14C56204F";
 
+    const StrategyMoonwellUsdc = await getContract('StrategyMoonwellUsdc', 'base_usdc');
+    const newMoonwellUsdcImpl = "0x3a86e30CcDE941310dBD6Ed24C9D205FFe9F141E";
+
+    const StrategyEtsBeta = await getContract('StrategyEtsBeta', 'base_usdc');
+    const newEtsBetaImpl = "0xFD2a51bCC36A9fcBf133932F6B8006a0c7217af4";
+
+    const StrategyEtsSigma = await getContract('StrategyEtsSigma', 'base_usdc');
+    const newEtsSigmaImpl = "0x99C8187AeFb2A2aE19C3792ac31a0aBe4747Ae51";
+
+    const StrategyMorphoDirectUsdc = await getContract('StrategyMorphoDirectUsdc', 'base_usdc');
+    const newMorphoDirectUsdcImpl = "0x097ec712ef245bddEA5934c2846c887ac195f71a";
+
+    const StrategyAerodromeSwapUsdc = await getContract('StrategyAerodromeSwapUsdc', 'base_usdc');
+    const newAerodromeSwapUsdcImpl = "0x1fCbD2e32122a4F0Aad83B36606217A5D4e8C879";
+
     addProposalItem(StrategyAave, "upgradeTo", [newAaveImpl]);
     addProposalItem(StrategyMorphoAlpha, "upgradeTo", [newMorphoAlphaImpl]);
     addProposalItem(StrategyMorphoBeta, "upgradeTo", [newMorphoBetaImpl]);
@@ -71,28 +86,44 @@ async function main() {
     addProposalItem(UpsilonBase, 'upgradeTo', [newUpsilonBaseImpl]);
     addProposalItem(PhiBase, 'upgradeTo', [newPhiBaseImpl]);
     addProposalItem(TauBase, 'upgradeTo', [newTauBaseImpl]);
+
+    addProposalItem(StrategyMoonwellUsdc, 'upgradeTo', [newMoonwellUsdcImpl]);
+    addProposalItem(StrategyEtsBeta, 'upgradeTo', [newEtsBetaImpl]);
+    addProposalItem(StrategyEtsSigma, 'upgradeTo', [newEtsSigmaImpl]);
+    addProposalItem(StrategyMorphoDirectUsdc, 'upgradeTo', [newMorphoDirectUsdcImpl]);
+    addProposalItem(StrategyAerodromeSwapUsdc, 'upgradeTo', [newAerodromeSwapUsdcImpl]);
     
-    addProposalItem(StrategyAave, 'setStrategyParams', [pm.address, rm.address, "AAVE"]);
-    addProposalItem(StrategyMorphoAlpha, 'setStrategyParams', [pm.address, rm.address, "MorphoAlpha"]);
-    addProposalItem(StrategyMorphoBeta, 'setStrategyParams', [pm.address, rm.address, "MorphoBeta"]);
-    addProposalItem(StrategyMorphoDirectAlpha, 'setStrategyParams', [pm.address, rm.address, "MorphoDirectAlpha"]);
-    addProposalItem(StrategyMoonwell, 'setStrategyParams', [pm.address, rm.address, "Moonwell"]);
-    addProposalItem(StrategySiloUsdcUsdPlus, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/USD+"]);
-    addProposalItem(StrategySiloUsdcCbBTC, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/cbBTC"]);
-    addProposalItem(StrategySiloUsdcWstETH, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/wstETH"]);
-    addProposalItem(StrategySiloUsdcCbETH, 'setStrategyParams', [pm.address, rm.address, "Silo USDC/cbETH"]);
-    addProposalItem(AlhphaBase, 'setStrategyParams', [pm.address, rm.address, "AlhphaBase"]);
-    addProposalItem(RhoBase, 'setStrategyParams', [pm.address, rm.address, "RhoBase"]);
-    addProposalItem(UpsilonBase, 'setStrategyParams', [pm.address, rm.address, "UpsilonBase"]);
-    addProposalItem(PhiBase, 'setStrategyParams', [pm.address, rm.address, "PhiBase"]);
-    addProposalItem(TauBase, 'setStrategyParams', [pm.address, rm.address, "TauBase"]);
+    addProposalItem(StrategyAave, 'setStrategyName', ["AAVE"]);
+    addProposalItem(StrategyMorphoAlpha, 'setStrategyName', ["MorphoAlpha"]);
+    addProposalItem(StrategyMorphoBeta, 'setStrategyName', ["MorphoBeta"]);
+    addProposalItem(StrategyMorphoDirectAlpha, 'setStrategyName', ["MorphoDirectAlpha"]);
+    addProposalItem(StrategyMoonwell, 'setStrategyName', ["Moonwell"]);
+    addProposalItem(StrategySiloUsdcUsdPlus, 'setStrategyName', ["Silo USDC/USD+"]);
+    addProposalItem(StrategySiloUsdcCbBTC, 'setStrategyName', ["Silo USDC/cbBTC"]);
+    addProposalItem(StrategySiloUsdcWstETH, 'setStrategyName', ["Silo USDC/wstETH"]);
+    addProposalItem(StrategySiloUsdcCbETH, 'setStrategyName', ["Silo USDC/cbETH"]);
+    addProposalItem(AlhphaBase, 'setStrategyName', ["AlhphaBase"]);
+    addProposalItem(RhoBase, 'setStrategyName', ["RhoBase"]);
+    addProposalItem(UpsilonBase, 'setStrategyName', ["UpsilonBase"]);
+    addProposalItem(PhiBase, 'setStrategyName', ["PhiBase"]);
+    addProposalItem(TauBase, 'setStrategyName', ["TauBase"]);
+
+    addProposalItem(StrategyMoonwellUsdc, 'setStrategyName', ["Moonwell USDC"]);
+    addProposalItem(StrategyEtsBeta, 'setStrategyName', ["BetaBase"]);
+    addProposalItem(StrategyEtsSigma, 'setStrategyName', ["SigmaBase"]);
+    addProposalItem(StrategyMorphoDirectUsdc, 'setStrategyName', ["MorphoUSDC (wUSD+/USDC)"]);
+    addProposalItem(StrategyAerodromeSwapUsdc, 'setStrategyName', ["AerodromeSwap USDC/USDC+"]);
 
     addProposalItem(pm, 'upgradeTo', ['0xb008d09D25F06799e4081877A6bB185d89D893d3']);
+    addProposalItem(pm_usdc, 'upgradeTo', ['0xf2BA70e6bb8853a4f62d873Fbc4A5B88d89abf42']);
 
 
-    // await testProposal(addresses, values, abis);
+    await testProposal(addresses, values, abis);
 
-    await createProposal(filename, addresses, values, abis);
+    await testUsdPlus(filename, 'base');
+    await testUsdPlus(filename, 'base_usdc');
+
+    // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);

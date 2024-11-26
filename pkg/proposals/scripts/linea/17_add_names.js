@@ -13,26 +13,42 @@ async function main() {
     let abis = [];
 
     let pm = await getContract('PortfolioManager', 'linea');
-    let rm = await getContract('RoleManager', 'linea');
+    let pm_usdt = await getContract('PortfolioManager', 'linea_usdt');
 
     const StrategyMendiUsdc = await getContract('StrategyMendiUsdc', 'linea');
-    const newMendiUsdcImpl = "0x39D7306c04A4a6f163733510f0910AfA765349bd";
+    const newMendiUsdcImpl = "";
 
     const StrategyEtsAlpha = await getContract("StrategyEtsAlpha", "linea");
-    const newEtsAlphaImpl = "0x0A0Ff17E92A50FE4517715A1104c4D545bdd78Cc";
+    const newEtsAlphaImpl = "";
+
+    const StrategyMendiUsdt = await getContract("StrategyMendiUsdt", "linea_usdt");
+    const newMendiUsdtImpl = "";
+
+    const StrategyEtsBetaUsdt = await getContract("StrategyEtsBetaUsdt", "linea_usdt");
+    const newEtsBetaUsdtImpl = "";
 
     addProposalItem(StrategyMendiUsdc, "upgradeTo", [newMendiUsdcImpl]);
     addProposalItem(StrategyEtsAlpha, "upgradeTo", [newEtsAlphaImpl]);
 
-    addProposalItem(StrategyMendiUsdc, 'setStrategyParams', [pm.address, rm.address, "Mendi USDC"]);
-    addProposalItem(StrategyEtsAlpha, 'setStrategyParams', [pm.address, rm.address, "AlphaLinea"]);
+    addProposalItem(StrategyMendiUsdt, "upgradeTo", [newMendiUsdtImpl]);
+    addProposalItem(StrategyEtsBetaUsdt, "upgradeTo", [newEtsBetaUsdtImpl]);
+
+    addProposalItem(StrategyMendiUsdc, 'setStrategyName', ["Mendi USDC"]);
+    addProposalItem(StrategyEtsAlpha, 'setStrategyName', ["AlphaLinea"]);
+
+    addProposalItem(StrategyMendiUsdt, 'setStrategyName', ["Mendi USDT"]);
+    addProposalItem(newMendiUsdtImpl, 'setStrategyName', ["BetaLinea"]);
 
     addProposalItem(pm, 'upgradeTo', ['0x1c592E055Ec06A68f89499fe0aCDd262b30Da361']);
+    addProposalItem(pm_usdt, 'upgradeTo', ['']);
 
 
-    // await testProposal(addresses, values, abis);
+    await testProposal(addresses, values, abis);
 
-    await createProposal(filename, addresses, values, abis);
+    await testUsdPlus(filename, 'linea');
+    await testUsdPlus(filename, 'linea_usdc');
+
+    // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
