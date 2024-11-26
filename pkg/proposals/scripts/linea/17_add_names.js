@@ -19,7 +19,7 @@ async function main() {
     const newMendiUsdcImpl = "";
 
     const StrategyEtsAlpha = await getContract("StrategyEtsAlpha", "linea");
-    const newEtsAlphaImpl = "";
+    const newEtsAlphaImpl = "0xCd892521038cb29d7Cc86D9149a3e1433aa3BfD1";
 
     const StrategyMendiUsdt = await getContract("StrategyMendiUsdt", "linea_usdt");
     const newMendiUsdtImpl = "";

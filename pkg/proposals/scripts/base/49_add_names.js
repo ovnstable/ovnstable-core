@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const { getContract, initWallet } = require("@overnight-contracts/common/utils/script-utils");
-const { createProposal, testProposal } = require("@overnight-contracts/common/utils/governance");
+const { createProposal, testProposal, testUsdPlus } = require("@overnight-contracts/common/utils/governance");
 
 const path = require('path');
 
@@ -16,46 +16,46 @@ async function main() {
     let pm_usdc = await getContract('PortfolioManager', 'base_usdc');
 
     const StrategyAave = await getContract('StrategyAave', 'base');
-    const newAaveImpl = "0x520583E2EFC5cf55eB71394F817E381Ef9506bB0";
+    const newAaveImpl = "0x64B614ea1026D62Bb82573BDFC3572a1Bec78c23";
 
     const StrategyMorphoAlpha = await getContract('StrategyMorphoAlpha', 'base');
-    const newMorphoAlphaImpl = "0xA459C069e6162F1E52253aa7E117723eC2768a67";
+    const newMorphoAlphaImpl = "0xDB317F0aE6f2858438B80cB97A1eD00ab8f74ff6";
 
     const StrategyMorphoBeta = await getContract('StrategyMorphoBeta', 'base');
-    const newMorphoBetaImpl = "0xA459C069e6162F1E52253aa7E117723eC2768a67";
+    const newMorphoBetaImpl = "0xDB317F0aE6f2858438B80cB97A1eD00ab8f74ff6";
 
     const StrategyMorphoDirectAlpha = await getContract('StrategyMorphoDirectAlpha', 'base');
-    const newMorphoDirectAlphaImpl = "0x70d86d4AB8e4A3bab5E6aa9d720B608D3Da467d8";
+    const newMorphoDirectAlphaImpl = "0xec24890D7cE04162130B42A719F98eA223d565CC";
 
     const StrategyMoonwell = await getContract('StrategyMoonwell', 'base');
-    const newMoonwellImpl = "0xf9aB2C1a5d0bf5cDf2944eA2711bE462Ae5AbE62";
+    const newMoonwellImpl = "0x57Df6916dAF117b91614Bb808D65eB04A49d2518";
 
     const StrategySiloUsdcUsdPlus = await getContract('StrategySiloUsdcUsdPlus', 'base');
-    const newSiloUsdcUsdPlusImpl = "0x17d9bf313559D4D42be277B1AA0E8d84b2dd99c8";
+    const newSiloUsdcUsdPlusImpl = "0xA34c144E0B01D4fBd7eBa5eA51b9044c77C05312";
 
     const StrategySiloUsdcCbBTC = await getContract('StrategySiloUsdcCbBTC', 'base');
-    const newSiloUsdcCbBTCImpl = "0x9Ca2004b1C629D453b0Bda1e3f55fF6817EF1d14";
+    const newSiloUsdcCbBTCImpl = "0xAE2963B12149AC13B6A2AeF16eFD90C2be3D22b5";
 
     const StrategySiloUsdcWstETH = await getContract('StrategySiloUsdcWstETH', 'base');
-    const newSiloUsdcWstETHImpl = "0x9Ca2004b1C629D453b0Bda1e3f55fF6817EF1d14";
+    const newSiloUsdcWstETHImpl = "0x81B7C1E17ABC3D845E3AcC2c4c3404625d7b2802";
 
     const StrategySiloUsdcCbETH = await getContract('StrategySiloUsdcCbETH', 'base');
-    const newSiloUsdcCbETHImpl = "0x9Ca2004b1C629D453b0Bda1e3f55fF6817EF1d14";
+    const newSiloUsdcCbETHImpl = "0x28D7298b0D5757a28037CbD792D9253771f28bc4";
 
     const AlhphaBase = await getContract('StrategyEtsAlpha', 'base');
-    const newAlphaBaseImpl = "0x5544C60B67074044C6221aFd4583B35Bc70FFd48";
+    const newAlphaBaseImpl = "0x6e62beE45c420b30011E4D224F362c540692453d";
 
     const RhoBase = await getContract('StrategyEtsRho', 'base');
-    const newRhoBaseImpl = "0x5544C60B67074044C6221aFd4583B35Bc70FFd48";
+    const newRhoBaseImpl = "0x6e62beE45c420b30011E4D224F362c540692453d";
 
     const UpsilonBase = await getContract('StrategyEtsUpsilon', 'base');
-    const newUpsilonBaseImpl = "0x742524aD08aDe8313f2bD9625961abF14C56204F";
+    const newUpsilonBaseImpl = "0xcc02B30C2dbe9c256Cf6390BE5650f0c5E708a6b";
 
     const PhiBase = await getContract('StrategyEtsPhi', 'base');
-    const newPhiBaseImpl = "0x742524aD08aDe8313f2bD9625961abF14C56204F";
+    const newPhiBaseImpl = "0x2B3Ed7Fe6D6219Ca0188B0189E36B209701bb123";
 
     const TauBase = await getContract('StrategyEtsTau', 'base');
-    const newTauBaseImpl = "0x742524aD08aDe8313f2bD9625961abF14C56204F";
+    const newTauBaseImpl = "0x16DA1a45eF078d95D5d5449FE2FbBe37759c23E3";
 
     const StrategyMoonwellUsdc = await getContract('StrategyMoonwellUsdc', 'base_usdc');
     const newMoonwellUsdcImpl = "0x3a86e30CcDE941310dBD6Ed24C9D205FFe9F141E";
@@ -66,7 +66,7 @@ async function main() {
     const StrategyEtsSigma = await getContract('StrategyEtsSigma', 'base_usdc');
     const newEtsSigmaImpl = "0x99C8187AeFb2A2aE19C3792ac31a0aBe4747Ae51";
 
-    const StrategyMorphoDirectUsdc = await getContract('StrategyMorphoDirectUsdc', 'base_usdc');
+    const StrategyMorphoDirectUsdc = await getContract('StrategyMorphoDirectUsdcGamma', 'base_usdc');
     const newMorphoDirectUsdcImpl = "0x097ec712ef245bddEA5934c2846c887ac195f71a";
 
     const StrategyAerodromeSwapUsdc = await getContract('StrategyAerodromeSwapUsdc', 'base_usdc');
