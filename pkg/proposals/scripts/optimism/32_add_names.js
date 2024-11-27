@@ -15,7 +15,7 @@ async function main() {
     let pm = await getContract('PortfolioManager', 'optimism');
 
     const StrategyAave = await getContract('StrategyAave', 'optimism');
-    const newAaveImpl = "0xFED1F9706E0a7bdA94000c6dde1A276F92bB28bd";
+    const newAaveImpl = "0x514067f0b21a70E12f9bF2b7C91162EFb668155c";
 
     addProposalItem(StrategyAave, "upgradeTo", [newAaveImpl]);
 
