@@ -31317,7 +31317,11 @@
           }
         },
         "namespaces": {}
-      }
+      },
+      "allAddresses": [
+        "0x0A0Ff17E92A50FE4517715A1104c4D545bdd78Cc",
+        "0x514067f0b21a70E12f9bF2b7C91162EFb668155c"
+      ]
     }
   }
 }

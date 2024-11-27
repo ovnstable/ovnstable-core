@@ -161,9 +161,9 @@ async function testUsdPlus(id, stand = process.env.STAND) {
     tables.push(
         await testCase(async () => {
             let amountAsset = await asset.balanceOf(walletAddress);
-            amountAsset = 1061896
+            // amountAsset = 1061896
             await (await asset.approve(exchange.address, amountAsset, await getPrice())).wait();
-            await (await exchange.buy(asset.address, amountAsset, await getPrice())).wait();
+            await (await exchange.mint({ asset: asset.address, amount: amountAsset, referral: ""}, await getPrice())).wait();
         }, 'exchange.mint'),
     );
 
@@ -348,7 +348,7 @@ async function testProposal(addresses, values, abis) {
 
             console.log(`Transaction: index: [${i}] address: [${address}]`);
             await (await timelock.sendTransaction(tx, await getPrice())).wait();
-            await sleep(3000)
+            await sleep(3000);
         }
     });
 }
