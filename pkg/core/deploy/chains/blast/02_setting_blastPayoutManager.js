@@ -22,6 +22,7 @@ module.exports = async () => {
 
     function swapBlast() {
 
+        let items = [];
         let dex = "SwapBlast";
         let to = "0xfD5844867387Cecc3A0393b3e0BE32479Ea9e61a";
         let fee = 20;
@@ -35,6 +36,7 @@ module.exports = async () => {
 
     function thruster() {
 
+        let items = [];
         let dex = "Thruster";
         
         items.push(createSkim('0xF2d0a6699FEA86fFf3EB5B64CDC53878e1D19D6f', usdPlus.address, 'USDB/USD+', dex));
@@ -47,6 +49,7 @@ module.exports = async () => {
 
     function ambient() {
 
+        let items = [];
         let dex = "Ambient";
         let to = "0xc73C8C60ea7d7f4338F9A8542927F4F1471e36ed";
         let fee = 20;
@@ -57,6 +60,7 @@ module.exports = async () => {
 
     function bladeswap() {
 
+        let items = [];
         let dex = "BladeSwap";
         items.push(createSkim('0x0beEdE4DD53e281d110020185f1EB59D2F5Ce3f4', usdPlus.address, 'ETH/USD+', dex));
         items.push(createSkim('0xCF4A1d04b19855484e5Ab28740905db277E96953', usdPlus.address, 'USDB/USD+', dex));
@@ -66,16 +70,15 @@ module.exports = async () => {
 
     function fenixfinance() {
 
+        let items = [];
         let dex = "FenixFinance";
-        let to = "0x0907fb24626a06e383BD289A0e9C8560b8cCC4b5";
-        let fee = 20;
 
-        items.push(createSkimToWithFee('0x6a1de1841c5c3712e3bc7c75ce3d57dedec6915f', usdPlus.address, 'USDB/USD+', dex, to, fee, COMMON.rewardWallet));
-        items.push(createSkimToWithFee('0xc5910a7f3b0119ac1a3ad7A268CcE4A62d8C882D', usdPlus.address, 'WETH/USD+', dex, to, fee, COMMON.rewardWallet));
+        items.push(createSkim('0x6a1de1841c5c3712e3bc7c75ce3d57dedec6915f', usdPlus.address, 'USDB/USD+', dex));
+        items.push(createSkim('0xc5910a7f3b0119ac1a3ad7A268CcE4A62d8C882D', usdPlus.address, 'WETH/USD+', dex));
         return items;
                 
     }
- 
+    
     
 };
 
