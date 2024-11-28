@@ -124,7 +124,7 @@ This error means that port 8545 is already in use. You need to stop the process 
 You can find the process running on port 8545 by running:
 
 ```
-lsof -i :8545
+lsof -i tcp:8545
 ```
 
 Then you can kill the process with:
