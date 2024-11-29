@@ -377,7 +377,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         // usdc / usdc+
 
         BinSearchParams memory binSearchParams;
-        binSearchParams.right = zeroForOne ? amount0 : amount1;
+        binSearchParams.right = (amount0 > amount1 ? amount0 : amount1);
 
         
 
