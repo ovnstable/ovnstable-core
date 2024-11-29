@@ -148,7 +148,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         address _asset,
         uint256 _amount
     ) internal override {
-        _deposit(usdc.balanceOf(address(this)), usdcPlus.balanceOf(address(this)), 0, 0);
+        _deposit(usdc.balanceOf(address(this)), usdcPlus.balanceOf(address(this)), 0, 0, true);
     }
 
     function _unstake(
@@ -249,12 +249,12 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         return claimedUsdc;
     }
 
-    function _deposit(uint256 amount0, uint256 amount1, uint256 lockedAmount0, uint256 lockedAmount1) internal {
+    function _deposit(uint256 amount0, uint256 amount1, uint256 lockedAmount0, uint256 lockedAmount1, bool zeroForOne) internal {
 
         usdc.transfer(address(swapSimulator), amount0);
         usdcPlus.transfer(address(swapSimulator), amount1);
 
-        (uint256 amountToSwap, bool zeroForOne) = _simulateSwap(amount0, amount1);
+        uint256 amountToSwap = _simulateSwap(amount0, amount1, zeroForOne);
 
         if (amountToSwap > 0) {
             swapSimulator.swap(address(pool), amountToSwap, 0, zeroForOne);
@@ -346,7 +346,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
                     false
                 );
             }
-            _deposit(amountToStake0, amountToStake1, lockedAmount0, lockedAmount1);
+            _deposit(amountToStake0, amountToStake1, lockedAmount0, lockedAmount1, false);
         } else {
             npm.burn(stakedTokenId);
             stakedTokenId = 0;
@@ -373,9 +373,8 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         npm.collect(collectParams);
     }
 
-    function _simulateSwap(uint256 amount0, uint256 amount1) internal returns (uint256 amountToSwap, bool zeroForOne) {
+    function _simulateSwap(uint256 amount0, uint256 amount1, bool zeroForOne) internal returns (uint256 amountToSwap) {
         // usdc / usdc+
-        zeroForOne = amount0 > amount1;
 
         BinSearchParams memory binSearchParams;
         binSearchParams.right = zeroForOne ? amount0 : amount1;
