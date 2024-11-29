@@ -121,10 +121,14 @@ function createTransaction(timelock, delay, address, value, data) {
     };
 }
 
-async function testUsdPlus(id, stand = process.env.STAND) {
+async function testUsdPlus(id, stand) {
     console.log(`Run tests USD+`);
 
-    await prepareEnvironment();
+    if (stand == undefined) {
+        stand = process.env.STAND;
+    }
+
+    await prepareEnvironment(stand);
 
     let exchange = await getContract('Exchange', stand);
     let pm = await getContract('PortfolioManager', stand);
