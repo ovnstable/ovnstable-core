@@ -85,9 +85,6 @@ async function main() {
 
     await testProposal(addresses, values, abis);
 
-    let mainAddress = (await initWallet()).address;
-    await transferETH(100, mainAddress);   
-
     await testUsdPlus(filename, 'arbitrum');
     await testUsdPlus(filename, 'arbitrum_usdt');
     

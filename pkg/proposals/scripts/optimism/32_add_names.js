@@ -15,14 +15,14 @@ async function main() {
     let pm = await getContract('PortfolioManager', 'optimism');
 
     const StrategyAave = await getContract('StrategyAave', 'optimism');
-    const newAaveImpl = "0x514067f0b21a70E12f9bF2b7C91162EFb668155c";
+    const newAaveImpl = "0x1236f2Bae307d9EFa1b055C2577613e07b1aaFa9";
 
     addProposalItem(StrategyAave, "upgradeTo", [newAaveImpl]);
 
-    addProposalItem(StrategyAave, 'setStrategyName', ["AAVE"]);
+    // addProposalItem(StrategyAave, "setSlippages", [1n, 1n, 1n]);
+    addProposalItem(StrategyAave, "setStrategyName", ["AAVE"]);
 
     addProposalItem(pm, "upgradeTo", ["0x80212Fc2baa3782eC0B5384fFe6E1ED8306340b0"]);
-
 
     await testProposal(addresses, values, abis);
 

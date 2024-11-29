@@ -1,5 +1,5 @@
 const hre = require("hardhat");
-const { getContract, initWallet } = require("@overnight-contracts/common/utils/script-utils");
+const { getContract, initWallet, transferETH } = require("@overnight-contracts/common/utils/script-utils");
 const { createProposal, testProposal, testUsdPlus } = require("@overnight-contracts/common/utils/governance");
 
 const path = require('path');
@@ -119,6 +119,9 @@ async function main() {
 
 
     await testProposal(addresses, values, abis);
+
+    let mainAddress = (await initWallet()).address;
+    await transferETH(100, mainAddress);   
 
     await testUsdPlus(filename, 'base');
     await testUsdPlus(filename, 'base_usdc');
