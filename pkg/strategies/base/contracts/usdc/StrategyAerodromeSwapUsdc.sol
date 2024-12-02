@@ -21,7 +21,8 @@ interface ISwapSimulator {
     error SlippageError(
         uint160 curSqrtRatio,
         uint160 minSqrtRatio,
-        uint160 maxSqrtRatio        
+        uint160 maxSqrtRatio,
+        uint256 check      
     );
 
     function swap(
@@ -375,11 +376,15 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
     function _simulateSwap(uint256 amount0, uint256 amount1, bool zeroForOne) internal returns (uint256 amountToSwap) {
         // usdc / usdc+
-
         BinSearchParams memory binSearchParams;
-        binSearchParams.right = (amount0 > amount1 ? amount0 : amount1);
 
-        
+        if (zeroForOne) {
+            uint256 token1_amount = IERC20(ICLPool(address(pool)).token1()).balanceOf(address(pool));
+            binSearchParams.right = token1_amount > amount0 ? amount0 : token1_amount;
+        } else {
+            uint256 token0_amount = IERC20(ICLPool(address(pool)).token0()).balanceOf(address(pool));
+            binSearchParams.right = token0_amount > amount1 ? amount1 : token0_amount;
+        }
 
         for (uint256 i = 0; i < binSearchIterations; i++) {
             binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;
@@ -405,13 +410,19 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
                 }
                 uint256[] memory swapResult = new uint256[](4);
                 (swapResult[0], swapResult[1], swapResult[2], swapResult[3]) = abi.decode(data, (uint256, uint256, uint256, uint256));
-                bool compareResult = zeroForOne ? 
+
+                if (swapResult[3] == 0) {
+                    binSearchParams.right = binSearchParams.mid;
+                } else {
+                    bool compareResult = zeroForOne ? 
                     _compareRatios(swapResult[0], swapResult[1], swapResult[2], swapResult[3]) : 
                     _compareRatios(swapResult[1], swapResult[0], swapResult[3], swapResult[2]);
-                if (compareResult) {
-                    binSearchParams.left = binSearchParams.mid;
-                } else {
-                    binSearchParams.right = binSearchParams.mid;
+
+                    if (compareResult) {
+                        binSearchParams.left = binSearchParams.mid;
+                    } else {
+                        binSearchParams.right = binSearchParams.mid;
+                    }
                 }
             }
         }
@@ -505,7 +516,8 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
             revert SlippageError(
                 newSqrtRatioX96,
                 minSqrtRatio,
-                maxSqrtRatio
+                maxSqrtRatio,
+                0
             );
         }
     }
