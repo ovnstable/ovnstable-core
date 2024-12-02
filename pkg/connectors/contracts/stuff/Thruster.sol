@@ -1,63 +1,72 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
+// pragma solidity >=0.5.16 <0.7.0;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+// import "@overnight-contracts/common/contracts/libraries/SafeMath.sol";
 
-interface INonfungiblePositionManager {
-    /// @notice Emitted when liquidity is increased for a position NFT
-    /// @dev Also emitted when a token is minted
-    /// @param tokenId The ID of the token for which liquidity was increased
-    /// @param liquidity The amount by which liquidity for the NFT position was increased
-    /// @param amount0 The amount of token0 that was paid for the increase in liquidity
-    /// @param amount1 The amount of token1 that was paid for the increase in liquidity
-    event IncreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
-    /// @notice Emitted when liquidity is decreased for a position NFT
-    /// @param tokenId The ID of the token for which liquidity was decreased
-    /// @param liquidity The amount by which liquidity for the NFT position was decreased
-    /// @param amount0 The amount of token0 that was accounted for the decrease in liquidity
-    /// @param amount1 The amount of token1 that was accounted for the decrease in liquidity
-    event DecreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
-    /// @notice Emitted when tokens are collected for a position NFT
-    /// @dev The amounts reported may not be exactly equivalent to the amounts transferred, due to rounding behavior
-    /// @param tokenId The ID of the token for which underlying tokens were collected
-    /// @param recipient The address of the account that received the collected tokens
-    /// @param amount0 The amount of token0 owed to the position that was collected
-    /// @param amount1 The amount of token1 owed to the position that was collected
-    event Collect(uint256 indexed tokenId, address recipient, uint256 amount0, uint256 amount1);
+/// @title The interface for the CL Factory
+/// @notice The CL Factory facilitates creation of CL pools and control over the protocol fees
+interface ICLFactory {
+    /// @notice The address of the pool implementation contract used to deploy proxies / clones
+    /// @return The address of the pool implementation contract
+    function poolImplementation() external view returns (address);
 
-    /// @notice Returns the position information associated with a given token ID.
-    /// @dev Throws if the token ID is not valid.
-    /// @param tokenId The ID of the token that represents the position
-    /// @return nonce The nonce for permits
-    /// @return operator The address that is approved for spending
-    /// @return token0 The address of the token0 for a specific pool
-    /// @return token1 The address of the token1 for a specific pool
-    /// @return fee The fee associated with the pool
-    /// @return tickLower The lower end of the tick range for the position
-    /// @return tickUpper The higher end of the tick range for the position
-    /// @return liquidity The liquidity of the position
-    /// @return feeGrowthInside0LastX128 The fee growth of token0 as of the last action on the individual position
-    /// @return feeGrowthInside1LastX128 The fee growth of token1 as of the last action on the individual position
-    /// @return tokensOwed0 The uncollected amount of token0 owed to the position as of the last computation
-    /// @return tokensOwed1 The uncollected amount of token1 owed to the position as of the last computation
-    function positions(uint256 tokenId)
-    external
-    view
-    returns (
-        uint96 nonce,
-        address operator,
-        address token0,
-        address token1,
-        uint24 fee,
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 liquidity,
-        uint256 feeGrowthInside0LastX128,
-        uint256 feeGrowthInside1LastX128,
-        uint128 tokensOwed0,
-        uint128 tokensOwed1
-    );
+    /// @notice Returns the pool address for a given pair of tokens and a tick spacing, or address 0 if it does not exist
+    /// @dev tokenA and tokenB may be passed in either token0/token1 or token1/token0 order
+    /// @param tokenA The contract address of either token0 or token1
+    /// @param tokenB The contract address of the other token
+    /// @param tickSpacing The tick spacing of the pool
+    /// @return pool The pool address
+    function getPool(address tokenA, address tokenB, int24 tickSpacing) external view returns (address pool);
+
+    /// @notice Return address of pool created by this factory given its `index`
+    /// @param index Index of the pool
+    /// @return The pool address in the given index
+    function allPools(uint256 index) external view returns (address);
+
+    /// @notice Returns the number of pools created from this factory
+    /// @return Number of pools created from this factory
+    function allPoolsLength() external view returns (uint256);
+}
+
+/// @title Immutable state
+/// @notice Functions that return immutable state of the router
+interface IPeripheryImmutableState {
+    /// @return Returns the address of the CL factory
+    function factory() external view returns (address);
+
+    /// @return Returns the address of WETH9
+    function WETH9() external view returns (address);
+}
+
+interface INonfungiblePositionManagerStruct {
+    struct IncreaseLiquidityParams {
+        uint256 tokenId;
+        uint256 amount0Desired;
+        uint256 amount1Desired;
+        uint256 amount0Min;
+        uint256 amount1Min;
+        uint256 deadline;
+    }
+
+    struct DecreaseLiquidityParams {
+        uint256 tokenId;
+        uint128 liquidity;
+        uint256 amount0Min;
+        uint256 amount1Min;
+        uint256 deadline;
+    }
+
+    struct CollectParams {
+        uint256 tokenId;
+        address recipient;
+        uint128 amount0Max;
+        uint128 amount1Max;
+    }
 
     struct MintParams {
         address token0;
@@ -72,97 +81,167 @@ interface INonfungiblePositionManager {
         address recipient;
         uint256 deadline;
     }
-
-    /// @notice Creates a new position wrapped in a NFT
-    /// @dev Call this when the pool does exist and is initialized. Note that if the pool is created but not initialized
-    /// a method does not exist, i.e. the pool is assumed to be initialized.
-    /// @param params The params necessary to mint a position, encoded as `MintParams` in calldata
-    /// @return tokenId The ID of the token that represents the minted position
-    /// @return liquidity The amount of liquidity for this position
-    /// @return amount0 The amount of token0
-    /// @return amount1 The amount of token1
-    function mint(MintParams calldata params)
-    external
-    payable
-    returns (
-        uint256 tokenId,
-        uint128 liquidity,
-        uint256 amount0,
-        uint256 amount1
-    );
-
-    struct IncreaseLiquidityParams {
-        uint256 tokenId;
-        uint256 amount0Desired;
-        uint256 amount1Desired;
-        uint256 amount0Min;
-        uint256 amount1Min;
-        uint256 deadline;
-    }
-
-    /// @notice Increases the amount of liquidity in a position, with tokens paid by the `msg.sender`
-    /// @param params tokenId The ID of the token for which liquidity is being increased,
-    /// amount0Desired The desired amount of token0 to be spent,
-    /// amount1Desired The desired amount of token1 to be spent,
-    /// amount0Min The minimum amount of token0 to spend, which serves as a slippage check,
-    /// amount1Min The minimum amount of token1 to spend, which serves as a slippage check,
-    /// deadline The time by which the transaction must be included to effect the change
-    /// @return liquidity The new liquidity amount as a result of the increase
-    /// @return amount0 The amount of token0 to acheive resulting liquidity
-    /// @return amount1 The amount of token1 to acheive resulting liquidity
-    function increaseLiquidity(IncreaseLiquidityParams calldata params)
-    external
-    payable
-    returns (
-        uint128 liquidity,
-        uint256 amount0,
-        uint256 amount1
-    );
-
-    struct DecreaseLiquidityParams {
-        uint256 tokenId;
-        uint128 liquidity;
-        uint256 amount0Min;
-        uint256 amount1Min;
-        uint256 deadline;
-    }
-
-    /// @notice Decreases the amount of liquidity in a position and accounts it to the position
-    /// @param params tokenId The ID of the token for which liquidity is being decreased,
-    /// amount The amount by which liquidity will be decreased,
-    /// amount0Min The minimum amount of token0 that should be accounted for the burned liquidity,
-    /// amount1Min The minimum amount of token1 that should be accounted for the burned liquidity,
-    /// deadline The time by which the transaction must be included to effect the change
-    /// @return amount0 The amount of token0 accounted to the position's tokens owed
-    /// @return amount1 The amount of token1 accounted to the position's tokens owed
-    function decreaseLiquidity(DecreaseLiquidityParams calldata params)
-    external
-    payable
-    returns (uint256 amount0, uint256 amount1);
-
-    struct CollectParams {
-        uint256 tokenId;
-        address recipient;
-        uint128 amount0Max;
-        uint128 amount1Max;
-    }
-
-    /// @notice Collects up to a maximum amount of fees owed to a specific position to the recipient
-    /// @param params tokenId The ID of the NFT for which tokens are being collected,
-    /// recipient The account that should receive the tokens,
-    /// amount0Max The maximum amount of token0 to collect,
-    /// amount1Max The maximum amount of token1 to collect
-    /// @return amount0 The amount of fees collected in token0
-    /// @return amount1 The amount of fees collected in token1
-    function collect(CollectParams calldata params) external payable returns (uint256 amount0, uint256 amount1);
-
-    /// @notice Burns a token ID, which deletes it from the NFT contract. The token must have 0 liquidity and all tokens
-    /// must be collected first.
-    /// @param tokenId The ID of the token that is being burned
-    function burn(uint256 tokenId) external payable;
-
-    function balanceOf(address account) external view returns (uint256);
 }
+
+// interface INonfungiblePositionManager {
+//     /// @notice Emitted when liquidity is increased for a position NFT
+//     /// @dev Also emitted when a token is minted
+//     /// @param tokenId The ID of the token for which liquidity was increased
+//     /// @param liquidity The amount by which liquidity for the NFT position was increased
+//     /// @param amount0 The amount of token0 that was paid for the increase in liquidity
+//     /// @param amount1 The amount of token1 that was paid for the increase in liquidity
+//     event IncreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
+//     /// @notice Emitted when liquidity is decreased for a position NFT
+//     /// @param tokenId The ID of the token for which liquidity was decreased
+//     /// @param liquidity The amount by which liquidity for the NFT position was decreased
+//     /// @param amount0 The amount of token0 that was accounted for the decrease in liquidity
+//     /// @param amount1 The amount of token1 that was accounted for the decrease in liquidity
+//     event DecreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
+//     /// @notice Emitted when tokens are collected for a position NFT
+//     /// @dev The amounts reported may not be exactly equivalent to the amounts transferred, due to rounding behavior
+//     /// @param tokenId The ID of the token for which underlying tokens were collected
+//     /// @param recipient The address of the account that received the collected tokens
+//     /// @param amount0 The amount of token0 owed to the position that was collected
+//     /// @param amount1 The amount of token1 owed to the position that was collected
+//     event Collect(uint256 indexed tokenId, address recipient, uint256 amount0, uint256 amount1);
+
+//     /// @notice Returns the position information associated with a given token ID.
+//     /// @dev Throws if the token ID is not valid.
+//     /// @param tokenId The ID of the token that represents the position
+//     /// @return nonce The nonce for permits
+//     /// @return operator The address that is approved for spending
+//     /// @return token0 The address of the token0 for a specific pool
+//     /// @return token1 The address of the token1 for a specific pool
+//     /// @return fee The fee associated with the pool
+//     /// @return tickLower The lower end of the tick range for the position
+//     /// @return tickUpper The higher end of the tick range for the position
+//     /// @return liquidity The liquidity of the position
+//     /// @return feeGrowthInside0LastX128 The fee growth of token0 as of the last action on the individual position
+//     /// @return feeGrowthInside1LastX128 The fee growth of token1 as of the last action on the individual position
+//     /// @return tokensOwed0 The uncollected amount of token0 owed to the position as of the last computation
+//     /// @return tokensOwed1 The uncollected amount of token1 owed to the position as of the last computation
+//     function positions(uint256 tokenId)
+//     external
+//     view
+//     returns (
+//         uint96 nonce,
+//         address operator,
+//         address token0,
+//         address token1,
+//         uint24 fee,
+//         int24 tickLower,
+//         int24 tickUpper,
+//         uint128 liquidity,
+//         uint256 feeGrowthInside0LastX128,
+//         uint256 feeGrowthInside1LastX128,
+//         uint128 tokensOwed0,
+//         uint128 tokensOwed1
+//     );
+
+//     struct MintParams {
+//         address token0;
+//         address token1;
+//         uint24 fee;
+//         int24 tickLower;
+//         int24 tickUpper;
+//         uint256 amount0Desired;
+//         uint256 amount1Desired;
+//         uint256 amount0Min;
+//         uint256 amount1Min;
+//         address recipient;
+//         uint256 deadline;
+//     }
+
+//     /// @notice Creates a new position wrapped in a NFT
+//     /// @dev Call this when the pool does exist and is initialized. Note that if the pool is created but not initialized
+//     /// a method does not exist, i.e. the pool is assumed to be initialized.
+//     /// @param params The params necessary to mint a position, encoded as `MintParams` in calldata
+//     /// @return tokenId The ID of the token that represents the minted position
+//     /// @return liquidity The amount of liquidity for this position
+//     /// @return amount0 The amount of token0
+//     /// @return amount1 The amount of token1
+//     function mint(MintParams calldata params)
+//     external
+//     payable
+//     returns (
+//         uint256 tokenId,
+//         uint128 liquidity,
+//         uint256 amount0,
+//         uint256 amount1
+//     );
+
+//     struct IncreaseLiquidityParams {
+//         uint256 tokenId;
+//         uint256 amount0Desired;
+//         uint256 amount1Desired;
+//         uint256 amount0Min;
+//         uint256 amount1Min;
+//         uint256 deadline;
+//     }
+
+//     /// @notice Increases the amount of liquidity in a position, with tokens paid by the `msg.sender`
+//     /// @param params tokenId The ID of the token for which liquidity is being increased,
+//     /// amount0Desired The desired amount of token0 to be spent,
+//     /// amount1Desired The desired amount of token1 to be spent,
+//     /// amount0Min The minimum amount of token0 to spend, which serves as a slippage check,
+//     /// amount1Min The minimum amount of token1 to spend, which serves as a slippage check,
+//     /// deadline The time by which the transaction must be included to effect the change
+//     /// @return liquidity The new liquidity amount as a result of the increase
+//     /// @return amount0 The amount of token0 to acheive resulting liquidity
+//     /// @return amount1 The amount of token1 to acheive resulting liquidity
+//     function increaseLiquidity(IncreaseLiquidityParams calldata params)
+//     external
+//     payable
+//     returns (
+//         uint128 liquidity,
+//         uint256 amount0,
+//         uint256 amount1
+//     );
+
+//     struct DecreaseLiquidityParams {
+//         uint256 tokenId;
+//         uint128 liquidity;
+//         uint256 amount0Min;
+//         uint256 amount1Min;
+//         uint256 deadline;
+//     }
+
+//     /// @notice Decreases the amount of liquidity in a position and accounts it to the position
+//     /// @param params tokenId The ID of the token for which liquidity is being decreased,
+//     /// amount The amount by which liquidity will be decreased,
+//     /// amount0Min The minimum amount of token0 that should be accounted for the burned liquidity,
+//     /// amount1Min The minimum amount of token1 that should be accounted for the burned liquidity,
+//     /// deadline The time by which the transaction must be included to effect the change
+//     /// @return amount0 The amount of token0 accounted to the position's tokens owed
+//     /// @return amount1 The amount of token1 accounted to the position's tokens owed
+//     function decreaseLiquidity(DecreaseLiquidityParams calldata params)
+//     external
+//     payable
+//     returns (uint256 amount0, uint256 amount1);
+
+//     struct CollectParams {
+//         uint256 tokenId;
+//         address recipient;
+//         uint128 amount0Max;
+//         uint128 amount1Max;
+//     }
+
+//     /// @notice Collects up to a maximum amount of fees owed to a specific position to the recipient
+//     /// @param params tokenId The ID of the NFT for which tokens are being collected,
+//     /// recipient The account that should receive the tokens,
+//     /// amount0Max The maximum amount of token0 to collect,
+//     /// amount1Max The maximum amount of token1 to collect
+//     /// @return amount0 The amount of fees collected in token0
+//     /// @return amount1 The amount of fees collected in token1
+//     function collect(CollectParams calldata params) external payable returns (uint256 amount0, uint256 amount1);
+
+//     /// @notice Burns a token ID, which deletes it from the NFT contract. The token must have 0 liquidity and all tokens
+//     /// must be collected first.
+//     /// @param tokenId The ID of the token that is being burned
+//     function burn(uint256 tokenId) external payable;
+
+//     function balanceOf(address account) external view returns (uint256);
+// }
 
 
 /// @title Callback for IUniswapV3PoolActions#swap
@@ -1226,4 +1305,623 @@ interface IUniswapV3Pair {
         bytes calldata data
     ) external;
 
+}
+
+
+//---------- From Aerodrom.sol ----------
+
+
+interface ICLPoolConstants {
+    /// @notice The contract that deployed the pool, which must adhere to the ICLFactory interface
+    /// @return The contract address
+    function factory() external view returns (address);
+
+    /// @notice The first of the two tokens of the pool, sorted by address
+    /// @return The token contract address
+    function token0() external view returns (address);
+
+    /// @notice The second of the two tokens of the pool, sorted by address
+    /// @return The token contract address
+    function token1() external view returns (address);
+
+    /// @notice The gauge corresponding to this pool
+    /// @return The gauge contract address
+    function gauge() external view returns (address);
+
+    /// @notice The pool tick spacing
+    /// @dev Ticks can only be used at multiples of this value, minimum of 1 and always positive
+    /// e.g.: a tickSpacing of 3 means ticks can be initialized every 3rd tick, i.e., ..., -6, -3, 0, 3, 6, ...
+    /// This value is an int24 to avoid casting even though it is always positive.
+    /// @return The tick spacing
+    function tickSpacing() external view returns (int24);
+}
+
+interface ICLPoolState {
+    /// @notice The 0th storage slot in the pool stores many values, and is exposed as a single method to save gas
+    /// when accessed externally.
+    /// @return sqrtPriceX96 The current price of the pool as a sqrt(token1/token0) Q64.96 value
+    /// tick The current tick of the pool, i.e. according to the last tick transition that was run.
+    /// This value may not always be equal to SqrtTickMath.getTickAtSqrtRatio(sqrtPriceX96) if the price is on a tick
+    /// boundary.
+    /// observationIndex The index of the last oracle observation that was written,
+    /// observationCardinality The current maximum number of observations stored in the pool,
+    /// observationCardinalityNext The next maximum number of observations, to be updated when the observation.
+    /// unlocked Whether the pool is currently locked to reentrancy
+    function slot0() /// (ADD) add " feeProtocol uint8" to returns (regarding Aerodrom)
+    external
+    view
+    returns (
+        uint160 sqrtPriceX96,
+        int24 tick,
+        uint16 observationIndex,
+        uint16 observationCardinality,
+        uint16 observationCardinalityNext,
+        uint8 feeProtocol, 
+        bool unlocked
+    );
+
+    /// @notice The pool's swap & flash fee in pips, i.e. 1e-6
+    /// @dev Can be modified in PoolFactory on a pool basis or upgraded to be dynamic.
+    /// @return The swap & flash fee
+    function fee() external view returns (uint24);
+
+    /// @notice The pool's unstaked fee in pips, i.e. 1e-6
+    /// @dev Can be modified in PoolFactory on a pool basis or upgraded to be dynamic.
+    /// @return The unstaked fee
+    function unstakedFee() external view returns (uint24);
+
+    /// @notice The fee growth as a Q128.128 fees of token0 collected per unit of liquidity for the entire life of the pool
+    /// @dev This value can overflow the uint256
+    function feeGrowthGlobal0X128() external view returns (uint256);
+
+    /// @notice The fee growth as a Q128.128 fees of token1 collected per unit of liquidity for the entire life of the pool
+    /// @dev This value can overflow the uint256
+    function feeGrowthGlobal1X128() external view returns (uint256);
+
+    /// @notice The reward growth as a Q128.128 rewards of emission collected per unit of liquidity for the entire life of the pool
+    /// @dev This value can overflow the uint256
+    function rewardGrowthGlobalX128() external view returns (uint256);
+
+    /// @notice The amounts of token0 and token1 that are owed to the gauge
+    /// @dev Gauge fees will never exceed uint128 max in either token
+    function gaugeFees() external view returns (uint128 token0, uint128 token1);
+
+    /// @notice the emission rate of time-based farming
+    function rewardRate() external view returns (uint256);
+
+    /// @notice acts as a virtual reserve that holds information on how many rewards are yet to be distributed
+    function rewardReserve() external view returns (uint256);
+
+    /// @notice timestamp of the end of the current epoch's rewards
+    function periodFinish() external view returns (uint256);
+
+    /// @notice last time the rewardReserve and rewardRate were updated
+    function lastUpdated() external view returns (uint32);
+
+    /// @notice tracks total rewards distributed when no staked liquidity in active tick for epoch ending at periodFinish
+    /// @notice this amount is rolled over on the next call to notifyRewardAmount
+    /// @dev rollover will always be smaller than the rewards distributed that epoch
+    function rollover() external view returns (uint256);
+
+    /// @notice The currently in range liquidity available to the pool
+    /// @dev This value has no relationship to the total liquidity across all ticks
+    /// @dev This value includes staked liquidity
+    function liquidity() external view returns (uint128);
+
+    /// @notice The currently in range staked liquidity available to the pool
+    /// @dev This value has no relationship to the total staked liquidity across all ticks
+    function stakedLiquidity() external view returns (uint128);
+
+    /// @notice Look up information about a specific tick in the pool
+    /// @param tick The tick to look up
+    /// @return liquidityGross the total amount of position liquidity that uses the pool either as tick lower or
+    /// tick upper,
+    /// liquidityNet how much liquidity changes when the pool price crosses the tick,
+    /// stakedLiquidityNet how much staked liquidity changes when the pool price crosses the tick,
+    /// feeGrowthOutside0X128 the fee growth on the other side of the tick from the current tick in token0,
+    /// feeGrowthOutside1X128 the fee growth on the other side of the tick from the current tick in token1,
+    /// rewardGrowthOutsideX128 the reward growth on the other side of the tick from the current tick in emission token
+    /// tickCumulativeOutside the cumulative tick value on the other side of the tick from the current tick
+    /// secondsPerLiquidityOutsideX128 the seconds spent per liquidity on the other side of the tick from the current tick,
+    /// secondsOutside the seconds spent on the other side of the tick from the current tick,
+    /// initialized Set to true if the tick is initialized, i.e. liquidityGross is greater than 0, otherwise equal to false.
+    /// Outside values can only be used if the tick is initialized, i.e. if liquidityGross is greater than 0.
+    /// In addition, these values are only relative and must be used only in comparison to previous snapshots for
+    /// a specific position.
+    function ticks(int24 tick)
+    external
+    view
+    returns (
+        uint128 liquidityGross,
+        int128 liquidityNet,
+        int128 stakedLiquidityNet,
+        uint256 feeGrowthOutside0X128,
+        uint256 feeGrowthOutside1X128,
+        uint256 rewardGrowthOutsideX128,
+        int56 tickCumulativeOutside,
+        uint160 secondsPerLiquidityOutsideX128,
+        uint32 secondsOutside,
+        bool initialized
+    );
+
+    /// @notice Returns 256 packed tick initialized boolean values. See TickBitmap for more information
+    function tickBitmap(int16 wordPosition) external view returns (uint256);
+
+    /// @notice Returns the information about a position by the position's key
+    /// @param key The position's key is a hash of a preimage composed by the owner, tickLower and tickUpper
+    /// @return _liquidity The amount of liquidity in the position,
+    /// Returns feeGrowthInside0LastX128 fee growth of token0 inside the tick range as of the last mint/burn/poke,
+    /// Returns feeGrowthInside1LastX128 fee growth of token1 inside the tick range as of the last mint/burn/poke,
+    /// Returns tokensOwed0 the computed amount of token0 owed to the position as of the last mint/burn/poke,
+    /// Returns tokensOwed1 the computed amount of token1 owed to the position as of the last mint/burn/poke
+    function positions(bytes32 key)
+    external
+    view
+    returns (
+        uint128 _liquidity,
+        uint256 feeGrowthInside0LastX128,
+        uint256 feeGrowthInside1LastX128,
+        uint128 tokensOwed0,
+        uint128 tokensOwed1
+    );
+
+    /// @notice Returns data about a specific observation index
+    /// @param index The element of the observations array to fetch
+    /// @dev You most likely want to use #observe() instead of this method to get an observation as of some amount of time
+    /// ago, rather than at a specific index in the array.
+    /// @return blockTimestamp The timestamp of the observation,
+    /// Returns tickCumulative the tick multiplied by seconds elapsed for the life of the pool as of the observation timestamp,
+    /// Returns secondsPerLiquidityCumulativeX128 the seconds per in range liquidity for the life of the pool as of the observation timestamp,
+    /// Returns initialized whether the observation has been initialized and the values are safe to use
+    function observations(uint256 index)
+    external
+    view
+    returns (
+        uint32 blockTimestamp,
+        int56 tickCumulative,
+        uint160 secondsPerLiquidityCumulativeX128,
+        bool initialized
+    );
+
+    /// @notice Returns data about reward growth within a tick range.
+    /// RewardGrowthGlobalX128 can be supplied as a parameter for claimable reward calculations.
+    /// @dev Used in gauge reward/earned calculations
+    /// @param tickLower The lower tick of the range
+    /// @param tickUpper The upper tick of the range
+    /// @param _rewardGrowthGlobalX128 a calculated rewardGrowthGlobalX128 or 0 (in case of 0 it means we use the rewardGrowthGlobalX128 from state)
+    /// @return rewardGrowthInsideX128 The reward growth in the range
+    function getRewardGrowthInside(int24 tickLower, int24 tickUpper, uint256 _rewardGrowthGlobalX128)
+    external
+    view
+    returns (uint256 rewardGrowthInsideX128);
+}
+
+interface ICLPoolActions {
+    /// @notice Swap token0 for token1, or token1 for token0
+    /// @dev The caller of this method receives a callback in the form of ICLSwapCallback#uniswapV3SwapCallback
+    /// @param recipient The address to receive the output of the swap
+    /// @param zeroForOne The direction of the swap, true for token0 to token1, false for token1 to token0
+    /// @param amountSpecified The amount of the swap, which implicitly configures the swap as exact input (positive), or exact output (negative)
+    /// @param sqrtPriceLimitX96 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this
+    /// value after the swap. If one for zero, the price cannot be greater than this value after the swap
+    /// @param data Any data to be passed through to the callback
+    /// @return amount0 The delta of the balance of token0 of the pool, exact when negative, minimum when positive
+    /// @return amount1 The delta of the balance of token1 of the pool, exact when negative, minimum when positive
+    function swap( 
+        address recipient,
+        bool zeroForOne,
+        int256 amountSpecified,
+        uint160 sqrtPriceLimitX96,
+        bytes calldata data
+    ) external returns (int256 amount0, int256 amount1);
+}
+
+interface ICLPool is ICLPoolConstants, ICLPoolState, ICLPoolActions
+{}
+
+
+// Интерфейс для NfpBooster аналогичный interface ICLGauge в Aerodrome.sol:
+
+struct CollectParams {
+        uint256 tokenId;
+        address recipient;
+        uint128 amount0Max;
+        uint128 amount1Max;
+}
+
+interface INFPBooster {
+
+    function deposit(uint256 _tokenId) external;
+    
+    function withdraw(uint256 _tokenId, address _to) external;
+
+    function collect(CollectParams memory params) external returns (uint256, uint256);
+}
+
+
+library SafeMath {
+    function add(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        require((z = x + y) >= x, "ds-math-add-overflow");
+    }
+
+    function sub(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        require((z = x - y) <= x, "ds-math-sub-underflow");
+    }
+
+    function mul(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        require(y == 0 || (z = x * y) / y == x, "ds-math-mul-overflow");
+    }
+}
+
+
+
+library ThrusterLibrary {
+    using SafeMath for uint256;
+
+    // returns sorted token addresses, used to handle return values from pairs sorted in this order
+    function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
+        require(tokenA != tokenB, "ThrusterLibrary: IDENTICAL_ADDRESSES");
+        (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        require(token0 != address(0), "ThrusterLibrary: ZERO_ADDRESS");
+    }
+
+    // calculates the CREATE2 address for a pair without making any external calls
+    function pairFor(address factory, address tokenA, address tokenB) internal pure returns (address pair) {
+        (address token0, address token1) = sortTokens(tokenA, tokenB);
+        pair = address(uint160( // NOTE: add uint160 for the latest solidity version (uint256 isnt explicitly convertable to address)
+            uint256(
+                keccak256(
+                    abi.encodePacked(
+                        hex"ff",
+                        factory,
+                        keccak256(abi.encodePacked(token0, token1)),
+                        hex"32a9ff5a51b653cbafe88e38c4da86b859135750d3ca435f0ce732c8e3bb8335" // init code hash
+                    )
+                )
+            ))
+        );
+    }
+
+    // fetches and sorts the reserves for a pair
+    function getReserves(address factory, address tokenA, address tokenB)
+        internal
+        view
+        returns (uint256 reserveA, uint256 reserveB)
+    {
+        (address token0,) = sortTokens(tokenA, tokenB);
+        (uint256 reserve0, uint256 reserve1,) = IThrusterPair(pairFor(factory, tokenA, tokenB)).getReserves();
+        (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
+    }
+
+    // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
+    function quote(uint256 amountA, uint256 reserveA, uint256 reserveB) internal pure returns (uint256 amountB) {
+        require(amountA > 0, "ThrusterLibrary: INSUFFICIENT_AMOUNT");
+        require(reserveA > 0 && reserveB > 0, "ThrusterLibrary: INSUFFICIENT_LIQUIDITY");
+        amountB = amountA.mul(reserveB) / reserveA;
+    }
+
+    // given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
+    // при заданном количестве актива на входе и парных резервов возвращает максимальное количество другого актива на выходе
+    function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut)
+        internal
+        pure
+        returns (uint256 amountOut)
+    {
+        require(amountIn > 0, "ThrusterLibrary: INSUFFICIENT_INPUT_AMOUNT");
+        require(reserveIn > 0 && reserveOut > 0, "ThrusterLibrary: INSUFFICIENT_LIQUIDITY");
+        uint256 amountInWithFee = amountIn.mul(990);
+        uint256 numerator = amountInWithFee.mul(reserveOut);
+        uint256 denominator = reserveIn.mul(1000).add(amountInWithFee);
+        amountOut = numerator / denominator;
+    }
+
+    // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
+    function getAmountIn(uint256 amountOut, uint256 reserveIn, uint256 reserveOut)
+        internal
+        pure
+        returns (uint256 amountIn)
+    {
+        require(amountOut > 0, "ThrusterLibrary: INSUFFICIENT_OUTPUT_AMOUNT");
+        require(reserveIn > 0 && reserveOut > 0, "ThrusterLibrary: INSUFFICIENT_LIQUIDITY");
+        uint256 numerator = reserveIn.mul(amountOut).mul(1000);
+        uint256 denominator = reserveOut.sub(amountOut).mul(990);
+        amountIn = (numerator / denominator).add(1);
+    }
+
+    // performs chained getAmountOut calculations on any number of pairs
+    // выполняет последовательные вычисления getAmountOut для любого количества пар
+    function getAmountsOut(address factory, uint256 amountIn, address[] memory path)
+        internal
+        view
+        returns (uint256[] memory amounts)
+    {
+        require(path.length >= 2, "ThrusterLibrary: INVALID_PATH");
+        amounts = new uint256[](path.length);
+        amounts[0] = amountIn;
+        for (uint256 i; i < path.length - 1; i++) {
+            (uint256 reserveIn, uint256 reserveOut) = getReserves(factory, path[i], path[i + 1]);
+            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
+        }
+    }
+
+    // performs chained getAmountIn calculations on any number of pairs
+    function getAmountsIn(address factory, uint256 amountOut, address[] memory path)
+        internal
+        view
+        returns (uint256[] memory amounts)
+    {
+        require(path.length >= 2, "ThrusterLibrary: INVALID_PATH");
+        amounts = new uint256[](path.length);
+        amounts[amounts.length - 1] = amountOut;
+        for (uint256 i = path.length - 1; i > 0; i--) {
+            (uint256 reserveIn, uint256 reserveOut) = getReserves(factory, path[i - 1], path[i]);
+            amounts[i - 1] = getAmountIn(amounts[i], reserveIn, reserveOut);
+        }
+    }
+}
+
+
+interface IThrusterPair {
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    function name() external pure returns (string memory);
+    function symbol() external pure returns (string memory);
+    function decimals() external pure returns (uint8);
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address owner) external view returns (uint256);
+    function allowance(address owner, address spender) external view returns (uint256);
+
+    function approve(address spender, uint256 value) external returns (bool);
+    function transfer(address to, uint256 value) external returns (bool);
+    function transferFrom(address from, address to, uint256 value) external returns (bool);
+
+    function DOMAIN_SEPARATOR() external view returns (bytes32);
+    function PERMIT_TYPEHASH() external pure returns (bytes32);
+    function nonces(address owner) external view returns (uint256);
+
+    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+        external;
+
+    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
+    event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
+    event Swap(
+        address indexed sender,
+        uint256 amount0In,
+        uint256 amount1In,
+        uint256 amount0Out,
+        uint256 amount1Out,
+        address indexed to
+    );
+    event Sync(uint112 reserve0, uint112 reserve1);
+
+    function MINIMUM_LIQUIDITY() external pure returns (uint256);
+    function factory() external view returns (address);
+    function token0() external view returns (address);
+    function token1() external view returns (address);
+    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+    function price0CumulativeLast() external view returns (uint256);
+    function price1CumulativeLast() external view returns (uint256);
+    function kLast() external view returns (uint256);
+
+    function mint(address to) external returns (uint256 liquidity);
+    function burn(address to) external returns (uint256 amount0, uint256 amount1);
+    function swap(uint256 amount0Out, uint256 amount1Out, address to, bytes calldata data) external;
+    function skim(address to) external;
+    function sync() external;
+
+    function initialize(address, address) external;
+}
+
+library PoolAddress {
+    /// @notice The identifying key of the pool
+    struct PoolKey {
+        address token0;
+        address token1;
+        int24 tickSpacing;
+    }
+
+    /// @notice Returns PoolKey: the ordered tokens with the matched fee levels
+    /// @param tokenA The first token of a pool, unsorted
+    /// @param tokenB The second token of a pool, unsorted
+    /// @param tickSpacing The tick spacing of the pool
+    /// @return Poolkey The pool details with ordered token0 and token1 assignments
+    function getPoolKey(address tokenA, address tokenB, int24 tickSpacing) internal pure returns (PoolKey memory) {
+        if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
+        return PoolKey({token0: tokenA, token1: tokenB, tickSpacing: tickSpacing});
+    }
+
+    /// @notice Deterministically computes the pool address given the factory and PoolKey
+    /// @param factory The CL factory contract address
+    /// @param key The PoolKey
+    /// @return pool The contract address of the V3 pool
+    function computeAddress(address factory, PoolKey memory key) internal view returns (address pool) {
+        require(key.token0 < key.token1);
+        pool = Clones.predictDeterministicAddress(
+            ICLFactory(factory).poolImplementation(),
+            keccak256(abi.encode(key.token0, key.token1, key.tickSpacing)),
+            factory
+        );
+    }
+}
+
+library CallbackValidation {
+    function verifyCallback(
+        address factory,
+        address tokenA,
+        address tokenB,
+        int24 tickSpacing
+    ) internal view returns (ICLPool pool) {
+        return verifyCallback(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing));
+    }
+
+    function verifyCallback(address factory, PoolAddress.PoolKey memory poolKey)
+        internal
+        view
+        returns (ICLPool pool)
+    {   
+        pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
+        require(msg.sender == address(pool), "swap validation failed");
+    }
+}
+
+interface INonfungiblePositionManager is IERC721Enumerable, IPeripheryImmutableState {
+    /// @notice Emitted when liquidity is increased for a position NFT
+    /// @dev Also emitted when a token is minted
+    /// @param tokenId The ID of the token for which liquidity was increased
+    /// @param liquidity The amount by which liquidity for the NFT position was increased
+    /// @param amount0 The amount of token0 that was paid for the increase in liquidity
+    /// @param amount1 The amount of token1 that was paid for the increase in liquidity
+    event IncreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
+    /// @notice Emitted when liquidity is decreased for a position NFT
+    /// @param tokenId The ID of the token for which liquidity was decreased
+    /// @param liquidity The amount by which liquidity for the NFT position was decreased
+    /// @param amount0 The amount of token0 that was accounted for the decrease in liquidity
+    /// @param amount1 The amount of token1 that was accounted for the decrease in liquidity
+    event DecreaseLiquidity(uint256 indexed tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
+    /// @notice Emitted when tokens are collected for a position NFT
+    /// @dev The amounts reported may not be exactly equivalent to the amounts transferred, due to rounding behavior
+    /// @param tokenId The ID of the token for which underlying tokens were collected
+    /// @param recipient The address of the account that received the collected tokens
+    /// @param amount0 The amount of token0 owed to the position that was collected
+    /// @param amount1 The amount of token1 owed to the position that was collected
+    event Collect(uint256 indexed tokenId, address recipient, uint256 amount0, uint256 amount1);
+
+    /// @notice Returns the position information associated with a given token ID.
+    /// @dev Throws if the token ID is not valid.
+    /// @param tokenId The ID of the token that represents the position
+    /// @return nonce The nonce for permits
+    /// @return operator The address that is approved for spending
+    /// @return token0 The address of the token0 for a specific pool
+    /// @return token1 The address of the token1 for a specific pool
+    /// @return tickSpacing The tick spacing associated with the pool
+    /// @return tickLower The lower end of the tick range for the position
+    /// @return tickUpper The higher end of the tick range for the position
+    /// @return liquidity The liquidity of the position
+    /// @return feeGrowthInside0LastX128 The fee growth of token0 as of the last action on the individual position
+    /// @return feeGrowthInside1LastX128 The fee growth of token1 as of the last action on the individual position
+    /// @return tokensOwed0 The uncollected amount of token0 owed to the position as of the last computation
+    /// @return tokensOwed1 The uncollected amount of token1 owed to the position as of the last computation
+    function positions(uint256 tokenId)
+    external
+    view
+    returns (
+        uint96 nonce,
+        address operator,
+        address token0,
+        address token1,
+        int24 tickSpacing,
+        int24 tickLower,
+        int24 tickUpper,
+        uint128 liquidity,
+        uint256 feeGrowthInside0LastX128,
+        uint256 feeGrowthInside1LastX128,
+        uint128 tokensOwed0,
+        uint128 tokensOwed1
+    );
+
+    struct MintParams {
+        address token0;
+        address token1;
+        int24 tickSpacing;
+        int24 tickLower;
+        int24 tickUpper;
+        uint256 amount0Desired;
+        uint256 amount1Desired;
+        uint256 amount0Min;
+        uint256 amount1Min;
+        address recipient;
+        uint256 deadline;
+        uint160 sqrtPriceX96;
+    }
+
+    /// @notice Creates a new position wrapped in a NFT
+    /// @dev Call this when the pool does exist and is initialized. Note that if the pool is created but not initialized
+    /// a method does not exist, i.e. the pool is assumed to be initialized.
+    /// @param params The params necessary to mint a position, encoded as `MintParams` in calldata
+    /// @return tokenId The ID of the token that represents the minted position
+    /// @return liquidity The amount of liquidity for this position
+    /// @return amount0 The amount of token0
+    /// @return amount1 The amount of token1
+    function mint(MintParams calldata params)
+    external
+    payable
+    returns (
+        uint256 tokenId,
+        uint128 liquidity,
+        uint256 amount0,
+        uint256 amount1
+    );
+
+    struct IncreaseLiquidityParams {
+        uint256 tokenId;
+        uint256 amount0Desired;
+        uint256 amount1Desired;
+        uint256 amount0Min;
+        uint256 amount1Min;
+        uint256 deadline;
+    }
+
+    /// @notice Increases the amount of liquidity in a position, with tokens paid by the `msg.sender`
+    /// @param params tokenId The ID of the token for which liquidity is being increased,
+    /// amount0Desired The desired amount of token0 to be spent,
+    /// amount1Desired The desired amount of token1 to be spent,
+    /// amount0Min The minimum amount of token0 to spend, which serves as a slippage check,
+    /// amount1Min The minimum amount of token1 to spend, which serves as a slippage check,
+    /// deadline The time by which the transaction must be included to effect the change
+    /// @return liquidity The new liquidity amount as a result of the increase
+    /// @return amount0 The amount of token0 to acheive resulting liquidity
+    /// @return amount1 The amount of token1 to acheive resulting liquidity
+    function increaseLiquidity(IncreaseLiquidityParams calldata params)
+    external
+    payable
+    returns (
+        uint128 liquidity,
+        uint256 amount0,
+        uint256 amount1
+    );
+
+    struct DecreaseLiquidityParams {
+        uint256 tokenId;
+        uint128 liquidity;
+        uint256 amount0Min;
+        uint256 amount1Min;
+        uint256 deadline;
+    }
+
+    /// @notice Decreases the amount of liquidity in a position and accounts it to the position
+    /// @param params tokenId The ID of the token for which liquidity is being decreased,
+    /// amount The amount by which liquidity will be decreased,
+    /// amount0Min The minimum amount of token0 that should be accounted for the burned liquidity,
+    /// amount1Min The minimum amount of token1 that should be accounted for the burned liquidity,
+    /// deadline The time by which the transaction must be included to effect the change
+    /// @return amount0 The amount of token0 accounted to the position's tokens owed
+    /// @return amount1 The amount of token1 accounted to the position's tokens owed
+    function decreaseLiquidity(DecreaseLiquidityParams calldata params)
+    external
+    payable
+    returns (uint256 amount0, uint256 amount1);
+
+    struct CollectParams {
+        uint256 tokenId;
+        address recipient;
+        uint128 amount0Max;
+        uint128 amount1Max;
+    }
+
+    /// @notice Collects up to a maximum amount of fees owed to a specific position to the recipient
+    /// @param params tokenId The ID of the NFT for which tokens are being collected,
+    /// recipient The account that should receive the tokens,
+    /// amount0Max The maximum amount of token0 to collect,
+    /// amount1Max The maximum amount of token1 to collect
+    /// @return amount0 The amount of fees collected in token0
+    /// @return amount1 The amount of fees collected in token1
+    function collect(CollectParams calldata params) external payable returns (uint256 amount0, uint256 amount1);
+
+    /// @notice Burns a token ID, which deletes it from the NFT contract. The token must have 0 liquidity and all tokens
+    /// must be collected first.
+    /// @param tokenId The ID of the token that is being burned
+    function burn(uint256 tokenId) external payable;
+
+    function balanceOf(address account) external view returns (uint256);
 }
