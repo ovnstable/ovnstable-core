@@ -15,23 +15,21 @@ filename = filename.substring(0, filename.indexOf(".js"));
 async function main() {
 
     let mainAddress = (await initWallet()).address;
-    // await transferETH(100, mainAddress);
+    await transferETH(100, mainAddress);
 
     let addresses = [];
     let values = [];
     let abis = [];
 
     const StrategyAerodromeSwapUsdc = await getContract('StrategyAerodromeSwapUsdc', 'base_usdc');
-    const newSwapImpl = "";
-
-    console.log("treasury before", (await aero.balanceOf(COMMON.rewardWallet)).toString());
+    const newSwapImpl = "0x1236f2Bae307d9EFa1b055C2577613e07b1aaFa9";
 
     addProposalItem(StrategyAerodromeSwapUsdc, "upgradeTo", [newSwapImpl]);
     addProposalItem(StrategyAerodromeSwapUsdc, "setParams", [await strategyAerodromeUsdcParams()]);
 
     // addProposalItem(pm, "balance", []);
     
-    // await testProposal(addresses, values, abis);
+    await testProposal(addresses, values, abis);
 
     await testUsdPlus(filename, 'base_usdc');
     await testStrategy(filename, StrategyAerodromeSwapUsdc);

@@ -51,25 +51,25 @@ interface ISwapSimulator {
 
 contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
-    IERC20 public usdc;
-    IERC20 public usdcPlus;
-    IERC20 public aero;
+    IERC20 private usdc;
+    IERC20 private usdcPlus;
+    IERC20 private aero;
 
-    int24[] public tickRange;
-    uint256 public binSearchIterations;
+    int24[] private tickRange;
+    uint256 private binSearchIterations;
 
-    ICLPool public rewardSwapPool;
-    uint256 rewardSwapSlippageBP;
+    ICLPool private rewardSwapPool;
+    uint256 private rewardSwapSlippageBP;
 
-    ICLPool public pool;
-    INonfungiblePositionManager public npm;
-    ISwapSimulator public swapSimulator;
-    ICLGauge public gauge;
+    ICLPool private pool;
+    INonfungiblePositionManager private npm;
+    ISwapSimulator private swapSimulator;
+    ICLGauge private gauge;
 
-    uint256 public stakedTokenId;
-    address swapRouter;
-    address treasury;
-    uint256 public treasuryShare;
+    uint256 private stakedTokenId;
+    address private swapRouter;
+    address private treasury;
+    uint256 private treasuryShare;
 
     // --- events
     event StrategyUpdatedParams();
