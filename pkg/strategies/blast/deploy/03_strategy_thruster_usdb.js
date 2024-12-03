@@ -38,7 +38,7 @@ async function getParams() {
         pool: '0x147e7416d5988b097b3a1859efecc2c5e04fdf96',
         tickRange: [-1, 0],
         binSearchIterations: 20,
-        swapSimulatorAddress: "0x8B268F288D233d3739Bc54C7cF8e857ea3e7bD32",
+        swapSimulatorAddress: "0xB418e6a93cA2Ea2005049883084E46480d10c4fa", // новая версия
         npmAddress: '0x434575eaea081b735c985fa9bf63cd7b87e227f9', 
 
         hyperTokenAddress: '0xec73284e4ec9bcea1a7dddf489eaa324c3f7dd31',

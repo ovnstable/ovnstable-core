@@ -9,9 +9,9 @@ module.exports = async ({deployments}) => {
 
     let wallet = await initWallet();
 
-    await deploySection(async (name) => {
-        await deployProxy(name, deployments, save);
-    });
+    // await deploySection(async (name) => {
+    //     await deployProxy(name, deployments, save);
+    // });
 
     await settingSection('', async (strategy) => {
         await (await strategy.setSimulationParams(await getParams(), {gasPrice: 4221834})).wait();
@@ -20,8 +20,7 @@ module.exports = async ({deployments}) => {
 
 async function getParams() {
     return {
-        strategy: "0xe1201f02C02e468c7fF6F61AFff505A859673cfD", 
-        // strategy: wallet.address, // for tests
+        strategy: "0xB418e6a93cA2Ea2005049883084E46480d10c4fa", // это StrategyThrusterSwap
         factory: '0xa08ae3d3f4da51c22d3c041e468bdf4c61405aab'
     };
 }
