@@ -1,18 +1,36 @@
-const { deployProxyMulti } = require("@overnight-contracts/common/utils/deployProxy");
-const { deploySection, settingSection } = require("@overnight-contracts/common/utils/script-utils");
-const { BLAST } = require("@overnight-contracts/common/utils/assets");
-const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
+const {BASE, COMMON} = require('@overnight-contracts/common/utils/assets');
+const {
+    deploySection, 
+    settingSection, 
+    getContract, 
+    initWallet, 
+    transferETH, 
+    execTimelock
+} = require("@overnight-contracts/common/utils/script-utils");
+const { Roles } = require('@overnight-contracts/common/utils/roles');
 
-module.exports = async ({ deployments }) => {
-    const { save } = deployments;
+let strategyName = 'StrategyThrusterSwap';
+
+module.exports = async ({deployments}) => {
+    const {save} = deployments;
+
+    let wallet = await initWallet();
+
+    // await transferETH(10, wallet.address);
 
     await deploySection(async (name) => {
-        await deployProxyMulti(name, 'StrategyThrusterSwap', deployments, save, null);
+        await deployProxy(name, deployments, save, {
+            factoryOptions: {
+                signer: wallet
+            },
+            gasPrice: 4221834
+        });
     });
 
-    // await settingSection('StrategyThrusterSwap', async (strategy) => {
-    //     await (await strategy.setParams(await getParams())).wait();
-    // });
+    await settingSection(strategyName, async (strategy) => {
+        await (await strategy.setParams(await getParams(), {gasPrice: 4221834})).wait();
+    }, wallet);
 };
 
 async function getParams() {
@@ -36,6 +54,5 @@ async function getParams() {
     };
 }
 
-module.exports.tags = ['StrategyThrusterSwap'];
+module.exports.tags = [strategyName];
 module.exports.getParams = getParams;
-module.exports.strategySperAlpha = getParams;
