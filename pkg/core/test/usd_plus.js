@@ -6,6 +6,7 @@ const {createRandomWallet} = require("@overnight-contracts/common/utils/tests");
 const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const {fromE18, fromE6, toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
+const { boolean } = require("hardhat/internal/core/params/argumentTypes");
 
 
 describe("Token", function () {
@@ -818,4 +819,336 @@ describe("Token", function () {
 
     });
 
+    describe('transferBlacklist', () => {
+        describe('setTransferLock', () => {
+            it('allows to set lock options for an address', async () => {
+                const prevOpt = await usdPlus.lockOptionsPerAddress(user1.address)
+                expect(prevOpt.lockSend).false
+                expect(prevOpt.lockReceive).false
+
+                await usdPlus.setTransferLock(user1.address, {
+                    lockSend: true,
+                    lockReceive: true
+                })
+
+                const newOpt = await usdPlus.lockOptionsPerAddress(user1.address)
+                expect(newOpt.lockSend).true
+                expect(newOpt.lockReceive).true
+            })
+
+            it('reverts when try to send or receive lokens', async () => {
+                await mint(user1, 1000000);
+                await mint(user2, 1000000);
+
+                // ALLOWED SEND & RECEIVE
+                await usdPlus.connect(user1).callStatic.transfer(user2.address, 1)
+                await usdPlus.connect(user2).callStatic.transfer(user1.address, 1)
+                
+                // LOCK SEND & RECEIVE
+                await usdPlus.setTransferLock(user1.address, {
+                    lockSend: true,
+                    lockReceive: true
+                })
+
+                await expectRevert(usdPlus.connect(user1).transfer(user2.address, 1), 'Send forbidden')
+                await expectRevert(usdPlus.connect(user2).transfer(user1.address, 1), 'Receive forbidden')
+
+                // LOCK SEND
+                await usdPlus.setTransferLock(user1.address, {
+                    lockSend: true,
+                    lockReceive: false
+                })
+
+                await expectRevert(usdPlus.connect(user1).transfer(user2.address, 1), 'Send forbidden')
+                await usdPlus.connect(user2).callStatic.transfer(user1.address, 1)
+
+                // LOCK RECEIVE
+                await usdPlus.setTransferLock(user1.address, {
+                    lockSend: false,
+                    lockReceive: true
+                })
+
+                await usdPlus.connect(user1).callStatic.transfer(user2.address, 1)
+                await expectRevert(usdPlus.connect(user2).transfer(user1.address, 1), 'Receive forbidden')
+            })
+
+            describe('edge cases', () => {
+                describe('when called not by admin', () => {
+                    it(`reverts`, async () => {
+                        await expectRevert(usdPlus.connect(user1).setTransferLock(user2.address, {
+                            lockSend: false,
+                            lockReceive: true
+                        }), 'Restricted to admins')
+                    })
+                })
+
+                describe('when new options == old options', () => {
+                    it(`reverts`, async () => {
+                        await expectRevert(
+                            usdPlus.setTransferLock(user1.address, 
+                            await usdPlus.lockOptionsPerAddress(user1.address)
+                        ), 'Duplicate')
+                    })
+                })
+            })
+        })
+
+        describe('setTransferLockBatch', () => {
+            let accounts = []
+
+            beforeEach(async () => {
+                accounts = [user1.address, user2.address, user3.address]
+            })
+
+            it('allows to set lock options for an array of addresses', async () => {
+                for (let acc of accounts) {
+                    const opt = await usdPlus.lockOptionsPerAddress(acc)
+                    expect(opt.lockSend).false
+                    expect(opt.lockReceive).false
+                }
+
+                await usdPlus.setTransferLockBatch(accounts, [
+                    {
+                        lockSend: true,
+                        lockReceive: true
+                    },
+                    {
+                        lockSend: true,
+                        lockReceive: true
+                    },
+                    {
+                        lockSend: true,
+                        lockReceive: true
+                    },
+                ])
+
+                for (let acc of accounts) {
+                    const opt = await usdPlus.lockOptionsPerAddress(acc)
+                    expect(opt.lockSend).true
+                    expect(opt.lockReceive).true
+                }
+            })
+
+            it('reverts when try to send or receive lokens', async () => {
+                await mint(user1, 1000000);
+                await mint(user2, 1000000);
+
+                // ALLOWED SEND & RECEIVE
+                await usdPlus.connect(user1).callStatic.transfer(user2.address, 1)
+                await usdPlus.connect(user2).callStatic.transfer(user1.address, 1)
+                
+                // LOCK SEND & RECEIVE
+                await usdPlus.setTransferLockBatch([user1.address], [
+                    {
+                        lockSend: true,
+                        lockReceive: true
+                    }
+                ])
+
+                await expectRevert(usdPlus.connect(user1).transfer(user2.address, 1), 'Send forbidden')
+                await expectRevert(usdPlus.connect(user2).transfer(user1.address, 1), 'Receive forbidden')
+            })
+
+            describe('edge cases', () => {
+                describe('when called not by admin', () => {
+                    it(`reverts`, async () => {
+                        await expectRevert(usdPlus.connect(user1).setTransferLockBatch([user2.address], [{
+                            lockSend: false,
+                            lockReceive: true
+                        }]), 'Restricted to admins')
+                    })
+                })
+
+                describe('when accounts len > MAX_LEN', () => {
+                    const randomAddress = () => {
+                        const wallet = new ethers.Wallet.createRandom()
+                        return wallet.address
+                    }
+
+                    it(`reverts`, async () => {
+                        let accs = []
+                        let opts = []
+                        const MAX_LEN = Number(await usdPlus.MAX_LEN())
+
+                        for (let i = 0; i < MAX_LEN; ++i) {
+                            accs.push(randomAddress())
+                            opts.push({
+                                lockSend: true,
+                                lockReceive: true
+                            })
+                        }
+
+                        await usdPlus.callStatic.setTransferLockBatch(accs, opts)
+
+                        accs.push(randomAddress())
+                        opts.push({
+                            lockSend: true,
+                            lockReceive: true
+                        })
+                        await expectRevert(usdPlus.setTransferLockBatch(accs, opts), 'Invalid len')
+                    })
+                })
+
+                describe('when accounts len != opt len', () => {
+                    it(`reverts`, async () => {
+                        await expectRevert(usdPlus.setTransferLockBatch(accounts, [{
+                            lockReceive: true,
+                            lockSend: false
+                        }]), 'Len missmatch') 
+                    })
+                })
+
+                describe('when accounts len == 0', () => {
+                    it(`reverts`, async () => {
+                        await expectRevert(usdPlus.setTransferLockBatch([], []), 'Invalid len') 
+                    })
+                })
+
+                describe('when new options == old options', () => {
+                    it(`reverts`, async () => {
+                        await expectRevert(
+                            usdPlus.setTransferLockBatch([user1.address], 
+                            [await usdPlus.lockOptionsPerAddress(user1.address)]
+                        ), 'Duplicate')
+
+                        await expectRevert(
+                            usdPlus.setTransferLockBatch(accounts, 
+                            [
+                                {
+                                    lockSend: true, 
+                                    lockReceive: true
+                                }, 
+                                await usdPlus.lockOptionsPerAddress(user1.address), 
+                                {
+                                    lockSend: true, 
+                                    lockReceive: true
+                                }
+                            ]
+                        ), 'Duplicate')
+                    })
+                })
+            })
+        })
+
+        describe('getters', () => {
+            it('returns accounts having fees turned on', async () => {
+                let len = await usdPlus.getBlacklistLength()
+                expect(len).eq(0)
+
+                let accounts = [user1.address, user2.address, user3.address]
+                let options = [
+                    {
+                        lockSend: true,
+                        lockReceive: false
+                    },
+                    {
+                        lockSend: false,
+                        lockReceive: true
+                    },
+                    {
+                        lockSend: true,
+                        lockReceive: true
+                    },
+                ]
+
+                await usdPlus.setTransferLockBatch(
+                    accounts, 
+                    options
+                )
+
+                len = await usdPlus.getBlacklistLength()
+                let blackList = await usdPlus.getBlacklistSlice(0, len)
+
+                expect(len).eq(3)
+                expect(blackList[0].length).eq(len)
+                for(let i = 0; i < blackList[0].length; ++i) {
+                    expect(blackList[0][i]).eq(accounts[i])
+                    expect(blackList[1][i].lockSend).eq(options[i].lockSend)
+                    expect(blackList[1][i].lockReceive).eq(options[i].lockReceive)
+                }
+
+                let offset = 1
+                let length = 1
+                blackList = await usdPlus.getBlacklistSlice(offset, length)
+
+                expect(blackList[0].length).eq(length)
+                for(let i = 0; i < blackList[0].length; ++i) {
+                    expect(blackList[0][i]).eq(accounts[i + offset])
+                    expect(blackList[1][i].lockSend).eq(options[i + offset].lockSend)
+                    expect(blackList[1][i].lockReceive).eq(options[i + offset].lockReceive)
+                }
+
+                // accounts get removed from blacklist of no locks are set to true
+                // unlock user2
+                options = [
+                    {
+                        lockSend: false,
+                        lockReceive: true
+                    },
+                    {
+                        lockSend: false,
+                        lockReceive: false
+                    },
+                    {
+                        lockSend: false,
+                        lockReceive: true
+                    },
+                ]
+
+                await usdPlus.setTransferLockBatch(
+                    accounts, 
+                    options
+                )
+
+                blackList = await usdPlus.getBlacklistSlice(0, await usdPlus.getBlacklistLength())
+                expect(blackList[0].length).eq(2)
+
+                // only user1 and user3 left in blacklist
+                expect((await usdPlus.getBlacklistAt(0)).account).eq(accounts[0])
+                expect((await usdPlus.getBlacklistAt(1)).account).eq(accounts[2])
+
+                await usdPlus.setTransferLock(accounts[0], {
+                    lockSend: false,
+                    lockReceive: false
+                })
+                await usdPlus.setTransferLock(accounts[2], {
+                    lockSend: false,
+                    lockReceive: false
+                })
+
+                blackList = await usdPlus.getBlacklistSlice(0, await usdPlus.getBlacklistLength())
+                expect(blackList[0].length).eq(0)
+            })
+
+            describe('edge cases', () => {
+                describe('when index out of bounds', () => {
+                    it(`reverts`, async () => {
+                        let accounts = [user1.address, user2.address, user3.address]
+                        let options = [
+                            {
+                                lockSend: true,
+                                lockReceive: false
+                            },
+                            {
+                                lockSend: false,
+                                lockReceive: true
+                            },
+                            {
+                                lockSend: true,
+                                lockReceive: true
+                            },
+                        ]
+
+                        await usdPlus.setTransferLockBatch(
+                            accounts, 
+                            options
+                        )
+
+                       await expectRevert(usdPlus.getBlacklistAt(4), 'Index out of bounds')
+                       await expectRevert(usdPlus.getBlacklistSlice(2, 2), 'Query out of bounds')
+                    })
+                })
+            })
+        })
+    })
 });
