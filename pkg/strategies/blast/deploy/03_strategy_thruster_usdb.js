@@ -1,26 +1,55 @@
 const { deployProxyMulti } = require("@overnight-contracts/common/utils/deployProxy");
-const { deploySection, settingSection } = require("@overnight-contracts/common/utils/script-utils");
+const { deploySection, settingSection, getContract } = require("@overnight-contracts/common/utils/script-utils");
 const { BLAST } = require("@overnight-contracts/common/utils/assets");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+
+// module.exports = async ({ deployments }) => {
+//     const { save } = deployments;
+
+//     // await deploySection(async (name) => {
+//     //     await deployProxyMulti(name, 'StrategyThrusterSwap', deployments, save, null);
+//     // });
+
+//     await settingSection('StrategyThrusterSwap', async (strategy) => {
+//         await (await strategy.setParams(await getParams())).wait();
+//     });
+// };
 
 module.exports = async ({ deployments }) => {
     const { save } = deployments;
 
-    await deploySection(async (name) => {
-        await deployProxyMulti(name, 'StrategyThrusterSwap', deployments, save, null);
-    });
+    // await deploySection(async (name) => {
+    //     await deployProxyMulti(name, 'StrategyThrusterSwap', deployments, save, null);
+    // });
 
     // await settingSection('StrategyThrusterSwap', async (strategy) => {
     //     await (await strategy.setParams(await getParams())).wait();
     // });
+
+    // console.log("We are in right place")
+
+    // let strategy = await ethers.getContractAt(DefiEdgeTwapStrategy, "0xD1C33D0AF58eB7403f7c01b21307713Aa18b29d3");
+    // let thrusterSwap = await getContract('StrategyThrusterSwap', 'blast');
+
+    
+
+    await settingSection('StrategyThrusterSwap', async (strategy) => {
+        await (await strategy.setParams(await getParams())).wait();
+        console.log("DEBUG: strategy.address: ", strategy.address)
+    });
+
+
+    // console.log("DEBUG: ", thrusterSwap.address)
 };
+
+
 
 async function getParams() {
     return {
         pool: '0x147e7416d5988b097b3a1859efecc2c5e04fdf96',
         tickRange: [-1, 0],
         binSearchIterations: 20,
-        swapSimulatorAddress: "0x8B268F288D233d3739Bc54C7cF8e857ea3e7bD32",
+        swapSimulatorAddress: "0xB418e6a93cA2Ea2005049883084E46480d10c4fa", // новая версия
         npmAddress: '0x434575eaea081b735c985fa9bf63cd7b87e227f9', 
 
         hyperTokenAddress: '0xec73284e4ec9bcea1a7dddf489eaa324c3f7dd31',
@@ -38,4 +67,5 @@ async function getParams() {
 
 module.exports.tags = ['StrategyThrusterSwap'];
 module.exports.getParams = getParams;
-module.exports.strategySperAlpha = getParams;
+
+// module.exports.strategySperAlpha = getParams;
