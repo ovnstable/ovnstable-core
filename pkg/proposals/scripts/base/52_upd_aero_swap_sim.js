@@ -29,10 +29,10 @@ async function main() {
 
     // addProposalItem(pm, "balance", []);
     
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
 
-    await testUsdPlus(filename, 'base_usdc');
-    await testStrategy(filename, StrategyAerodromeSwapUsdc, "base_usdc");
+    // await testUsdPlus(filename, 'base_usdc');
+    // await testStrategy(filename, StrategyAerodromeSwapUsdc, "base_usdc");
     
     await createProposal(filename, addresses, values, abis);
 
