@@ -297,7 +297,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
         await testCase(async () => {
             await execTimelock(async timelock => {
                 await getTestAssets(walletAddress, stand);
-                let amount = toAsset(2, stand);
+                let amount = toAsset(10, stand);
                 await asset.transfer(strategy.address, amount);
                 await strategy.connect(timelock).stake(asset.address, amount, await getPrice());
                 // await strategy.connect(pm).stake(asset.address, amount, await getPrice());

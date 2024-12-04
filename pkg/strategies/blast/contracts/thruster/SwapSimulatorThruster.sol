@@ -115,7 +115,7 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
             abi.encode(data)
         );
 
-        (uint160 newSqrtRatioX96,,,,,,) = pool.slot0(); // добавил запятую
+        (uint160 newSqrtRatioX96,,,,,,) = pool.slot0(); 
 
         if (newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) {
             revert SlippageError(
