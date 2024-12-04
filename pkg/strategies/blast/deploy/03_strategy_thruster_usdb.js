@@ -1,5 +1,5 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const {BASE, COMMON} = require('@overnight-contracts/common/utils/assets');
+const {BLAST} = require('@overnight-contracts/common/utils/assets');
 const {
     deploySection, 
     settingSection, 
@@ -38,12 +38,12 @@ async function getParams() {
         pool: '0x147e7416d5988b097b3a1859efecc2c5e04fdf96',
         tickRange: [-1, 0],
         binSearchIterations: 20,
-        swapSimulatorAddress: "0xB418e6a93cA2Ea2005049883084E46480d10c4fa", // новая версия
+        swapSimulatorAddress: "0x0777Cdf187782832c9D98c0aB73cCdc19D271B54", 
         npmAddress: '0x434575eaea081b735c985fa9bf63cd7b87e227f9', 
 
-        hyperTokenAddress: '0xec73284e4ec9bcea1a7dddf489eaa324c3f7dd31',
-        thrustTokenAddress: '0xe36072dd051ce26261bf50cd966311cab62c596e',
-        wethTokenAddress: '0x4300000000000000000000000000000000000004' ,
+        hyperTokenAddress: BLAST.hyper,
+        thrustTokenAddress: BLAST.thrust,
+        wethTokenAddress: BLAST.weth,
 
         poolUsdbWeth: '0xf00DA13d2960Cf113edCef6e3f30D92E52906537',
         poolWethHyper: '0xE16fbfcFB800E358De6c3210e86b5f23Fc0f2598',

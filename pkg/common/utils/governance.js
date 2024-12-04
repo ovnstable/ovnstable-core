@@ -267,11 +267,15 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     });
 
     let isNewStrategy = strategy.setStrategyParams !== undefined;
+    
 
     await execTimelock(async timelock => {
         if (isNewStrategy) {
-            await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, await getPrice());
-            // await strategy.setStrategyParams(timelock.address, roleManager.address, await getPrice());
+            if (await strategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, timelock.address)) {
+                await strategy.connect(timelock).setStrategyParams(timelock.address, roleManager.address, await getPrice());
+            } else {
+                await strategy.setStrategyParams(timelock.address, roleManager.address, await getPrice());
+            }
         } else {
             await strategy.connect(timelock).setPortfolioManager(timelock.address, await getPrice());
         }
@@ -293,7 +297,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
         await testCase(async () => {
             await execTimelock(async timelock => {
                 await getTestAssets(walletAddress, stand);
-                let amount = toAsset(10_0, stand);
+                let amount = toAsset(2, stand);
                 await asset.transfer(strategy.address, amount);
                 await strategy.connect(timelock).stake(asset.address, amount, await getPrice());
                 // await strategy.connect(pm).stake(asset.address, amount, await getPrice());
@@ -304,7 +308,7 @@ async function testStrategy(id, strategy, stand = process.env.STAND) {
     tables.push(
         await testCase(async () => {
             await execTimelock(async timelock => {
-                let amount = toAsset(1_000, stand);
+                let amount = toAsset(0.1, stand);
                 await strategy.connect(timelock).unstake(asset.address, amount, walletAddress, false, await getPrice());
             });
         }, 'strategy.unstake'),

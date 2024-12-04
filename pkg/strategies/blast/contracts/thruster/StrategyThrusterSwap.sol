@@ -4,6 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Thruster.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "hardhat/console.sol";
 
 
 interface ISwapSimulator {
@@ -67,9 +68,9 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     int24[] public tickRange;
     uint256 public binSearchIterations;
 
-    ICLPool poolUsdbWeth;
-    ICLPool poolWethHyper;
-    ICLPool poolWethThrust;
+    ICLPool private poolUsdbWeth;
+    ICLPool private poolWethHyper;
+    ICLPool private poolWethThrust;
 
     uint256 rewardSwapSlippageBP;
 
@@ -174,7 +175,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         uint256 _amount
     ) internal override {
         _deposit(usdb.balanceOf(address(this)), usdPlus.balanceOf(address(this)), 0, 0, true); // USDB -> USD+
-        // NOTE метод _deposit стейкает tokenLP в HyperLock
     }  
 
 
@@ -207,7 +207,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         uint256 amount1 = 0;
 
         if (tokenLP != 0) {
-            (uint160 sqrtRatioX96,,,,,,) = pool.slot0(); // добавил запятую 
+            (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
             (,,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
             (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtRatioX96,
@@ -227,7 +227,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
         // I. "Разстейкиваем" LP token
             // по-хорошему тут нужно сделать проверку типа "if (gauge.stakedContains(address(this), tokenLP))"
-        nfpBooster.withdraw(tokenLP, address(this)); 
+        // nfpBooster.withdraw(tokenLP, address(this)); 
 
 
 
@@ -238,14 +238,14 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
 
 
-        // III. Меняем оба HYPER и THRUST на WETH через V3 пулы Трастера 
+        // III. Swap HYPER and THRUST to WETH via V3 Thruster pools
         // address poolWethHyper = address(0xE16fbfcFB800E358De6c3210e86b5f23Fc0f2598);
         // address poolWethThrust = address(0x878C963776F374412C896e4B2a3DB84A36614c7C);
 
         (uint160 sqrtRatioWethHyperX96,,,,,,) = poolWethHyper.slot0();
         hyper.transfer(address(swapSimulator), hyperBalance);
         swapSimulator.swap(
-            address(poolWethHyper), // так ведь можно ?) 
+            address(poolWethHyper), 
             hyperBalance, 
             0, 
             false,
@@ -267,9 +267,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         );
         swapSimulator.withdrawAll(address(poolWethThrust)); 
 
-
-
-        // IV. Меняем весь WETH на USDB
+        // IV. Swap all WETH to USDB
         uint256 wethBalance = weth.balanceOf(address(this));
 
         (uint160 sqrtRatioUsdbWethX96,,,,,,) = poolWethThrust.slot0();
@@ -284,15 +282,13 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         );
         swapSimulator.withdrawAll(address(poolUsdbWeth)); 
 
+        // V. Deposit USDB to pool again
+        uint256 usdbBalance = usdb.balanceOf(address(this));
+        _stake(address(usdb), usdbBalance);
 
-
-        // V. Заново вкладываем USD+ в пул 
-        uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
-        _stake(address(usdPlus), usdPlusBalance);
-
-        // VI. Стейкаем новый tokenLP в пул 
-        npm.approve(address(nfpBooster), tokenLP);
-        nfpBooster.deposit(tokenLP);
+        // VI. Stake new tokenLP to the gauge
+        // npm.approve(address(nfpBooster), tokenLP);
+        // nfpBooster.deposit(tokenLP);
 
         return 0;
     }
@@ -321,9 +317,9 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
         if (tokenLP == 0) {
             INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
-                token0: pool.token0(), // (OK)
-                token1: pool.token1(), // (OK)
-                tickSpacing: pool.tickSpacing(), // (OK)
+                token0: pool.token0(), 
+                token1: pool.token1(), 
+                fee: pool.fee(),
                 tickLower: tickRange[0],
                 tickUpper: tickRange[1],
                 amount0Desired: amount0,
@@ -331,18 +327,17 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
                 amount0Min: 0,
                 amount1Min: 0,
                 recipient: address(this),
-                deadline: block.timestamp,
-                sqrtPriceX96: 0
+                deadline: block.timestamp
             });
             (tokenLP,,,) = npm.mint(params);
 
-            npm.approve(address(nfpBooster), tokenLP);
-            nfpBooster.deposit(tokenLP);
+            // npm.approve(address(nfpBooster), tokenLP);
+            // nfpBooster.deposit(tokenLP);
 
             emit Staked(tokenLP);
         } else {
             // проверить, что там что-то есть, типа: if (gauge.stakedContains(address(this), stakedTokenId)) {
-            nfpBooster.withdraw(tokenLP, address(this)); // норм ли что _to мы указываем address(this)
+            // nfpBooster.withdraw(tokenLP, address(this)); // норм ли что _to мы указываем address(this)
             _collect();
 
             INonfungiblePositionManager.IncreaseLiquidityParams memory params = INonfungiblePositionManager.IncreaseLiquidityParams({
@@ -355,16 +350,16 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
             });
             npm.increaseLiquidity(params);
 
-            npm.approve(address(nfpBooster), tokenLP);
-            nfpBooster.deposit(tokenLP);
+            // npm.approve(address(nfpBooster), tokenLP);
+            // nfpBooster.deposit(tokenLP);
         }
     }
 
     function _withdraw(address asset, uint256 amount, bool isFull) internal returns (uint256) {
 
         // Забираем tokenLP из HyperLock 
-        nfpBooster.withdraw(tokenLP, address(this)); 
-        _collect_rewards_hyperlock();
+        // nfpBooster.withdraw(tokenLP, address(this)); 
+        // _collect_rewards_hyperlock();
 
         (,,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
         if (liquidity == 0) {
@@ -386,9 +381,13 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         if (!isFull) {
             uint256 amountToStake0 = usdb.balanceOf(address(this));
             uint256 amountToStake1 = usdPlus.balanceOf(address(this));
+
+            console.log("amountToStake0", amountToStake0);
+            console.log("amountToStake1", amountToStake1);
+
             uint256 lockedAmount0;
             uint256 lockedAmount1;
-            if (amountToStake0 > amount) {
+            if (amountToStake0 >= amount) {
                 amountToStake0 -= amount;
                 lockedAmount0 = amount;
             } else {
@@ -398,8 +397,8 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
                     amount - amountToStake0, 
                     0, 
                     false,
-                    79224201403219477170569942574, 
-                    79236085330515764027303304732
+                    uint160(79224201403219477170569942574), 
+                    uint160(79236085330515764027303304732)
                 );
             }
             _deposit(amountToStake0, amountToStake1, lockedAmount0, lockedAmount1, false);  // USD+ -> USDB 
@@ -431,13 +430,13 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
 
     function _collect_rewards_hyperlock() internal {
-        CollectParams memory collectParams = CollectParams({
+        INFPBooster.CollectParams memory collectParams = INFPBooster.CollectParams({
             tokenId: tokenLP,
             recipient: address(this),
             amount0Max: type(uint128).max,
             amount1Max: type(uint128).max
         });
-        nfpBooster.collect(collectParams);
+        // nfpBooster.collect(collectParams);
     } 
 
     function _simulateSwap(uint256 amount0, uint256 amount1, bool zeroForOne) internal returns (uint256 amountToSwap) {
@@ -445,8 +444,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
         BinSearchParams memory binSearchParams;
         binSearchParams.right = (amount0 > amount1 ? amount0 : amount1);
-
-        
 
         for (uint256 i = 0; i < binSearchIterations; i++) {
             binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;

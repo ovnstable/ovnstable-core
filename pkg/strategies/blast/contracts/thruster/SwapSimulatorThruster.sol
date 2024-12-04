@@ -55,7 +55,7 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
     struct SwapCallbackData {
         address tokenA;
         address tokenB;
-        int24 tickSpacing;
+        uint24 fee;
     }
 
     struct SimulationParams {
@@ -63,8 +63,8 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
         address factory;
     }
 
-    address strategy;
-    address factory;
+    address public strategy;
+    address public factory;
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "!admin");
@@ -102,7 +102,7 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
         SwapCallbackData memory data = SwapCallbackData({
             tokenA: pool.token0(),
             tokenB: pool.token1(),
-            tickSpacing: pool.tickSpacing() // (OK)
+            fee: pool.fee() // (OK)
         });
 
         pool.swap( 
@@ -157,7 +157,7 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
         bytes calldata _data
     ) external {
         SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
-        CallbackValidation.verifyCallback(factory, data.tokenA, data.tokenB, data.tickSpacing);
+        CallbackValidation.verifyCallback(factory, data.tokenA, data.tokenB, data.fee);
 
         (bool isExactInput, uint256 amountToPay) =
             amount0Delta > 0

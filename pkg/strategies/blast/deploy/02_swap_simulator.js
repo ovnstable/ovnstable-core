@@ -1,29 +1,23 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const {deploySection, settingSection, initWallet} = require("@overnight-contracts/common/utils/script-utils");
-const {ZKSYNC, BASE} = require("@overnight-contracts/common/utils/assets");
-const { factory } = require("typescript");
+const { getContract } = require("@overnight-contracts/common/utils/script-utils");
 
+let name = 'SwapSimulatorThruster';
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
+    await deployProxy(name, deployments, save);
 
-    let wallet = await initWallet();
+    let simulator = await getContract(name, 'blast');
 
-    // await deploySection(async (name) => {
-    //     await deployProxy(name, deployments, save);
-    // });
-
-    await settingSection('', async (strategy) => {
-        await (await strategy.setSimulationParams(await getParams(), {gasPrice: 4221834})).wait();
-    }, wallet);
+    await (await simulator.setSimulationParams(await getParams())).wait();
 };
 
 async function getParams() {
     return {
-        strategy: "0xB418e6a93cA2Ea2005049883084E46480d10c4fa", // это StrategyThrusterSwap
+        strategy: "0x27217C61dde49cF390489eae8C678274a8C52c69", // StrategyThrusterSwap address
         factory: '0xa08ae3d3f4da51c22d3c041e468bdf4c61405aab'
     };
 }
 
-module.exports.tags = ['SwapSimulatorThruster'];
+module.exports.tags = [name];
 module.exports.swapSimulatorThruster = getParams;
