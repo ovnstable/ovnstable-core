@@ -38,12 +38,12 @@ async function main() {
     addProposalItem(pm_usdc, 'upgradeTo', ['0xD55B35EaDe756b10D1c3BAf9824902f0262f1565']);
 
 
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
 
-    await testUsdPlus(filename, 'blast');
-    await testUsdPlus(filename, 'blast_usdc');
+    // await testUsdPlus(filename, 'blast');
+    // await testUsdPlus(filename, 'blast_usdc');
 
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);

@@ -118,15 +118,15 @@ async function main() {
     addProposalItem(pm_usdc, 'upgradeTo', ['0xf2BA70e6bb8853a4f62d873Fbc4A5B88d89abf42']);
 
 
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
 
-    let mainAddress = (await initWallet()).address;
-    await transferETH(100, mainAddress);   
+    // let mainAddress = (await initWallet()).address;
+    // await transferETH(100, mainAddress);   
 
-    await testUsdPlus(filename, 'base');
-    await testUsdPlus(filename, 'base_usdc');
+    // await testUsdPlus(filename, 'base');
+    // await testUsdPlus(filename, 'base_usdc');
 
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
