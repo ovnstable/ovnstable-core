@@ -70,7 +70,7 @@ async function main() {
     const newMorphoDirectUsdcImpl = "0x097ec712ef245bddEA5934c2846c887ac195f71a";
 
     const StrategyAerodromeSwapUsdc = await getContract('StrategyAerodromeSwapUsdc', 'base_usdc');
-    const newAerodromeSwapUsdcImpl = "0x1fCbD2e32122a4F0Aad83B36606217A5D4e8C879";
+    const newAerodromeSwapUsdcImpl = "0xBEd474410FcaDE29A71BFd66441FB976FE2ffbc1";
 
     addProposalItem(StrategyAave, "upgradeTo", [newAaveImpl]);
     addProposalItem(StrategyMorphoAlpha, "upgradeTo", [newMorphoAlphaImpl]);
