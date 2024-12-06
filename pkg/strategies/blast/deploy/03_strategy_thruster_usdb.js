@@ -24,12 +24,12 @@ module.exports = async ({deployments}) => {
             factoryOptions: {
                 signer: wallet
             },
-            gasPrice: 4221834
+            // gasPrice: 4221834
         });
     });
 
     await settingSection(strategyName, async (strategy) => {
-        await (await strategy.setParams(await getParams(), {gasPrice: 4221834})).wait();
+        await (await strategy.setParams(await getParams())).wait();
     }, wallet);
 };
 
