@@ -1,30 +1,24 @@
+const { BASE } = require("@overnight-contracts/common/utils/assets");
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const {deploySection, settingSection, initWallet} = require("@overnight-contracts/common/utils/script-utils");
-const {ZKSYNC, BASE} = require("@overnight-contracts/common/utils/assets");
-const { factory } = require("typescript");
+const { getContract } = require("@overnight-contracts/common/utils/script-utils");
 
+let name = 'SwapSimulatorAerodrome';
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
+    await deployProxy(name, deployments, save);
 
-    let wallet = await initWallet();
+    let simulator = await getContract(name, 'base');
 
-    await deploySection(async (name) => {
-        await deployProxy(name, deployments, save);
-    });
-
-    await settingSection('', async (strategy) => {
-        await (await strategy.setSimulationParams(await getParams(), {gasPrice: 4221834})).wait();
-    }, wallet);
+    await (await simulator.setSimulationParams(await getParams())).wait();
 };
 
 async function getParams() {
     return {
         strategy: "0xcc9c1edae4D3b8d151Ebc56e749aD08b09f50248", 
-        // strategy: wallet.address, // for tests
-        factory: BASE.aerodromeNpm
+        factory: BASE.aerodromeFactory
     };
 }
 
-module.exports.tags = ['SwapSimulatorAerodrome'];
+module.exports.tags = [name];
 module.exports.swapSimulatorAerodrome = getParams;
