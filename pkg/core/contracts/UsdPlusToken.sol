@@ -36,6 +36,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         bool lockReceive;
     }
 
+    enum RebaseOptions {
+        OptIn,
+        OptOut
+    }
+
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
 
     uint256 private constant MAX_SUPPLY = type(uint256).max;
@@ -89,12 +94,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         uint256 rebasingCredits,
         uint256 rebasingCreditsPerToken
     );
-
-    enum RebaseOptions {
-        OptIn,
-        OptOut
-    }
-
     event ExchangerUpdated(address exchanger);
     event PayoutManagerUpdated(address payoutManager);
     event RoleManagerUpdated(address roleManager);
@@ -174,7 +173,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         emit RoleManagerUpdated(_roleManager);
     }
 
-    function setTransferLockBatch(address[] calldata accounts, LockOptions[] calldata options) external onlyAdmin {
+    function setTransferLockBatch(address[] calldata accounts, LockOptions[] calldata options) external onlyPortfolioAgent {
         require(accounts.length == options.length, "Len missmatch");
         require(accounts.length != 0 && accounts.length <= MAX_LEN, "Invalid len");
 
@@ -188,7 +187,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         emit TransferBlacklistUpdatedBatch(accounts, options);
     }
 
-    function setTransferLock(address account, LockOptions calldata opt) external onlyAdmin {
+    function setTransferLock(address account, LockOptions calldata opt) external onlyPortfolioAgent {
         _setTransferLock(account, opt);
         emit TransferBlacklistUpdated(account, opt);
     }
