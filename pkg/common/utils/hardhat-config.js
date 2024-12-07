@@ -233,6 +233,11 @@ function getNetworks() {
             //         hardforkHistory: {
             //             london: 6510720
             //         }
+            //     },
+            //     81457: {
+            //         hardforkHistory: {
+            //             london: 11662782
+            //         }
             //     }
             // },
             accounts: {
