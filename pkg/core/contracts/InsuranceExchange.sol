@@ -348,7 +348,7 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
 
     function payout() external whenNotPaused oncePerBlock onlyUnit {
 
-        if (block.timestamp + payoutTimeRange < nextPayoutTime) {
+        if (block.timestamp < nextPayoutTime) {
             return;
         }
 
@@ -362,10 +362,9 @@ contract InsuranceExchange is IInsuranceExchange, Initializable, AccessControlUp
 
         emit PayoutEvent(profit, newLiquidityIndex);
 
-        // update next payout time. Cycle for preventing gaps
-        for (; block.timestamp >= nextPayoutTime - payoutTimeRange;) {
-            nextPayoutTime = nextPayoutTime + payoutPeriod;
-        }
+        // simply update nextPayoutTime – current time plus payoutPeriod
+        nextPayoutTime = block.timestamp + payoutPeriod;
+
         emit NextPayoutTime(nextPayoutTime);
     }
 
