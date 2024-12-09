@@ -1,7 +1,7 @@
 const hre = require('hardhat');
 const { BigNumber } = require('ethers');
 const { getContract, initWallet, impersonateAccount, transferAsset, getERC20ByAddress, transferETH, getPrice, transferUSDPlus } = require('@overnight-contracts/common/utils/script-utils');
-const { createProposal, testProposal } = require('@overnight-contracts/common/utils/governance');
+const { createProposal, testProposal, testUsdPlus } = require('@overnight-contracts/common/utils/governance');
 const { BASE } = require('@overnight-contracts/common/utils/assets');
 
 const path = require('path');
@@ -84,6 +84,7 @@ async function main() {
 
     console.log('\nCREATED PROPOSAL DATA')
     await createProposal(filename, addresses, values, abis);
+    // await testUsdPlus(filename, 'base');
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
