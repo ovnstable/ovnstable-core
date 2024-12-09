@@ -111,6 +111,10 @@ This repository contains is next modules:
 
 --------------------------------
 
+Error message contains: <b>Previous implementation doesn't registers</b> -> find latest impl in file ```pkg/strategies/(network)/.openzeppelin/(network).json``` and replace impl address with yours.
+
+--------------------------------
+
 Error message contains word: <b>history</b> -> go to this file: ```pkg/common/utils/hardhat-config.js``` and ctrl+f for ```history```. May be you'll also need to update block number there.
 
 --------------------------------

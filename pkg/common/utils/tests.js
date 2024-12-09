@@ -251,16 +251,16 @@ async function getTestAssets(to, stand = process.env.STAND) {
     isTestAssetsCompleted = true;
 }
 
-async function prepareEnvironment() {
-    if (process.env.STAND.includes('arbitrum')) {
+async function prepareEnvironment(stand) {
+    if (stand.includes('arbitrum')) {
         await execTimelock(async timelock => {
-            let exchange = await getContract('Exchange', process.env.STAND);
+            let exchange = await getContract('Exchange', stand);
             await exchange.connect(timelock).setBlockGetter(ZERO_ADDRESS);
             console.log('[Test] exchange.setBlockGetter(zero)');
 
             try {
-                let inchSwapper = await getContract('InchSwapper', process.env.STAND);
-                let roleManager = await getContract('RoleManager', process.env.STAND);
+                let inchSwapper = await getContract('InchSwapper', stand);
+                let roleManager = await getContract('RoleManager', stand);
                 await inchSwapper.connect(timelock).setParams(await getAsset('inchRouterV5'), ZERO_ADDRESS, roleManager.address);
                 console.log('[Test] inchSwapper.setBlockGetter(zero)');
             } catch (e) {
