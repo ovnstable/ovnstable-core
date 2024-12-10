@@ -225,22 +225,12 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
             return 0;
         }
 
-        // I. "Разстейкиваем" LP token
-            // по-хорошему тут нужно сделать проверку типа "if (gauge.stakedContains(address(this), tokenLP))"
+        _collect_rewards_hyperlock(); 
         nfpBooster.withdraw(tokenLP, address(this)); 
 
-
-
-        // II. Собираем реварды 
-        _collect_rewards_hyperlock(); // по идее этот метод должен перевести все HYPER и THRUST из ревардов hyperLock на баланс стратегии
+        
         uint256 hyperBalance = hyper.balanceOf(address(this));
         uint256 thrustBalance = thrust.balanceOf(address(this));
-
-
-
-        // III. Swap HYPER and THRUST to WETH via V3 Thruster pools
-        // address poolWethHyper = address(0xE16fbfcFB800E358De6c3210e86b5f23Fc0f2598);
-        // address poolWethThrust = address(0x878C963776F374412C896e4B2a3DB84A36614c7C);
 
         
         if (hyperBalance > 0) {
@@ -340,8 +330,9 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
             emit Staked(tokenLP);
         } else {
-            // проверить, что там что-то есть, типа: if (gauge.stakedContains(address(this), stakedTokenId)) {
-            nfpBooster.withdraw(tokenLP, address(this)); // норм ли что _to мы указываем address(this)
+            if (nfpBooster.getPositionInfo(tokenLP).owner == address(this)) {
+                nfpBooster.withdraw(tokenLP, address(this)); 
+            }
             _collect();
 
             INonfungiblePositionManager.IncreaseLiquidityParams memory params = INonfungiblePositionManager.IncreaseLiquidityParams({
@@ -362,8 +353,9 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     function _withdraw(address asset, uint256 amount, bool isFull) internal returns (uint256) {
 
         // Забираем tokenLP из HyperLock 
-        nfpBooster.withdraw(tokenLP, address(this)); 
         _collect_rewards_hyperlock();
+        nfpBooster.withdraw(tokenLP, address(this)); 
+        
 
         (,,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
         if (liquidity == 0) {

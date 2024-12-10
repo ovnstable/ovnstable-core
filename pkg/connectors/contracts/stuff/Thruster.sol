@@ -1333,6 +1333,13 @@ interface INFPBooster {
         uint128 amount1Max;
     }
 
+    struct PositionInfo {
+        bytes32 poolKey;
+        address owner;
+    }
+
+    function getPositionInfo(uint256 _tokenId) external view returns (PositionInfo memory);
+
     function deposit(uint256 _tokenId) external;
     
     function withdraw(uint256 _tokenId, address _to) external;
