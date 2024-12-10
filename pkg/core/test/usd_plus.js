@@ -28,7 +28,7 @@ describe("Token", function () {
         // need to run inside IDEA via node script running
         await hre.run("compile");
 
-        await deployments.fixture(["UsdPlusToken"]);
+        await deployments.fixture(["UsdPlusToken", "RoleManager"]);
 
         const {deployer} = await getNamedAccounts();
         account = deployer;
@@ -820,13 +820,25 @@ describe("Token", function () {
     });
 
     describe('transferBlacklist', () => {
+        let portfolioAgent;
+        let roleManager;
+
+
+        this.beforeEach(async () => {
+            roleManager = await ethers.getContract('RoleManager')
+            portfolioAgent = await createRandomWallet()
+            const role = await roleManager.PORTFOLIO_AGENT_ROLE()
+            await roleManager.grantRole(role, portfolioAgent.address)
+            await usdPlus.setRoleManager(roleManager.address)
+        })
+
         describe('setTransferLock', () => {
             it('allows to set lock options for an address', async () => {
                 const prevOpt = await usdPlus.lockOptionsPerAddress(user1.address)
                 expect(prevOpt.lockSend).false
                 expect(prevOpt.lockReceive).false
 
-                await usdPlus.setTransferLock(user1.address, {
+                await usdPlus.connect(portfolioAgent).setTransferLock(user1.address, {
                     lockSend: true,
                     lockReceive: true
                 })
@@ -845,7 +857,7 @@ describe("Token", function () {
                 await usdPlus.connect(user2).callStatic.transfer(user1.address, 1)
                 
                 // LOCK SEND & RECEIVE
-                await usdPlus.setTransferLock(user1.address, {
+                await usdPlus.connect(portfolioAgent).setTransferLock(user1.address, {
                     lockSend: true,
                     lockReceive: true
                 })
@@ -854,7 +866,7 @@ describe("Token", function () {
                 await expectRevert(usdPlus.connect(user2).transfer(user1.address, 1), 'Receive forbidden')
 
                 // LOCK SEND
-                await usdPlus.setTransferLock(user1.address, {
+                await usdPlus.connect(portfolioAgent).setTransferLock(user1.address, {
                     lockSend: true,
                     lockReceive: false
                 })
@@ -863,7 +875,7 @@ describe("Token", function () {
                 await usdPlus.connect(user2).callStatic.transfer(user1.address, 1)
 
                 // LOCK RECEIVE
-                await usdPlus.setTransferLock(user1.address, {
+                await usdPlus.connect(portfolioAgent).setTransferLock(user1.address, {
                     lockSend: false,
                     lockReceive: true
                 })
@@ -873,19 +885,19 @@ describe("Token", function () {
             })
 
             describe('edge cases', () => {
-                describe('when called not by admin', () => {
+                describe('when called not by portfolio agent', () => {
                     it(`reverts`, async () => {
                         await expectRevert(usdPlus.connect(user1).setTransferLock(user2.address, {
                             lockSend: false,
                             lockReceive: true
-                        }), 'Restricted to admins')
+                        }), 'Restricted to Portfolio Agent')
                     })
                 })
 
                 describe('when new options == old options', () => {
                     it(`reverts`, async () => {
                         await expectRevert(
-                            usdPlus.setTransferLock(user1.address, 
+                            usdPlus.connect(portfolioAgent).setTransferLock(user1.address, 
                             await usdPlus.lockOptionsPerAddress(user1.address)
                         ), 'Duplicate')
                     })
@@ -907,7 +919,7 @@ describe("Token", function () {
                     expect(opt.lockReceive).false
                 }
 
-                await usdPlus.setTransferLockBatch(accounts, [
+                await usdPlus.connect(portfolioAgent).setTransferLockBatch(accounts, [
                     {
                         lockSend: true,
                         lockReceive: true
@@ -938,7 +950,7 @@ describe("Token", function () {
                 await usdPlus.connect(user2).callStatic.transfer(user1.address, 1)
                 
                 // LOCK SEND & RECEIVE
-                await usdPlus.setTransferLockBatch([user1.address], [
+                await usdPlus.connect(portfolioAgent).setTransferLockBatch([user1.address], [
                     {
                         lockSend: true,
                         lockReceive: true
@@ -955,7 +967,7 @@ describe("Token", function () {
                         await expectRevert(usdPlus.connect(user1).setTransferLockBatch([user2.address], [{
                             lockSend: false,
                             lockReceive: true
-                        }]), 'Restricted to admins')
+                        }]), 'Restricted to Portfolio Agent')
                     })
                 })
 
@@ -978,20 +990,20 @@ describe("Token", function () {
                             })
                         }
 
-                        await usdPlus.callStatic.setTransferLockBatch(accs, opts)
+                        await usdPlus.connect(portfolioAgent).callStatic.setTransferLockBatch(accs, opts)
 
                         accs.push(randomAddress())
                         opts.push({
                             lockSend: true,
                             lockReceive: true
                         })
-                        await expectRevert(usdPlus.setTransferLockBatch(accs, opts), 'Invalid len')
+                        await expectRevert(usdPlus.connect(portfolioAgent).setTransferLockBatch(accs, opts), 'Invalid len')
                     })
                 })
 
                 describe('when accounts len != opt len', () => {
                     it(`reverts`, async () => {
-                        await expectRevert(usdPlus.setTransferLockBatch(accounts, [{
+                        await expectRevert(usdPlus.connect(portfolioAgent).setTransferLockBatch(accounts, [{
                             lockReceive: true,
                             lockSend: false
                         }]), 'Len missmatch') 
@@ -1000,19 +1012,19 @@ describe("Token", function () {
 
                 describe('when accounts len == 0', () => {
                     it(`reverts`, async () => {
-                        await expectRevert(usdPlus.setTransferLockBatch([], []), 'Invalid len') 
+                        await expectRevert(usdPlus.connect(portfolioAgent).setTransferLockBatch([], []), 'Invalid len') 
                     })
                 })
 
                 describe('when new options == old options', () => {
                     it(`reverts`, async () => {
                         await expectRevert(
-                            usdPlus.setTransferLockBatch([user1.address], 
+                            usdPlus.connect(portfolioAgent).setTransferLockBatch([user1.address], 
                             [await usdPlus.lockOptionsPerAddress(user1.address)]
                         ), 'Duplicate')
 
                         await expectRevert(
-                            usdPlus.setTransferLockBatch(accounts, 
+                            usdPlus.connect(portfolioAgent).setTransferLockBatch(accounts, 
                             [
                                 {
                                     lockSend: true, 
@@ -1051,7 +1063,7 @@ describe("Token", function () {
                     },
                 ]
 
-                await usdPlus.setTransferLockBatch(
+                await usdPlus.connect(portfolioAgent).setTransferLockBatch(
                     accounts, 
                     options
                 )
@@ -1095,7 +1107,7 @@ describe("Token", function () {
                     },
                 ]
 
-                await usdPlus.setTransferLockBatch(
+                await usdPlus.connect(portfolioAgent).setTransferLockBatch(
                     accounts, 
                     options
                 )
@@ -1107,11 +1119,11 @@ describe("Token", function () {
                 expect((await usdPlus.getBlacklistAt(0)).account).eq(accounts[0])
                 expect((await usdPlus.getBlacklistAt(1)).account).eq(accounts[2])
 
-                await usdPlus.setTransferLock(accounts[0], {
+                await usdPlus.connect(portfolioAgent).setTransferLock(accounts[0], {
                     lockSend: false,
                     lockReceive: false
                 })
-                await usdPlus.setTransferLock(accounts[2], {
+                await usdPlus.connect(portfolioAgent).setTransferLock(accounts[2], {
                     lockSend: false,
                     lockReceive: false
                 })
@@ -1139,7 +1151,7 @@ describe("Token", function () {
                             },
                         ]
 
-                        await usdPlus.setTransferLockBatch(
+                        await usdPlus.connect(portfolioAgent).setTransferLockBatch(
                             accounts, 
                             options
                         )
