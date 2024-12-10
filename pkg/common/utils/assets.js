@@ -4,6 +4,7 @@ dotenv.config({ path: __dirname + '/../../../.env' });
 let COMMON = {
     rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
     treasureWallet: "0xe497285e466227f4e8648209e34b465daa1f90a0",
+    dev5: "0x086dFe298907DFf27BD593BD85208D57e0155c94"
 }
 
 let BASE = {

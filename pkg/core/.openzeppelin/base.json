@@ -11288,7 +11288,7 @@
             "label": "_roles",
             "offset": 0,
             "slot": "101",
-            "type": "t_mapping(t_bytes32,t_struct(RoleData)23_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)169_storage)",
             "contract": "AccessControlUpgradeable",
             "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:57"
           },
@@ -11328,7 +11328,7 @@
             "label": "asset",
             "offset": 0,
             "slot": "252",
-            "type": "t_contract(IERC20)3035",
+            "type": "t_contract(IERC20)4986",
             "contract": "PortfolioManager",
             "src": "contracts/PortfolioManager.sol:26"
           },
@@ -11344,7 +11344,7 @@
             "label": "strategyWeights",
             "offset": 0,
             "slot": "254",
-            "type": "t_array(t_struct(StrategyWeight)12280_storage)dyn_storage",
+            "type": "t_array(t_struct(StrategyWeight)41282_storage)dyn_storage",
             "contract": "PortfolioManager",
             "src": "contracts/PortfolioManager.sol:28"
           },
@@ -11352,7 +11352,7 @@
             "label": "cashStrategy",
             "offset": 0,
             "slot": "255",
-            "type": "t_contract(IStrategy)12580",
+            "type": "t_contract(IStrategy)41686",
             "contract": "PortfolioManager",
             "src": "contracts/PortfolioManager.sol:29"
           },
@@ -11360,7 +11360,7 @@
             "label": "m2m",
             "offset": 0,
             "slot": "256",
-            "type": "t_contract(IMark2Market)12234",
+            "type": "t_contract(IMark2Market)41230",
             "contract": "PortfolioManager",
             "src": "contracts/PortfolioManager.sol:30"
           },
@@ -11384,7 +11384,7 @@
             "label": "roleManager",
             "offset": 0,
             "slot": "259",
-            "type": "t_contract(IRoleManager)12508",
+            "type": "t_contract(IRoleManager)41518",
             "contract": "PortfolioManager",
             "src": "contracts/PortfolioManager.sol:33"
           }
@@ -11394,7 +11394,7 @@
             "label": "address",
             "numberOfBytes": "20"
           },
-          "t_array(t_struct(StrategyWeight)12280_storage)dyn_storage": {
+          "t_array(t_struct(StrategyWeight)41282_storage)dyn_storage": {
             "label": "struct IPortfolioManager.StrategyWeight[]",
             "numberOfBytes": "32"
           },
@@ -11414,19 +11414,19 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IERC20)3035": {
+          "t_contract(IERC20)4986": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IMark2Market)12234": {
+          "t_contract(IMark2Market)41230": {
             "label": "contract IMark2Market",
             "numberOfBytes": "20"
           },
-          "t_contract(IRoleManager)12508": {
+          "t_contract(IRoleManager)41518": {
             "label": "contract IRoleManager",
             "numberOfBytes": "20"
           },
-          "t_contract(IStrategy)12580": {
+          "t_contract(IStrategy)41686": {
             "label": "contract IStrategy",
             "numberOfBytes": "20"
           },
@@ -11438,11 +11438,11 @@
             "label": "mapping(address => uint256)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(RoleData)23_storage)": {
+          "t_mapping(t_bytes32,t_struct(RoleData)169_storage)": {
             "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
             "numberOfBytes": "32"
           },
-          "t_struct(RoleData)23_storage": {
+          "t_struct(RoleData)169_storage": {
             "label": "struct AccessControlUpgradeable.RoleData",
             "members": [
               {
@@ -11460,7 +11460,7 @@
             ],
             "numberOfBytes": "64"
           },
-          "t_struct(StrategyWeight)12280_storage": {
+          "t_struct(StrategyWeight)41282_storage": {
             "label": "struct IPortfolioManager.StrategyWeight",
             "members": [
               {
@@ -11518,7 +11518,11 @@
           }
         },
         "namespaces": {}
-      }
+      },
+      "allAddresses": [
+        "0xb008d09D25F06799e4081877A6bB185d89D893d3",
+        "0xf2BA70e6bb8853a4f62d873Fbc4A5B88d89abf42"
+      ]
     }
   }
 }

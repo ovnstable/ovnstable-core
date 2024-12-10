@@ -40,6 +40,9 @@ async function main() {
     const account3 = await hre.ethers.getSigner("0x086dFe298907DFf27BD593BD85208D57e0155c94");
     // let account1 = await ethers.getImpersonatedSigner("0x086dFe298907DFf27BD593BD85208D57e0155c94");
 
+    await transferETH(10, account3.address);
+
+    
     console.log(account.address);
     console.log(account3.address);
     console.log((await account3.getBalance()).toString());
@@ -59,7 +62,7 @@ async function main() {
 
     console.log("bal1", bal1.toString());
     console.log("bal2", bal2.toString());
-    console.log("total deposit", ex.totalDeposit());
+    console.log("total deposit", (await ex.totalDeposit()).toString());
 }
 
 main()

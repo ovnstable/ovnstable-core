@@ -17032,7 +17032,7 @@
             "label": "_roles",
             "offset": 0,
             "slot": "101",
-            "type": "t_mapping(t_bytes32,t_struct(RoleData)169_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)23_storage)",
             "contract": "AccessControlUpgradeable",
             "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:57"
           },
@@ -17080,7 +17080,7 @@
             "label": "usdPlus",
             "offset": 0,
             "slot": "301",
-            "type": "t_contract(IUsdPlusToken)35277",
+            "type": "t_contract(IUsdPlusToken)23570",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:33"
           },
@@ -17088,7 +17088,7 @@
             "label": "usdc",
             "offset": 0,
             "slot": "302",
-            "type": "t_contract(IERC20)4906",
+            "type": "t_contract(IERC20)3115",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:34"
           },
@@ -17096,7 +17096,7 @@
             "label": "portfolioManager",
             "offset": 0,
             "slot": "303",
-            "type": "t_contract(IPortfolioManager)34721",
+            "type": "t_contract(IPortfolioManager)23113",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:36"
           },
@@ -17104,7 +17104,7 @@
             "label": "mark2market",
             "offset": 0,
             "slot": "304",
-            "type": "t_contract(IMark2Market)34629",
+            "type": "t_contract(IMark2Market)23014",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:37"
           },
@@ -17168,7 +17168,7 @@
             "label": "payoutManager",
             "offset": 0,
             "slot": "312",
-            "type": "t_contract(IPayoutManager)34656",
+            "type": "t_contract(IPayoutManager)23035",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:58"
           },
@@ -17256,7 +17256,7 @@
             "label": "roleManager",
             "offset": 0,
             "slot": "323",
-            "type": "t_contract(IRoleManager)34904",
+            "type": "t_contract(IRoleManager)23288",
             "contract": "Exchange",
             "src": "contracts/Exchange.sol:77"
           },
@@ -17314,27 +17314,27 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IERC20)4906": {
+          "t_contract(IERC20)3115": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(IMark2Market)34629": {
+          "t_contract(IMark2Market)23014": {
             "label": "contract IMark2Market",
             "numberOfBytes": "20"
           },
-          "t_contract(IPayoutManager)34656": {
+          "t_contract(IPayoutManager)23035": {
             "label": "contract IPayoutManager",
             "numberOfBytes": "20"
           },
-          "t_contract(IPortfolioManager)34721": {
+          "t_contract(IPortfolioManager)23113": {
             "label": "contract IPortfolioManager",
             "numberOfBytes": "20"
           },
-          "t_contract(IRoleManager)34904": {
+          "t_contract(IRoleManager)23288": {
             "label": "contract IRoleManager",
             "numberOfBytes": "20"
           },
-          "t_contract(IUsdPlusToken)35277": {
+          "t_contract(IUsdPlusToken)23570": {
             "label": "contract IUsdPlusToken",
             "numberOfBytes": "20"
           },
@@ -17342,11 +17342,11 @@
             "label": "mapping(address => bool)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(RoleData)169_storage)": {
+          "t_mapping(t_bytes32,t_struct(RoleData)23_storage)": {
             "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
             "numberOfBytes": "32"
           },
-          "t_struct(RoleData)169_storage": {
+          "t_struct(RoleData)23_storage": {
             "label": "struct AccessControlUpgradeable.RoleData",
             "members": [
               {
@@ -17374,7 +17374,11 @@
           }
         },
         "namespaces": {}
-      }
+      },
+      "allAddresses": [
+        "0x5B7f0e63C1D90700e2Ab57C974F10e8cD05446d7",
+        "0x53e24706D6642CA495498557415b1af7A025D8Da"
+      ]
     },
     "3f0cf3326c6539efe9d2f663d580ed2d475e55982bcff35c7c0af01fbad19599": {
       "address": "0xC85aB7a27ab5c7ca9c3b06B3117a46DCaD721d5e",
@@ -18612,7 +18616,11 @@
           }
         },
         "namespaces": {}
-      }
+      },
+      "allAddresses": [
+        "0xBB25FB79c4a111255168B563d6F640Ed9D8fe257",
+        "0xfBa189090550C2E87FA7833638C305d4c80200F2"
+      ]
     }
   }
 }
