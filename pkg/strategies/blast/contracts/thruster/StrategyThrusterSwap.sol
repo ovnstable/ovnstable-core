@@ -108,7 +108,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         address poolWethThrust;
 
         uint256 rewardSwapSlippageBP;
-        address nfpBooster; // 0xAd21b2055974075Ab3E126AC5bF8d7Ee3Fcd848a
+        address nfpBooster; 
     }
 
     struct BinSearchParams {
@@ -153,7 +153,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         rewardSwapSlippageBP = params.rewardSwapSlippageBP;
      
 
-        emit StrategyUpdatedParams(); // Это вообще зачем?
+        emit StrategyUpdatedParams(); 
     }
 
     // --- logic
@@ -178,14 +178,13 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     }  
 
 
-     //
     function _unstake(
         address _asset,
         uint256 _amount,
         address _beneficiary
     ) internal override returns (uint256) {
         require(_asset == address(usdb) || _asset == address(usdPlus), "Some tokens are not compatible");
-        require(_amount > 0, "Amount is less than or equal to 0"); // <--
+        require(_amount > 0, "Amount is less than or equal to 0"); 
         require(tokenLP != 0, "Not staked");
 
         return _withdraw(_asset, _amount, false);
@@ -261,7 +260,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
             swapSimulator.withdrawAll(address(poolWethThrust)); 
         }
 
-        // IV. Swap all WETH to USDB
         uint256 wethBalance = weth.balanceOf(address(this));
         if (wethBalance > 0) {
             (uint160 sqrtRatioUsdbWethX96,,,,,,) = poolUsdbWeth.slot0();
@@ -277,13 +275,11 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
             swapSimulator.withdrawAll(address(poolUsdbWeth)); 
         }
 
-        // V. Deposit USDB to pool again
         uint256 usdbBalance = usdb.balanceOf(address(this));
         if (usdbBalance > 0) {
             _stake(address(usdb), usdbBalance);
         }
 
-        // VI. Stake new tokenLP to the gauge
         npm.approve(address(nfpBooster), tokenLP);
         nfpBooster.deposit(tokenLP);
 
@@ -352,7 +348,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
     function _withdraw(address asset, uint256 amount, bool isFull) internal returns (uint256) {
 
-        // Забираем tokenLP из HyperLock 
         _collect_rewards_hyperlock();
         nfpBooster.withdraw(tokenLP, address(this)); 
         
@@ -371,7 +366,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         });
         npm.decreaseLiquidity(params);
 
-        // это относится только к выводу средств из самого Thruster
         _collect();
 
         if (!isFull) {
@@ -436,7 +430,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     } 
 
     function _simulateSwap(uint256 amount0, uint256 amount1, bool zeroForOne) internal returns (uint256 amountToSwap) {
-        // usdc / usdc+
         BinSearchParams memory binSearchParams;
         
         if (zeroForOne) {
@@ -485,7 +478,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     }
 
     function _getSqrtPriceLimitX96(ICLPool _pool, uint256 _slippageBP, bool _zeroForOne) internal view returns (uint160) {
-        (uint160 sqrtRatioX96,,,,,,) = _pool.slot0(); // добавил запятую
+        (uint160 sqrtRatioX96,,,,,,) = _pool.slot0(); 
         
         if (_zeroForOne) {
             return sqrtRatioX96 * (10000 - uint160(_slippageBP)) / 10000;
