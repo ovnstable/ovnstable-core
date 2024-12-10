@@ -7,7 +7,6 @@ const expectRevert = require("@overnight-contracts/common/utils/expectRevert");
 const {fromE18, fromE6, toE18, toE6} = require("@overnight-contracts/common/utils/decimals");
 const {sharedBeforeEach} = require("@overnight-contracts/common/utils/sharedBeforeEach");
 const { boolean } = require("hardhat/internal/core/params/argumentTypes");
-const { impersonateAccount } = require("@overnight-contracts/common/utils/script-utils");
 
 
 describe("Token", function () {
