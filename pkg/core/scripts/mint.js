@@ -7,17 +7,19 @@ const { engineSendTxSigned } = require("@overnight-contracts/common/utils/engine
 // engine version
 /*
 async function main() {
-    let wallet = "..."; // backed wallet
     let exchange = await getContract('Exchange');
     let asset = await getCoreAsset();
 
-    let tx = await asset.populateTransaction.approve(exchange.address, toAsset(1));
-    await engineSendTxSigned(tx, wallet);
-    console.log('Asset approve done');
+    for (let i = 0;i < 200;i++) {
+        const amount = toAsset(0.001);
+        let tx = await asset.populateTransaction.approve(exchange.address, amount);
+        await engineSendTxSigned(tx);
+        console.log(`Asset approve done ${i}`);
 
-    tx = await exchange.populateTransaction.buy(asset.address, toAsset(1));
-    await engineSendTxSigned(tx, wallet);
-    console.log('Exchange.buy done');
+        tx = await exchange.populateTransaction.buy(asset.address, amount);
+        await engineSendTxSigned(tx, process.env.ENGINE_BACKEND_WALLET, { gas: "1000000"});
+        console.log(`Exchange.buy done ${i}`);
+    }
 }
 */
 
