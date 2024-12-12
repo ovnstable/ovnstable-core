@@ -1,5 +1,5 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const {BASE, COMMON} = require('@overnight-contracts/common/utils/assets');
+const {BLAST} = require('@overnight-contracts/common/utils/assets');
 const {
     deploySection, 
     settingSection, 
@@ -10,6 +10,8 @@ const {
 } = require("@overnight-contracts/common/utils/script-utils");
 const { Roles } = require('@overnight-contracts/common/utils/roles');
 
+let strategyName = 'StrategyThrusterSwap';
+
 module.exports = async ({deployments}) => {
     const {save} = deployments;
 
@@ -18,7 +20,6 @@ module.exports = async ({deployments}) => {
     // await transferETH(10, wallet.address);
 
     await deploySection(async (name) => {
-        // await deployProxy("SwapSimulatorAerodrome", deployments, save);
         await deployProxy(name, deployments, save, {
             factoryOptions: {
                 signer: wallet
@@ -27,29 +28,31 @@ module.exports = async ({deployments}) => {
         });
     });
 
-    await settingSection('', async (strategy) => {
+    await settingSection(strategyName, async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
     }, wallet);
 };
-    
+
 async function getParams() {
     return {
-        pool: '0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147',
-        rewardSwapPool: '0x6cDcb1C4A4D1C3C6d054b27AC5B77e89eAFb971d', // v2 pool
-        // rewardSwapPool: '0xBE00fF35AF70E8415D0eB605a286D8A45466A4c1', // cl pool
+        pool: '0x147e7416d5988b097b3a1859efecc2c5e04fdf96',
         tickRange: [-1, 0],
         binSearchIterations: 20,
-        swapSimulatorAddress: "0x8F573ABeb41c232faA1661E222c8E4F658b83B06",
-        npmAddress: BASE.aerodromeNpm,
-        aeroTokenAddress: BASE.aero,
+        swapSimulatorAddress: "0x0777Cdf187782832c9D98c0aB73cCdc19D271B54", 
+        npmAddress: '0x434575eaea081b735c985fa9bf63cd7b87e227f9', 
+
+        hyperTokenAddress: BLAST.hyper,
+        thrustTokenAddress: BLAST.thrust,
+        wethTokenAddress: BLAST.weth,
+
+        poolUsdbWeth: '0xf00DA13d2960Cf113edCef6e3f30D92E52906537',
+        poolWethHyper: '0xE16fbfcFB800E358De6c3210e86b5f23Fc0f2598',
+        poolWethThrust: '0x878C963776F374412C896e4B2a3DB84A36614c7C',
+
         rewardSwapSlippageBP: 50,
-        swapRouter: BASE.aerodromeRouter,
-        treasury: COMMON.rewardWallet,
-        treasuryShare: 8000,
-        // bribeVotingReward: '0xf8a309b830873eeb39d07b33071f93493594b5f3',
-        // exchange: "0x868D69875BF274E7Bd3d8b97b1Acd89dbdeb67af"
+        nfpBooster: '0xAd21b2055974075Ab3E126AC5bF8d7Ee3Fcd848a'
     };
 }
 
-module.exports.tags = ['StrategyAerodromeSwapUsdc'];
-module.exports.strategyAerodromeUsdcParams = getParams;
+module.exports.tags = [strategyName];
+module.exports.getParams = getParams;
