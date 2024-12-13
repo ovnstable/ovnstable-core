@@ -9,8 +9,8 @@ import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
 
 contract StrategyFenixSwap is Strategy, IERC721Receiver {
 
-    uint160 constant MIN_STABLE_SQRT_RATIO = 79124201403219477170569942574;
-    uint160 constant MAX_STABLE_SQRT_RATIO = 79336085330515764027303304732;
+    uint160 constant MIN_STABLE_SQRT_RATIO = 79224201403219477170569942574;
+    uint160 constant MAX_STABLE_SQRT_RATIO = 79228162514264337593543950336;
 
     // assets for PL
     IERC20 public usdb;
@@ -170,9 +170,9 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         if (amountToSwap > 0) {
             swapSimulator.swap(address(pool), 
                 amountToSwap, 
-                0, 
+                0,
                 zeroForOne, 
-                MIN_STABLE_SQRT_RATIO, 
+                MIN_STABLE_SQRT_RATIO,
                 MAX_STABLE_SQRT_RATIO
             );
         }

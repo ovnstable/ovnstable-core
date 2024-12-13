@@ -12,37 +12,18 @@ const { Roles } = require('@overnight-contracts/common/utils/roles');
 
 let strategyName = 'StrategyFenixSwap';
 
-// 0xBa6b468e6672514f3c59D5D8B8731B1956BA5D22 - proxy
-// 0xa3d9A772005B3a00a568aeB87e47B54E8Aa56D31 - imp
-
 module.exports = async ({deployments}) => {
     const {save} = deployments;
 
-    let wallet = await initWallet();
-
-    await transferETH(10, wallet.address);
-
-    console.log("DEBUG: Деплоим стратегию")
+    // await transferETH(10, wallet.address);
 
     await deploySection(async (name) => {
-        await deployProxy(name, deployments, save, {
-            factoryOptions: {
-                signer: wallet
-            },
-            gasPrice: 4221834
-        });
+        await deployProxy(name, deployments, save);
     });
-
-    console.log("DEBUG: Деплой стратегии выполнен (ну, скорее всего)")
-
-    console.log("DEBUG: Сеттим значения")
 
     await settingSection(strategyName, async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
-        await (await strategy.setStrategyName('FenixSwap')).wait();
-    }, wallet);
-
-    console.log("DEBUG: Вроде как засеттили значения")
+    });
 };
 
 async function getParams() {
@@ -65,6 +46,3 @@ async function getParams() {
 
 module.exports.tags = [strategyName];
 module.exports.getParams = getParams;
-
-
-// ОСТАНОВКА: добавить в SwapSimulator логгирование в метод swap

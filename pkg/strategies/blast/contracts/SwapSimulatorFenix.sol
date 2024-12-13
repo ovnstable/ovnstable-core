@@ -10,8 +10,8 @@ import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
 
 contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
-    uint160 constant MIN_STABLE_SQRT_RATIO = 79124201403219477170569942574;
-    uint160 constant MAX_STABLE_SQRT_RATIO = 79336085330515764027303304732;
+    uint160 constant MIN_STABLE_SQRT_RATIO = 79224201403219477170569942574;
+    uint160 constant MAX_STABLE_SQRT_RATIO = 79228162514264337593543950336;
     
     struct SwapCallbackData {
         address tokenA;

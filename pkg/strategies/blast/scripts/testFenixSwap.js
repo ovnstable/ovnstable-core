@@ -66,18 +66,12 @@ async function main() {
     // await (await strategy.testCliamFees()).wait();
 
 
+    await strategy.grantRole(Roles.DEFAULT_ADMIN_ROLE, '0xE12E06D810F08b7703D5266081f8023ACD21ce9d');
+    await strategy.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0xE12E06D810F08b7703D5266081f8023ACD21ce9d');
 
 
     // GENERAL TEST
     await testStrategy(filename, strategy, 'blast');
-
-
-
-
-    // 177003147029799885
-    // 308564556325646872
-
-    
 }
 
 main()
