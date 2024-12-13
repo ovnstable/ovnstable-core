@@ -37,6 +37,8 @@ interface ISwapSimulator {
         address pair,
         uint256 amountIn,
         uint160 sqrtPriceLimitX96,
+        uint160 minSqrtRatio, 
+        uint160 maxSqrtRatio,
         bool zeroForOne,
         int24[] memory tickRange
     ) external;
@@ -102,7 +104,7 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
         SwapCallbackData memory data = SwapCallbackData({
             tokenA: pool.token0(),
             tokenB: pool.token1(),
-            fee: pool.fee() // (OK)
+            fee: pool.fee() 
         });
 
         pool.swap( 
@@ -130,6 +132,8 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
         address pair,
         uint256 amountIn,
         uint160 sqrtPriceLimitX96,
+        uint160 minSqrtRatio, 
+        uint160 maxSqrtRatio,
         bool zeroForOne,
         int24[] memory tickRange
     ) external onlyStrategy {
@@ -138,7 +142,7 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
         address token0 = pool.token0();
         address token1 = pool.token1();
 
-        swap(pair, amountIn, sqrtPriceLimitX96, zeroForOne, 79224201403219477170569942574, 79236085330515764027303304732);
+        swap(pair, amountIn, sqrtPriceLimitX96, zeroForOne, minSqrtRatio, maxSqrtRatio);
 
         uint256[] memory ratio = new uint256[](2);
         (ratio[0], ratio[1]) = _getProportion(pool, tickRange);
@@ -191,7 +195,7 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
         IERC20Metadata token1 = IERC20Metadata(pool.token1());
         uint256 dec0 = 10 ** token0.decimals();
         uint256 dec1 = 10 ** token1.decimals();
-        (uint160 sqrtRatioX96,,,,,,) = pool.slot0(); // добавил запятую
+        (uint160 sqrtRatioX96,,,,,,) = pool.slot0(); 
 
         uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(tickRange[0]);
         uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(tickRange[1]);

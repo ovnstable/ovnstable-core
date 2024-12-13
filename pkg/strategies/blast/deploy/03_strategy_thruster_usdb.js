@@ -13,11 +13,12 @@ const { Roles } = require('@overnight-contracts/common/utils/roles');
 let strategyName = 'StrategyThrusterSwap';
 
 module.exports = async ({deployments}) => {
+    console.log("03_str-start")
     const {save} = deployments;
 
     let wallet = await initWallet();
 
-    // await transferETH(10, wallet.address);
+    await transferETH(10, wallet.address);
 
     await deploySection(async (name) => {
         await deployProxy(name, deployments, save, {
@@ -31,6 +32,7 @@ module.exports = async ({deployments}) => {
     await settingSection(strategyName, async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
     }, wallet);
+    console.log("03_str-end")
 };
 
 async function getParams() {
@@ -50,6 +52,7 @@ async function getParams() {
         poolWethThrust: '0x878C963776F374412C896e4B2a3DB84A36614c7C',
 
         rewardSwapSlippageBP: 50,
+
         nfpBooster: '0xAd21b2055974075Ab3E126AC5bF8d7Ee3Fcd848a'
     };
 }

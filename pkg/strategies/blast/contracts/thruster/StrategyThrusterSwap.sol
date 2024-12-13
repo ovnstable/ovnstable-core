@@ -39,6 +39,8 @@ interface ISwapSimulator {
         address pair,
         uint256 amountIn,
         uint160 sqrtPriceLimitX96,
+        uint160 minSqrtRatio, 
+        uint160 maxSqrtRatio,
         bool zeroForOne,
         int24[] memory tickRange
     ) external;
@@ -83,6 +85,9 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
     uint256 public tokenLP;
 
+    uint160 internal constant sqrtRatioStablecoinsX96Min = 79224201403219477170569942574;
+    uint160 internal constant sqrtRatioStablecoinsX96Max = 79236085330515764027303304732;
+
     // --- events
     event StrategyUpdatedParams();
 
@@ -108,6 +113,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         address poolWethThrust;
 
         uint256 rewardSwapSlippageBP;
+
         address nfpBooster; 
     }
 
@@ -152,7 +158,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
         rewardSwapSlippageBP = params.rewardSwapSlippageBP;
      
-
         emit StrategyUpdatedParams(); 
     }
 
@@ -190,7 +195,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         return _withdraw(_asset, _amount, false);
     }
 
-
     function _unstakeFull(
         address _asset,
         address _beneficiary
@@ -200,6 +204,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
         return _withdraw(_asset, 0, true);
     }
+
 
     function _totalValue() internal view returns (uint256) {
         uint256 amount0 = 0;
@@ -291,10 +296,10 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         usdb.transfer(address(swapSimulator), amount0);
         usdPlus.transfer(address(swapSimulator), amount1);
 
-        uint256 amountToSwap = _simulateSwap(amount0, amount1, zeroForOne);
+        uint256 amountToSwap = _simulateSwap(amount0, amount1, zeroForOne); 
 
         if (amountToSwap > 0) {
-            swapSimulator.swap(address(pool), amountToSwap, 0, zeroForOne, 79224201403219477170569942574, 79236085330515764027303304732);
+            swapSimulator.swap(address(pool), amountToSwap, 0, zeroForOne, sqrtRatioStablecoinsX96Min, sqrtRatioStablecoinsX96Max);
         }
 
         swapSimulator.withdrawAll(address(pool));
@@ -372,9 +377,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
             uint256 amountToStake0 = usdb.balanceOf(address(this));
             uint256 amountToStake1 = usdPlus.balanceOf(address(this));
 
-            console.log("amountToStake0", amountToStake0);
-            console.log("amountToStake1", amountToStake1);
-
             uint256 lockedAmount0;
             uint256 lockedAmount1;
             if (amountToStake0 >= amount) {
@@ -387,11 +389,17 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
                     amount - amountToStake0, 
                     0, 
                     false,
-                    uint160(79224201403219477170569942574), 
-                    uint160(79236085330515764027303304732)
+                    uint160(sqrtRatioStablecoinsX96Min), 
+                    uint160(sqrtRatioStablecoinsX96Max)
                 );
+                swapSimulator.withdrawAll(address(pool)); 
+
+                amountToStake0 = usdb.balanceOf(address(this)) - amount; 
+                amountToStake1 = usdPlus.balanceOf(address(this)); 
+
+                lockedAmount0 = amount; 
             }
-            _deposit(amountToStake0, amountToStake1, lockedAmount0, lockedAmount1, false);  // USD+ -> USDB 
+            _deposit(amountToStake0, amountToStake1, lockedAmount0, lockedAmount1, false);
         } else {
             npm.burn(tokenLP);
             tokenLP = 0;
@@ -400,7 +408,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
                 amount = usdPlus.balanceOf(address(this));
                 if (amount > 0) {
                     usdPlus.transfer(address(swapSimulator), amount);
-                    swapSimulator.swap(address(pool), amount, 0, false, 79224201403219477170569942574, 79236085330515764027303304732);
+                    swapSimulator.swap(address(pool), amount, 0, false, sqrtRatioStablecoinsX96Min, sqrtRatioStablecoinsX96Max);
                 }
             } 
             swapSimulator.withdrawAll(address(pool));
@@ -450,6 +458,8 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
                 address(pool),
                 binSearchParams.mid,
                 0,
+                sqrtRatioStablecoinsX96Min,
+                sqrtRatioStablecoinsX96Max,
                 zeroForOne,
                 tickRange
             ) {} 
