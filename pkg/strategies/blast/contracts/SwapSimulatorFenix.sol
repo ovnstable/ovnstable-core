@@ -10,6 +10,9 @@ import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
 
 contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
+    uint160 constant MIN_STABLE_SQRT_RATIO = 79124201403219477170569942574;
+    uint160 constant MAX_STABLE_SQRT_RATIO = 79336085330515764027303304732;
+    
     struct SwapCallbackData {
         address tokenA;
         address tokenB;
@@ -53,8 +56,8 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         uint256 amountIn,
         uint160 sqrtPriceLimitX96,
         bool zeroForOne,
-        uint160 minSqrtRatio, // 79224201403219477170569942574); // 0.999 TODO: change for more strict slippage
-        uint160 maxSqrtRatio  // 79236085330515764027303304732); // 1.0002
+        uint160 minSqrtRatio,
+        uint160 maxSqrtRatio
     ) public onlyStrategy {
         ICLPool pool = ICLPool(pair);
 
@@ -63,7 +66,7 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         SwapCallbackData memory data = SwapCallbackData({
             tokenA: pool.token0(),
             tokenB: pool.token1(),
-            tickSpacing: pool.tickSpacing() // (OK)
+            tickSpacing: pool.tickSpacing()
         });
 
         console.log("SS.swap: @2");
@@ -110,7 +113,7 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
 
         console.log("simulateSwap: #1-new");
 
-        swap(pair, amountIn, sqrtPriceLimitX96, zeroForOne, 79124201403219477170569942574, 79336085330515764027303304732); // !!! поменял границы на заведомо широкие
+        swap(pair, amountIn, sqrtPriceLimitX96, zeroForOne, MIN_STABLE_SQRT_RATIO, MAX_STABLE_SQRT_RATIO);
 
         console.log("simulateSwap: #2");
 
@@ -126,7 +129,8 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         );
     }
 
-    function uniswapV3SwapCallback ( // если убрать, то данный контракт перестает реализовывать протоколы
+    // если убрать, то данный контракт перестает реализовывать интерфейсы
+    function uniswapV3SwapCallback (
         int256 amount0Delta,
         int256 amount1Delta,
         bytes calldata _data
@@ -138,9 +142,7 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         bytes calldata _data
     ) external {
 
-
         SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
-        // CallbackValidation.verifyCallback(factory, data.tokenA, data.tokenB, data.tickSpacing); (!!!)
 
         (bool isExactInput, uint256 amountToPay) =
             amount0Delta > 0
@@ -175,13 +177,7 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         IERC20Metadata token1 = IERC20Metadata(pool.token1());
         uint256 dec0 = 10 ** token0.decimals();
         uint256 dec1 = 10 ** token1.decimals();
-
-
-        
-        // (uint160 sqrtRatioX96,,,,,,) = pool.slot0(); // добавил запятую
         (uint160 sqrtRatioX96,,,,,) = pool.globalState();
-
-        
 
         uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(tickRange[0]);
         uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(tickRange[1]);

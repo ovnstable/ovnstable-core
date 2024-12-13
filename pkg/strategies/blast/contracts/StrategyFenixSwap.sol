@@ -2,13 +2,15 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-// import "@overnight-contracts/connectors/contracts/stuff/Fenix.sol";
-import "./Fenix.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Fenix.sol";
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
 
 contract StrategyFenixSwap is Strategy, IERC721Receiver {
+
+    uint160 constant MIN_STABLE_SQRT_RATIO = 79124201403219477170569942574;
+    uint160 constant MAX_STABLE_SQRT_RATIO = 79336085330515764027303304732;
 
     // assets for PL
     IERC20 public usdb;
@@ -25,8 +27,8 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
 
     uint256 rewardSwapSlippageBP;
 
-    uint160 sqrtRatioStablecoinsX96Min;
-    uint160 sqrtRatioStablecoinsX96Max;
+    uint160 DELETED_1;
+    uint160 DELETED_2;
 
     ICLPool public pool;
     INonfungiblePositionManager public npm;
@@ -56,9 +58,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         address poolUsdbUsdPlus;
 
         uint256 rewardSwapSlippageBP;
-
-        uint160 sqrtRatioStablecoinsX96Min;
-        uint160 sqrtRatioStablecoinsX96Max;
     }
 
     struct BinSearchParams {
@@ -76,10 +75,9 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         __Strategy_init();
     }
 
-
     // --- Setters
 
-    function setParams(StrategyParams calldata params) external { // Добавить Onlyadmin
+    function setParams(StrategyParams calldata params) external onlyAdmin {
 
         pool = ICLPool(params.pool);
 
@@ -91,8 +89,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         npm = INonfungiblePositionManager(params.npmAddress);
 
         rewardSwapSlippageBP = params.rewardSwapSlippageBP;
-        sqrtRatioStablecoinsX96Min = params.sqrtRatioStablecoinsX96Min;
-        sqrtRatioStablecoinsX96Max = params.sqrtRatioStablecoinsX96Max;
 
         binSearchIterations = params.binSearchIterations;
         tickRange = params.tickRange;
@@ -117,27 +113,13 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    function _stake( // (OK :) )  
+    function _stake(
         address _asset,
         uint256 _amount
     ) internal override {
         _deposit(usdb.balanceOf(address(this)), usdPlus.balanceOf(address(this)), 0, 0, true);
     }
 
-    function testDeposit() public {
-        _deposit(usdb.balanceOf(address(this)), usdPlus.balanceOf(address(this)), 0, 0, true);
-    }
-
-    function testUnstake(
-        address _asset,
-        uint256 _amount,
-        address _beneficiary
-    ) public {
-        _unstake(_asset, _amount, _beneficiary);
-        // revert("All right!");
-    }
-
-    // 0.7 USDB = 708564556325646872
     function _unstake(
         address _asset,
         uint256 _amount,
@@ -178,15 +160,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         return totalValue;
     }
 
-    // (OK)
     function _deposit(uint256 amount0, uint256 amount1, uint256 lockedAmount0, uint256 lockedAmount1, bool zeroForOne) internal {
-        // NOTE: Мб тут нужно добавить revert, если что-то равно нулю
-
-        console.log("   usdbBalance: ", usdb.balanceOf(address(this)));
-        console.log("   amount0: ", amount0);
-
-        console.log("   usdPlusBalance: ", usdPlus.balanceOf(address(this)));
-        console.log("   amount1: ", amount1);
 
         usdb.transfer(address(swapSimulator), amount0);
         usdPlus.transfer(address(swapSimulator), amount1);
@@ -198,14 +172,14 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
                 amountToSwap, 
                 0, 
                 zeroForOne, 
-                sqrtRatioStablecoinsX96Min, 
-                sqrtRatioStablecoinsX96Max
+                MIN_STABLE_SQRT_RATIO, 
+                MAX_STABLE_SQRT_RATIO
             );
         }
 
         swapSimulator.withdrawAll(address(pool));
 
-        amount0 = usdb.balanceOf(address(this)) - lockedAmount0; // <---
+        amount0 = usdb.balanceOf(address(this)) - lockedAmount0;
         amount1 = usdPlus.balanceOf(address(this)) - lockedAmount1;     
 
         usdb.approve(address(npm), amount0);
@@ -238,7 +212,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
             npm.increaseLiquidity(params);
         }
     }
-
    
     function _withdraw(address asset, uint256 amount, bool isFull) internal returns (uint256) {
         (,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
@@ -272,28 +245,27 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
 
                 (,int24 tickBeforeSwap,,,,) = pool.globalState();  
 
-
-                // if (tickBeforeSwap > tickRange[0]) {
-                //     revert("Swap will led to moving away from tick");
-                // }
+                if (tickBeforeSwap > tickRange[0]) {
+                    revert("Swap will led to moving away from tick");
+                }
 
                 swapSimulator.swap(
                     address(pool), 
                     amountUsdPlusToSwap, 
                     0, 
                     false,
-                    sqrtRatioStablecoinsX96Min,
-                    sqrtRatioStablecoinsX96Max
+                    // todo fix borders 
+                    MIN_STABLE_SQRT_RATIO,
+                    MAX_STABLE_SQRT_RATIO
                 );
-                // (,int24 tickAfterSwap,,,,) = pool.globalState();  
 
-                // if (tickBeforeSwap == tickRange[0] && tickAfterSwap != tickBeforeSwap) {
-                //     revert("Swap led to exit from tick");
-                // } else { // значит, tickBeforeSwap < tickRange[0]
-                //     if (tickBeforeSwap > tickRange[0]) {
-                //         revert("Swap led to moving away from tick");
-                //     }
-                // }
+                (,int24 tickAfterSwap,,,,) = pool.globalState();  
+
+                if (tickBeforeSwap == tickRange[0] && tickAfterSwap != tickBeforeSwap) {
+                    revert("Swap led to exit from tick");
+                } else if (tickAfterSwap > tickRange[0]) {
+                    revert("Swap led to moving away from tick");
+                }
 
                 swapSimulator.withdrawAll(address(pool));
 
@@ -307,20 +279,19 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
             npm.burn(tokenLP);
             tokenLP = 0;
 
-            if (asset == address(usdb)) {
-                amount = usdPlus.balanceOf(address(this));
-                if (amount > 0) {
-                    usdPlus.transfer(address(swapSimulator), amount);
-                    swapSimulator.swap(
-                        address(pool),
-                        amount, 
-                        0, 
-                        false,
-                        sqrtRatioStablecoinsX96Min,
-                        sqrtRatioStablecoinsX96Max
-                    );
-                }
-            } 
+            amount = usdPlus.balanceOf(address(this));
+            if (amount > 0) {
+                usdPlus.transfer(address(swapSimulator), amount);
+                swapSimulator.swap(
+                    address(pool),
+                    amount, 
+                    0, 
+                    false,
+                    // todo fix borders 
+                    MIN_STABLE_SQRT_RATIO,
+                    MAX_STABLE_SQRT_RATIO 
+                );
+            }
             
             swapSimulator.withdrawAll(address(pool));
         }
@@ -430,16 +401,17 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         amountToSwap = binSearchParams.right;
     }
 
-
     function _compareRatios(uint256 a, uint256 b, uint256 c, uint256 d) internal pure returns (bool) {
         return a * d > b * c;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        return 0;
+        _claimFees();
+        _swapAllToUsdb();
+        return usdb.balanceOf(address(this));
     }
 
-    function _claimFees() internal { // не могу протестить, нет физов
+    function _claimFees() internal {
         INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
             tokenId: tokenLP,
             recipient: address(this),
@@ -489,26 +461,12 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         } 
     }
 
-
-    function claimMerkleTreeRewards(address _beneficiary, bytes[] memory data, address chainAgnosticBundler) public { // onlyPortfolioAgent
+    function claimMerkleTreeRewards(address _beneficiary, bytes[] memory data, address chainAgnosticBundler) public onlyPortfolioAgent{
         IChainAgnosticBundlerV2 bundler = IChainAgnosticBundlerV2(chainAgnosticBundler);
 
         bundler.multicall(data); 
 
         _reinvest();
-    }
-
-    function testCliamFees() public {
-        uint256 usdbBefore = usdb.balanceOf(address(this));
-        uint256 usdPlusBefore = usdPlus.balanceOf(address(this));
-
-        _claimFees();
-
-        uint256 usdbAfter = usdb.balanceOf(address(this));
-        uint256 usdPlusAfter = usdPlus.balanceOf(address(this));
-    }
-
-    function testDeploy() public {
     }
 
     function abs(int24 x) private pure returns (int24) {

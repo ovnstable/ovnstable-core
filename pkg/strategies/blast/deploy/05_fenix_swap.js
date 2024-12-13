@@ -39,6 +39,7 @@ module.exports = async ({deployments}) => {
 
     await settingSection(strategyName, async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
+        await (await strategy.setStrategyName('FenixSwap')).wait();
     }, wallet);
 
     console.log("DEBUG: Вроде как засеттили значения")
@@ -55,13 +56,10 @@ async function getParams() {
         fnxTokenAddress: '0x52f847356b38720b55ee18cb3e094ca11c85a192',
 
         // Fenix's pools for reward swaping
-        poolFnxUsdb: '0x52f847356b38720b55ee18cb3e094ca11c85a192', // !!!
-        poolUsdbUsdPlus: '0x52f847356b38720b55ee18cb3e094ca11c85a192', // !!!
+        poolFnxUsdb: '0x52f847356b38720b55ee18cb3e094ca11c85a192',
+        poolUsdbUsdPlus: '0x52f847356b38720b55ee18cb3e094ca11c85a192',
 
-        rewardSwapSlippageBP: 50,
-
-        sqrtRatioStablecoinsX96Min: 79124201403219477170569942574n, // !!!
-        sqrtRatioStablecoinsX96Max: 79336085330515764027303304732n // !!! - неправильно 
+        rewardSwapSlippageBP: 50
     };
 }
 
