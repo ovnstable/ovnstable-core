@@ -103,7 +103,7 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
     ) public onlyStrategy {
         ICLPool pool = ICLPool(pair);
 
-        console.log("SwapSim: $1");
+        console.log("SS.swap: @1");
 
         SwapCallbackData memory data = SwapCallbackData({
             tokenA: pool.token0(),
@@ -111,14 +111,9 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
             tickSpacing: pool.tickSpacing() // (OK)
         });
 
-        console.log("SwapSim: pool.token0() = ", pool.token0());
-        console.log("SwapSim: pool.token1() = ", pool.token1());
-        console.log("SwapSim: pair = ", pair);
+        console.log("SS.swap: @2");
 
-        console.log("SwapSim: $2");
-
-        console.log("SwapSim: zeroForOne = ", zeroForOne);
-        console.log("SwapSim: amountIn = ", amountIn);
+        console.log("SS.swap: ");
 
         pool.swap( 
             address(this), 
@@ -129,16 +124,13 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
                 : sqrtPriceLimitX96, 
             abi.encode(data)
         );
+        console.log("SS.swap: @3");
 
-        console.log("SwapSim: $3"); // <-- не доходит до сюда
-
-        // (uint160 newSqrtRatioX96,,,,,,) = pool.slot0(); // <-- Ошибка тут
         (uint160 newSqrtRatioX96,,,,,) = pool.globalState();
-
-        console.log("SwapSim: $4");
+        console.log("SS.swap: @4");
 
         if (newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) {
-            console.log("SwapSim: $5");
+            console.log("SS.swap: @5");
             revert SlippageError(
                 newSqrtRatioX96,
                 minSqrtRatio,
@@ -146,7 +138,8 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
                 0
             );
         }
-        console.log("SwapSim: $6");
+
+        console.log("SS.swap: @6");
     }
 
     function simulateSwap(
@@ -156,23 +149,19 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         bool zeroForOne,
         int24[] memory tickRange
     ) external onlyStrategy {
-
         ICLPool pool = ICLPool(pair);
         address token0 = pool.token0();
         address token1 = pool.token1();
 
-        
-        console.log("simSwap: *1");
+        console.log("simulateSwap: #1-new");
 
         swap(pair, amountIn, sqrtPriceLimitX96, zeroForOne, 79124201403219477170569942574, 79336085330515764027303304732); // !!! поменял границы на заведомо широкие
 
-        console.log("simSwap: *2");
+        console.log("simulateSwap: #2");
 
         uint256[] memory ratio = new uint256[](2);
 
         (ratio[0], ratio[1]) = _getProportion(pool, tickRange);
-
-        console.log("simSwap: *3");
 
         revert SwapError(
             IERC20(token0).balanceOf(address(this)),
@@ -194,7 +183,6 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         bytes calldata _data
     ) external {
 
-        console.log("callback algebraSwapCallback is pulled!");
 
         SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
         // CallbackValidation.verifyCallback(factory, data.tokenA, data.tokenB, data.tickSpacing); (!!!)
@@ -210,7 +198,6 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
             IERC20(data.tokenB).transfer(msg.sender, amountToPay);
         }
 
-        console.log("callback algebraSwapCallback is ended!!!");
     }
 
     function withdrawAll(address pair) external onlyStrategy {
@@ -229,20 +216,17 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         ICLPool pool,
         int24[] memory tickRange
     ) internal view returns (uint256 token0Amount, uint256 token1Amount) {
-        console.log("_getProportion %1");
         IERC20Metadata token0 = IERC20Metadata(pool.token0());
         IERC20Metadata token1 = IERC20Metadata(pool.token1());
         uint256 dec0 = 10 ** token0.decimals();
         uint256 dec1 = 10 ** token1.decimals();
 
-        console.log("_getProportion %2");
 
         
         // (uint160 sqrtRatioX96,,,,,,) = pool.slot0(); // добавил запятую
         (uint160 sqrtRatioX96,,,,,) = pool.globalState();
 
         
-        console.log("_getProportion %3");
 
         uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(tickRange[0]);
         uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(tickRange[1]);
@@ -253,6 +237,5 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         token0Amount = token0Amount * (denominator / dec0);
         token1Amount = token1Amount * (denominator / dec1);
 
-        console.log("_getProportion %4");
     }
 }

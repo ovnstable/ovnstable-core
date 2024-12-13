@@ -18,15 +18,15 @@ async function main() {
 
     let strategy = await getContract('StrategyFenixSwap', 'blast');
 
-    console.log("testFenixSwap #2 - unstake")
+    // console.log("testFenixSwap #2 - unstake")
 
-    usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', '0xBa6b468e6672514f3c59D5D8B8731B1956BA5D22')
+    // usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', '0xBa6b468e6672514f3c59D5D8B8731B1956BA5D22')
 
-    usdbBefore = await usdb.balanceOf(strategy.address);
-    console.log("usdbBefore ", usdbBefore)
+    // usdbBefore = await usdb.balanceOf(strategy.address);
+    // console.log("usdbBefore ", usdbBefore)
 
-    // await transferETH(1, strategy.address);
-    await transferETH(10, '0x8df424e487De4218B347e1798efA11A078fecE90');
+    // // await transferETH(1, strategy.address);
+    // await transferETH(10, '0x8df424e487De4218B347e1798efA11A078fecE90');
 
     
 
@@ -40,33 +40,42 @@ async function main() {
 
     // UNSTAKE
 
-    // if amount > USDB balance
+    //// if amount > USDB balance
+    // usdbBefore = await usdb.balanceOf(strategy.address);
+    // console.log("usdbBefore ", usdbBefore);
     // await (await strategy.testUnstake("0x4300000000000000000000000000000000000003", 308564556325646872n, "0x8df424e487De4218B347e1798efA11A078fecE90")).wait();
     // usdbAfter = await usdb.balanceOf(strategy.address);
     // console.log("usdbAfter ", usdbAfter);
 
-    // if amount < USDB balance - работает некорректно (мб из-за того хахардкоженного момента со свапом USD+ на USDB)
+    //// if amount < USDB balance - работает не факт, что корректно
+    // usdbBefore = await usdb.balanceOf(strategy.address);
+    // console.log("usdbBefore ", usdbBefore);
     // await (await strategy.testUnstake("0x4300000000000000000000000000000000000003", 275776159414, "0x8df424e487De4218B347e1798efA11A078fecE90")).wait();
     // usdbAfter = await usdb.balanceOf(strategy.address);
     // console.log("usdbAfter ", usdbAfter);
-    // 275776159414 // хотел вывести
-    // 1350989581416 // осталось на балансе 
 
-
+    // 675776159414 - было
+    // 275776159414 - хотел вывести
+    // 1350989581416 - стало после "вывода"
 
     // UNSTAKE_FULL
 
 
 
     // CLAIM FEES - пока есть проблемы с тестированием, так как с учетом наших тиков мы ни разу не были в range => физов быть не могло
-    await (await strategy.testCliamFees()).wait();
+    // await (await strategy.testCliamFees()).wait();
 
 
 
 
     // GENERAL TEST
-    // await testStrategy(filename, strategy, 'blast');
+    await testStrategy(filename, strategy, 'blast');
 
+
+
+
+    // 177003147029799885
+    // 308564556325646872
 
     
 }

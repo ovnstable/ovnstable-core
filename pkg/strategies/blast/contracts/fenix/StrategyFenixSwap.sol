@@ -2,11 +2,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
-
 // import "@overnight-contracts/connectors/contracts/stuff/Fenix.sol";
 import "./Fenix.sol";
 import "hardhat/console.sol";
-
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 
@@ -181,6 +179,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         address _beneficiary
     ) public {
         _unstake(_asset, _amount, _beneficiary);
+        // revert("All right!");
     }
 
     // 0.7 USDB = 708564556325646872
@@ -211,7 +210,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         uint256 amount1 = 0;
 
         if (tokenLP != 0) {
-            (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
+            (uint160 sqrtRatioX96,,,,,) = pool.globalState();
             (,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
             (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtRatioX96,
@@ -258,7 +257,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         usdPlus.approve(address(npm), amount1);
 
         if (tokenLP == 0) {
-
             INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
                 token0: pool.token0(), 
                 token1: pool.token1(), 
@@ -301,11 +299,8 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
             deadline: block.timestamp
         });
 
-        npm.decreaseLiquidity(params); // тут мы просто задаем суммы, которые после вместе с физами выведет npm.collect
-       
+        npm.decreaseLiquidity(params); 
         _claimFees();
-
-        // на данный момент у нас чуть-чуть USDB и много USD+, а вывести мы хоти много USDB
 
         if (!isFull) {
             uint256 amountToStake0 = usdb.balanceOf(address(this));
@@ -318,18 +313,33 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
                 lockedAmount0 = amount;
             } else {
                 usdPlus.transfer(address(swapSimulator), amountToStake1);
+                uint256 amountUsdPlusToSwap = _calculateAmountToSwap(amount - amountToStake0, amountToStake1);
 
-                // нужно понять, сколько USD+ нужно поменять, чтобы получить хотя бы (amount - amountToStake0) USDB
-                uint256 amountUsdPlusToSwap = _simulateSwap(amount0, amount1, false); 
+                (,int24 tickBeforeSwap,,,,) = pool.globalState();  
+
+
+                // if (tickBeforeSwap > tickRange[0]) {
+                //     revert("Swap will led to moving away from tick");
+                // }
 
                 swapSimulator.swap(
                     address(pool), 
-                    amount - amountToStake0 + 1000000000000000, // 10^15
+                    amountUsdPlusToSwap, 
                     0, 
                     false,
                     sqrtRatioStablecoinsX96Min,
                     sqrtRatioStablecoinsX96Max
                 );
+                // (,int24 tickAfterSwap,,,,) = pool.globalState();  
+
+                // if (tickBeforeSwap == tickRange[0] && tickAfterSwap != tickBeforeSwap) {
+                //     revert("Swap led to exit from tick");
+                // } else { // значит, tickBeforeSwap < tickRange[0]
+                //     if (tickBeforeSwap > tickRange[0]) {
+                //         revert("Swap led to moving away from tick");
+                //     }
+                // }
+
                 swapSimulator.withdrawAll(address(pool));
 
                 amountToStake0 = usdb.balanceOf(address(this)) - amount;
@@ -423,16 +433,48 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         amountToSwap = binSearchParams.mid;
     }
 
+    // NOTE: Calculates amount of asset1 that needs to be swaped to get targetAmount for asset0
+    function _calculateAmountToSwap(uint256 targetAmount0, uint256 availableAmount1) internal returns (uint256 amountToSwap) {
+        BinSearchParams memory binSearchParams;
+        binSearchParams.right = availableAmount1;
 
-    function _getSqrtPriceLimitX96(ICLPool _pool, uint256 _slippageBP, bool _zeroForOne) internal view returns (uint160) {
-        (uint160 sqrtRatioX96,,,,,,) = _pool.slot0();
+        for (uint256 i = 0; i < 20; i++) {
+            binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;
+
+            if (binSearchParams.mid == 0) {
+                break;
+            }
+
+            try swapSimulator.simulateSwap(
+                address(pool),
+                binSearchParams.mid,
+                0,
+                false,
+                tickRange
+            ) {} 
+            catch Error(string memory reason) {
+                emit SwapErrorInternal(reason);
+                break;
+            }
+            catch (bytes memory _data) {     
+                bytes memory data;
+                assembly {
+                    data := add(_data, 4)
+                }
         
-        if (_zeroForOne) {
-            return sqrtRatioX96 * (10000 - uint160(_slippageBP)) / 10000;
-        } else {
-            return sqrtRatioX96 * (10000 + uint160(_slippageBP)) / 10000;
+                uint256 amount0AfterSwap;
+                (amount0AfterSwap,,,) = abi.decode(data, (uint256, uint256, uint256, uint256)); 
+
+                if (amount0AfterSwap > targetAmount0) {
+                    binSearchParams.right = binSearchParams.mid;
+                } else {
+                    binSearchParams.left = binSearchParams.mid;
+                }
+            }
         }
+        amountToSwap = binSearchParams.right;
     }
+
 
     function _compareRatios(uint256 a, uint256 b, uint256 c, uint256 d) internal pure returns (bool) {
         return a * d > b * c;
@@ -442,7 +484,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         return 0;
     }
 
-    function _claimFees() internal { 
+    function _claimFees() internal { // не могу протестить, нет физов
         INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
             tokenId: tokenLP,
             recipient: address(this),
@@ -509,13 +551,13 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
 
         uint256 usdbAfter = usdb.balanceOf(address(this));
         uint256 usdPlusAfter = usdPlus.balanceOf(address(this));
-
-        console.log("USDB fees claimed: ", usdbAfter - usdbBefore);
-        console.log("USDP fees claimed: ", usdPlusAfter - usdPlusBefore);
     }
 
     function testDeploy() public {
-        console.log("DEBUG: StrategyFenixSwap - v2.0: unstake()");
+    }
+
+    function abs(int24 x) private pure returns (int24) {
+        return x >= 0 ? x : -x;
     }
 }
 
