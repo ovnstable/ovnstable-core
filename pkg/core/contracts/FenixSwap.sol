@@ -5,21 +5,14 @@ import "@overnight-contracts/connectors/contracts/stuff/Fenix.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
-
-import "hardhat/console.sol";
 
 contract FenixSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
-    function initialize() initializer public {
-        console.log("FenixSwap-initialize()-START");
-        
+    function initialize() initializer public {        
         __AccessControl_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-
-        console.log("FenixSwap-initialize()-END");
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
@@ -66,8 +59,8 @@ contract FenixSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
             IERC20(pool.token1()).transferFrom(msg.sender, address(this), amountIn);
         }
 
-        uint160 maxSqrtRatio = uint160(79228162514264337593543950336); // 1.0002
-        uint160 minSqrtRatio = uint160(79224201403219477170569942574); // 0.999 TODO: change for more strict slippage
+        uint160 maxSqrtRatio = uint160(79228162514264337593543950336); 
+        uint160 minSqrtRatio = uint160(79224201403219477170569942574); 
 
         pool.swap(
             address(this), 
@@ -80,14 +73,6 @@ contract FenixSwap is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
         );
 
         (uint160 sqrtRatioX96,,,,,) = pool.globalState();
-
-        if (sqrtRatioX96 > maxSqrtRatio || sqrtRatioX96 < minSqrtRatio) {
-            revert SlippageError(
-                sqrtRatioX96,
-                minSqrtRatio,
-                maxSqrtRatio
-            );
-        }
 
         IERC20(pool.token0()).transfer(msg.sender, IERC20(pool.token0()).balanceOf(address(this)));
         IERC20(pool.token1()).transfer(msg.sender, IERC20(pool.token1()).balanceOf(address(this)));

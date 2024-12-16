@@ -84,7 +84,7 @@ async function main() {
 
     await (await strategy.swapAmountToReachTick()).wait();
 
-    console.log("   Ага) Работает)")
+    console.log("   Всё работает")
 }
 
 main()
