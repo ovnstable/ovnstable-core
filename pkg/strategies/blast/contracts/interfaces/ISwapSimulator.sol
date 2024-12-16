@@ -11,6 +11,10 @@ interface ISwapSimulator {
         uint256 ratio1
     );
 
+    error PriceAfterSwapError(
+        uint160 sqrtRatioX96
+    );
+
     error SlippageError(
         uint160 curSqrtRatio,
         uint160 minSqrtRatio,
@@ -33,6 +37,12 @@ interface ISwapSimulator {
         uint160 sqrtPriceLimitX96,
         bool zeroForOne,
         int24[] memory tickRange
+    ) external;
+
+    function simulatePriceAfterSwap(
+        address pair,
+        uint256 amountIn,
+        bool zeroForOne
     ) external;
 
     function uniswapV3SwapCallback(

@@ -364,7 +364,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         BinSearchParams memory binSearchParams;
         binSearchParams.right = availableAmount1;
 
-        for (uint256 i = 0; i < 20; i++) {
+        for (uint256 i = 0; i < binSearchIterations; i++) { // 20 -> binSearchIterations
             binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;
 
             if (binSearchParams.mid == 0) {
@@ -467,10 +467,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         bundler.multicall(data); 
 
         _reinvest();
-    }
-
-    function abs(int24 x) private pure returns (int24) {
-        return x >= 0 ? x : -x;
     }
 }
 

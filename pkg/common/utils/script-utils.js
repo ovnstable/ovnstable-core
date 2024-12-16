@@ -136,8 +136,8 @@ async function settingSection(id, exec, wallet) {
             // let pm = await getContract('FundPortfolioManager', process.env.STAND); // NOTE: for fund
             let pm = await getContract('PortfolioManager', process.env.STAND);
             let roleManager = await getContract('RoleManager', process.env.STAND);
-            // await (await strategy.setStrategyParams(pm.address, roleManager.address)).wait();
-            await (await strategy.setStrategyParams(wallet.address, roleManager.address)).wait();
+            await (await strategy.setStrategyParams(pm.address, roleManager.address)).wait();
+            // await (await strategy.setStrategyParams(wallet.address, roleManager.address)).wait();
 
             await exec(strategy);
             try {
@@ -1056,7 +1056,7 @@ async function transferAsset(assetAddress, to, amount) {
         case "BLAST":
             switch (assetAddress) {
                 case BLAST.usdb:
-                    from = '0x15c59df002950e3b7e287de9c0c91aa63e8d9937';
+                    from = '0x236F233dBf78341d25fB0F1bD14cb2bA4b8a777c';
                     break;
                 default:
                     throw new Error('Unknown asset address');

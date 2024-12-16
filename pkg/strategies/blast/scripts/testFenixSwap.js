@@ -13,11 +13,6 @@ const {BLAST} = require("@overnight-contracts/common/utils/assets");
 const { toAsset } = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
-
-    console.log("We are in testFenixSwap.js")
-
-    let strategy = await getContract('StrategyFenixSwap', 'blast');
-
     // console.log("testFenixSwap #2 - unstake")
 
     // usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', '0xBa6b468e6672514f3c59D5D8B8731B1956BA5D22')
@@ -66,12 +61,30 @@ async function main() {
     // await (await strategy.testCliamFees()).wait();
 
 
-    await strategy.grantRole(Roles.DEFAULT_ADMIN_ROLE, '0xE12E06D810F08b7703D5266081f8023ACD21ce9d');
-    await strategy.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0xE12E06D810F08b7703D5266081f8023ACD21ce9d');
+    // await strategy.grantRole(Roles.DEFAULT_ADMIN_ROLE, '0xE12E06D810F08b7703D5266081f8023ACD21ce9d');
+    // await strategy.grantRole(Roles.PORTFOLIO_AGENT_ROLE, '0xE12E06D810F08b7703D5266081f8023ACD21ce9d');
 
 
-    // GENERAL TEST
-    await testStrategy(filename, strategy, 'blast');
+    // // GENERAL TEST
+    // await testStrategy(filename, strategy, 'blast');
+
+
+    // AMOUNT OF USDB THAT NEED TO BE SWAPED TO REACH TICK
+
+    console.log("   We are in testFenixSwap.js")
+
+    let strategy = await getContract('StrategyFenixSwap', 'blast');
+
+    console.log("   Переводим USDB на баланс страткгии")
+    console.log("   Адрес: ", strategy.address)
+
+    await transferAsset(BLAST.usdb, strategy.address, toAsset(350000));
+
+    console.log("   Дергаем swapAmountToReachTick")
+
+    await (await strategy.swapAmountToReachTick()).wait();
+
+    console.log("   Ага) Работает)")
 }
 
 main()
@@ -81,3 +94,6 @@ main()
         process.exit(1);
     });
 
+    // 350000000000000000000000
+    // 154282278162823436000000
+    

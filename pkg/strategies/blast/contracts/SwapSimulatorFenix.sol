@@ -61,17 +61,11 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
     ) public onlyStrategy {
         ICLPool pool = ICLPool(pair);
 
-        console.log("SS.swap: @1");
-
         SwapCallbackData memory data = SwapCallbackData({
             tokenA: pool.token0(),
             tokenB: pool.token1(),
             tickSpacing: pool.tickSpacing()
         });
-
-        console.log("SS.swap: @2");
-
-        console.log("SS.swap: ");
 
         pool.swap( 
             address(this), 
@@ -82,13 +76,10 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
                 : sqrtPriceLimitX96, 
             abi.encode(data)
         );
-        console.log("SS.swap: @3");
 
         (uint160 newSqrtRatioX96,,,,,) = pool.globalState();
-        console.log("SS.swap: @4");
 
         if (newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) {
-            console.log("SS.swap: @5");
             revert SlippageError(
                 newSqrtRatioX96,
                 minSqrtRatio,
@@ -96,8 +87,6 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
                 0
             );
         }
-
-        console.log("SS.swap: @6");
     }
 
     function simulateSwap(
@@ -111,11 +100,7 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         address token0 = pool.token0();
         address token1 = pool.token1();
 
-        console.log("simulateSwap: #1-new");
-
         swap(pair, amountIn, sqrtPriceLimitX96, zeroForOne, MIN_STABLE_SQRT_RATIO, MAX_STABLE_SQRT_RATIO);
-
-        console.log("simulateSwap: #2");
 
         uint256[] memory ratio = new uint256[](2);
 
@@ -127,6 +112,20 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
             ratio[0],
             ratio[1]
         );
+    }
+
+    function simulatePriceAfterSwap(
+        address pair,
+        uint256 amountIn,
+        bool zeroForOne
+    ) external onlyStrategy {
+        ICLPool pool = ICLPool(pair);
+
+        swap(pair, amountIn, 0, zeroForOne, type(uint160).min, type(uint160).max);
+
+        (uint160 priceSqrtRatioX96,,,,,) = pool.globalState();
+
+        revert PriceAfterSwapError(priceSqrtRatioX96);
     }
 
     // если убрать, то данный контракт перестает реализовывать интерфейсы
@@ -187,6 +186,5 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
 
         token0Amount = token0Amount * (denominator / dec0);
         token1Amount = token1Amount * (denominator / dec1);
-
     }
 }
