@@ -4,55 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Thruster.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "hardhat/console.sol";
-
-
-interface ISwapSimulator {
-    /// @notice Error containing information about a swap (for a simulation)
-    /// @param balance0 The balance of token0 after the swap
-    /// @param balance1 The balance of token1 after the swap
-    /// @param ratio0 The ratio of token0 in the pool after the swap
-    /// @param ratio1 The ratio of token1 in the pool after the swap
-    error SwapError(
-        uint256 balance0,
-        uint256 balance1,
-        uint256 ratio0,
-        uint256 ratio1
-    );
-
-    error SlippageError(
-        uint160 curSqrtRatio,
-        uint160 minSqrtRatio,
-        uint160 maxSqrtRatio        
-    );
-
-    function swap(
-        address pair,
-        uint256 amountIn,
-        uint160 sqrtPriceLimitX96,
-        bool zeroForOne,
-        uint160 minSqrtRatio, 
-        uint160 maxSqrtRatio
-    ) external;
-
-    function simulateSwap(
-        address pair,
-        uint256 amountIn,
-        uint160 sqrtPriceLimitX96,
-        uint160 minSqrtRatio, 
-        uint160 maxSqrtRatio,
-        bool zeroForOne,
-        int24[] memory tickRange
-    ) external;
-
-    function uniswapV3SwapCallback(
-        int256 amount0Delta,
-        int256 amount1Delta,
-        bytes calldata _data
-    ) external;
-
-    function withdrawAll(address pair) external;
-}
+import {ISwapSimulator} from "./interfaces/ISwapSimulatorThruster.sol";
 
 contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
@@ -86,7 +38,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     uint256 public tokenLP;
 
     uint160 internal constant sqrtRatioStablecoinsX96Min = 79224201403219477170569942574;
-    uint160 internal constant sqrtRatioStablecoinsX96Max = 79236085330515764027303304732;
+    uint160 internal constant sqrtRatioStablecoinsX96Max = 79228162514264337593543950336;
 
     // --- events
     event StrategyUpdatedParams();
@@ -181,7 +133,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     ) internal override {
         _deposit(usdb.balanceOf(address(this)), usdPlus.balanceOf(address(this)), 0, 0, true); // USDB -> USD+
     }  
-
 
     function _unstake(
         address _asset,
@@ -352,11 +303,8 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     }
 
     function _withdraw(address asset, uint256 amount, bool isFull) internal returns (uint256) {
-
         _collect_rewards_hyperlock();
         nfpBooster.withdraw(tokenLP, address(this)); 
-        
-
         (,,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
         if (liquidity == 0) {
             return 0;
@@ -370,7 +318,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
             deadline: block.timestamp
         });
         npm.decreaseLiquidity(params);
-
         _collect();
 
         if (!isFull) {
@@ -401,6 +348,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
             }
             _deposit(amountToStake0, amountToStake1, lockedAmount0, lockedAmount1, false);
         } else {
+
             npm.burn(tokenLP);
             tokenLP = 0;
 
@@ -425,7 +373,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         });
         npm.collect(collectParams);
     }
-
 
     function _collect_rewards_hyperlock() internal {
         INFPBooster.CollectParams memory collectParams = INFPBooster.CollectParams({
@@ -485,16 +432,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
             }
         }
         amountToSwap = binSearchParams.mid;
-    }
-
-    function _getSqrtPriceLimitX96(ICLPool _pool, uint256 _slippageBP, bool _zeroForOne) internal view returns (uint160) {
-        (uint160 sqrtRatioX96,,,,,,) = _pool.slot0(); 
-        
-        if (_zeroForOne) {
-            return sqrtRatioX96 * (10000 - uint160(_slippageBP)) / 10000;
-        } else {
-            return sqrtRatioX96 * (10000 + uint160(_slippageBP)) / 10000;
-        }
     }
 
     function _compareRatios(uint256 a, uint256 b, uint256 c, uint256 d) internal pure returns (bool) {

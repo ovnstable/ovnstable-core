@@ -12,20 +12,21 @@ const { Roles } = require('@overnight-contracts/common/utils/roles');
 
 let strategyName = 'StrategyThrusterSwap';
 
+
 module.exports = async ({deployments}) => {
     console.log("03_str-start")
     const {save} = deployments;
 
     let wallet = await initWallet();
 
-    await transferETH(10, wallet.address);
+    // await transferETH(10, wallet.address);
 
     await deploySection(async (name) => {
         await deployProxy(name, deployments, save, {
             factoryOptions: {
                 signer: wallet
             },
-            // gasPrice: 4221834
+            // gasPrice: 422183400
         });
     });
 

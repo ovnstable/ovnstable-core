@@ -97,10 +97,11 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
         uint256 amountIn,
         uint160 sqrtPriceLimitX96,
         bool zeroForOne,
-        uint160 minSqrtRatio, // 79224201403219477170569942574); // 0.999 TODO: change for more strict slippage
-        uint160 maxSqrtRatio  // 79236085330515764027303304732); // 1.0002
+        uint160 minSqrtRatio, 
+        uint160 maxSqrtRatio  
     ) public onlyStrategy {
         ICLPool pool = ICLPool(pair);
+
         SwapCallbackData memory data = SwapCallbackData({
             tokenA: pool.token0(),
             tokenB: pool.token1(),
@@ -119,7 +120,7 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
 
         (uint160 newSqrtRatioX96,,,,,,) = pool.slot0(); 
 
-        if (newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) {
+        if (newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) { 
             revert SlippageError(
                 newSqrtRatioX96,
                 minSqrtRatio,

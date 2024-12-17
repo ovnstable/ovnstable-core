@@ -1,15 +1,21 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const { getContract } = require("@overnight-contracts/common/utils/script-utils");
+const { getContract, transferETH } = require("@overnight-contracts/common/utils/script-utils");
 
 let name = 'SwapSimulatorThruster';
 
 module.exports = async ({deployments}) => {
+
+    
+    console.log("02_ss-start")
+
+    // await transferETH(10, wallet.address);
     const {save} = deployments;
     await deployProxy(name, deployments, save);
 
     let simulator = await getContract(name, 'blast');
 
     await (await simulator.setSimulationParams(await getParams())).wait();
+    console.log("02_ss-end")
 };
 
 async function getParams() {
@@ -21,3 +27,4 @@ async function getParams() {
 
 module.exports.tags = [name];
 module.exports.swapSimulatorThruster = getParams;
+// hh deploy --tags SwapSimulatorThruster --network blast --setting
