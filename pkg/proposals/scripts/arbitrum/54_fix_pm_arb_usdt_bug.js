@@ -12,17 +12,15 @@ async function main() {
     let values = [];
     let abis = [];
 
-    const StrategyAave = await getContract('StrategyAave', 'optimism');
-    const newAaveImpl = "0xf473EFf16b8250e3DC52F25734457EEea2f0e841";
+    let pm_usdt = await getContract('PortfolioManager', 'arbitrum_usdt');
 
-    addProposalItem(StrategyAave, "upgradeTo", [newAaveImpl]);
-
-    addProposalItem(StrategyAave, "setStrategyName", ["AAVE"]);
+    addProposalItem(pm_usdt, 'upgradeTo', ['0x8B268F288D233d3739Bc54C7cF8e857ea3e7bD32']);
 
     await testProposal(addresses, values, abis);
-    // await testUsdPlus(filename, 'optimism');
 
-    console.log(await StrategyAave.name());
+    await testUsdPlus(filename, 'arbitrum_usdt');
+
+    console.log(await pm_usdt.getAllStrategyWeightsWithNames());
 
     // await createProposal(filename, addresses, values, abis);
 
