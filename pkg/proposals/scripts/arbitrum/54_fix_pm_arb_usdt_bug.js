@@ -16,13 +16,13 @@ async function main() {
 
     addProposalItem(pm_usdt, 'upgradeTo', ['0x8B268F288D233d3739Bc54C7cF8e857ea3e7bD32']);
 
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
 
-    await testUsdPlus(filename, 'arbitrum_usdt');
+    // await testUsdPlus(filename, 'arbitrum_usdt');
 
-    console.log(await pm_usdt.getAllStrategyWeightsWithNames());
+    // console.log(await pm_usdt.getAllStrategyWeightsWithNames());
 
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
