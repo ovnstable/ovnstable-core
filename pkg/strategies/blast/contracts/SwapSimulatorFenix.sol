@@ -130,39 +130,29 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         revert PriceAfterSwapError(priceSqrtRatioX96);
     }
 
-    // если убрать, то данный контракт перестает реализовывать интерфейсы
     function uniswapV3SwapCallback (
         int256 amount0Delta,
         int256 amount1Delta,
         bytes calldata _data
     ) external {}
 
-    function algebraSwapCallback ( // заменил uniswapV3SwapCallback
+    function algebraSwapCallback ( 
         int256 amount0Delta,
         int256 amount1Delta,
         bytes calldata _data
     ) external {
-        console.log("strategy: ", strategy);
-        console.log("factory:  ", factory);
-        console.log("aSCb-1");
         SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
-        console.log("aSCb-2");
-
+        
         (bool isExactInput, uint256 amountToPay) =
             amount0Delta > 0
                 ? (data.tokenA < data.tokenB, uint256(amount0Delta))
                 : (data.tokenB < data.tokenA, uint256(amount1Delta));
 
         if (isExactInput) {
-            console.log("aSCb-3");
             IERC20(data.tokenA).transfer(msg.sender, amountToPay);
         } else {
-            console.log("aSCb-4");
             IERC20(data.tokenB).transfer(msg.sender, amountToPay);
         }
-
-        console.log("aSCb-5");
-
     }
 
     function withdrawAll(address pair) external onlyStrategy {

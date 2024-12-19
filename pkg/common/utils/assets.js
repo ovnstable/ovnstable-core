@@ -456,6 +456,7 @@ let BLAST = {
     oracleApi3Usdb: "0x1f41f26933e83ef6178E3368BD01662882c06677",
     oracleApi3Eth: "0xa47Fd122b11CdD7aad7c3e8B740FB91D83Ce43D1",
     fnx: "0x52f847356b38720B55ee18Cb3e094ca11C85A192",
+    distributor: "0x3ef3d8ba38ebe18db133cec108f4d14ce00dd9ae",
     voter: "0x56129f1c0aed4adbee862986face5ba8c9ac3d9b"
 }
 

@@ -1196,6 +1196,19 @@ library TickMath {
 }
 
 
+interface IDistributor {
+    function claim(
+        address[] calldata users,
+        address[] calldata tokens,
+        uint256[] calldata amounts,
+        bytes32[][] calldata proofs
+    ) external;
+}
+
+
+
+
+
 interface IVoterUpgradableV2 {
     function aggregateClaim(
         address[] calldata gauges_,
@@ -1206,6 +1219,76 @@ interface IVoterUpgradableV2 {
         AggregateCreateLockParams calldata aggregateCreateLock_
     ) external;
 
+    
+    /**
+     * @notice Parameters for claiming bribes using a specific tokenId.
+     * @param tokenId The token ID to claim bribes for.
+     * @param bribes The array of bribe contract addresses.
+     * @param tokens The array of arrays containing token addresses for each bribe.
+     */
+    struct AggregateClaimBribesByTokenIdParams {
+        uint256 tokenId;
+        address[] bribes;
+        address[][] tokens;
+    }
 
-    // TODO: add structs
+
+    /**
+     * @notice Parameters for claiming bribes.
+     * @param bribes The array of bribe contract addresses.
+     * @param tokens The array of arrays containing token addresses for each bribe.
+     */
+    struct AggregateClaimBribesParams {
+        address[] bribes;
+        address[][] tokens;
+    }
+
+    /**
+     * @notice Parameters for claiming Merkl data.
+     * @param users The array of user addresses to claim for.
+     * @param tokens The array of token addresses.
+     * @param amounts The array of amounts to claim.
+     * @param proofs The array of arrays containing Merkle proofs.
+     */
+    struct AggregateClaimMerklDataParams {
+        address[] users;
+        address[] tokens;
+        uint256[] amounts;
+        bytes32[][] proofs;
+    }
+
+
+    /**
+     * @notice Parameters for claiming VeFnx Merkl airdrop data.
+     * @param inPureTokens_ Boolean indicating if the claim is in pure tokens.
+     * @param amount The amount to claim.
+     * @param withPermanentLock_ Whether the lock should be permanent.
+     * @param managedTokenIdForAttach_ The ID of the managed NFT to attach, if any. 0 for ignore
+     * @param proofs The array of Merkle proofs.
+     */
+    struct AggregateClaimVeFnxMerklAirdrop {
+        bool inPureTokens;
+        uint256 amount;
+        bool withPermanentLock;
+        uint256 managedTokenIdForAttach;
+        bytes32[] proofs;
+    }
+
+    /**
+     * @notice Parameters for creating a veNFT through VotingEscrow.
+     * @param percentageToLock The percentage (in 18 decimals) of the claimed reward tokens to be locked.
+     * @param lockDuration The duration (in seconds) for which the tokens will be locked.
+     * @param to The address that will receive the veNFT.
+     * @param shouldBoosted Indicates whether the veNFT should have boosted properties.
+     * @param withPermanentLock Indicates if the lock should be permanent.
+     * @param managedTokenIdForAttach The ID of the managed veNFT token to which this lock will be attached.
+     */
+    struct AggregateCreateLockParams {
+        uint256 percentageToLock;
+        uint256 lockDuration;
+        address to;
+        bool shouldBoosted;
+        bool withPermanentLock;
+        uint256 managedTokenIdForAttach;
+    }
 }

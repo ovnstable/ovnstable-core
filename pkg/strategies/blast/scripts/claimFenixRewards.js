@@ -2,85 +2,56 @@ const hre = require("hardhat");
 const { getContract, showM2M, execTimelock, getPrice, initWallet, transferETH, getERC20ByAddress } = require("@overnight-contracts/common/utils/script-utils");
 const path = require('path');
 
-const {BASE, COMMON} = require('@overnight-contracts/common/utils/assets');
+const {BASE, COMMON, BLAST} = require('@overnight-contracts/common/utils/assets');
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
-    let timelock = await getContract('AgentTimelock');
+    
     let fenixSwap = await getContract('StrategyFenixSwap', 'blast'); 
 
-    await hre.network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [timelock.address],
-    });
+    // for TESTING
 
-    const timelockAccount = await hre.ethers.getSigner(timelock.address);
+    // let timelock = await getContract('AgentTimelock');
+    // hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
 
-    let data = [
-        "0x71ee95c0000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000a09a8e94fbaac9261af8f34d810d96b923b559d2000000000000000000000000000000000000000000000000000000000000000100000000000000000000000052f847356b38720b55ee18cb3e094ca11c85a192000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000018ad44d9b4df8d0cc0000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001081708659ca2d7f84a47f16763ffc7f4e14c5dc1687ad20de6ea43427130877ac77dba36a71bfb1928999702517bf420a6223e0ffc54ebf94930b6a220a6417d7fe4828bb2018e80edc261bd57fa1f18d8749ef94140e6bca498ffc253c0831e9e95e1b759c4bbd3739fc10bfffb04274bc62155b2441bb7ac2f1b4603c59c34c46f20f6c1fb8efe41797780ed4d183536c0d852105ca57ddcafe1e05fc1ec665a11929a6bcb45582308983b123aca3bc39a51a1e9c564bce754244d2bf0b6294353afedfdeaacf1de7577b44931481a1e8b412c48d01750cf54b3d267701c565cd40c5b884a51baf694b1a5b231213c5eddb9d4e6f689c69dca3b6cceed37e247db5930afa139cc031a263968df48353376ce4bb7a56416a80b23ab76bfea2a33e8a5b0d22a11d0dc9a266025c1078de10025fbf9a1495aa7a74afa4815b056d4c552c614ba3b8674c7ce2a4c5f8d2f1c471336d271f29056f5c7b3282b4e72dedd1fd41009f21b703059e577053f6c79395028d83b4b22ef6d142a049ffed3ed05f96f0e1634e8ff3a2ee30727b68ff969c0fd384725bfe361d0b5df2a97d8f95eae0dec250a985dd47b28b22c7ee78202fd5ff3fbd475785b38563f75fb2400621b10f18da0487d6dfe3f24c49eb14f25874a53a0e6458f14be9e6e21b23e385bb78d315b1beb465a2e5e417f3c6eec6bfe8f154d3ba85de5da8b151149bd0"
-    ]
-   
+    // await hre.network.provider.request({
+    //     method: "hardhat_impersonateAccount",
+    //     params: [timelock.address],
+    // });
 
+    // const timelockAccount = await hre.ethers.getSigner(timelock.address);
 
-    await fenixSwap.connect(timelockAccount).claimMerkleTreeRewards(BLAST.voter, [],
-        [
-           [],
-           []
-        ],
-        [
-          "tokenId": "0",
-          "bribes": [],
-          "tokens": []
-        ],
-        "merkl_": {
-          "users": [
-            "0xc72d8fe6ef41bc873936e0d29b8b221e3394c5f2"
-          ],
-          "tokens": [
-            "0x52f847356b38720b55ee18cb3e094ca11c85a192"
-          ],
-          "amounts": [
-            "8582516870000000000"
-          ],
-          "proofs": [
+    // await (await fenixSwap.connect(timelockAccount).grantRole('0xd67ad422505496469a1adf6cdf9e5ee92ac5d33992843c9ecc4b2f6d6cde9137', '0x8df424e487De4218B347e1798efA11A078fecE90')).wait();
+    // await (await fenixSwap.connect(timelockAccount).grantRole('0x0000000000000000000000000000000000000000000000000000000000000000', '0x8df424e487De4218B347e1798efA11A078fecE90')).wait();
+    // await (await fenixSwap.connect(timelockAccount).grantRole('0x90c2aa7471c04182221f68e80c07ab1e5946e4c63f8693e14ca40385d529f051', '0x8df424e487De4218B347e1798efA11A078fecE90')).wait();
+
+    await fenixSwap.claimMerkleTreeRewards(
+        BLAST.distributor,
+        ["0xa09A8e94FBaAC9261af8f34d810D96b923B559D2"], // users
+        ["0x52f847356b38720B55ee18Cb3e094ca11C85A192"], // tokens
+        ["10090295269090000000000"],                    // amounts
+        [                                               // proofs
             [
-              "0x3bc99a64307f252e1fa90c2383c187b2222693f49aee69ef188c33d629fe65f3",
-              "0xe39f4bb7f61bcf2086078374edaef3e1794b39e0864b255348f596f83ded5a1b",
-              "0xc1394ef0907364f64a697ef3d57930c34b4e58c1633e6056ea516e3b87014aa2",
-              "0xd696ea6aa7d6d022921f2ee8a2a79711ff301ef8d83880c6451294446570b5d9",
-              "0x90a388cbd71bd4600dedc945c84cb5776a5e640670311fd2926ea2c3477926d5",
-              "0xad76ca2ae9a1b178a96ff9ca23d0015eb9f2903cc9e6fdd11a797f18cf0eb20a",
-              "0x5685a343c50a3ed88e418062dafe3bc3be5b434275fab34203c3e41ad76dc8db",
-              "0x4aed5bbce3f100a923452da7a815d5b92debf8291d5a328f1544a702b5e6dec8",
-              "0xb8679256b9ae213989be7b9c81231db34e169798f2554f76f03953883ddc1264",
-              "0x27fdd21ea391d2620bf4d018993e73f6f93ea653af4a88e43c5613e1a154f513",
-              "0x11580a716ba06e66c4ee36a0f94bf87a2cb5a27f84548878f1fdfe66cd5b332c",
-              "0xe152eb7db3a15b144ea74039cd50778ad298da1f2bac3986e44b525b0bd0b13f",
-              "0x7ad4159e70796481e6ebfd39a079128f26b0bf9e5e21dbf2c8dd520c660b4dc3",
-              "0x6d5305379875f6635b2032f5dd33ea67420aa62916ad7963e632a63ef4b157c2",
-              "0xb0fa24f14d16033044fa9202bab89b580884d8e18bfb907fa1211347635fae02",
-              "0xa8242665337f51d16cab4cbe615942156834ad4f8dbb4d2cb8e87a7a4afb7b3d"
+                "0xcca731f8d7cd127139b6c3f4373cc98398f6db0e5613ef55cf44108b17900dc0",
+                "0xdeae3246ed8a20c6f80085f41d7a19810420735411850253c594f2f929080e66",
+                "0x79b8c8b66500b74e295e0c304d67456b6212b8c020cbe75fd9f64e30b23a1ca2",
+                "0x340520fd6cebae4ac1ea93badd4c5cdbc828b9e75038e3c76b900f5b5d8bc982",
+                "0x732c92daf57619e9d256bb70d7ee3692f28fc0cfec75164a6f1c8b54b68a4b42",
+                "0x46d63ea686c9699aedbeef9552bcdae14fd52aacf3e8e2c65c6af989948391d8",
+                "0xf2bb55634a00ad3e80b8d9e346ff3ac722aec1114ed7a392bf18554e39372d39",
+                "0x1b3d68060c499dbe0ff1924969daaad8dbdb1ab326c85f156db7c168ba3e35e5",
+                "0x22cadbe2f803e4e8757080e4b00d37ce2e2f69a1de389d73cf07b0209b9dfb6d",
+                "0xb5464abda8b849d4139ddea21355bd4ac73aabb12baf3ce9fd08ea0f05ef3556",
+                "0x9eba70bcf23231aff1fb81b99d7655927f5c60066af2e7aa9cef3dc12d42e7e2",
+                "0xa9b52b1cb9cb8fe75f5e7e7e7a3bbc9889a9aaba139bfec4c64da712cbbf0c13",
+                "0xf9627b80eb6264260858357fe79da8fdef050871bc0c9437f7a3922b0de65bce",
+                "0x6e540842cc6efe63eb6eaa6e95a812a16a4729c1ac63747c21a8819829b1934b",
+                "0xb035384089e249db4e73bc51700adc78749b72de23436434518af89913bd053d",
+                "0x776987f54641217b80b6c96c7141cceac51da56e4d720cad2dc581e8846bb82b"
             ]
-          ]
-        },
-        "splitMerklAidrop_": {
-          "inPureTokens": false,
-          "amount": "0",
-          "withPermanentLock": true,
-          "managedTokenIdForAttach": "0",
-          "proofs": []
-        },
-        "aggregateCreateLock_": {
-          "percentageToLock": "0",
-          "lockDuration": "0",
-          "to": "0x0000000000000000000000000000000000000000",
-          "shouldBoosted": false,
-          "withPermanentLock": true,
-          "managedTokenIdForAttach": "1"
-        }
-      });
-    
+        ]
+    );
 }
 
 main()
@@ -89,4 +60,3 @@ main()
         console.error(error);
         process.exit(1);
     });
-

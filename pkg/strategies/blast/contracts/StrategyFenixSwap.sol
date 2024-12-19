@@ -126,7 +126,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         address _beneficiary
     ) internal override returns (uint256) {
         require(_asset == address(usdb) || _asset == address(usdPlus), "Some tokens are not compatible");
-        require(_amount > 0, "Amount is less than or equal to 0"); // 
+        require(_amount > 0, "Amount is less than or equal to 0"); 
         require(tokenLP != 0, "Not staked");
 
         return _withdraw(_asset, _amount, false);
@@ -461,19 +461,22 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         } 
     }
 
-    function claimMerkleTreeRewards(address voter, address[] memory gauges_, AggregateClaimBribesParams calldata bribes_, AggregateClaimBribesByTokenIdParams calldata bribesByTokenId_, AggregateClaimMerklDataParams calldata merkl_, AggregateClaimVeFnxMerklAirdrop calldata splitMerklAidrop_, AggregateCreateLockParams calldata aggregateCreateLock_) public onlyPortfolioAgent{
-        IVoterUpgradableV2 voter = IVoterUpgradableV2(voter);
-
-        voter.aggregateClaim(
-            gauges_,
-            bribes_,
-            bribesByTokenId_,
-            merkl_,
-            splitMerklAidrop_,
-            aggregateCreateLock_
-        );
+    function claimMerkleTreeRewards(
+        address distributor, 
+        address[] calldata users,
+        address[] calldata tokens,
+        uint256[] calldata amounts,
+        bytes32[][] calldata proofs
+    ) public onlyPortfolioAgent {  
+        IDistributor distributor = IDistributor(distributor);
+        
+        distributor.claim(
+            users,
+            tokens,
+            amounts,
+            proofs
+        );        
 
         _reinvest();
     }
 }
-
