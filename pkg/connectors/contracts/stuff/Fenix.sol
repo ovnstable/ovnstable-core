@@ -1196,6 +1196,16 @@ library TickMath {
 }
 
 
-interface IChainAgnosticBundlerV2 {
-    function multicall(bytes[] memory data) external payable;
+interface IVoterUpgradableV2 {
+    function aggregateClaim(
+        address[] calldata gauges_,
+        AggregateClaimBribesParams calldata bribes_,
+        AggregateClaimBribesByTokenIdParams calldata bribesByTokenId_,
+        AggregateClaimMerklDataParams calldata merkl_,
+        AggregateClaimVeFnxMerklAirdrop calldata splitMerklAidrop_,
+        AggregateCreateLockParams calldata aggregateCreateLock_
+    ) external;
+
+
+    // TODO: add structs
 }

@@ -23,10 +23,63 @@ async function main() {
    
 
 
-    await fenixSwap.connect(timelockAccount).claimMerkleTreeRewards(fenixSwap.address, data, BASE.morphoChainAgnosticBundler);
-
-
-
+    await fenixSwap.connect(timelockAccount).claimMerkleTreeRewards(BLAST.voter, [],
+        [
+           [],
+           []
+        ],
+        [
+          "tokenId": "0",
+          "bribes": [],
+          "tokens": []
+        ],
+        "merkl_": {
+          "users": [
+            "0xc72d8fe6ef41bc873936e0d29b8b221e3394c5f2"
+          ],
+          "tokens": [
+            "0x52f847356b38720b55ee18cb3e094ca11c85a192"
+          ],
+          "amounts": [
+            "8582516870000000000"
+          ],
+          "proofs": [
+            [
+              "0x3bc99a64307f252e1fa90c2383c187b2222693f49aee69ef188c33d629fe65f3",
+              "0xe39f4bb7f61bcf2086078374edaef3e1794b39e0864b255348f596f83ded5a1b",
+              "0xc1394ef0907364f64a697ef3d57930c34b4e58c1633e6056ea516e3b87014aa2",
+              "0xd696ea6aa7d6d022921f2ee8a2a79711ff301ef8d83880c6451294446570b5d9",
+              "0x90a388cbd71bd4600dedc945c84cb5776a5e640670311fd2926ea2c3477926d5",
+              "0xad76ca2ae9a1b178a96ff9ca23d0015eb9f2903cc9e6fdd11a797f18cf0eb20a",
+              "0x5685a343c50a3ed88e418062dafe3bc3be5b434275fab34203c3e41ad76dc8db",
+              "0x4aed5bbce3f100a923452da7a815d5b92debf8291d5a328f1544a702b5e6dec8",
+              "0xb8679256b9ae213989be7b9c81231db34e169798f2554f76f03953883ddc1264",
+              "0x27fdd21ea391d2620bf4d018993e73f6f93ea653af4a88e43c5613e1a154f513",
+              "0x11580a716ba06e66c4ee36a0f94bf87a2cb5a27f84548878f1fdfe66cd5b332c",
+              "0xe152eb7db3a15b144ea74039cd50778ad298da1f2bac3986e44b525b0bd0b13f",
+              "0x7ad4159e70796481e6ebfd39a079128f26b0bf9e5e21dbf2c8dd520c660b4dc3",
+              "0x6d5305379875f6635b2032f5dd33ea67420aa62916ad7963e632a63ef4b157c2",
+              "0xb0fa24f14d16033044fa9202bab89b580884d8e18bfb907fa1211347635fae02",
+              "0xa8242665337f51d16cab4cbe615942156834ad4f8dbb4d2cb8e87a7a4afb7b3d"
+            ]
+          ]
+        },
+        "splitMerklAidrop_": {
+          "inPureTokens": false,
+          "amount": "0",
+          "withPermanentLock": true,
+          "managedTokenIdForAttach": "0",
+          "proofs": []
+        },
+        "aggregateCreateLock_": {
+          "percentageToLock": "0",
+          "lockDuration": "0",
+          "to": "0x0000000000000000000000000000000000000000",
+          "shouldBoosted": false,
+          "withPermanentLock": true,
+          "managedTokenIdForAttach": "1"
+        }
+      });
     
 }
 

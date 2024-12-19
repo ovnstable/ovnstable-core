@@ -461,10 +461,17 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         } 
     }
 
-    function claimMerkleTreeRewards(address _beneficiary, bytes[] memory data, address chainAgnosticBundler) public onlyPortfolioAgent{
-        IChainAgnosticBundlerV2 bundler = IChainAgnosticBundlerV2(chainAgnosticBundler);
+    function claimMerkleTreeRewards(address voter, address[] memory gauges_, AggregateClaimBribesParams calldata bribes_, AggregateClaimBribesByTokenIdParams calldata bribesByTokenId_, AggregateClaimMerklDataParams calldata merkl_, AggregateClaimVeFnxMerklAirdrop calldata splitMerklAidrop_, AggregateCreateLockParams calldata aggregateCreateLock_) public onlyPortfolioAgent{
+        IVoterUpgradableV2 voter = IVoterUpgradableV2(voter);
 
-        bundler.multicall(data); 
+        voter.aggregateClaim(
+            gauges_,
+            bribes_,
+            bribesByTokenId_,
+            merkl_,
+            splitMerklAidrop_,
+            aggregateCreateLock_
+        );
 
         _reinvest();
     }
