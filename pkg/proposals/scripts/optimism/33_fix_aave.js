@@ -26,28 +26,26 @@ async function main() {
     addProposalItem(aave, 'setStrategyParams', ["0xe1E36e93D31702019D38d2B0F6aB926f15008409", "0x63a4CA86118b8C1375565563D53D1826DFcf8801"]);
     addProposalItem(aave, "setStrategyName", ["AAVE"]);
 
-    await testProposal(addresses, values, abis);
-
     // await testProposal(addresses, values, abis);
     // await testUsdPlus(filename, 'optimism');
 
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
 
-    console.log("portfolioManager", await aave.portfolioManager());
-    console.log("swapSlippageBP", (await aave.swapSlippageBP()).toString());
-    console.log("navSlippageBP", (await aave.navSlippageBP()).toString());
-    console.log("stakeSlippageBP", (await aave.stakeSlippageBP()).toString());
-    console.log("roleManager", await aave.roleManager());
-    console.log("name", await aave.name());
+    // console.log("portfolioManager", await aave.portfolioManager());
+    // console.log("swapSlippageBP", (await aave.swapSlippageBP()).toString());
+    // console.log("navSlippageBP", (await aave.navSlippageBP()).toString());
+    // console.log("stakeSlippageBP", (await aave.stakeSlippageBP()).toString());
+    // console.log("roleManager", await aave.roleManager());
+    // console.log("name", await aave.name());
 
-    console.log("usdcToken", await aave.usdcToken());
-    console.log("aUsdcToken", await aave.aUsdcToken());
-    console.log("aaveProvider", await aave.aaveProvider());
-    console.log("rewardsController", await aave.rewardsController());
-    console.log("uniswapV3Router", await aave.uniswapV3Router());
-    console.log("opToken", await aave.opToken());
-    console.log("poolFee", await aave.poolFee());
+    // console.log("usdcToken", await aave.usdcToken());
+    // console.log("aUsdcToken", await aave.aUsdcToken());
+    // console.log("aaveProvider", await aave.aaveProvider());
+    // console.log("rewardsController", await aave.rewardsController());
+    // console.log("uniswapV3Router", await aave.uniswapV3Router());
+    // console.log("opToken", await aave.opToken());
+    // console.log("poolFee", await aave.poolFee());
     
 
     function addProposalItem(contract, methodName, params) {
