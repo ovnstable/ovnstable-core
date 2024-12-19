@@ -226,7 +226,7 @@ function getNetworks() {
             //     },
             //     8453: {
             //         hardforkHistory: {
-            //             london: 23184071
+            //             london: 23352161
             //         }
             //     },
             //     59144: {
