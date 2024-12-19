@@ -79,36 +79,10 @@ async function main() {
 
     await showM2M();
  
-    let odosParams;
+    let odosParams = getEmptyOdosData();
 
-    if (typePayout === TypePayout.INSURANCE) {
-        console.log("Get odos params");
-        odosParams = await getOdosParams(exchange);
-    } else if (typePayout === TypePayout.ODOS_EXIST) {
-        console.log('Get odos empty params');
-        odosParams = getEmptyOdosData();
-    }
-
-    let gasLimit;
-    try {
-        if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
-            gasLimit = await exchange.estimateGas.payout(false, odosParams);
-        } else {
-            gasLimit = await exchange.estimateGas.payout();
-        }
-        console.log("Test success");
-    } catch (e) {
-        console.log(e)
-        return;
-    }
+    let tx = await (await exchange.payout(false, odosParams, {gasLimit: 15_000_000, gasPrice: 1000000000})).wait();
     
-    let tx;
-    
-    if (typePayout === TypePayout.INSURANCE || typePayout === TypePayout.ODOS_EXIST) {
-        tx = await (await exchange.payout(false, odosParams, await getPrice())).wait();
-    } else {
-        tx = await (await exchange.payout(await getPrice())).wait();
-    }
     console.log("Payout success");
 
     await showPayoutData(tx, exchange);
