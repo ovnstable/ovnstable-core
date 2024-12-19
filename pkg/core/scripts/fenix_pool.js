@@ -6,14 +6,14 @@ const hre = require("hardhat");
 
 async function main() {
     let timelock = await getContract('AgentTimelock');
-    let iterations = 10;
+    let iterations = 20;
 
     let poolAddress = '0x6a1de1841c5c3712e3bc7c75ce3d57dedec6915f';
 
     let wallet = await initWallet();
 
-    await transferETH(1, wallet.address);
-    await transferETH(1, timelock.address);
+    // await transferETH(1, wallet.address);
+    // await transferETH(1, timelock.address);
 
     let pm = await getContract('PortfolioManager', 'blast');
     let fenixSwap = await getContract('FenixSwap', 'blast'); 
@@ -23,7 +23,7 @@ async function main() {
 
     let pool = await hre.ethers.getContractAt("ICLPoolFenix", poolAddress);
 
-    await transferAsset(BLAST.usdb, wallet.address, toAsset(100));
+    // await transferAsset(BLAST.usdb, wallet.address, toAsset(100));
 
     let gas = {
         gasLimit: 20000000,
@@ -34,6 +34,7 @@ async function main() {
     for (let i = 0; i < iterations; i++) {
         console.log("-----iteration ", i, "-----");
         let usdbBalance = await usdb.balanceOf(wallet.address);
+        // usdbBalance = "1000000000000000000000";
         console.log("USDB balance: ", usdbBalance.toString());
 
         await (await usdb.approve(exchange.address, usdbBalance, gas)).wait();
@@ -51,6 +52,7 @@ async function main() {
         console.log("USD+ minted and received USDB invested in CASH-strategies");
 
         let usdPlusBalance = await usdPlus.balanceOf(wallet.address);
+        // usdPlusBalance = "10000000000000000000000";
         console.log("USD+ balance: ", usdPlusBalance.toString());
         
         await (await usdPlus.approve(fenixSwap.address, usdPlusBalance, gas)).wait();
@@ -60,44 +62,22 @@ async function main() {
         globalState = await pool.globalState();
         console.log("Ratio before swap:  ", globalState[0].toString());
 
+        await new Promise(resolve => setTimeout(resolve, 5000));
 
-        await logBalances("Before");
+        // await logBalances("Before");
         await (await fenixSwap.swap(poolAddress, usdPlusBalance, 0n, false, gas)).wait();
-        await logBalances("After");
-
-
-
+        // await logBalances("After");
 
         globalState = await pool.globalState()
         console.log("Ratio after swap:   ", globalState[0].toString());
 
-
-        await hre.network.provider.request({
-            method: "hardhat_impersonateAccount",
-            params: [timelock.address],
-        });
-
-        const timelockAccount = await hre.ethers.getSigner(timelock.address);
-        
-        console.log("hardhat_impersonateAccount DONE")
-
-        await (await pm.connect(timelockAccount).grantRole(await pm.PORTFOLIO_AGENT_ROLE(), timelockAccount.address));
-
-        console.log("PORTFOLIO_AGENT_ROLE granted")
-
-        await (await pm.connect(timelockAccount).balance(gas)).wait();
-
-        await hre.network.provider.request({
-            method: "hardhat_stopImpersonatingAccount",
-            params: [timelock.address],
-        });
-
+        await (await pm.balance(gas)).wait();
 
         globalState = await pool.globalState()
         console.log("Ratio after balance:", globalState[0].toString());
 
-        console.log("waiting for 1 second...");
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 seconds between iterations
+        console.log("waiting for 3 seconds...");
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds between iterations
 
         let usdbBalanceTMP = await usdb.balanceOf(wallet.address);
         console.log("USDB balance at the end of iteration: " + usdbBalanceTMP.toString());

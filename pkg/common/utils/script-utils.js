@@ -392,7 +392,7 @@ async function getERC721(name, wallet) {
 
 async function getERC20ByAddress(address, wallet) {
 
-    console.log("address in getERC20ByAddress: ", address);
+    // console.log("address in getERC20ByAddress: ", address);
 
     let ethers = hre.ethers;
 
@@ -571,7 +571,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
     }
 
 
-    let strategiesMapping = await getStrategyMapping();
+    // let strategiesMapping = await getStrategyMapping();
 
     let sum = 0;
 
@@ -584,11 +584,11 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
             continue;
         }
 
-        let mapping = strategiesMapping.find(value => value.address === asset.strategy);
+        // let mapping = strategiesMapping.find(value => value.address === asset.strategy);
 
         items.push(
             {
-                name: mapping ? mapping.name : asset.strategy,
+                name: asset.strategy,
                 netAssetValue: fromAsset(asset.netAssetValue.toString(), stand),
                 liquidationValue: fromAsset(asset.liquidationValue.toString(), stand),
                 targetWeight: weight.targetWeight.toNumber() / 1000,
