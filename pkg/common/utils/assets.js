@@ -454,7 +454,8 @@ let BLAST = {
     earlyZERO: "0x81b3184A3B5d4612F2c26A53Da8D99474B91B2D2",
     // oracles
     oracleApi3Usdb: "0x1f41f26933e83ef6178E3368BD01662882c06677",
-    oracleApi3Eth: "0xa47Fd122b11CdD7aad7c3e8B740FB91D83Ce43D1"
+    oracleApi3Eth: "0xa47Fd122b11CdD7aad7c3e8B740FB91D83Ce43D1",
+    fnx: "0x52f847356b38720B55ee18Cb3e094ca11C85A192"
 }
 
 function getAsset(name) {

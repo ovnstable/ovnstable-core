@@ -142,7 +142,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         return _withdraw(_asset, 0, true);
     }
 
-    function _totalValue() internal view returns (uint256) {
+    function _totalValue() internal view returns (uint256) { 
         uint256 amount0 = 0;
         uint256 amount1 = 0;
 
@@ -159,6 +159,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         uint256 totalValue = amount0 + amount1 + usdb.balanceOf(address(this)) + usdPlus.balanceOf(address(this));
         return totalValue;
     }
+
 
     function _deposit(uint256 amount0, uint256 amount1, uint256 lockedAmount0, uint256 lockedAmount1, bool zeroForOne) internal {
 
@@ -200,7 +201,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
             });
             (tokenLP,,,) = npm.mint(params);
         } else {
-            // этот кейс еще не тестил (!!!)
             INonfungiblePositionManager.IncreaseLiquidityParams memory params = INonfungiblePositionManager.IncreaseLiquidityParams({
                 tokenId: tokenLP,
                 amount0Desired: amount0,
@@ -215,6 +215,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
    
     function _withdraw(address asset, uint256 amount, bool isFull) internal returns (uint256) {
         (,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
+        
         if (liquidity == 0) {
             return 0;
         }
@@ -227,7 +228,8 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
             deadline: block.timestamp
         });
 
-        npm.decreaseLiquidity(params); 
+        npm.decreaseLiquidity(params);
+
         _claimFees();
 
         if (!isFull) {
@@ -287,7 +289,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
                     amount, 
                     0, 
                     false,
-                    // todo fix borders 
                     MIN_STABLE_SQRT_RATIO,
                     MAX_STABLE_SQRT_RATIO 
                 );
@@ -297,6 +298,8 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         }
         return IERC20(asset).balanceOf(address(this));
     }
+
+
 
 
     function _simulateSwap(uint256 amount0, uint256 amount1, bool zeroForOne) internal returns (uint256 amountToSwap) {
@@ -364,7 +367,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         BinSearchParams memory binSearchParams;
         binSearchParams.right = availableAmount1;
 
-        for (uint256 i = 0; i < binSearchIterations; i++) { // 20 -> binSearchIterations
+        for (uint256 i = 0; i < binSearchIterations; i++) {
             binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;
 
             if (binSearchParams.mid == 0) {
@@ -405,11 +408,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         return a * d > b * c;
     }
 
-    function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        _claimFees();
-        _swapAllToUsdb();
-        return usdb.balanceOf(address(this));
-    }
 
     function _claimFees() internal {
         INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
@@ -433,30 +431,32 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         uint256 fnxBalance = fnx.balanceOf(address(this));
 
         if (usdPlusBalance > 0) {
-            (uint160 sqrtRatioUsdbUsdPlusX96,,,,,,) = poolUsdbUsdPlus.slot0(); 
             usdPlus.transfer(address(swapSimulator), usdPlusBalance);
             swapSimulator.swap(
-                address(poolUsdbUsdPlus), 
+                address(pool), 
                 usdPlusBalance, 
                 0, 
                 false,
-                sqrtRatioUsdbUsdPlusX96 * uint160((10000 - rewardSwapSlippageBP) / 10000),
-                sqrtRatioUsdbUsdPlusX96 * uint160((10000 + rewardSwapSlippageBP) / 10000)
+                MIN_STABLE_SQRT_RATIO,
+                MAX_STABLE_SQRT_RATIO
             );
-            swapSimulator.withdrawAll(address(poolUsdbUsdPlus));
+            swapSimulator.withdrawAll(address(pool));
         }
 
+        
         if (fnxBalance > 0) {
-            (uint160 sqrtRatioFnxUsdbX96,,,,,,) = poolFnxUsdb.slot0(); 
-            fnx.transfer(address(swapSimulator), fnxBalance);
-            swapSimulator.swap(
-                address(poolFnxUsdb), 
-                fnxBalance, 
-                0, 
-                true,
-                sqrtRatioFnxUsdbX96 * uint160((10000 - rewardSwapSlippageBP) / 10000),
-                sqrtRatioFnxUsdbX96 * uint160((10000 + rewardSwapSlippageBP) / 10000)
-            );
+                (uint160 sqrtRatioFnxUsdbX96,,,,,) = poolFnxUsdb.globalState();
+                fnx.transfer(address(swapSimulator), fnxBalance);
+
+                swapSimulator.swap(
+                    address(poolFnxUsdb), 
+                    fnxBalance, 
+                    0, 
+                    false,
+                    sqrtRatioFnxUsdbX96 * uint160((10000 - rewardSwapSlippageBP)) / 10000,
+                    sqrtRatioFnxUsdbX96 * uint160((10000 + rewardSwapSlippageBP)) / 10000
+                );
+
             swapSimulator.withdrawAll(address(poolFnxUsdb)); 
         } 
     }

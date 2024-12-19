@@ -67,6 +67,8 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
             tickSpacing: pool.tickSpacing()
         });
 
+        (uint160 oldSqrtRatioX96,,,,,) = pool.globalState();
+
         pool.swap( 
             address(this), 
             zeroForOne, 
@@ -140,8 +142,11 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         int256 amount1Delta,
         bytes calldata _data
     ) external {
-
+        console.log("strategy: ", strategy);
+        console.log("factory:  ", factory);
+        console.log("aSCb-1");
         SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
+        console.log("aSCb-2");
 
         (bool isExactInput, uint256 amountToPay) =
             amount0Delta > 0
@@ -149,10 +154,14 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
                 : (data.tokenB < data.tokenA, uint256(amount1Delta));
 
         if (isExactInput) {
+            console.log("aSCb-3");
             IERC20(data.tokenA).transfer(msg.sender, amountToPay);
         } else {
+            console.log("aSCb-4");
             IERC20(data.tokenB).transfer(msg.sender, amountToPay);
         }
+
+        console.log("aSCb-5");
 
     }
 

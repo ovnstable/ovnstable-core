@@ -13,6 +13,9 @@ const {BLAST} = require("@overnight-contracts/common/utils/assets");
 const { toAsset } = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
+
+    usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', '0xBa6b468e6672514f3c59D5D8B8731B1956BA5D22')
+    let strategy = await getContract('StrategyFenixSwap', 'blast');
     // console.log("testFenixSwap #2 - unstake")
 
     // usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', '0xBa6b468e6672514f3c59D5D8B8731B1956BA5D22')
@@ -71,20 +74,98 @@ async function main() {
 
     // AMOUNT OF USDB THAT NEED TO BE SWAPED TO REACH TICK
 
-    console.log("   We are in testFenixSwap.js")
+    // console.log("   We are in testFenixSwap.js")
 
-    let strategy = await getContract('StrategyFenixSwap', 'blast');
+    // let strategy = await getContract('StrategyFenixSwap', 'blast');
 
-    console.log("   Переводим USDB на баланс страткгии")
-    console.log("   Адрес: ", strategy.address)
+    // console.log("   Переводим USDB на баланс страткгии")
+    // console.log("   Адрес: ", strategy.address)
 
-    await transferAsset(BLAST.usdb, strategy.address, toAsset(350000));
+    // await transferAsset(BLAST.usdb, strategy.address, toAsset(350000));
 
-    console.log("   Дергаем swapAmountToReachTick")
+    // console.log("   Дергаем swapAmountToReachTick")
 
-    await (await strategy.swapAmountToReachTick()).wait();
+    // await (await strategy.swapAmountToReachTick()).wait();
 
-    console.log("   Всё работает")
+    // console.log("   Всё работает")
+
+    
+
+    // _TOTAL_VALUE
+    // await (await strategy.testPositionTVL()).wait();
+    // // 1701974.095295156905617462
+    
+
+    // CLAIM_FEES // .048631500534465923
+    // console.log("#1");
+    // usdbBefore = await usdb.balanceOf(strategy.address);
+    // console.log("usdbBefore ", usdbBefore)
+
+    // await (await strategy.testClaimFees()).wait();
+
+    // usdbAfter = await usdb.balanceOf(strategy.address);
+    // console.log("usdbAfter ", usdbAfter)
+    // console.log("Difference: ", usdbAfter - usdbBefore)
+
+
+    // TEST FNX SWAP
+    // console.log("Transfering...")
+    // await transferAsset(BLAST.fnx, strategy.address, toAsset(56));
+
+    // console.log("Testing")
+    // await (await strategy.testFnxSwap()).wait();
+
+    // console.log("All right!")
+
+
+    // TEST REINVEST
+    // console.log("Transfering FNX to simulate rewards clam...");
+    // await transferAsset(BLAST.fnx, strategy.address, toAsset(560)); // примерно 39$
+
+    // console.log("Testing reinvest...");
+    // await (await strategy.testReinvest()).wait();
+
+    // // TVL difference:  39.512746419812816364 $
+
+    // console.log("All right!")
+
+
+
+
+    //  TEST WITHDRAW PART
+
+    // 34042014965045101609321656874
+
+    // usdbBefore = await usdb.balanceOf(strategy.address);
+    // console.log("usdbBefore ", usdbBefore)
+
+    // await (await strategy.testWithdraw(239000000000000000000n)).wait();
+
+    // usdbAfter = await usdb.balanceOf(strategy.address);
+    // console.log("usdbAfter ", usdbAfter)
+    // console.log("Difference: ", usdbAfter - usdbBefore)
+
+    // console.log("All right!")
+
+    // testWithdraw
+
+
+
+
+
+
+    //  TEST WITHDRAW FULL
+
+    usdbBefore = await usdb.balanceOf(strategy.address);
+    console.log("usdbBefore ", usdbBefore)
+
+    await (await strategy.testWithdraw()).wait();
+
+    usdbAfter = await usdb.balanceOf(strategy.address);
+    console.log("usdbAfter ", usdbAfter)
+    console.log("Difference: ", usdbAfter - usdbBefore)
+
+    console.log("All right!")
 }
 
 main()
