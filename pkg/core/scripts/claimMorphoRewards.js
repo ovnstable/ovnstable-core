@@ -74,7 +74,17 @@ async function main() {
     // addProposalItem(morphoBeta, 'claimMerkleTreeRewards', [COMMON.rewardWallet, dataBeta, BASE.morphoChainAgnosticBundler]);
     
     // await morphoAlpha.connect(account3).claimMerkleTreeRewards(COMMON.rewardWallet, dataAlpha, BASE.morphoChainAgnosticBundler);
+
+
+
+
+
     await morphoBeta.connect(account3).claimMerkleTreeRewards(COMMON.rewardWallet, dataBeta, BASE.morphoChainAgnosticBundler);
+
+
+
+
+    
     // await morphoBeta.connect(wallet).claimMerkleTreeRewards(COMMON.rewardWallet, dataBeta, BASE.morphoChainAgnosticBundler);
 
     console.log("alpha well", (await well.balanceOf(morphoAlpha.address)).toString());
