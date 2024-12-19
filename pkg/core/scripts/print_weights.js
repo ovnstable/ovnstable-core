@@ -6,9 +6,7 @@ async function main() {
     let pm = await getContract('PortfolioManager');
 
 
-    let weights = await pm.getAllStrategyWeights();
-
-    let strategiesMapping = await getStrategyMapping();
+    let weights = await pm.getAllStrategyWeightsWithNames();
 
 
     let items = [];
@@ -17,18 +15,15 @@ async function main() {
         let weight = weights[i];
 
 
-        let mapping = strategiesMapping.find(value => value.address === weight.strategy);
-
-
         let item = {
-            "strategy": weight.strategy,
-            "name": mapping ? mapping.name : 'Not found',
-            "minWeight": weight.minWeight / 1000,
-            "targetWeight": weight.targetWeight / 1000,
-            "riskFactor": weight.riskFactor / 1000,
-            "maxWeight": weight.maxWeight / 1000,
-            "enabled": weight.enabled,
-            "enabledReward": weight.enabledReward
+            "strategy": weight.weight.strategy,
+            "name": weight.name ? weight.name : 'Not found',
+            "minWeight": weight.weight.minWeight / 1000,
+            "targetWeight": weight.weight.targetWeight / 1000,
+            "riskFactor": weight.weight.riskFactor / 1000,
+            "maxWeight": weight.weight.maxWeight / 1000,
+            "enabled": weight.weight.enabled,
+            "enabledReward": weight.weight.enabledReward
         };
 
         items.push(item);
