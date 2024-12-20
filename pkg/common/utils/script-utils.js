@@ -1058,6 +1058,9 @@ async function transferAsset(assetAddress, to, amount) {
                 case BLAST.usdb:
                     from = '0x236F233dBf78341d25fB0F1bD14cb2bA4b8a777c';
                     break;
+                case BLAST.fnx:
+                    from = '0x1Ab7C6aD635d99C9637E08a95290a21d677501de';
+                    break;
                 default:
                     throw new Error('Unknown asset address');
             }
