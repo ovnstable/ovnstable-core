@@ -137,6 +137,8 @@ async function settingSection(id, exec, wallet) {
             let pm = await getContract('PortfolioManager', process.env.STAND);
             let roleManager = await getContract('RoleManager', process.env.STAND);
             await (await strategy.setStrategyParams(pm.address, roleManager.address)).wait();
+            // await (await strategy.setStrategyParams(wallet.address, roleManager.address)).wait();
+
             await exec(strategy);
             try {
                 await setDepositor(strategyName, strategy);
@@ -390,7 +392,7 @@ async function getERC721(name, wallet) {
 
 async function getERC20ByAddress(address, wallet) {
 
-    console.log("address in getERC20ByAddress: ", address);
+    // console.log("address in getERC20ByAddress: ", address);
 
     let ethers = hre.ethers;
 
@@ -569,7 +571,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
     }
 
 
-    let strategiesMapping = await getStrategyMapping();
+    // let strategiesMapping = await getStrategyMapping();
 
     let sum = 0;
 
@@ -582,11 +584,11 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
             continue;
         }
 
-        let mapping = strategiesMapping.find(value => value.address === asset.strategy);
+        // let mapping = strategiesMapping.find(value => value.address === asset.strategy);
 
         items.push(
             {
-                name: mapping ? mapping.name : asset.strategy,
+                name: asset.strategy,
                 netAssetValue: fromAsset(asset.netAssetValue.toString(), stand),
                 liquidationValue: fromAsset(asset.liquidationValue.toString(), stand),
                 targetWeight: weight.targetWeight.toNumber() / 1000,
@@ -1054,7 +1056,10 @@ async function transferAsset(assetAddress, to, amount) {
         case "BLAST":
             switch (assetAddress) {
                 case BLAST.usdb:
-                    from = '0x15c59df002950e3b7e287de9c0c91aa63e8d9937';
+                    from = '0x236F233dBf78341d25fB0F1bD14cb2bA4b8a777c';
+                    break;
+                case BLAST.fnx:
+                    from = '0x1Ab7C6aD635d99C9637E08a95290a21d677501de';
                     break;
                 default:
                     throw new Error('Unknown asset address');

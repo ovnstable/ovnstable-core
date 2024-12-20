@@ -36,10 +36,12 @@ async function main() {
 
 
     let names = [
-        'StrategySiloUsdcUsdPlus',
-        "StrategySiloUsdcCbBTC",
-        "StrategySiloUsdcWstETH",
-        "StrategySiloUsdcCbETH"
+        // 'StrategySiloUsdcUsdPlus',
+        // "StrategySiloUsdcCbBTC",
+        // "StrategySiloUsdcWstETH",
+        // "StrategySiloUsdcCbETH"
+        "SwapSimulatorFenix",
+        "StrategyFenixSwap"
     ]
     // let mainAddress = (await initWallet()).address;
     // await transferETH(100, mainAddress);   
