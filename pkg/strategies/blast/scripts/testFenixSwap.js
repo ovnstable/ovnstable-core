@@ -156,16 +156,56 @@ async function main() {
 
     //  TEST WITHDRAW FULL
 
-    usdbBefore = await usdb.balanceOf(strategy.address);
-    console.log("usdbBefore ", usdbBefore)
+    // usdbBefore = await usdb.balanceOf(strategy.address);
+    // console.log("usdbBefore ", usdbBefore)
 
-    await (await strategy.testWithdraw()).wait();
+    // await (await strategy.testWithdraw()).wait();
 
-    usdbAfter = await usdb.balanceOf(strategy.address);
-    console.log("usdbAfter ", usdbAfter)
-    console.log("Difference: ", usdbAfter - usdbBefore)
+    // usdbAfter = await usdb.balanceOf(strategy.address);
+    // console.log("usdbAfter ", usdbAfter)
+    // console.log("Difference: ", usdbAfter - usdbBefore)
 
+    // console.log("All right!")
+
+
+
+    // TEST testPartLiquidityCalculation - ЧУТЬ-ЧУТЬ
+
+    // console.log("START!")
+    // await (await strategy.testWithdrawPart(3400000000000000000000n)).wait();
+    // // 3429091280845307043052
+    // // 3399986302965693137216
+    // console.log("All right!")
+
+
+    // TEST testPartLiquidityCalculation - СИЛЬНО
+
+    // console.log("START!")
+    // await (await strategy.testWithdrawPart(1400000000000000000000000n)).wait();
+    // // 3429091280845307043052
+    // console.log("All right!")
+
+
+    // 29283941664838604765403
+    // 1400000000000000000000000
+    // 1457611167498866446291531
+
+
+
+
+
+    // TEST достать всю ликвидность
+
+    console.log("START!")
+    await (await strategy.testWithdrawFull()).wait();
     console.log("All right!")
+
+    // testWithdrawFull
+
+    // 12388.956662969029644480
+    // 
+
+
 }
 
 main()
@@ -177,4 +217,16 @@ main()
 
     // 350000000000000000000000
     // 154282278162823436000000
+
+    // 13837119302442502
     
+    
+    // 69295651157794274968659454035
+    // 69498586290896228577819235694
+    // 6800509971600657896242374981
+    // 68005099716006578962423749
+
+
+
+    // 68005099716006578962423749
+    // 68345125214586611857235867
