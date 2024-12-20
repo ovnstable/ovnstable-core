@@ -204,6 +204,13 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
 
     // Enable verification contract after deploy
     if (hre.ovn.verify) {
+        console.log(`Verify impl [${implAddress}] ....`);
+
+        await hre.run('verify:verify', {
+            address: implAddress,
+            constructorArguments: [],
+        });
+
         console.log(`Verify proxy [${proxy.address}] ....`);
 
         try {
@@ -214,13 +221,6 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         } catch (e) {
             console.log(e);
         }
-
-        console.log(`Verify impl [${implAddress}] ....`);
-
-        await hre.run('verify:verify', {
-            address: implAddress,
-            constructorArguments: [],
-        });
     }
 
     if (hre.ovn.gov) {
