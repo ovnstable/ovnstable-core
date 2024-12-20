@@ -180,9 +180,9 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
             {
                 kind: 'uups',
                 unsafeAllow: unsafeAllow,
-                redeployImplementation: "always"
-                // unsafeSkipStorageCheck: true,
-                // unsafeAllowRenames: true
+                redeployImplementation: "always",
+                unsafeSkipStorageCheck: true,
+                unsafeAllowRenames: true
             },
             proxy.address,
         );

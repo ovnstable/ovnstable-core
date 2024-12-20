@@ -12,11 +12,17 @@ const { Roles } = require('@overnight-contracts/common/utils/roles');
 
 // hh deploy --tags StrategyFenixSwap --impl --verify --network blast 
 
+
 let strategyName = 'StrategyFenixSwap';
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
-    
+
+    let timelock = await getContract('AgentTimelock');
+    await transferETH(1, '0x8df424e487De4218B347e1798efA11A078fecE90');
+    await transferETH(1, timelock.address); //0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+    await transferETH(1, '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266');
+
     await deploySection(async (name) => {
         await deployProxy(name, deployments, save);
     });
@@ -37,7 +43,8 @@ async function getParams() {
         upperTick: 0,
         fnxTokenAddress: '0x52f847356b38720b55ee18cb3e094ca11c85a192',
         poolFnxUsdb: '0xb3B4484bdFb6885f96421c3399B666a1c9D27Fca',
-        rewardSwapSlippageBP: 50
+        rewardSwapSlippageBP: 50,
+        liquidityDecreaseDeviationBP: 500
     };
 }
 

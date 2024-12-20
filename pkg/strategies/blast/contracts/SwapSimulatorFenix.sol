@@ -40,8 +40,33 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
 
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
+
+
+    // function swap(address pair, uint256 amountIn, uint160 sqrtPriceLimitX96, bool zeroForOne) public onlyStrategy {
+    //     ICLPool pool = ICLPool(pair);
+
+    //     SwapCallbackData memory data = SwapCallbackData({
+    //         tokenA: pool.token0(),
+    //         tokenB: pool.token1(),
+    //         tickSpacing: pool.tickSpacing()
+    //     }); 
+
+    //     pool.swap(address(this), zeroForOne, int256(amountIn), sqrtPriceLimitX96, abi.encode(data));
+
+    //     (uint160 newSqrtRatioX96,,,,,) = pool.globalState();
+
+    //     if (newSqrtRatioX96 < sqrtPriceLimitX96 && zeroForOne || newSqrtRatioX96 > sqrtPriceLimitX96 && !zeroForOne) {
+    //         console.log("Yes, revert!");
+    //         revert SlippageError(amountIn, newSqrtRatioX96, sqrtPriceLimitX96, zeroForOne);
+    //     }
+    // }
+
+
     function swap(address pair, uint256 amountIn, uint160 sqrtPriceLimitX96, bool zeroForOne) public onlyStrategy {
         ICLPool pool = ICLPool(pair);
+        
+        console.log("   SS.swap: USD+ at start ", IERC20(pool.token1()).balanceOf(address(this)));
+        console.log("   SS.swap: USD+ amountIn ", amountIn);
 
         SwapCallbackData memory data = SwapCallbackData({
             tokenA: pool.token0(),
@@ -49,14 +74,33 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
             tickSpacing: pool.tickSpacing()
         });
 
-        pool.swap(address(this), zeroForOne, int256(amountIn), sqrtPriceLimitX96, abi.encode(data));
+        console.log("   SS.swap: USD+ before swap ", IERC20(pool.token1()).balanceOf(address(this)));
+        console.log("   SS.swap: USDB before swap ", IERC20(pool.token0()).balanceOf(address(this))); 
+
+        uint160 poolBorder;
+
+        if (zeroForOne) { // pool.swap не кидает ошибку, если после свапа суммы была превышена граница, которую мы ему передали. Он просто меняет ту сумму, которая позволяет не превысить указанный порог. 
+        // Это усложняет обработку ошибок, поэтому мы спецаильно указывем для него такие границы, чтобы он всегда менял всю необходимую сумму. А уже потом мы отдельно смотрим, что произошло с ценой и, если надо, сами кидаем реверт. 
+            poolBorder = 1;
+        } else {
+            poolBorder = type(uint160).max / 100000;
+        }
+
+        pool.swap(address(this), zeroForOne, int256(amountIn), poolBorder, abi.encode(data));
+        // pool.swap(address(this), zeroForOne, int256(amountIn), sqrtPriceLimitX96, abi.encode(data));
+
+        console.log("   SS.swap: USD+ after swap  ", IERC20(pool.token1()).balanceOf(address(this)));
+        console.log("   SS.swap: USDB after swap  ", IERC20(pool.token0()).balanceOf(address(this)));
 
         (uint160 newSqrtRatioX96,,,,,) = pool.globalState();
 
-        if (newSqrtRatioX96 > sqrtPriceLimitX96 && zeroForOne || newSqrtRatioX96 < sqrtPriceLimitX96 && !zeroForOne) {
+        if (newSqrtRatioX96 < sqrtPriceLimitX96 && zeroForOne || newSqrtRatioX96 > sqrtPriceLimitX96 && !zeroForOne) {
+            console.log("Yes, revert!");
             revert SlippageError(amountIn, newSqrtRatioX96, sqrtPriceLimitX96, zeroForOne);
         }
     }
+
+
 
     function simulateSwap(address pair, uint256 amountIn, bool zeroForOne, int24 lowerTick, int24 upperTick) external onlyStrategy {
         ICLPool pool = ICLPool(pair);
