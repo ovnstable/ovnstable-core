@@ -1,31 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@overnight-contracts/core/contracts/Strategy.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Fenix.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "hardhat/console.sol";
+import {Strategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable, IERC20, IERC20Metadata} from "@overnight-contracts/core/contracts/Strategy.sol";
+import {ICLPool, TickMath, LiquidityAmounts} from "@overnight-contracts/connectors/contracts/stuff/Fenix.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
-
+import "hardhat/console.sol";
 
 contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
-    uint160 constant MIN_STABLE_SQRT_RATIO = 79224201403219477170569942574;
-    uint160 constant MAX_STABLE_SQRT_RATIO = 79228162514264337593543950336;
-    
     struct SwapCallbackData {
         address tokenA;
         address tokenB;
         int24 tickSpacing;
     }
 
-    struct SimulationParams {
-        address strategy;
-        address factory;
-    }
-
     address public strategy;
-    address factory;
 
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "!admin");
@@ -44,21 +34,13 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function setSimulationParams(SimulationParams calldata params) external onlyAdmin {
-        strategy = params.strategy;
-        factory = params.factory;
+    function setStrategy(address _strategy) external onlyAdmin {
+        strategy = _strategy;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
-    function swap(
-        address pair,
-        uint256 amountIn,
-        uint160 sqrtPriceLimitX96,
-        bool zeroForOne,
-        uint160 minSqrtRatio,
-        uint160 maxSqrtRatio
-    ) public onlyStrategy {
+    function swap(address pair, uint256 amountIn, uint160 sqrtPriceLimitX96, bool zeroForOne) public onlyStrategy {
         ICLPool pool = ICLPool(pair);
 
         SwapCallbackData memory data = SwapCallbackData({
@@ -67,80 +49,45 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
             tickSpacing: pool.tickSpacing()
         });
 
-        (uint160 oldSqrtRatioX96,,,,,) = pool.globalState();
-
-        pool.swap( 
-            address(this), 
-            zeroForOne, 
-            int256(amountIn), 
-            sqrtPriceLimitX96 == 0
-                ? (zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1)
-                : sqrtPriceLimitX96, 
-            abi.encode(data)
-        );
+        pool.swap(address(this), zeroForOne, int256(amountIn), sqrtPriceLimitX96, abi.encode(data));
 
         (uint160 newSqrtRatioX96,,,,,) = pool.globalState();
 
-        if (newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) {
-            revert SlippageError(
-                newSqrtRatioX96,
-                minSqrtRatio,
-                maxSqrtRatio,
-                0
-            );
+        if (newSqrtRatioX96 > sqrtPriceLimitX96 && zeroForOne || newSqrtRatioX96 < sqrtPriceLimitX96 && !zeroForOne) {
+            revert SlippageError(amountIn, newSqrtRatioX96, sqrtPriceLimitX96, zeroForOne);
         }
     }
 
-    function simulateSwap(
-        address pair,
-        uint256 amountIn,
-        uint160 sqrtPriceLimitX96,
-        bool zeroForOne,
-        int24[] memory tickRange
-    ) external onlyStrategy {
+    function simulateSwap(address pair, uint256 amountIn, bool zeroForOne, int24 lowerTick, int24 upperTick) external onlyStrategy {
         ICLPool pool = ICLPool(pair);
-        address token0 = pool.token0();
-        address token1 = pool.token1();
+        uint160 borderForSwap = TickMath.getSqrtRatioAtTick(zeroForOne ? lowerTick : upperTick);
 
-        swap(pair, amountIn, sqrtPriceLimitX96, zeroForOne, MIN_STABLE_SQRT_RATIO, MAX_STABLE_SQRT_RATIO);
+        swap(pair, amountIn, borderForSwap, zeroForOne);
 
         uint256[] memory ratio = new uint256[](2);
-
-        (ratio[0], ratio[1]) = _getProportion(pool, tickRange);
+        (ratio[0], ratio[1]) = _getProportion(pool, lowerTick, upperTick);
 
         revert SwapError(
-            IERC20(token0).balanceOf(address(this)),
-            IERC20(token1).balanceOf(address(this)),
+            IERC20(pool.token0()).balanceOf(address(this)),
+            IERC20(pool.token1()).balanceOf(address(this)),
             ratio[0],
             ratio[1]
         );
     }
 
-    function simulatePriceAfterSwap(
-        address pair,
-        uint256 amountIn,
-        bool zeroForOne
-    ) external onlyStrategy {
+    function simulatePriceAfterSwap(address pair, uint256 amountIn, bool zeroForOne) external onlyStrategy {
         ICLPool pool = ICLPool(pair);
+        uint160 borderForSwap = zeroForOne ? type(uint160).min: type(uint160).max;
 
-        swap(pair, amountIn, 0, zeroForOne, type(uint160).min, type(uint160).max);
+        swap(pair, amountIn, borderForSwap, zeroForOne);
 
         (uint160 priceSqrtRatioX96,,,,,) = pool.globalState();
-
         revert PriceAfterSwapError(priceSqrtRatioX96);
     }
 
-    function uniswapV3SwapCallback (
-        int256 amount0Delta,
-        int256 amount1Delta,
-        bytes calldata _data
-    ) external {}
+    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external {}
 
-    function algebraSwapCallback ( 
-        int256 amount0Delta,
-        int256 amount1Delta,
-        bytes calldata _data
-    ) external {
+    function algebraSwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external {
         SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
         
         (bool isExactInput, uint256 amountToPay) =
@@ -148,11 +95,7 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
                 ? (data.tokenA < data.tokenB, uint256(amount0Delta))
                 : (data.tokenB < data.tokenA, uint256(amount1Delta));
 
-        if (isExactInput) {
-            IERC20(data.tokenA).transfer(msg.sender, amountToPay);
-        } else {
-            IERC20(data.tokenB).transfer(msg.sender, amountToPay);
-        }
+        IERC20(isExactInput ? data.tokenA : data.tokenB).transfer(msg.sender, amountToPay);
     }
 
     function withdrawAll(address pair) external onlyStrategy {
@@ -167,18 +110,15 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         }
     }
 
-    function _getProportion(
-        ICLPool pool,
-        int24[] memory tickRange
-    ) internal view returns (uint256 token0Amount, uint256 token1Amount) {
+    function _getProportion(ICLPool pool, int24 lowerTick, int24 upperTick) internal view returns (uint256 token0Amount, uint256 token1Amount) {
         IERC20Metadata token0 = IERC20Metadata(pool.token0());
         IERC20Metadata token1 = IERC20Metadata(pool.token1());
         uint256 dec0 = 10 ** token0.decimals();
         uint256 dec1 = 10 ** token1.decimals();
         (uint160 sqrtRatioX96,,,,,) = pool.globalState();
 
-        uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(tickRange[0]);
-        uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(tickRange[1]);
+        uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(lowerTick);
+        uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(upperTick);
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, sqrtRatio0, sqrtRatio1, dec0 * 1000, dec1 * 1000);
         (token0Amount, token1Amount) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatio0, sqrtRatio1, liquidity);
         uint256 denominator = dec0 > dec1 ? dec0 : dec1;

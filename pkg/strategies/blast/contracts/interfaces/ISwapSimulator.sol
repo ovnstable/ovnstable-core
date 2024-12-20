@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.8.0 <0.9.0;
+
 interface ISwapSimulator {
     /// @notice Error containing information about a swap (for a simulation)
     /// @param balance0 The balance of token0 after the swap
@@ -16,27 +19,25 @@ interface ISwapSimulator {
     );
 
     error SlippageError(
-        uint160 curSqrtRatio,
-        uint160 minSqrtRatio,
-        uint160 maxSqrtRatio,
-        uint256 check        
+        uint256 amountIn,
+        uint160 newSqrtRatioX96,
+        uint160 sqrtPriceLimitX96,
+        bool zeroForOne
     );
 
     function swap(
         address pair,
         uint256 amountIn,
         uint160 sqrtPriceLimitX96,
-        bool zeroForOne,
-        uint160 minSqrtRatio, 
-        uint160 maxSqrtRatio
+        bool zeroForOne
     ) external;
 
     function simulateSwap(
         address pair,
         uint256 amountIn,
-        uint160 sqrtPriceLimitX96,
         bool zeroForOne,
-        int24[] memory tickRange
+        int24 lowerTick,
+        int24 upperTick
     ) external;
 
     function simulatePriceAfterSwap(
