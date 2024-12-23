@@ -5,7 +5,6 @@ import {Strategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable, IERC
 import {ICLPool, TickMath, LiquidityAmounts} from "@overnight-contracts/connectors/contracts/stuff/Fenix.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
-import "hardhat/console.sol";
 
 contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -40,7 +39,6 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
 
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
-
     function swap(address pair, uint256 amountIn, uint160 sqrtPriceLimitX96, bool zeroForOne) public onlyStrategy {
         ICLPool pool = ICLPool(pair);
         
@@ -61,7 +59,6 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         }
     }
     
-
     function simulateSwap(address pair, uint256 amountIn, bool zeroForOne, int24 lowerTick, int24 upperTick) external onlyStrategy {
         ICLPool pool = ICLPool(pair);
         uint160 borderForSwap = TickMath.getSqrtRatioAtTick(zeroForOne ? lowerTick : upperTick);
@@ -79,7 +76,6 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         );
     }
 
-
     function simulatePriceAfterSwap(address pair, uint256 amountIn, bool zeroForOne) external onlyStrategy {
         ICLPool pool = ICLPool(pair);
         uint160 borderForSwap = zeroForOne ? type(uint160).min: type(uint160).max;
@@ -89,7 +85,6 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         (uint160 priceSqrtRatioX96,,,,,) = pool.globalState();
         revert PriceAfterSwapError(priceSqrtRatioX96);
     }
-
 
     function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external {}
 
@@ -104,7 +99,6 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
         IERC20(isExactInput ? data.tokenA : data.tokenB).transfer(msg.sender, amountToPay);
     }
 
-
     function withdrawAll(address pair) external onlyStrategy {
         ICLPool pool = ICLPool(pair);
         IERC20 token0 = IERC20(pool.token0());
@@ -116,7 +110,6 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
             token1.transfer(msg.sender, token1.balanceOf(address(this)));
         }
     }
-
 
     function _getProportion(ICLPool pool, int24 lowerTick, int24 upperTick) internal view returns (uint256 token0Amount, uint256 token1Amount) {
         IERC20Metadata token0 = IERC20Metadata(pool.token0());

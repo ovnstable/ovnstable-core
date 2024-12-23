@@ -5,7 +5,6 @@ import {Strategy, IERC20} from "@overnight-contracts/core/contracts/Strategy.sol
 import {ICLPool, TickMath, LiquidityAmounts, INonfungiblePositionManager, IDistributor, FullMath} from "@overnight-contracts/connectors/contracts/stuff/Fenix.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
-import "hardhat/console.sol";
 
 contract StrategyFenixSwap is Strategy, IERC721Receiver {
 
@@ -114,7 +113,14 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
     }
 
     function _unstake(address _asset, uint256 _amount, address) internal override returns (uint256) {
-        return 0;
+        require(_asset == address(usdb), "Some tokens are not compatible");
+        require(_amount > 0, "Amount is less than or equal to 0"); 
+        require(tokenLP != 0, "Not staked");
+
+        _withdraw(_amount, false);
+        uint256 assetBalance = usdb.balanceOf(address(this));
+
+        return assetBalance > _amount ? _amount : assetBalance;
     }
 
     function _unstakeFull(address _asset, address) internal override returns (uint256) {
@@ -143,7 +149,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         
         return amount0 + amount1 + usdb.balanceOf(address(this)) + usdPlus.balanceOf(address(this));
     }
-
 
     function _deposit(uint256 assetToLock, bool zeroForOne) internal {
         uint256 amount0 = usdb.balanceOf(address(this));
@@ -215,7 +220,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
             liquidity
         );
 
-        
         uint128 requiredLiquidityWithReserve;
 
         if ((amount0 > 0 || amount1 > 0)  && !isFull) {
@@ -244,7 +248,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
             deadline: block.timestamp
         });
             
-
         npm.decreaseLiquidity(params);         
         
         _claimFees();
@@ -287,7 +290,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
     }
 
     function _simulateSwap(bool zeroForOne) internal returns (uint256 amountToSwap) {
-
         uint256 amount0 = usdb.balanceOf(address(swapSimulator));
         uint256 amount1 = usdPlus.balanceOf(address(swapSimulator));
 

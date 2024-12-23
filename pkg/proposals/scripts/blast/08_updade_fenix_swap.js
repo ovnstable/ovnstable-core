@@ -11,12 +11,15 @@ async function main() {
     let abis = [];
 
     let fenixSwap = await getContract('StrategyFenixSwap', 'blast');
-    let newImplementation = "0xCd5422de33eC046dffF87ba12B13d0eF6543A032"
+    let fenixSwapImp = "0x61F9F46d2Ded399bb14A03F309B02903999c3Bd3"
 
-    addProposalItem(fenixSwap, 'upgradeTo', [newImplementation])
-    // abis.push(fenixSwap.interface.encodeFunctionData('upgradeTo', [newImplementation]));
+    let swapSimulator = await getContract('SwapSimulatorFenix', 'blast');
+    let swapSimulatorImp = "0xE8b9F540D3fDD9B60CBFfE73d27Cc67d77054146"
 
+    addProposalItem(fenixSwap, 'upgradeTo', [fenixSwapImp])
     addProposalItem(fenixSwap, 'setParams', [await getParams()]);
+
+    addProposalItem(swapSimulator, 'upgradeTo', [swapSimulatorImp])
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
@@ -31,18 +34,15 @@ async function main() {
 async function getParams() {
     return {
         pool: '0x6a1de1841c5c3712e3bc7c75ce3d57dedec6915f',
-        tickRange: [-1, 0],
         binSearchIterations: 20,
         swapSimulatorAddress: '0xD34063601f4f512bAB89c0c0bF8aa947cAa55885', // SwapSimulatorFenix address 
         npmAddress: '0x8881b3fb762d1d50e6172f621f107e24299aa1cd', 
-
+        lowerTick: -1,
+        upperTick: 0,
         fnxTokenAddress: '0x52f847356b38720b55ee18cb3e094ca11c85a192',
-
-        // Fenix's pools for reward swaping
         poolFnxUsdb: '0xb3B4484bdFb6885f96421c3399B666a1c9D27Fca',
-        poolUsdbUsdPlus: '0x52f847356b38720b55ee18cb3e094ca11c85a192', // Just placeholder
-
-        rewardSwapSlippageBP: 50
+        rewardSwapSlippageBP: 500,
+        liquidityDecreaseDeviationBP: 500
     };
 }
 
@@ -52,4 +52,3 @@ main()
         console.error(error);
         process.exit(1);
     });
-

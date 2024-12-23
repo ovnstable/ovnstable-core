@@ -18,11 +18,6 @@ let strategyName = 'StrategyFenixSwap';
 module.exports = async ({deployments}) => {
     const {save} = deployments;
 
-    let timelock = await getContract('AgentTimelock');
-    await transferETH(1, '0x8df424e487De4218B347e1798efA11A078fecE90');
-    await transferETH(1, timelock.address); //0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-    await transferETH(1, '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266');
-
     await deploySection(async (name) => {
         await deployProxy(name, deployments, save);
     });
