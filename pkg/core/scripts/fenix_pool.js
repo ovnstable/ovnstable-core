@@ -4,11 +4,14 @@ const { BLAST } = require("@overnight-contracts/common/utils/assets");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 const hre = require("hardhat");
 
+const poolAddress = '0x6a1de1841c5c3712e3bc7c75ce3d57dedec6915f';
+
 async function main() {
 
-    let iterations = 20;
+    // await logCommon();
+    // return;
 
-    let poolAddress = '0x6a1de1841c5c3712e3bc7c75ce3d57dedec6915f';
+    let iterations = 10;
 
     let wallet = await initWallet();
     let pm = await getContract('PortfolioManager', 'blast');
@@ -27,22 +30,28 @@ async function main() {
     for (let i = 0; i < iterations; i++) {
         console.log("-----iteration ", i, "-----");
 
+        let bbn = await hre.ethers.provider.getBlockNumber();
+        await logCommon(bbn);
         let usdbBalance = await usdb.balanceOf(wallet.address);
+        // usdbBalance = "10000000000000000000000";
         console.log("USDB balance: ", usdbBalance.toString());
 
         await new Promise(resolve => setTimeout(resolve, 3000));
-        await (await usdb.approve(exchange.address, usdbBalance, gas)).wait();
+        let bn = (await (await usdb.approve(exchange.address, usdbBalance, gas)).wait()).blockNumber;
         console.log("USDB approved to exchange");
 
         await new Promise(resolve => setTimeout(resolve, 3000));
-        await (await exchange.buy(usdb.address, usdbBalance, gas)).wait(); 
+        bn = (await (await exchange.buy(usdb.address, usdbBalance, gas)).wait()).blockNumber;
+        await logCommon(bn);
         console.log("USD+ minted and received USDB invested in CASH-strategies");
 
         let usdPlusBalance = await usdPlus.balanceOf(wallet.address);
+        // usdPlusBalance = "40000000000000000000000";
         console.log("USD+ balance: ", usdPlusBalance.toString());
         
         await new Promise(resolve => setTimeout(resolve, 3000));
-        await (await usdPlus.approve(fenixSwap.address, usdPlusBalance, gas)).wait();
+        bn = (await (await usdPlus.approve(fenixSwap.address, usdPlusBalance, gas)).wait()).blockNumber;
+        // await logCommon(bn);
         console.log("USD+ approved to fenixSwap");
 
         globalState = await pool.globalState();
@@ -50,14 +59,16 @@ async function main() {
 
         // await logBalances("Before");
         await new Promise(resolve => setTimeout(resolve, 3000));
-        await (await fenixSwap.swap(poolAddress, usdPlusBalance, 0n, false, gas)).wait();
+        bn = (await (await fenixSwap.swap(poolAddress, usdPlusBalance, 0n, false, gas)).wait()).blockNumber;
+        await logCommon(bn);
         // await logBalances("After");
 
         globalState = await pool.globalState()
         console.log("Ratio after swap:   ", globalState[0].toString());
 
         await new Promise(resolve => setTimeout(resolve, 3000));
-        await (await pm.balance(gas)).wait();
+        bn = (await (await pm.balance(gas)).wait()).blockNumber;
+        await logCommon(bn);
 
         globalState = await pool.globalState()
         console.log("Ratio after balance:", globalState[0].toString());
@@ -74,6 +85,7 @@ async function main() {
 }
 
 async function logBalances(type) {
+    await new Promise(resolve => setTimeout(resolve, 3000));
     let wallet = await initWallet();
 
     let usdPlus = await getERC20ByAddress('0x4fee793d435c6d2c10c135983bb9d6d4fc7b9bbd', wallet.address)
@@ -83,6 +95,38 @@ async function logBalances(type) {
     console.log(`USD+ balance ${type.toUpperCase()} SWAP: `, usdPlusBalance.toString());
     let usdbBalance = await usdb.balanceOf(wallet.address);
     console.log(`USDB balance ${type.toUpperCase()} SWAP: `, usdbBalance.toString());
+}
+
+async function logCommon(bn) {
+    let wallet = await initWallet();
+
+
+
+    let usdPlus = await getERC20ByAddress('0x4fee793d435c6d2c10c135983bb9d6d4fc7b9bbd', wallet.address);
+    let usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', wallet.address);
+    let m2m = await getContract('Mark2Market', 'blast');
+
+    let assets = await m2m.strategyAssets({blockTag: bn});
+    let totalNetAssets = await m2m.totalNetAssets({blockTag: bn});
+    let cashNav = assets[0].netAssetValue;
+    let strategyNav = assets[3].netAssetValue;
+
+    // console.log("assets: ", assets);
+    // console.log("cashNav: ", cashNav.toString());
+    // console.log("strategyNav: ", strategyNav.toString());
+    // console.log("totalNetAssets: ", totalNetAssets.toString());
+    
+
+    let usdPlusPoolBalance = await usdPlus.balanceOf(poolAddress, {blockTag: bn});
+    let usdbPoolBalance = await usdb.balanceOf(poolAddress, {blockTag: bn});
+
+    console.log("bn=", bn,
+        "usdp=",(Number(usdPlusPoolBalance) / 1e18).toFixed(0),
+        "usdb=",(Number(usdbPoolBalance) / 1e18).toFixed(0),
+        "cash=",(Number(cashNav) / 1e18).toFixed(0),
+        "str=",(Number(strategyNav) / 1e18).toFixed(0),
+        "nav=",(Number(totalNetAssets) / 1e18).toFixed(0)
+    );
 }
 
 main()

@@ -5,7 +5,6 @@ import {Strategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable, IERC
 import {ICLPool, TickMath, LiquidityAmounts} from "@overnight-contracts/connectors/contracts/stuff/Fenix.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
-import "hardhat/console.sol";
 
 contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -42,22 +41,24 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
 
     function swap(address pair, uint256 amountIn, uint160 sqrtPriceLimitX96, bool zeroForOne) public onlyStrategy {
         ICLPool pool = ICLPool(pair);
-
+        
         SwapCallbackData memory data = SwapCallbackData({
             tokenA: pool.token0(),
             tokenB: pool.token1(),
             tickSpacing: pool.tickSpacing()
         });
 
-        pool.swap(address(this), zeroForOne, int256(amountIn), sqrtPriceLimitX96, abi.encode(data));
+        uint160 poolBorder = zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1;
+
+        pool.swap(address(this), zeroForOne, int256(amountIn), poolBorder, abi.encode(data));
 
         (uint160 newSqrtRatioX96,,,,,) = pool.globalState();
 
-        if (newSqrtRatioX96 > sqrtPriceLimitX96 && zeroForOne || newSqrtRatioX96 < sqrtPriceLimitX96 && !zeroForOne) {
+        if (newSqrtRatioX96 < sqrtPriceLimitX96 && zeroForOne || newSqrtRatioX96 > sqrtPriceLimitX96 && !zeroForOne) {
             revert SlippageError(amountIn, newSqrtRatioX96, sqrtPriceLimitX96, zeroForOne);
         }
     }
-
+    
     function simulateSwap(address pair, uint256 amountIn, bool zeroForOne, int24 lowerTick, int24 upperTick) external onlyStrategy {
         ICLPool pool = ICLPool(pair);
         uint160 borderForSwap = TickMath.getSqrtRatioAtTick(zeroForOne ? lowerTick : upperTick);
