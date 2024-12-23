@@ -32,7 +32,7 @@ async function getParams() {
     return {
         pool: '0x6a1de1841c5c3712e3bc7c75ce3d57dedec6915f',
         binSearchIterations: 20,
-        swapSimulatorAddress: '0xD34063601f4f512bAB89c0c0bF8aa947cAa55885', // SwapSimulatorFenix address 
+        swapSimulatorAddress: '0xD34063601f4f512bAB89c0c0bF8aa947cAa55885',
         npmAddress: '0x8881b3fb762d1d50e6172f621f107e24299aa1cd', 
         lowerTick: -1,
         upperTick: 0,
@@ -44,4 +44,4 @@ async function getParams() {
 }
 
 module.exports.tags = [strategyName];
-module.exports.getParams = getParams;
+module.exports.getStrategyFenixSwapParams = getParams;
