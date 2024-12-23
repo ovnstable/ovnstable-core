@@ -215,6 +215,13 @@
 //         revert("All right");
 //     }
 
+//   function testIncreaseLiquidity() public {
+//         _displayInfo();
+//         _deposit(0, true);
+//         _displayInfo();
+//         revert("All right!");
+//     }
+
    
 //     function _withdraw(uint256 amount, bool isFull) internal {
 //         (,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
@@ -461,3 +468,44 @@
 //         }
 //     }
 // }
+
+
+
+//  function _totalValue() internal view returns (uint256) {
+//         uint256 amount0 = 0;
+//         uint256 amount1 = 0;
+
+//         if (tokenLP != 0) {
+//             (uint160 sqrtRatioX96,,,,,) = pool.globalState();
+//             (,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
+//             (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
+//                 sqrtRatioX96,
+//                 TickMath.getSqrtRatioAtTick(lowerTick),
+//                 TickMath.getSqrtRatioAtTick(upperTick),
+//                 liquidity
+//             );
+//             console.log("TVL USDB = ", amount0);
+//             console.log("TVL USD+ = ", amount1);
+//             console.log("    USDB = ", usdb.balanceOf(address(this)));
+//             console.log("    USD+ = ", usdPlus.balanceOf(address(this)));
+//         }
+        
+//         return amount0 + amount1 + usdb.balanceOf(address(this)) + usdPlus.balanceOf(address(this));
+//     }
+
+
+
+    // function testCalculateSlippageLimitBorder() public {
+    //     (uint160 sqrtRatioFnxUsdbX96,,,,,) = poolFnxUsdb.globalState();
+    //     uint160 rightBorder = _calculateSlippageLimitBorder(sqrtRatioFnxUsdbX96, false);
+    //     console.log("OG price:      ", sqrtRatioFnxUsdbX96);
+    //     console.log("Border price:  ", rightBorder);
+    // }
+
+    //     function _displayInfo() internal {
+    //     console.log("TVL:   ", _totalValue());
+    //     console.log("USDB:  ", usdb.balanceOf(address(this)));
+    //     console.log("USD+:  ", usdPlus.balanceOf(address(this)));
+    //     (,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
+    //     console.log("liquidity, : ", liquidity);
+    // }

@@ -69,7 +69,6 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
     // --- Setters
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
-
         pool = ICLPool(params.pool);
 
         usdb = IERC20(pool.token0());
@@ -90,6 +89,11 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         
         emit StrategyUpdatedParams();
     }
+
+    function setLiquidityDecreaseDeviationBP(uint256 bps) public onlyPortfolioAgent {
+        liquidityDecreaseDeviationBP = bps;
+    }
+
 
     // --- logic
 
@@ -140,14 +144,15 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         return amount0 + amount1 + usdb.balanceOf(address(this)) + usdPlus.balanceOf(address(this));
     }
 
-    function _deposit(uint256 assetToLock, bool zeroForOne) internal {
 
+    function _deposit(uint256 assetToLock, bool zeroForOne) internal {
         uint256 amount0 = usdb.balanceOf(address(this));
         if (amount0 >= assetToLock) {
             amount0 -= assetToLock;
         } else {
             revert NotEnoughAssetBalance(amount0, assetToLock);
         }
+
         uint256 amount1 = usdPlus.balanceOf(address(this));
 
         usdb.transfer(address(swapSimulator), amount0);
@@ -160,7 +165,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
             swapSimulator.swap(address(pool), amountToSwap, borderForSwap, zeroForOne);
         }
 
-        swapSimulator.withdrawAll(address(pool));
+        swapSimulator.withdrawAll(address(pool));        
 
         amount0 = usdb.balanceOf(address(this)) - assetToLock;
         amount1 = usdPlus.balanceOf(address(this));
@@ -276,10 +281,9 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         }
         
         swapSimulator.swap(address(pool), amountUsdPlusToSwap, TickMath.getSqrtRatioAtTick(upperTick), false);
-
         swapSimulator.withdrawAll(address(pool));
         
-        _deposit(amount, false);
+        _deposit(amount, false); 
     }
 
     function _simulateSwap(bool zeroForOne) internal returns (uint256 amountToSwap) {
@@ -392,9 +396,12 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         npm.collect(collectParams);
     }
 
-
-    function _calculateSlippageLimitBorder(uint160 sqrtRatioX96) internal view returns (uint160) {
-        return sqrtRatioX96 * uint160(_sqrt((10000 + rewardSwapSlippageBP) / 10000));
+    function _calculateSlippageLimitBorder(uint160 sqrtRatioX96, bool zeroForOne) internal view returns (uint160) {
+        if (zeroForOne) {
+            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), 10000 - rewardSwapSlippageBP, 10000));
+        } else {
+            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), 10000 + rewardSwapSlippageBP, 10000));
+        }        
     }
 
     function claimMerkleTreeRewards(
@@ -403,9 +410,9 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         address[] calldata tokens,
         uint256[] calldata amounts,
         bytes32[][] calldata proofs
-    ) public onlyPortfolioAgent {  
+    ) public onlyPortfolioAgent { 
         IDistributor(distributor).claim(users, tokens, amounts, proofs);
-        
+
         uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
         if (usdPlusBalance > 0) {
             usdPlus.transfer(address(swapSimulator), usdPlusBalance);
@@ -417,10 +424,10 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         if (fnxBalance > 0) {
             (uint160 sqrtRatioFnxUsdbX96,,,,,) = poolFnxUsdb.globalState();
             fnx.transfer(address(swapSimulator), fnxBalance);
-            swapSimulator.swap(address(poolFnxUsdb), fnxBalance, _calculateSlippageLimitBorder(sqrtRatioFnxUsdbX96), false);
+            swapSimulator.swap(address(poolFnxUsdb), fnxBalance, _calculateSlippageLimitBorder(sqrtRatioFnxUsdbX96, false), false);
             swapSimulator.withdrawAll(address(poolFnxUsdb)); 
         }
-
+    
         _stake(address(usdb), 0);
     }
 

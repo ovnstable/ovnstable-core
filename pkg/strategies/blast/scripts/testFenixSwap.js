@@ -173,9 +173,9 @@ async function main() {
 
     // console.log("START!")
     // await (await strategy.testWithdrawPart(3400000000000000000000n)).wait();
-    // // 3429091280845307043052
-    // // 3399986302965693137216
     // console.log("All right!")
+
+
 
 
     // TEST testPartLiquidityCalculation - СИЛЬНО
@@ -186,19 +186,14 @@ async function main() {
     // console.log("All right!")
 
 
-    // 29283941664838604765403
-    // 1400000000000000000000000
-    // 1457611167498866446291531
-
-
-
+  
 
 
     // TEST достать всю ликвидность
 
-    console.log("START!")
-    await (await strategy.testWithdrawFull()).wait();
-    console.log("All right!")
+    // console.log("START!")
+    // await (await strategy.testWithdrawFull()).wait();
+    // console.log("All right!")
 
     // testWithdrawFull
 
@@ -206,6 +201,22 @@ async function main() {
     // 
 
 
+
+
+    // TEST - увеличить ликвидность
+
+    // console.log("Transfer...")
+    // await transferAsset(BLAST.usdb, strategy.address, toAsset(1000)); 
+    // console.log("START!")
+    // await (await strategy.testIncreaseLiquidity()).wait();
+    // console.log("All right!")
+
+
+
+    // TEST - расчитать границу в пуле 
+    // console.log("START!")
+    // await (await strategy.testCalculateSlippageLimitBorder()).wait();
+    // console.log("All right!")
 }
 
 main()

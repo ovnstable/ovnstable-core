@@ -43,7 +43,7 @@ async function getParams() {
         upperTick: 0,
         fnxTokenAddress: '0x52f847356b38720b55ee18cb3e094ca11c85a192',
         poolFnxUsdb: '0xb3B4484bdFb6885f96421c3399B666a1c9D27Fca',
-        rewardSwapSlippageBP: 50,
+        rewardSwapSlippageBP: 500,
         liquidityDecreaseDeviationBP: 500
     };
 }
