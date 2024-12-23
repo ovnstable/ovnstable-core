@@ -11,7 +11,7 @@ async function main() {
     let abis = [];
 
     let fenixSwap = await getContract('StrategyFenixSwap', 'blast');
-    let fenixSwapImp = "0x61F9F46d2Ded399bb14A03F309B02903999c3Bd3"
+    let fenixSwapImp = "0xDeF7E2F57a54BE20563d464790410d1ce8C01d9e"
 
     let swapSimulator = await getContract('SwapSimulatorFenix', 'blast');
     let swapSimulatorImp = "0xE8b9F540D3fDD9B60CBFfE73d27Cc67d77054146"

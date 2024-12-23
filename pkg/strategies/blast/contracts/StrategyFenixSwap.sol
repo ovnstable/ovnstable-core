@@ -406,6 +406,10 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         }        
     }
 
+    function _claimRewards(address _beneficiary) internal override returns (uint256) {
+        return 0;
+    }
+
     function claimMerkleTreeRewards(
         address distributor, 
         address[] calldata users,
