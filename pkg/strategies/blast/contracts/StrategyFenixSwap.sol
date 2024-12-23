@@ -400,9 +400,9 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
 
     function _calculateSlippageLimitBorder(uint160 sqrtRatioX96, bool zeroForOne) internal view returns (uint160) {
         if (zeroForOne) {
-            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), 10000 - rewardSwapSlippageBP, 10000));
+            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 - rewardSwapSlippageBP), 100));
         } else {
-            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), 10000 + rewardSwapSlippageBP, 10000));
+            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 + rewardSwapSlippageBP), 100));
         }        
     }
 
