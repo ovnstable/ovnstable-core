@@ -4,7 +4,7 @@ async function main() {
 
     let exchange = await getContract('Exchange');
 
-    await (await exchange.setPayoutTimes(1637193600, 24 * 60 * 60, 15 * 60)).wait();
+    await (await exchange.setPayoutTimes(1734019200, 21600, 0)).wait();
     console.log('Reset payout time done()');
 
 }
