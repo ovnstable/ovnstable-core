@@ -157,6 +157,9 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         // Deploy a new implementation and upgradeProxy to new;
         // You need have permission for role UPGRADER_ROLE;
         // , gasPrice: parseEther(0.005), gasLimit: 30000000
+
+        let wallet = initWallet()
+
         try {
             impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: "always" });
         } catch (e) {
