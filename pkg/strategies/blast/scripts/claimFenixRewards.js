@@ -14,25 +14,25 @@ async function main() {
         BLAST.distributor,
         ["0xa09A8e94FBaAC9261af8f34d810D96b923B559D2"], // users
         ["0x52f847356b38720B55ee18Cb3e094ca11C85A192"], // tokens
-        ["99460822648030000000000"],                    // amounts
+        ["122078259306390000000000"],                   // amounts
         [                                               // proofs
             [
-                "0x486e6b567c832ef44fddab7bee6d1bbd3802f641801e1076349a346c9ce9d452",
-                "0x4704c8d2d32ae036b676fcefc156a90e3d80c463261d4f6241d1fd833e3eda75",
-                "0x8f3c4fa45d4dce0051092046f3814647c28bfd6a23f29aee1d84aa35680a4e1a",
-                "0x6e51cc5de0f24895ce100a963de2d140b94e4bd632d953626b78cbcd1cc2b932",
-                "0x5ef0656eb20c4bec517f37fd6fc0f6ec8ec7bd3a3abbb4855215b447164d808c",
-                "0x1be342af23bb70e388168d604d1336fe273c87874c38463b0bdd25382b0b56ac",
-                "0xe3c0e4c61a2d02cfd828e2c3374f35a20bde0006ba79c3e825542304dde48c6f",
-                "0x7f37ced169cabe0a900abacd417132912a9d854654fa86177731ec17943e822c",
-                "0x00ae0068b94cb999644069222e5843f689c50cb313dd13a51d7f547f617cc17e",
-                "0xe7ed5803019edfdfe1e036d6841c384bbc7673557f993a89c06dd7de8340453a",
-                "0xbd5020973637e01d41c982fdea907cbe9761e41a71f58e27ae5ce32fe1d49719",
-                "0x17f2f1c91cacb6e51c6ce7f59cc1c5d745e2ac04ef32fc66278d33ccba7c1a61",
-                "0x76fa51b1845c8121043dcb291175b28c49c2a39c58352dfe3595f3f9e648c7ef",
-                "0xa053f9ce478540e89931f9ea44dda9a951cf4715bf7ce655193049369157ae90",
-                "0x1957a1b8561106c78b45105511ebbbac3367f5eb0cd393b1aae60f87815193aa",
-                "0xf4fc88a53f7431cd0c1c9fb6490a9eb571c59e971610678c089523afe553f1bb"
+                "0xf38d7b0878d90acb6530ff7cfded82d16cd0a52d0be51f898d3978d49f720d95",
+                "0x08f959888057ea920ff82427b1c663d05db8987f274468431b292c817c7ad880",
+                "0xa6382dbf23d9d3daa0b618e2798587db174bb272fbb6029385813ff8b6833e9a",
+                "0xdb3cbe21f9db28ad2fa750c23b45c6c28a69e5f9e97c8b84da8e6f9c7512f386",
+                "0x95100f186316459bbc1b643dec478706b62ed9859a02e5b2d7faec40935283b5",
+                "0xe20c3c66fdb662cd04bbb5388fe41f06b0f8ac0cdc5edcf52191176825edf3be",
+                "0xa7a8d0aa04019ba4f45cdd4ca8279958f65017ba417137bc12f8392339e220a9",
+                "0x47a4a249a9b6212c22579b6077cfdf021e032056305fd25f1958bc3d5b32d0d8",
+                "0x9865299c237c8dca031632161d7091fc6833a0934e0c458be810f73ab3acff18",
+                "0x8cbce7ec7fe42c07c3773d46fc9f084e2d911155aaa541da50d28e122b01523b",
+                "0x901d2d88bc2f2a8855f9141619d7b5e20b6c1d8c910eddfe02061d0b61c9b869",
+                "0x52a1c8c2d71f11a4fa3aabbc04963abee59613965f930dd64a1ace0ba662d2ed",
+                "0x0258757f4fbf2694a68ccf32ff33819685999899b9231b09a215c6ecf037a593",
+                "0x477f5a1cee146117a1c0893a3b796780d4b1b0a951529a243aaa886cd99c1490",
+                "0x2a635201dfc43a6d7d820fbd7d2c5957365d4f6822d74ab18779259b397bda61",
+                "0x8448df1a14f7b08a2abd1986646575e3618e90d8ffab7bd467ba09418f0f06c7"
             ]
         ]
     );
