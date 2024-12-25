@@ -1,59 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@overnight-contracts/core/contracts/Strategy.sol";
-
-// import "@overnight-contracts/connectors/contracts/stuff/Thruster.sol";
-import "./Thruster.sol";
-
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-
-interface ISwapSimulator {
-    /// @notice Error containing information about a swap (for a simulation)
-    /// @param balance0 The balance of token0 after the swap
-    /// @param balance1 The balance of token1 after the swap
-    /// @param ratio0 The ratio of token0 in the pool after the swap
-    /// @param ratio1 The ratio of token1 in the pool after the swap
-    error SwapError(
-        uint256 balance0,
-        uint256 balance1,
-        uint256 ratio0,
-        uint256 ratio1
-    );
-
-    error SlippageError(
-        uint160 curSqrtRatio,
-        uint160 minSqrtRatio,
-        uint160 maxSqrtRatio        
-    );
-
-    function swap(
-        address pair,
-        uint256 amountIn,
-        uint160 sqrtPriceLimitX96,
-        bool zeroForOne,
-        uint160 minSqrtRatio, 
-        uint160 maxSqrtRatio
-    ) external;
-
-    function simulateSwap(
-        address pair,
-        uint256 amountIn,
-        uint160 sqrtPriceLimitX96,
-        uint160 minSqrtRatio, 
-        uint160 maxSqrtRatio,
-        bool zeroForOne,
-        int24[] memory tickRange
-    ) external;
-
-    function uniswapV3SwapCallback(
-        int256 amount0Delta,
-        int256 amount1Delta,
-        bytes calldata _data
-    ) external;
-
-    function withdrawAll(address pair) external;
-}
+import {Strategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable, IERC20, IERC20Metadata} from "@overnight-contracts/core/contracts/Strategy.sol";
+import {ICLPool, TickMath, LiquidityAmounts, CallbackValidation} from "./Thruster.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
 
 contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -95,14 +46,8 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
 
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
 
-    function swap(
-        address pair,
-        uint256 amountIn,
-        uint160 sqrtPriceLimitX96,
-        bool zeroForOne,
-        uint160 minSqrtRatio, 
-        uint160 maxSqrtRatio  
-    ) public onlyStrategy {
+    function swap(address pair, uint256 amountIn, uint160 sqrtPriceLimitX96, bool zeroForOne) public onlyStrategy {
+        
         ICLPool pool = ICLPool(pair);
 
         SwapCallbackData memory data = SwapCallbackData({
@@ -111,52 +56,42 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
             fee: pool.fee() 
         });
 
-        pool.swap( 
-            address(this), 
-            zeroForOne, 
-            int256(amountIn), 
-            sqrtPriceLimitX96 == 0
-                ? (zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1)
-                : sqrtPriceLimitX96, 
-            abi.encode(data)
-        );
+        uint160 poolBorder = zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1;
+
+        pool.swap(address(this), zeroForOne, int256(amountIn), poolBorder, abi.encode(data));
 
         (uint160 newSqrtRatioX96,,,,,,) = pool.slot0(); 
 
-        if (newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) { 
-            revert SlippageError(
-                newSqrtRatioX96,
-                minSqrtRatio,
-                maxSqrtRatio
-            );
+        if (newSqrtRatioX96 < sqrtPriceLimitX96 && zeroForOne || newSqrtRatioX96 > sqrtPriceLimitX96 && !zeroForOne) {
+            revert SlippageError(amountIn, newSqrtRatioX96, sqrtPriceLimitX96, zeroForOne);
         }
     }
 
-    function simulateSwap(
-        address pair,
-        uint256 amountIn,
-        uint160 sqrtPriceLimitX96,
-        uint160 minSqrtRatio, 
-        uint160 maxSqrtRatio,
-        bool zeroForOne,
-        int24[] memory tickRange
-    ) external onlyStrategy {
-
+    function simulateSwap(address pair, uint256 amountIn, bool zeroForOne, int24 lowerTick, int24 upperTick) external onlyStrategy {
         ICLPool pool = ICLPool(pair);
-        address token0 = pool.token0();
-        address token1 = pool.token1();
+        uint160 borderForSwap = TickMath.getSqrtRatioAtTick(zeroForOne ? lowerTick : upperTick);
 
-        swap(pair, amountIn, sqrtPriceLimitX96, zeroForOne, minSqrtRatio, maxSqrtRatio);
+        swap(pair, amountIn, borderForSwap, zeroForOne);
 
         uint256[] memory ratio = new uint256[](2);
-        (ratio[0], ratio[1]) = _getProportion(pool, tickRange);
+        (ratio[0], ratio[1]) = _getProportion(pool, lowerTick, upperTick);
 
         revert SwapError(
-            IERC20(token0).balanceOf(address(this)),
-            IERC20(token1).balanceOf(address(this)),
+            IERC20(pool.token0()).balanceOf(address(this)),
+            IERC20(pool.token1()).balanceOf(address(this)),
             ratio[0],
             ratio[1]
         );
+    }
+
+    function simulatePriceAfterSwap(address pair, uint256 amountIn, bool zeroForOne) external onlyStrategy {
+        ICLPool pool = ICLPool(pair);
+        uint160 borderForSwap = zeroForOne ? type(uint160).min: type(uint160).max;
+
+        swap(pair, amountIn, borderForSwap, zeroForOne);
+
+        (uint160 priceSqrtRatioX96,,,,,,) = pool.slot0(); 
+        revert PriceAfterSwapError(priceSqrtRatioX96);
     }
 
     function uniswapV3SwapCallback(
@@ -191,18 +126,15 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
         }
     }
 
-    function _getProportion(
-        ICLPool pool,
-        int24[] memory tickRange
-    ) internal view returns (uint256 token0Amount, uint256 token1Amount) {
+    function _getProportion(ICLPool pool, int24 lowerTick, int24 upperTick) internal view returns (uint256 token0Amount, uint256 token1Amount) {
         IERC20Metadata token0 = IERC20Metadata(pool.token0());
         IERC20Metadata token1 = IERC20Metadata(pool.token1());
         uint256 dec0 = 10 ** token0.decimals();
         uint256 dec1 = 10 ** token1.decimals();
         (uint160 sqrtRatioX96,,,,,,) = pool.slot0(); 
 
-        uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(tickRange[0]);
-        uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(tickRange[1]);
+        uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(lowerTick);
+        uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(upperTick);
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, sqrtRatio0, sqrtRatio1, dec0 * 1000, dec1 * 1000);
         (token0Amount, token1Amount) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatio0, sqrtRatio1, liquidity);
         uint256 denominator = dec0 > dec1 ? dec0 : dec1;

@@ -1,13 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@overnight-contracts/core/contracts/Strategy.sol";
+import {Strategy, IERC20} from "@overnight-contracts/core/contracts/Strategy.sol";
+// import "@overnight-contracts/core/contracts/Strategy.sol";
 
 // import "@overnight-contracts/connectors/contracts/stuff/Thruster.sol";
-import "./Thruster.sol";
 
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import {ISwapSimulator} from "./SwapSimulatorThruster.sol";
+import {ICLPool, TickMath, LiquidityAmounts, INonfungiblePositionManager, INFPBooster, FullMath} from "./Thruster.sol";
+
+// import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
+
+import "hardhat/console.sol";
+
 
 contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
@@ -22,7 +28,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     // swap asset
     IERC20 public weth;
 
-    int24[] public tickRange;
+    int24[] public DELETED_1; 
     uint256 public binSearchIterations;
 
     ICLPool private poolUsdbWeth;
@@ -40,42 +46,41 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
     uint256 public tokenLP;
 
-    uint160 internal constant sqrtRatioStablecoinsX96Min = 79224201403219477170569942574;
-    uint160 internal constant sqrtRatioStablecoinsX96Max = 79228162514264337593543950336;
+    int24 public lowerTick; 
+    int24 public upperTick; 
+
+    uint256 liquidityDecreaseDeviationBP; 
 
     // --- events
     event StrategyUpdatedParams();
-
     event SwapErrorInternal(string message);
-
     event Staked(uint256 tokenId);
+
+    error NotEnoughAssetBalance(uint256 amount, uint256 assetToLock);
+    error UnappropriateSqrtRatioBeforeSwap(uint160 sqrtRatioX96, uint160 sqrtRatioUpperTick, int24 upperTick);
+
 
     // --- structs
 
     struct StrategyParams {
         address pool;
-        int24[] tickRange;
-        uint256 binSearchIterations;
         address swapSimulatorAddress;
         address npmAddress;
-
-        address hyperTokenAddress;
-        address thrustTokenAddress;
-        address wethTokenAddress;
+        address nfpBooster; 
 
         address poolUsdbWeth;
         address poolWethHyper;
         address poolWethThrust;
 
+        address hyperTokenAddress;
+        address thrustTokenAddress;
+        address wethTokenAddress;
+
+        int24 lowerTick; 
+        int24 upperTick; 
+        uint256 binSearchIterations;
         uint256 rewardSwapSlippageBP;
-
-        address nfpBooster; 
-    }
-
-    struct BinSearchParams {
-        uint256 left;
-        uint256 right;
-        uint256 mid;
+        uint256 liquidityDecreaseDeviationBP; 
     }
 
     // ---  constructor
@@ -87,7 +92,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         __Strategy_init();
     }
 
-
     // --- Setters
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
@@ -95,7 +99,8 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         usdb = IERC20(pool.token0()); 
         usdPlus = IERC20(pool.token1());
 
-        tickRange = params.tickRange;
+        lowerTick = params.lowerTick;
+        upperTick = params.upperTick;
         
         binSearchIterations = params.binSearchIterations;
         swapSimulator = ISwapSimulator(params.swapSimulatorAddress);
@@ -112,6 +117,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         poolWethThrust = ICLPool(params.poolWethThrust);
 
         rewardSwapSlippageBP = params.rewardSwapSlippageBP;
+        liquidityDecreaseDeviationBP = params.liquidityDecreaseDeviationBP;
      
         emit StrategyUpdatedParams(); 
     }
@@ -119,6 +125,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     // --- logic
 
     function netAssetValue() external view override returns (uint256) {
+        console.log("netAssetValue?!?!");
         return _totalValue();
     }
 
@@ -130,35 +137,29 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    function _stake(
-        address _asset,
-        uint256 _amount
-    ) internal override {
-        _deposit(usdb.balanceOf(address(this)), usdPlus.balanceOf(address(this)), 0, 0, true); // USDB -> USD+
+    function _stake(address, uint256) internal override {
+        _deposit(0, true);
     }  
 
-    function _unstake(
-        address _asset,
-        uint256 _amount,
-        address _beneficiary
-    ) internal override returns (uint256) {
-        require(_asset == address(usdb) || _asset == address(usdPlus), "Some tokens are not compatible");
+    function _unstake(address _asset, uint256 _amount, address) internal override returns (uint256) {
+        require(_asset == address(usdb), "Some tokens are not compatible");
         require(_amount > 0, "Amount is less than or equal to 0"); 
         require(tokenLP != 0, "Not staked");
 
-        return _withdraw(_asset, _amount, false);
+        _withdraw(_amount, false);
+        uint256 assetBalance = usdb.balanceOf(address(this));
+
+        return assetBalance > _amount ? _amount : assetBalance;
     }
 
-    function _unstakeFull(
-        address _asset,
-        address _beneficiary
-    ) internal override returns (uint256) {
-        require(_asset == address(usdb) || _asset == address(usdPlus), "Some tokens are not compatible");
+    function _unstakeFull(address _asset, address) internal override returns (uint256) {
+        require(_asset == address(usdb), "Some tokens are not compatible");
         require(tokenLP != 0, "Not staked");
 
-        return _withdraw(_asset, 0, true);
-    }
+        _withdraw(0, true);
 
+        return usdb.balanceOf(address(this));
+    }
 
     function _totalValue() internal view returns (uint256) {
         uint256 amount0 = 0;
@@ -169,8 +170,8 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
             (,,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
             (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
                 sqrtRatioX96,
-                TickMath.getSqrtRatioAtTick(tickRange[0]),
-                TickMath.getSqrtRatioAtTick(tickRange[1]),
+                TickMath.getSqrtRatioAtTick(lowerTick),
+                TickMath.getSqrtRatioAtTick(upperTick),
                 liquidity
             );
         }
@@ -179,88 +180,33 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        if (tokenLP == 0) {
-            return 0;
-        }
-
-        _collect_rewards_hyperlock(); 
-        nfpBooster.withdraw(tokenLP, address(this)); 
-
-        
-        uint256 hyperBalance = hyper.balanceOf(address(this));
-        uint256 thrustBalance = thrust.balanceOf(address(this));
-
-        
-        if (hyperBalance > 0) {
-            (uint160 sqrtRatioWethHyperX96,,,,,,) = poolWethHyper.slot0();
-            hyper.transfer(address(swapSimulator), hyperBalance);
-            swapSimulator.swap(
-                address(poolWethHyper), 
-                hyperBalance, 
-                0, 
-                false,
-                sqrtRatioWethHyperX96 * uint160((10000 - rewardSwapSlippageBP) / 10000),
-                sqrtRatioWethHyperX96 * uint160((10000 + rewardSwapSlippageBP) / 10000)
-            );
-            swapSimulator.withdrawAll(address(poolWethHyper)); 
-        }
-
-        if (thrustBalance > 0) {
-            (uint160 sqrtRatioWethThrustX96,,,,,,) = poolWethThrust.slot0();
-            thrust.transfer(address(swapSimulator), thrustBalance);
-            swapSimulator.swap(
-                address(poolWethThrust), 
-                thrustBalance, 
-                0, 
-                false,
-                sqrtRatioWethThrustX96 * uint160((10000 - rewardSwapSlippageBP) / 10000),
-                sqrtRatioWethThrustX96 * uint160((10000 + rewardSwapSlippageBP) / 10000)
-            );
-            swapSimulator.withdrawAll(address(poolWethThrust)); 
-        }
-
-        uint256 wethBalance = weth.balanceOf(address(this));
-        if (wethBalance > 0) {
-            (uint160 sqrtRatioUsdbWethX96,,,,,,) = poolUsdbWeth.slot0();
-            weth.transfer(address(swapSimulator), wethBalance);
-            swapSimulator.swap(
-                address(poolUsdbWeth), 
-                wethBalance, 
-                0, 
-                true,
-                sqrtRatioUsdbWethX96 * uint160((10000 - rewardSwapSlippageBP) / 10000),
-                sqrtRatioUsdbWethX96 * uint160((10000 + rewardSwapSlippageBP) / 10000)
-            );
-            swapSimulator.withdrawAll(address(poolUsdbWeth)); 
-        }
-
-        uint256 usdbBalance = usdb.balanceOf(address(this));
-        if (usdbBalance > 0) {
-            _stake(address(usdb), usdbBalance);
-        }
-
-        npm.approve(address(nfpBooster), tokenLP);
-        nfpBooster.deposit(tokenLP);
-
         return 0;
     }
 
-    function _deposit(uint256 amount0, uint256 amount1, uint256 lockedAmount0, uint256 lockedAmount1, bool zeroForOne) internal {
-
+    function _deposit(uint256 assetToLock, bool zeroForOne) internal {
+        uint256 amount0 = usdb.balanceOf(address(this));
+        if (amount0 >= assetToLock) {
+            amount0 -= assetToLock;
+        } else {
+            revert NotEnoughAssetBalance(amount0, assetToLock);
+        }
+        uint256 amount1 = usdPlus.balanceOf(address(this));
         usdb.transfer(address(swapSimulator), amount0);
         usdPlus.transfer(address(swapSimulator), amount1);
 
-        uint256 amountToSwap = _simulateSwap(amount0, amount1, zeroForOne); 
+        uint256 amountToSwap = _simulateSwap(zeroForOne);
+        
+        uint160 borderForSwap = TickMath.getSqrtRatioAtTick(zeroForOne ? lowerTick : upperTick);
 
         if (amountToSwap > 0) {
-            swapSimulator.swap(address(pool), amountToSwap, 0, zeroForOne, sqrtRatioStablecoinsX96Min, sqrtRatioStablecoinsX96Max);
+            swapSimulator.swap(address(pool), amountToSwap, borderForSwap, zeroForOne);
         }
 
-        swapSimulator.withdrawAll(address(pool));
+        swapSimulator.withdrawAll(address(pool));        
 
-        amount0 = usdb.balanceOf(address(this)) - lockedAmount0;
-        amount1 = usdPlus.balanceOf(address(this)) - lockedAmount1;
-
+        amount0 = usdb.balanceOf(address(this)) - assetToLock;
+        amount1 = usdPlus.balanceOf(address(this));
+        
         usdb.approve(address(npm), amount0);
         usdPlus.approve(address(npm), amount1);
 
@@ -269,8 +215,8 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
                 token0: pool.token0(), 
                 token1: pool.token1(), 
                 fee: pool.fee(),
-                tickLower: tickRange[0],
-                tickUpper: tickRange[1],
+                tickLower: lowerTick,
+                tickUpper: upperTick,
                 amount0Desired: amount0,
                 amount1Desired: amount1,
                 amount0Min: 0,
@@ -305,66 +251,92 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         }
     }
 
-    function _withdraw(address asset, uint256 amount, bool isFull) internal returns (uint256) {
-        _collect_rewards_hyperlock();
+    function _withdraw(uint256 amount, bool isFull) internal {
+        // _collect_rewards_hyperlock();
+        console.log("812!!!!");
+
         nfpBooster.withdraw(tokenLP, address(this)); 
+
         (,,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
+
         if (liquidity == 0) {
-            return 0;
+            return;
+        }
+
+        (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
+        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtRatioX96,
+            TickMath.getSqrtRatioAtTick(lowerTick),
+            TickMath.getSqrtRatioAtTick(upperTick),
+            liquidity
+        );
+
+        uint128 requiredLiquidityWithReserve;
+
+        if ((amount0 > 0 || amount1 > 0)  && !isFull) {
+            uint128 requiredLiquidity = uint128(FullMath.mulDiv(
+                uint256(liquidity),
+                amount,
+                (amount0 + amount1)
+            ));
+
+            requiredLiquidityWithReserve = uint128(FullMath.mulDiv(
+                uint256(requiredLiquidity),
+                (10000 + liquidityDecreaseDeviationBP),
+                10000
+            ));
+            
+            if (requiredLiquidityWithReserve > liquidity) {
+                requiredLiquidityWithReserve = liquidity;
+            }
         }
 
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
             tokenId: tokenLP,
-            liquidity: liquidity,
+            liquidity: isFull ? liquidity : requiredLiquidityWithReserve,
             amount0Min: 0,
             amount1Min: 0,
             deadline: block.timestamp
         });
+
         npm.decreaseLiquidity(params);
         _collect();
 
-        if (!isFull) {
-            uint256 amountToStake0 = usdb.balanceOf(address(this));
-            uint256 amountToStake1 = usdPlus.balanceOf(address(this));
-
-            uint256 lockedAmount0;
-            uint256 lockedAmount1;
-            if (amountToStake0 >= amount) {
-                amountToStake0 -= amount;
-                lockedAmount0 = amount;
-            } else {
-                usdPlus.transfer(address(swapSimulator), amountToStake1);
-                swapSimulator.swap(
-                    address(pool), 
-                    amount - amountToStake0, 
-                    0, 
-                    false,
-                    uint160(sqrtRatioStablecoinsX96Min), 
-                    uint160(sqrtRatioStablecoinsX96Max)
-                );
-                swapSimulator.withdrawAll(address(pool)); 
-
-                amountToStake0 = usdb.balanceOf(address(this)) - amount; 
-                amountToStake1 = usdPlus.balanceOf(address(this)); 
-
-                lockedAmount0 = amount; 
-            }
-            _deposit(amountToStake0, amountToStake1, lockedAmount0, lockedAmount1, false);
-        } else {
-
+        if (isFull) {
             npm.burn(tokenLP);
             tokenLP = 0;
 
-            if (asset == address(usdb)) {
-                amount = usdPlus.balanceOf(address(this));
-                if (amount > 0) {
-                    usdPlus.transfer(address(swapSimulator), amount);
-                    swapSimulator.swap(address(pool), amount, 0, false, sqrtRatioStablecoinsX96Min, sqrtRatioStablecoinsX96Max);
-                }
-            } 
-            swapSimulator.withdrawAll(address(pool));
+            amount = usdPlus.balanceOf(address(this));
+            if (amount > 0) {
+                usdPlus.transfer(address(swapSimulator), amount);
+                swapSimulator.swap(address(pool), amount, TickMath.getSqrtRatioAtTick(upperTick), false);
+                swapSimulator.withdrawAll(address(pool));
+            }
+            return;
         }
-        return IERC20(asset).balanceOf(address(this));
+
+        uint256 amountToStake0 = usdb.balanceOf(address(this));
+        uint256 amountToStake1 = usdPlus.balanceOf(address(this));
+
+        if (amountToStake0 >= amount) {
+            _deposit(amount, false);
+            return;
+        }
+
+        usdPlus.transfer(address(swapSimulator), amountToStake1);
+        
+        uint256 amountUsdPlusToSwap = _calculateAmountToSwap(amount - amountToStake0);
+        
+        (uint160 newSqrtRatioX96,,,,,,) = pool.slot0();
+        
+        if (newSqrtRatioX96 > TickMath.getSqrtRatioAtTick(upperTick)) { 
+            revert UnappropriateSqrtRatioBeforeSwap(newSqrtRatioX96, TickMath.getSqrtRatioAtTick(upperTick), upperTick);
+        }
+        
+        swapSimulator.swap(address(pool), amountUsdPlusToSwap, TickMath.getSqrtRatioAtTick(upperTick), false);
+        swapSimulator.withdrawAll(address(pool));
+        
+        _deposit(amount, false); 
     }
 
     function _collect() internal {
@@ -387,33 +359,31 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         nfpBooster.collect(collectParams);
     } 
 
-    function _simulateSwap(uint256 amount0, uint256 amount1, bool zeroForOne) internal returns (uint256 amountToSwap) {
-        BinSearchParams memory binSearchParams;
-        
+    function _simulateSwap(bool zeroForOne) internal returns (uint256 amountToSwap) {
+        uint256 amount0 = usdb.balanceOf(address(swapSimulator));
+        uint256 amount1 = usdPlus.balanceOf(address(swapSimulator));
+
+        uint256 l = 0;
+        uint256 r;
+        uint256 mid;
+
         if (zeroForOne) {
             uint256 token1_amount = IERC20(ICLPool(address(pool)).token1()).balanceOf(address(pool));
-            binSearchParams.right = token1_amount > amount0 ? amount0 : token1_amount;
-        } else {
-            uint256 token0_amount = IERC20(ICLPool(address(pool)).token0()).balanceOf(address(pool));
-            binSearchParams.right = token0_amount > amount1 ? amount1 : token0_amount;
+            r = token1_amount > amount0 ? amount0 : token1_amount;
+        } else { 
+            uint256 token0_amount = IERC20(ICLPool(address(pool)).token0()).balanceOf(address(pool)); 
+            r = token0_amount > amount1 ? amount1 : token0_amount;
         }
 
         for (uint256 i = 0; i < binSearchIterations; i++) {
-            binSearchParams.mid = (binSearchParams.left + binSearchParams.right) / 2;
+            mid = (l + r) / 2;
 
-            if (binSearchParams.mid == 0) {
+            if (mid == 0) {
                 break;
             }
-            try swapSimulator.simulateSwap(
-                address(pool),
-                binSearchParams.mid,
-                0,
-                sqrtRatioStablecoinsX96Min,
-                sqrtRatioStablecoinsX96Max,
-                zeroForOne,
-                tickRange
-            ) {} 
-            catch Error(string memory reason) {
+            try swapSimulator.simulateSwap(address(pool), mid, zeroForOne, lowerTick, upperTick) {
+
+            } catch Error(string memory reason) {
                 emit SwapErrorInternal(reason);
                 break;
             }
@@ -422,22 +392,82 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
                 assembly {
                     data := add(_data, 4)
                 }
+        
                 uint256[] memory swapResult = new uint256[](4);
                 (swapResult[0], swapResult[1], swapResult[2], swapResult[3]) = abi.decode(data, (uint256, uint256, uint256, uint256));
-                bool compareResult = zeroForOne ? 
+
+                if (swapResult[3] == 0) {
+                    r = mid;
+                } else {
+                    bool compareResult = zeroForOne ? 
                     _compareRatios(swapResult[0], swapResult[1], swapResult[2], swapResult[3]) : 
                     _compareRatios(swapResult[1], swapResult[0], swapResult[3], swapResult[2]);
-                if (compareResult) {
-                    binSearchParams.left = binSearchParams.mid;
-                } else {
-                    binSearchParams.right = binSearchParams.mid;
+
+                    if (compareResult) {
+                        l = mid;
+                    } else {
+                        r = mid;
+                    }
                 }
             }
         }
-        amountToSwap = binSearchParams.mid;
+        amountToSwap = mid;
+    }
+
+    // NOTE: Calculates amount of asset1 that needs to be swaped to get targetAmount for asset0
+    function _calculateAmountToSwap(uint256 targetAmount0) internal returns (uint256 amountToSwap) {
+        uint256 l = 0;
+        uint256 r = usdPlus.balanceOf(address(swapSimulator));
+        uint256 mid;
+
+        for (uint256 i = 0; i < binSearchIterations; i++) {
+            mid = (l + r) / 2;
+
+            if (mid == 0) {
+                break;
+            }
+
+            try swapSimulator.simulateSwap(address(pool), mid, false, lowerTick, upperTick) {} 
+            catch Error(string memory reason) {
+                emit SwapErrorInternal(reason);
+                break;
+            }
+            catch (bytes memory _data) {     
+                bytes memory data;
+                assembly {
+                    data := add(_data, 4)
+                }
+        
+                (uint256 amount0AfterSwap,,,) = abi.decode(data, (uint256, uint256, uint256, uint256)); 
+
+                if (amount0AfterSwap > targetAmount0) {
+                    r = mid;
+                } else {
+                    l = mid;
+                }
+            }
+        }
+        amountToSwap = r;
     }
 
     function _compareRatios(uint256 a, uint256 b, uint256 c, uint256 d) internal pure returns (bool) {
         return a * d > b * c;
+    }
+
+    function _calculateSlippageLimitBorder(uint160 sqrtRatioX96, bool zeroForOne) internal view returns (uint160) {
+        if (zeroForOne) {
+            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 - rewardSwapSlippageBP), 100));
+        } else {
+            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 + rewardSwapSlippageBP), 100));
+        }        
+    }
+
+    function _sqrt(uint x) internal pure returns (uint y) {
+        uint z = (x + 1) / 2;
+        y = x;
+        while (z < y) {
+            y = z;
+            z = (x / z + z) / 2;
+        }
     }
 }

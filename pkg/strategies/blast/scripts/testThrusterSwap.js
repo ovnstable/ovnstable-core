@@ -1,5 +1,5 @@
 const hre = require("hardhat");
-const {getContract, showM2M, execTimelock, transferAsset, getERC20ByAddress, transferETH } = require("@overnight-contracts/common/utils/script-utils");
+const {getContract, showM2M, execTimelock, transferAsset, getERC20ByAddress, transferETH, initWallet } = require("@overnight-contracts/common/utils/script-utils");
 const {createProposal, testProposal, testUsdPlus, testStrategy} = require("@overnight-contracts/common/utils/governance");
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 
@@ -16,6 +16,39 @@ async function main() {
 
     usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', '0xBa6b468e6672514f3c59D5D8B8731B1956BA5D22')
     let strategy = await getContract('StrategyThrusterSwap', 'blast');
+
+    let timelock = await getContract('AgentTimelock');
+    console.log("timelockAccount is", timelock.address)
+
+    let wallet = await initWallet();
+
+    await transferETH(10, timelock.address);
+    await transferETH(10, wallet.address);
+
+    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
+
+    await hre.network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [timelock.address],
+    });
+
+    console.log("(SS): ", strategy.swapSimulator.address);
+
+    const timelockSigner = await ethers.getSigner(timelock.address);
+
+    await (await strategy.connect(timelockSigner).grantRole('0x0000000000000000000000000000000000000000000000000000000000000000', "0x8df424e487de4218b347e1798efa11a078fece90"));
+    await (await strategy.connect(timelockSigner).grantRole('0xd67ad422505496469a1adf6cdf9e5ee92ac5d33992843c9ecc4b2f6d6cde9137', "0x8df424e487de4218b347e1798efa11a078fece90"));
+    await (await strategy.connect(timelockSigner).grantRole('0x90c2aa7471c04182221f68e80c07ab1e5946e4c63f8693e14ca40385d529f051', "0x8df424e487de4218b347e1798efa11a078fece90"));
+
+    // await transferAsset(BLAST.usdb, strategy.address, toAsset(100_000));
+
+    // await (await strategy.testDep()).wait();
+
+    // console.log("OK)")
+
+
+// 65369532218029914823696
+
 
     // GENERAL TEST
     await testStrategy(filename, strategy, 'blast');
