@@ -51,7 +51,7 @@ module.exports = async ({deployments}) => {
 
 async function getParams() {
     return {
-        strategy: "0x077b7b60522454d16AF84eF93F68b02802B0736c", // StrategyThrusterSwap address
+        strategy: "0x147812C2282eC48512a6f6f11F7c98d78D1ad74B", // StrategyThrusterSwap address
         factory: '0xa08ae3d3f4da51c22d3c041e468bdf4c61405aab'
     };
 }

@@ -2,18 +2,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import {Strategy, IERC20} from "@overnight-contracts/core/contracts/Strategy.sol";
-// import "@overnight-contracts/core/contracts/Strategy.sol";
-
-// import "@overnight-contracts/connectors/contracts/stuff/Thruster.sol";
-
 import {ICLPool, TickMath, LiquidityAmounts, INonfungiblePositionManager, INFPBooster, FullMath} from "./Thruster.sol";
-
-// import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
-
-import "hardhat/console.sol";
-
 
 contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
@@ -125,7 +116,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     // --- logic
 
     function netAssetValue() external view override returns (uint256) {
-        console.log("netAssetValue?!?!");
         return _totalValue();
     }
 
@@ -253,7 +243,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
 
     function _withdraw(uint256 amount, bool isFull) internal {
         // _collect_rewards_hyperlock();
-        console.log("812!!!!");
 
         nfpBooster.withdraw(tokenLP, address(this)); 
 

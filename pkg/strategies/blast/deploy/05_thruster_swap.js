@@ -44,9 +44,9 @@ module.exports = async ({deployments}) => {
 
     // await transferETH(10, "0xe12e06d810f08b7703d5266081f8023acd21ce9d");
 
-    // await deploySection(async (name) => {
-    //     await deployProxy(name, deployments, save);
-    // });
+    await deploySection(async (name) => {
+        await deployProxy(name, deployments, save);
+    });
 
     // let strategy = await getContract(strategyName, 'blast');
     
@@ -61,8 +61,6 @@ module.exports = async ({deployments}) => {
     // // await (await strategy.setParams(await getParams())).wait();
     // console.log("Set!")
 
-
-    
 };
 
 // hh deploy --tags StrategyThrusterSwap --impl --verify --network blast 
@@ -70,7 +68,7 @@ module.exports = async ({deployments}) => {
 async function getParams() {
     return {
         pool: '0x147e7416d5988b097b3a1859efecc2c5e04fdf96',
-        swapSimulatorAddress: "0x4c8d2730C5094587c6EccCdE971B9046A7e36525", 
+        swapSimulatorAddress: "0x0777Cdf187782832c9D98c0aB73cCdc19D271B54", 
         npmAddress: '0x434575eaea081b735c985fa9bf63cd7b87e227f9', 
         nfpBooster: '0xAd21b2055974075Ab3E126AC5bF8d7Ee3Fcd848a',
 
@@ -91,4 +89,4 @@ async function getParams() {
 }
 
 module.exports.tags = [strategyName];
-module.exports.getStrategyFenixSwapParams = getParams;
+module.exports.getStrategyThrusterSwapParams = getParams;
