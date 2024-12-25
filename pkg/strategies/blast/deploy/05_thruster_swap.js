@@ -44,22 +44,25 @@ module.exports = async ({deployments}) => {
 
     // await transferETH(10, "0xe12e06d810f08b7703d5266081f8023acd21ce9d");
 
-    await deploySection(async (name) => {
-        await deployProxy(name, deployments, save);
-    });
+    // await deploySection(async (name) => {
+    //     await deployProxy(name, deployments, save);
+    // });
 
-    let strategy = await getContract(strategyName, 'blast');
+    // let strategy = await getContract(strategyName, 'blast');
     
-    console.log("Setting...")
+    // console.log("Setting...")
 
-    await settingSection(strategyName, async (strategy) => {
-        await (await strategy.setParams(await getParams())).wait();
-    });
+    // await settingSection(strategyName, async (strategy) => {
+    //     await (await strategy.setParams(await getParams())).wait();
+    // });
 
     
-    // console.log(getParams())
-    // await (await strategy.setParams(await getParams())).wait();
-    console.log("Set!")
+    // // console.log(getParams())
+    // // await (await strategy.setParams(await getParams())).wait();
+    // console.log("Set!")
+
+
+    
 };
 
 // hh deploy --tags StrategyThrusterSwap --impl --verify --network blast 

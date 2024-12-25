@@ -1,44 +1,47 @@
-const hre = require("hardhat");
-const {getContract, showM2M, execTimelock, transferAsset, getERC20ByAddress, transferETH, initWallet } = require("@overnight-contracts/common/utils/script-utils");
-const {createProposal, testProposal, testUsdPlus, testStrategy} = require("@overnight-contracts/common/utils/governance");
-const {Roles} = require("@overnight-contracts/common/utils/roles");
+// const hre = require("hardhat");
+// const {getContract, showM2M, execTimelock, transferAsset, getERC20ByAddress, transferETH, initWallet } = require("@overnight-contracts/common/utils/script-utils");
+// const {createProposal, testProposal, testUsdPlus, testStrategy} = require("@overnight-contracts/common/utils/governance");
+// const {Roles} = require("@overnight-contracts/common/utils/roles");
 
-const path = require('path');
-const {prepareEnvironment} = require("@overnight-contracts/common/utils/tests");
-const {strategySiloUsdc} = require("@overnight-contracts/strategies-arbitrum/deploy/38_strategy_silo_usdc");
-let filename = path.basename(__filename);
-filename = filename.substring(0, filename.indexOf(".js"));
+// const path = require('path');
+// const {prepareEnvironment} = require("@overnight-contracts/common/utils/tests");
+// const {strategySiloUsdc} = require("@overnight-contracts/strategies-arbitrum/deploy/38_strategy_silo_usdc");
+// let filename = path.basename(__filename);
+// filename = filename.substring(0, filename.indexOf(".js"));
 
-const {BLAST} = require("@overnight-contracts/common/utils/assets");
-const { toAsset } = require("@overnight-contracts/common/utils/decimals");
+// const {BLAST} = require("@overnight-contracts/common/utils/assets");
+// const { toAsset } = require("@overnight-contracts/common/utils/decimals");
 
-async function main() {
+// async function main() {
 
-    usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', '0xBa6b468e6672514f3c59D5D8B8731B1956BA5D22')
-    let strategy = await getContract('StrategyThrusterSwap', 'blast');
 
-    let timelock = await getContract('AgentTimelock');
-    console.log("timelockAccount is", timelock.address)
 
-    let wallet = await initWallet();
 
-    await transferETH(10, timelock.address);
-    await transferETH(10, wallet.address);
+    // usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', '0xBa6b468e6672514f3c59D5D8B8731B1956BA5D22')
+    // let strategy = await getContract('StrategyThrusterSwap', 'blast');
 
-    hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
+    // let timelock = await getContract('AgentTimelock');
+    // console.log("timelockAccount is", timelock.address)
 
-    await hre.network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [timelock.address],
-    });
+    // let wallet = await initWallet();
 
-    console.log("(SS): ", strategy.swapSimulator.address);
+    // await transferETH(10, timelock.address);
+    // await transferETH(10, wallet.address);
 
-    const timelockSigner = await ethers.getSigner(timelock.address);
+    // hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
 
-    await (await strategy.connect(timelockSigner).grantRole('0x0000000000000000000000000000000000000000000000000000000000000000', "0x8df424e487de4218b347e1798efa11a078fece90"));
-    await (await strategy.connect(timelockSigner).grantRole('0xd67ad422505496469a1adf6cdf9e5ee92ac5d33992843c9ecc4b2f6d6cde9137', "0x8df424e487de4218b347e1798efa11a078fece90"));
-    await (await strategy.connect(timelockSigner).grantRole('0x90c2aa7471c04182221f68e80c07ab1e5946e4c63f8693e14ca40385d529f051', "0x8df424e487de4218b347e1798efa11a078fece90"));
+    // await hre.network.provider.request({
+    //     method: "hardhat_impersonateAccount",
+    //     params: [timelock.address],
+    // });
+
+    // console.log("(SS): ", strategy.swapSimulator.address);
+
+    // const timelockSigner = await ethers.getSigner(timelock.address);
+
+    // await (await strategy.connect(timelockSigner).grantRole('0x0000000000000000000000000000000000000000000000000000000000000000', "0x8df424e487de4218b347e1798efa11a078fece90"));
+    // await (await strategy.connect(timelockSigner).grantRole('0xd67ad422505496469a1adf6cdf9e5ee92ac5d33992843c9ecc4b2f6d6cde9137', "0x8df424e487de4218b347e1798efa11a078fece90"));
+    // await (await strategy.connect(timelockSigner).grantRole('0x90c2aa7471c04182221f68e80c07ab1e5946e4c63f8693e14ca40385d529f051', "0x8df424e487de4218b347e1798efa11a078fece90"));
 
     // await transferAsset(BLAST.usdb, strategy.address, toAsset(100_000));
 
@@ -51,11 +54,11 @@ async function main() {
 
 
     // GENERAL TEST
-    await testStrategy(filename, strategy, 'blast');
+    // await testStrategy(filename, strategy, 'blast');
 
 
 
-    // console.log("testFenixSwap #2 - unstake")
+    // console.log("testthrusterSwap #2 - unstake")
 
     // usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', '0xBa6b468e6672514f3c59D5D8B8731B1956BA5D22')
 
@@ -113,9 +116,9 @@ async function main() {
 
     // AMOUNT OF USDB THAT NEED TO BE SWAPED TO REACH TICK
 
-    // console.log("   We are in testFenixSwap.js")
+    // console.log("   We are in testthrusterSwap.js")
 
-    // let strategy = await getContract('StrategyFenixSwap', 'blast');
+    // let strategy = await getContract('StrategythrusterSwap', 'blast');
 
     // console.log("   Переводим USDB на баланс страткгии")
     // console.log("   Адрес: ", strategy.address)
@@ -253,6 +256,50 @@ async function main() {
     // console.log("START!")
     // await (await strategy.testCalculateSlippageLimitBorder()).wait();
     // console.log("All right!")
+// }
+
+// main()
+//     .then(() => process.exit(0))
+//     .catch((error) => {
+//         console.error(error);
+//         process.exit(1);
+//     });
+
+
+const { getContract, showM2M, initWallet, transferETH } = require("@overnight-contracts/common/utils/script-utils");
+const { createProposal, testProposal, testUsdPlus, testStrategy } = require("@overnight-contracts/common/utils/governance");
+const { Roles } = require("@overnight-contracts/common/utils/roles");
+const path = require('path');
+let filename = path.basename(__filename);
+filename = filename.substring(0, filename.indexOf(".js"));
+const { getStrategythrusterSwapParams } = require("../../../strategies/blast/deploy/03_fenix_swap");
+
+async function main() {
+    let addresses = [];
+    let values = [];
+    let abis = [];
+
+    let thrusterSwap = await getContract('StrategyThrusterSwap', 'blast');
+    let thrusterSwapImp = "0x254c2dfe06F1f5f7AaBf920C0dA9cC14c83dF8Fe"
+
+    let swapSimulator = await getContract('SwapSimulatorThruster', 'blast');
+    let swapSimulatorImp = "0x480EFF8bCDA11fC4b4C54Ae0b8D76359E166818e"
+
+    addProposalItem(thrusterSwap, 'upgradeTo', [thrusterSwapImp])
+    addProposalItem(thrusterSwap, 'setParams', [await getStrategythrusterSwapParams()]);
+
+    addProposalItem(swapSimulator, 'upgradeTo', [swapSimulatorImp])
+
+    await testProposal(addresses, values, abis);
+    // await createProposal(filename, addresses, values, abis);
+
+    await testStrategy(filename, thrusterSwap, 'blast');
+
+    function addProposalItem(contract, methodName, params) {
+        addresses.push(contract.address);
+        values.push(0);
+        abis.push(contract.interface.encodeFunctionData(methodName, params));
+    }
 }
 
 main()

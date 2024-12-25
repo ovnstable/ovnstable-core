@@ -25,7 +25,7 @@ let name = 'SwapSimulatorThruster';
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
-    let wallet = await initWallet();
+    // let wallet = await initWallet();
 
     // await transferETH(10, wallet.address);
 
@@ -33,20 +33,20 @@ module.exports = async ({deployments}) => {
         await deployProxy(name, deployments, save);
     });
 
-    let simulator = await getContract(name, 'blast');
+    // let simulator = await getContract(name, 'blast');
 
-    console.log("address: ", simulator.address);
+    // console.log("address: ", simulator.address);
 
-    console.log("Setting...")
+    // console.log("Setting...")
 
     // await settingSection(name, async (simulator) => {
         // await (await simulator.setSimulationParams(await getParams())).wait();
     // });
 
     
-    console.log(getParams())
+    // console.log(getParams())
     // await (await strategy.setParams(await getParams())).wait();
-    console.log("Set!")
+    // console.log("Set!")
 };
 
 async function getParams() {
