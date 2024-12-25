@@ -19,13 +19,11 @@ async function main() {
     let swapSimulatorImp = "0x480EFF8bCDA11fC4b4C54Ae0b8D76359E166818e"
 
     addProposalItem(thrusterSwap, 'upgradeTo', [thrusterSwapImp])
-
     addProposalItem(thrusterSwap, 'setParams', [await getStrategyThrusterSwapParams()]);
-
     addProposalItem(swapSimulator, 'upgradeTo', [swapSimulatorImp])
 
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
