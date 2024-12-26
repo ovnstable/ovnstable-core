@@ -461,7 +461,7 @@ let BLAST = {
 }
 
 let SONIC = {
-    usdc: "",   // 0x29219dd400f2Bf60E5a23d13Be72B486D4038894 - bridged, waiting for regular one
+    usdc: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",   //  bridged
     weth: "0x309C92261178fA0CF748A855e90Ae73FDb79EBc7"
 };
 
