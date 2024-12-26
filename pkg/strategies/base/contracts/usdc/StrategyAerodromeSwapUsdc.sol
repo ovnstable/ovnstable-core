@@ -63,12 +63,6 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         uint256 liquidityDecreaseDeviationBP;
     }
 
-    struct BinSearchParams { //!!!!
-        uint256 left;
-        uint256 right;
-        uint256 mid;
-    }
-
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -86,7 +80,6 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         usdc = IERC20(pool.token0());
         usdcPlus = IERC20(pool.token1());
         rewardSwapPool = ICLPool(params.rewardSwapPool);
-        // tickRange = params.tickRange;
         
         binSearchIterations = params.binSearchIterations;
         swapSimulator = ISwapSimulator(params.swapSimulatorAddress);
@@ -480,15 +473,6 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             }
         }
         amountToSwap = r;
-    }
-
-    // NOTE: 
-    function _calculateSlippageLimitBorder(uint160 sqrtRatioX96, bool zeroForOne) internal view returns (uint160) {
-        if (zeroForOne) {
-            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 - rewardSwapSlippageBP), 100));
-        } else {
-            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 + rewardSwapSlippageBP), 100));
-        }        
     }
 
     function _sqrt(uint x) internal pure returns (uint y) {
