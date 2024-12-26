@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
-import "@overnight-contracts/core/contracts/Strategy.sol";
+import {Strategy} from "@overnight-contracts/core/contracts/Strategy.sol";
 // import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
-import "./Aerodrome.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {ICLPool, IERC20, INonfungiblePositionManager, ICLGauge, TickMath, FullMath, LiquidityAmounts, AerodromeLibrary} from "./Aerodrome.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ISwapSimulator} from "./../interfaces/ISwapSimulator.sol";
 
 
@@ -49,7 +49,6 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     struct StrategyParams {
         address pool;
         address rewardSwapPool;
-        //int24[] tickRange;
         uint256 binSearchIterations;
         address swapSimulatorAddress;
         address npmAddress;
@@ -117,9 +116,9 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _unstake(address _asset, uint256 _amount, address) internal override returns (uint256) {
-        require(_asset == address(usdc), "Some tokens are not compatible");
-        require(_amount > 0, "Amount is less than or equal to 0"); 
-        require(stakedTokenId != 0, "Not staked");
+        // require(_asset == address(usdc), "");
+        // require(_amount > 0, ""); 
+        // require(stakedTokenId != 0, "");
 
         _withdraw(_amount, false);
         uint256 assetBalance = usdc.balanceOf(address(this));
@@ -128,8 +127,8 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _unstakeFull(address _asset, address) internal override returns (uint256) {
-        require(_asset == address(usdc) || _asset == address(usdcPlus), "Some tokens are not compatible");
-        require(stakedTokenId != 0, "Not staked");
+        // require(_asset == address(usdc) || _asset == address(usdcPlus), "");
+        // require(stakedTokenId != 0, "");
 
         _withdraw(0, true);
 
