@@ -462,7 +462,7 @@ let BLAST = {
 
 let SONIC = {
     usdcBridged: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
-    weth: "0x309C92261178fA0CF748A855e90Ae73FDb79EBc7"
+    weth: "0x50c42dEAcD8Fc9773493ED674b675bE577f2634b"
 };
 
 function getAsset(name) {
