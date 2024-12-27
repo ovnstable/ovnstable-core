@@ -15,7 +15,7 @@ async function main() {
 
     let wallet = await initWallet();
     let pm = await getContract('PortfolioManager', 'blast');
-    let fenixSwap = await getContract('FenixSwap', 'blast');
+    let swapper = await getContract('FenixSwap', 'blast');
     let exchange = await getContract('Exchange', 'blast');
     let usdPlus = await getERC20ByAddress('0x4fee793d435c6d2c10c135983bb9d6d4fc7b9bbd', wallet.address);
     let usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', wallet.address);
@@ -50,16 +50,16 @@ async function main() {
         console.log("USD+ balance: ", usdPlusBalance.toString());
         
         await new Promise(resolve => setTimeout(resolve, 3000));
-        bn = (await (await usdPlus.approve(fenixSwap.address, usdPlusBalance, gas)).wait()).blockNumber;
+        bn = (await (await usdPlus.approve(swapper.address, usdPlusBalance, gas)).wait()).blockNumber;
         // await logCommon(bn);
-        console.log("USD+ approved to fenixSwap");
+        console.log("USD+ approved to swapper");
 
         globalState = await pool.globalState();
         console.log("Ratio before swap:  ", globalState[0].toString());
 
         // await logBalances("Before");
         await new Promise(resolve => setTimeout(resolve, 3000));
-        bn = (await (await fenixSwap.swap(poolAddress, usdPlusBalance, 0n, false, gas)).wait()).blockNumber;
+        bn = (await (await swapper.swap(poolAddress, usdPlusBalance, 0n, false, gas)).wait()).blockNumber;
         await logCommon(bn);
         // await logBalances("After");
 
@@ -100,8 +100,6 @@ async function logBalances(type) {
 async function logCommon(bn) {
     let wallet = await initWallet();
 
-
-
     let usdPlus = await getERC20ByAddress('0x4fee793d435c6d2c10c135983bb9d6d4fc7b9bbd', wallet.address);
     let usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', wallet.address);
     let m2m = await getContract('Mark2Market', 'blast');
@@ -110,12 +108,6 @@ async function logCommon(bn) {
     let totalNetAssets = await m2m.totalNetAssets({blockTag: bn});
     let cashNav = assets[0].netAssetValue;
     let strategyNav = assets[3].netAssetValue;
-
-    // console.log("assets: ", assets);
-    // console.log("cashNav: ", cashNav.toString());
-    // console.log("strategyNav: ", strategyNav.toString());
-    // console.log("totalNetAssets: ", totalNetAssets.toString());
-    
 
     let usdPlusPoolBalance = await usdPlus.balanceOf(poolAddress, {blockTag: bn});
     let usdbPoolBalance = await usdb.balanceOf(poolAddress, {blockTag: bn});
