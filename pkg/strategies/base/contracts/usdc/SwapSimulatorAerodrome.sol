@@ -9,8 +9,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ISwapSimulator} from "./../interfaces/ISwapSimulator.sol";
 
-import "hardhat/console.sol";
-
 contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
     struct SwapCallbackData {
@@ -57,29 +55,20 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         uint160 sqrtPriceLimitX96,
         bool zeroForOne
     ) public onlyStrategy {
-        console.log("   (SS): s1");
         ICLPool pool = ICLPool(pair);
-        console.log("   (SS): s2");
         SwapCallbackData memory data = SwapCallbackData({
             tokenA: pool.token0(),
             tokenB: pool.token1(),
             tickSpacing: pool.tickSpacing()
         });
         
-
         uint160 poolBorder = zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1;
-
-        console.log("   (SS): s3");
 
         pool.swap(address(this), zeroForOne, int256(amountIn), poolBorder, abi.encode(data));
 
-        console.log("   (SS): s4");
-
         (uint160 newSqrtRatioX96,,,,,) = pool.slot0();
-        console.log("   (SS): s5");
 
         if (newSqrtRatioX96 < sqrtPriceLimitX96 && zeroForOne || newSqrtRatioX96 > sqrtPriceLimitX96 && !zeroForOne) {
-            console.log("   (SS): s6");
             revert SlippageError(amountIn, newSqrtRatioX96, sqrtPriceLimitX96, zeroForOne);
         }
     }
@@ -101,7 +90,6 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         );
     }
 
-    // TODO: Точно нужна?
     function simulatePriceAfterSwap(address pair, uint256 amountIn, bool zeroForOne) external onlyStrategy {
         ICLPool pool = ICLPool(pair);
         uint160 borderForSwap = zeroForOne ? type(uint160).min: type(uint160).max;
@@ -174,51 +162,25 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         uint256 treasuryAmountAero = aero.balanceOf(address(this)) * treasuryShare / 10000;
         uint256 sellAmountAero = aero.balanceOf(address(this)) - treasuryAmountAero;
 
-        console.log("   (SS): aERO #0:               ", aero.balanceOf(address(this)));
-        console.log("   (SS): treasuryAmountAerom #0: ", treasuryAmountAero);
-
         if (sellAmountAero > 0) {
-            console.log("   (SS): swapRouter: ", swapRouter); // ok
-            console.log("   (SS): aeroAddress: ", aeroAddress); // ok
-            console.log("   (SS): usdcAddress: ", usdcAddress); // ok
-            console.log("   (SS): rewardSwapPoolAddress: ", rewardSwapPoolAddress); // ok
-            console.log("   (SS): sellAmountAero: ", sellAmountAero); // ok
-            
-            // uint256 usdcAfterSwap = AerodromeLibrary.getAmountsOut(
-            //     swapRouter,
-            //     aeroAddress,
-            //     usdcAddress,
-            //     rewardSwapPoolAddress,
-            //     sellAmountAero
-            // );
+            uint256 usdcAfterSwap = AerodromeLibrary.getAmountsOut(
+                swapRouter,
+                aeroAddress,
+                usdcAddress,
+                rewardSwapPoolAddress,
+                sellAmountAero
+            );
 
-            // console.log("   (SS): usdcAfterSwap: ", usdcAfterSwap);
-            // if (usdcAfterSwap > 0) {
-                console.log("<-_0_->");
-
-                aero.approve(swapRouter, sellAmountAero);
-
-                console.log("Approved!");
-
-                AerodromeLibrary.singleSwap(
-                    swapRouter,
-                    aeroAddress,
-                    usdcAddress,
-                    rewardSwapPoolAddress,
-                    sellAmountAero,
-                    0,
-                    strategy
-                );
-
-
-                
-            // }
-
-            console.log("   (SS): AERO on treasury before:               ", aero.balanceOf(address(treasury)));
+            AerodromeLibrary.singleSwap(
+                swapRouter,
+                aeroAddress,
+                usdcAddress,
+                rewardSwapPoolAddress,
+                sellAmountAero,
+                usdcAfterSwap * (10000 - rewardSwapSlippageBP) / 10000,
+                strategy
+            );
             aero.transfer(treasury, treasuryAmountAero);
-            console.log("   (SS): AERO on treasury after :               ", aero.balanceOf(address(treasury)));
         }
-
-        console.log("   (SS): AERO #1:               ", aero.balanceOf(address(this)));
     }
 }
