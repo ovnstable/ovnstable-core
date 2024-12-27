@@ -461,7 +461,7 @@ let BLAST = {
 }
 
 let SONIC = {
-    usdc: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",   //  bridged
+    usdcBridged: "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
     weth: "0x309C92261178fA0CF748A855e90Ae73FDb79EBc7"
 };
 
@@ -499,6 +499,7 @@ module.exports = {
     LINEA: LINEA,
     OPTIMISM: OPTIMISM,
     BLAST: BLAST,
+    SONIC: SONIC,
     COMMON: COMMON,
     getAsset: getAsset,
 }
