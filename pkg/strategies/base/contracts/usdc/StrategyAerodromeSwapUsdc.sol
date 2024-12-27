@@ -2,8 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import {Strategy} from "@overnight-contracts/core/contracts/Strategy.sol";
-// import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
-import {ICLPool, IERC20, INonfungiblePositionManager, ICLGauge, TickMath, FullMath, LiquidityAmounts, AerodromeLibrary} from "./Aerodrome.sol";
+import {ICLPool, IERC20, INonfungiblePositionManager, ICLGauge, TickMath, FullMath, LiquidityAmounts, AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ISwapSimulator} from "./../interfaces/ISwapSimulator.sol";
 

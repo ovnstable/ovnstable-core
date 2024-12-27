@@ -23,8 +23,8 @@ async function main() {
 
     addProposalItem(swapSimulator, 'upgradeTo', [swapSimulatorImp])
 
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
