@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {ISwapSimulator} from "./../interfaces/ISwapSimulator.sol";
 
 contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -59,55 +60,43 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
             tokenB: pool.token1(),
             tickSpacing: pool.tickSpacing()
         });
+        
+        uint160 poolBorder = zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1;
 
-        uint160 maxSqrtRatio = uint160(79236085330515764027303304732); // 1.0002
-        uint160 minSqrtRatio = uint160(79224201403219477170569942574); // 0.999 TODO: change for more strict slippage
-
-        pool.swap(
-            address(this), 
-            zeroForOne, 
-            int256(amountIn), 
-            sqrtPriceLimitX96 == 0
-                ? (zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1)
-                : sqrtPriceLimitX96, 
-            abi.encode(data)
-        );
+        pool.swap(address(this), zeroForOne, int256(amountIn), poolBorder, abi.encode(data));
 
         (uint160 newSqrtRatioX96,,,,,) = pool.slot0();
 
-        if (newSqrtRatioX96 > maxSqrtRatio || newSqrtRatioX96 < minSqrtRatio) {
-            revert SlippageError(
-                newSqrtRatioX96,
-                minSqrtRatio,
-                maxSqrtRatio,
-                0
-            );
+        if (newSqrtRatioX96 < sqrtPriceLimitX96 && zeroForOne || newSqrtRatioX96 > sqrtPriceLimitX96 && !zeroForOne) {
+            revert SlippageError(amountIn, newSqrtRatioX96, sqrtPriceLimitX96, zeroForOne);
         }
     }
 
-    function simulateSwap(
-        address pair,
-        uint256 amountIn,
-        uint160 sqrtPriceLimitX96,
-        bool zeroForOne,
-        int24[] memory tickRange
-    ) external onlyStrategy {
-
+    function simulateSwap(address pair, uint256 amountIn, bool zeroForOne, int24 lowerTick, int24 upperTick) external onlyStrategy {
         ICLPool pool = ICLPool(pair);
-        address token0 = pool.token0();
-        address token1 = pool.token1();
+        uint160 borderForSwap = TickMath.getSqrtRatioAtTick(zeroForOne ? lowerTick : upperTick);
 
-        swap(pair, amountIn, sqrtPriceLimitX96, zeroForOne);
+        swap(pair, amountIn, borderForSwap, zeroForOne);
 
         uint256[] memory ratio = new uint256[](2);
-        (ratio[0], ratio[1]) = _getProportion(pool, tickRange);
+        (ratio[0], ratio[1]) = _getProportion(pool, lowerTick, upperTick);
 
         revert SwapError(
-            IERC20(token0).balanceOf(address(this)),
-            IERC20(token1).balanceOf(address(this)),
+            IERC20(pool.token0()).balanceOf(address(this)),
+            IERC20(pool.token1()).balanceOf(address(this)),
             ratio[0],
             ratio[1]
         );
+    }
+
+    function simulatePriceAfterSwap(address pair, uint256 amountIn, bool zeroForOne) external onlyStrategy {
+        ICLPool pool = ICLPool(pair);
+        uint160 borderForSwap = zeroForOne ? type(uint160).min: type(uint160).max;
+
+        swap(pair, amountIn, borderForSwap, zeroForOne);
+
+        (uint160 priceSqrtRatioX96,,,,,) = pool.slot0();
+        revert PriceAfterSwapError(priceSqrtRatioX96);
     }
 
     function uniswapV3SwapCallback(
@@ -142,23 +131,55 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         }
     }
 
-    function _getProportion(
-        ICLPool pool,
-        int24[] memory tickRange
-    ) internal view returns (uint256 token0Amount, uint256 token1Amount) {
+    function _getProportion(ICLPool pool, int24 lowerTick, int24 upperTick) internal view returns (uint256 token0Amount, uint256 token1Amount) {
         IERC20Metadata token0 = IERC20Metadata(pool.token0());
         IERC20Metadata token1 = IERC20Metadata(pool.token1());
         uint256 dec0 = 10 ** token0.decimals();
         uint256 dec1 = 10 ** token1.decimals();
         (uint160 sqrtRatioX96,,,,,) = pool.slot0();
 
-        uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(tickRange[0]);
-        uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(tickRange[1]);
+        uint160 sqrtRatio0 = TickMath.getSqrtRatioAtTick(lowerTick);
+        uint160 sqrtRatio1 = TickMath.getSqrtRatioAtTick(upperTick);
         uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, sqrtRatio0, sqrtRatio1, dec0 * 1000, dec1 * 1000);
         (token0Amount, token1Amount) = LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatio0, sqrtRatio1, liquidity);
         uint256 denominator = dec0 > dec1 ? dec0 : dec1;
 
         token0Amount = token0Amount * (denominator / dec0);
         token1Amount = token1Amount * (denominator / dec1);
+    }
+
+    function distributeAero(
+        address aeroAddress, 
+        address usdcAddress, 
+        address rewardSwapPoolAddress, 
+        address swapRouter,
+        address treasury, 
+        uint256 rewardSwapSlippageBP, 
+        uint256 treasuryShare
+    ) external onlyStrategy {
+        IERC20 aero = IERC20(aeroAddress);
+        uint256 treasuryAmountAero = aero.balanceOf(address(this)) * treasuryShare / 10000;
+        uint256 sellAmountAero = aero.balanceOf(address(this)) - treasuryAmountAero;
+
+        if (sellAmountAero > 0) {
+            uint256 usdcAfterSwap = AerodromeLibrary.getAmountsOut(
+                swapRouter,
+                aeroAddress,
+                usdcAddress,
+                rewardSwapPoolAddress,
+                sellAmountAero
+            );
+
+            AerodromeLibrary.singleSwap(
+                swapRouter,
+                aeroAddress,
+                usdcAddress,
+                rewardSwapPoolAddress,
+                sellAmountAero,
+                usdcAfterSwap * (10000 - rewardSwapSlippageBP) / 10000,
+                strategy
+            );
+            aero.transfer(treasury, treasuryAmountAero);
+        }
     }
 }

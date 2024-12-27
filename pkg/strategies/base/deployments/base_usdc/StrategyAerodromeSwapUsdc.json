@@ -556,11 +556,6 @@
               "type": "address"
             },
             {
-              "internalType": "int24[]",
-              "name": "tickRange",
-              "type": "int24[]"
-            },
-            {
               "internalType": "uint256",
               "name": "binSearchIterations",
               "type": "uint256"
@@ -598,6 +593,21 @@
             {
               "internalType": "uint256",
               "name": "treasuryShare",
+              "type": "uint256"
+            },
+            {
+              "internalType": "int24",
+              "name": "lowerTick",
+              "type": "int24"
+            },
+            {
+              "internalType": "int24",
+              "name": "upperTick",
+              "type": "int24"
+            },
+            {
+              "internalType": "uint256",
+              "name": "liquidityDecreaseDeviationBP",
               "type": "uint256"
             }
           ],

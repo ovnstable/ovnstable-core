@@ -1,16 +1,20 @@
 const { BASE } = require("@overnight-contracts/common/utils/assets");
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const { getContract } = require("@overnight-contracts/common/utils/script-utils");
+const { getContract, deploySection } = require("@overnight-contracts/common/utils/script-utils");
 
-let name = 'SwapSimulatorAerodrome';
+let strategyName = 'SwapSimulatorAerodrome';
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
-    await deployProxy(name, deployments, save);
 
-    let simulator = await getContract(name, 'base');
+    await deploySection(async (name) => {
+        await deployProxy(name, deployments, save);
+    });
+    // await deployProxy(strategyName, deployments, save);
 
-    await (await simulator.setSimulationParams(await getParams())).wait();
+    // console.log("Try to set params...")
+    // let simulator = await getContract(strategyName, 'base_usdc');
+    // await (await simulator.setSimulationParams(await getParams())).wait();
 };
 
 async function getParams() {
@@ -20,5 +24,5 @@ async function getParams() {
     };
 }
 
-module.exports.tags = [name];
+module.exports.tags = [strategyName];
 module.exports.swapSimulatorAerodrome = getParams;
