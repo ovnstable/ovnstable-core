@@ -7,6 +7,8 @@ import {ICLPool, IERC20, INonfungiblePositionManager, ICLGauge, TickMath, FullMa
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ISwapSimulator} from "./../interfaces/ISwapSimulator.sol";
 
+import "hardhat/console.sol";
+
 
 contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
@@ -153,50 +155,50 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         return totalValue;
     }
 
+
+    function testClaim() public {
+        console.log("TEST DEP STARTS");
+        _claimRewards(0x8df424e487De4218B347e1798efA11A078fecE90);
+    }
+
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
-        if (stakedTokenId == 0) {
-            return 0;
-        }
+        // if (stakedTokenId == 0) {
+        //     return 0;
+        // }
 
         uint256 balanceUsdcBefore = usdc.balanceOf(address(this));
-        if (gauge.stakedContains(address(this), stakedTokenId)) {
-            gauge.withdraw(stakedTokenId);
+        // if (gauge.stakedContains(address(this), stakedTokenId)) {
+        //     gauge.withdraw(stakedTokenId);
+        // }
+
+        // _collect();
+
+        console.log("AERO #0             :",  aero.balanceOf(address(this))); //     100000000
+        console.log("USDC #0             :",  usdc.balanceOf(address(this))); //     0 
+        console.log("USDC+#0             :",  usdcPlus.balanceOf(address(this))); // 100000000
+
+        console.log("AERO on treasury #0 : ", aero.balanceOf(address(treasury)));     // 412186959826476088155
+        console.log("USDC on beneficia #0: ", usdc.balanceOf(address(_beneficiary))); // 760519
+
+        if (aero.balanceOf(address(this)) > 0) { 
+            console.log("Transfer...           ");
+            console.log("AERO #1:              ",  aero.balanceOf(address(this)));
+            aero.transfer(address(swapSimulator), aero.balanceOf(address(this)));
+            swapSimulator.distributeAero(address(aero), address(usdc), address(rewardSwapPool), swapRouter, treasury,rewardSwapSlippageBP,  treasuryShare);
         }
 
-        _collect();
+        console.log("USDC #1:             ",  usdc.balanceOf(address(this)));
+        console.log("AERO on treasury #1: ", aero.balanceOf(address(treasury)));
 
-        uint256 treasuryAmountAero = aero.balanceOf(address(this)) * treasuryShare / 10000;
-        uint256 sellAmountAero = aero.balanceOf(address(this)) - treasuryAmountAero;
         uint256 amountUsdcPlus = usdcPlus.balanceOf(address(this));
 
-        if (sellAmountAero > 0) {
-            uint256 usdcAfterSwap = AerodromeLibrary.getAmountsOut(
-                swapRouter,
-                address(aero),
-                address(usdc),
-                address(rewardSwapPool),
-                sellAmountAero
-            );
-            if (usdcAfterSwap > 0) {
-                AerodromeLibrary.singleSwap(
-                    swapRouter,
-                    address(aero),
-                    address(usdc),
-                    address(rewardSwapPool),
-                    sellAmountAero,
-                    usdcAfterSwap * (10000 - rewardSwapSlippageBP) / 10000,
-                    address(this)
-                );
-            }
-
-            aero.transfer(treasury, treasuryAmountAero);
-        }
         if (amountUsdcPlus > 0) {
             usdcPlus.transfer(address(swapSimulator), amountUsdcPlus);
 
             uint160 borderForSwap = TickMath.getSqrtRatioAtTick(upperTick);
             swapSimulator.swap(address(pool), amountUsdcPlus, borderForSwap, false);
         }
+        console.log("USDC+#1             :",  usdcPlus.balanceOf(address(this)));
 
         swapSimulator.withdrawAll(address(pool));
         swapSimulator.withdrawAll(address(rewardSwapPool));
@@ -205,40 +207,55 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         if (claimedUsdc > 0) {
             usdc.transfer(_beneficiary, claimedUsdc);
         }
-        npm.approve(address(gauge), stakedTokenId);
-        gauge.deposit(stakedTokenId);
+
+        console.log("USDC on beneficia #1: ", usdc.balanceOf(address(_beneficiary)));
+
+
+        // npm.approve(address(gauge), stakedTokenId);
+        // gauge.deposit(stakedTokenId);
         return claimedUsdc;
     }
 
     function _deposit(uint256 assetToLock, bool zeroForOne) internal {
+        console.log("d1");
         uint256 amount0 = usdc.balanceOf(address(this));
         if (amount0 >= assetToLock) {
             amount0 -= assetToLock;
         } else {
             revert NotEnoughAssetBalance(amount0, assetToLock);
         }
+        console.log("d2");
 
         uint256 amount1 = usdcPlus.balanceOf(address(this));
 
         usdc.transfer(address(swapSimulator), amount0);
         usdcPlus.transfer(address(swapSimulator), amount1);
 
+        console.log("d3");
+
         uint256 amountToSwap = _simulateSwap(zeroForOne);
         uint160 borderForSwap = TickMath.getSqrtRatioAtTick(zeroForOne ? lowerTick : upperTick);
 
         if (amountToSwap > 0) {
+            console.log("d4");
             swapSimulator.swap(address(pool), amountToSwap, borderForSwap, zeroForOne);
+            console.log("d5");
         }
+
+        console.log("d6");
 
         swapSimulator.withdrawAll(address(pool));
 
         amount0 = usdc.balanceOf(address(this)) - assetToLock;
         amount1 = usdcPlus.balanceOf(address(this));
 
+        console.log("d7");
+
         usdc.approve(address(npm), amount0);
         usdcPlus.approve(address(npm), amount1);
 
         if (stakedTokenId == 0) {
+            console.log("d8");
             INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
                 token0: pool.token0(),
                 token1: pool.token1(),
@@ -257,9 +274,11 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
             npm.approve(address(gauge), stakedTokenId);
             gauge.deposit(stakedTokenId);
+            console.log("d9");
 
             emit Staked(stakedTokenId);
         } else {
+            console.log("d10");
             if (gauge.stakedContains(address(this), stakedTokenId)) {
                 gauge.withdraw(stakedTokenId);
             }
@@ -273,9 +292,11 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
                 deadline: block.timestamp
             });
             npm.increaseLiquidity(params);
+            console.log("d11");
 
             npm.approve(address(gauge), stakedTokenId);
             gauge.deposit(stakedTokenId);
+            console.log("d12");
         }
     }
 

@@ -2,12 +2,14 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 // import "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
-import "./usdc/Aerodrome.sol";
+import "./Aerodrome.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
+import {ISwapSimulator} from "./../interfaces/ISwapSimulator.sol";
+
+import "hardhat/console.sol";
 
 contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -55,20 +57,29 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         uint160 sqrtPriceLimitX96,
         bool zeroForOne
     ) public onlyStrategy {
+        console.log("   (SS): s1");
         ICLPool pool = ICLPool(pair);
+        console.log("   (SS): s2");
         SwapCallbackData memory data = SwapCallbackData({
             tokenA: pool.token0(),
             tokenB: pool.token1(),
             tickSpacing: pool.tickSpacing()
         });
+        
 
         uint160 poolBorder = zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1;
 
+        console.log("   (SS): s3");
+
         pool.swap(address(this), zeroForOne, int256(amountIn), poolBorder, abi.encode(data));
 
+        console.log("   (SS): s4");
+
         (uint160 newSqrtRatioX96,,,,,) = pool.slot0();
+        console.log("   (SS): s5");
 
         if (newSqrtRatioX96 < sqrtPriceLimitX96 && zeroForOne || newSqrtRatioX96 > sqrtPriceLimitX96 && !zeroForOne) {
+            console.log("   (SS): s6");
             revert SlippageError(amountIn, newSqrtRatioX96, sqrtPriceLimitX96, zeroForOne);
         }
     }
@@ -148,5 +159,66 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
 
         token0Amount = token0Amount * (denominator / dec0);
         token1Amount = token1Amount * (denominator / dec1);
+    }
+
+    function distributeAero(
+        address aeroAddress, 
+        address usdcAddress, 
+        address rewardSwapPoolAddress, 
+        address swapRouter,
+        address treasury, 
+        uint256 rewardSwapSlippageBP, 
+        uint256 treasuryShare
+    ) external onlyStrategy {
+        IERC20 aero = IERC20(aeroAddress);
+        uint256 treasuryAmountAero = aero.balanceOf(address(this)) * treasuryShare / 10000;
+        uint256 sellAmountAero = aero.balanceOf(address(this)) - treasuryAmountAero;
+
+        console.log("   (SS): aERO #0:               ", aero.balanceOf(address(this)));
+        console.log("   (SS): treasuryAmountAerom #0: ", treasuryAmountAero);
+
+        if (sellAmountAero > 0) {
+            console.log("   (SS): swapRouter: ", swapRouter); // ok
+            console.log("   (SS): aeroAddress: ", aeroAddress); // ok
+            console.log("   (SS): usdcAddress: ", usdcAddress); // ok
+            console.log("   (SS): rewardSwapPoolAddress: ", rewardSwapPoolAddress); // ok
+            console.log("   (SS): sellAmountAero: ", sellAmountAero); // ok
+            
+            // uint256 usdcAfterSwap = AerodromeLibrary.getAmountsOut(
+            //     swapRouter,
+            //     aeroAddress,
+            //     usdcAddress,
+            //     rewardSwapPoolAddress,
+            //     sellAmountAero
+            // );
+
+            // console.log("   (SS): usdcAfterSwap: ", usdcAfterSwap);
+            // if (usdcAfterSwap > 0) {
+                console.log("<-_0_->");
+
+                aero.approve(swapRouter, sellAmountAero);
+
+                console.log("Approved!");
+
+                AerodromeLibrary.singleSwap(
+                    swapRouter,
+                    aeroAddress,
+                    usdcAddress,
+                    rewardSwapPoolAddress,
+                    sellAmountAero,
+                    0,
+                    strategy
+                );
+
+
+                
+            // }
+
+            console.log("   (SS): AERO on treasury before:               ", aero.balanceOf(address(treasury)));
+            aero.transfer(treasury, treasuryAmountAero);
+            console.log("   (SS): AERO on treasury after :               ", aero.balanceOf(address(treasury)));
+        }
+
+        console.log("   (SS): AERO #1:               ", aero.balanceOf(address(this)));
     }
 }

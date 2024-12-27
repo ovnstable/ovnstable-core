@@ -52,5 +52,17 @@ interface ISwapSimulator {
         bytes calldata _data
     ) external;
 
-    function withdrawAll(address pair) external;
+    function withdrawAll(
+        address pair
+    ) external;
+
+    function distributeAero(
+        address aeroAddress, 
+        address usdcAddress, 
+        address rewardSwapPoolAddress, 
+        address swapRouter,
+        address treasury, 
+        uint256 rewardSwapSlippageBP, 
+        uint256 treasuryShare
+    ) external; 
 }

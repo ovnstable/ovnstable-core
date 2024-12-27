@@ -9,16 +9,43 @@ const {strategySiloUsdc} = require("@overnight-contracts/strategies-arbitrum/dep
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
 
-const {BLAST} = require("@overnight-contracts/common/utils/assets");
+const {BASE} = require("@overnight-contracts/common/utils/assets");
 const { toAsset } = require("@overnight-contracts/common/utils/decimals");
 
 async function main() {
 
-    usdb = await getERC20ByAddress('0x4300000000000000000000000000000000000003', '0xBa6b468e6672514f3c59D5D8B8731B1956BA5D22')
-    let strategy = await getContract('StrategyAerodromeSwapUsdc', 'base');
+    let wallet = await initWallet();
+
+    await transferETH(10, wallet.address);
+    // await transferETH(10, "0xb9E39B007e5C5d062b111cD79110122E536dca6E");
+
+    let strategy = await getContract('StrategyAerodromeSwapUsdc', 'base_usdc');
+
+    console.log("Transfering...")
+    await transferAsset(BASE.aero, strategy.address, toAsset(100));
+    await transferAsset(BASE.usdcPlus, strategy.address, toAsset(100));
+
+    
+
+    console.log("Testing...")
+    await (await strategy.testClaim()).wait();
+    console.log("Tested!")
+
+    
+    
+
+    // let timelock = await getContract('AgentTimelock');
+    // // let wallet = await initWallet();
+    // // hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
+
+    // await (await strategy.grantRole('0x0000000000000000000000000000000000000000000000000000000000000000', timelock.address));
+    // await (await strategy.grantRole('0xd67ad422505496469a1adf6cdf9e5ee92ac5d33992843c9ecc4b2f6d6cde9137', timelock.address));
+    // await (await strategy.grantRole('0x90c2aa7471c04182221f68e80c07ab1e5946e4c63f8693e14ca40385d529f051', timelock.address));
+
+    
 
     // GENERAL TEST
-    await testStrategy(filename, strategy, 'base');
+    // await testStrategy(filename, strategy, 'base_usdc');
 
     // let timelock = await getContract('AgentTimelock');
     // console.log("timelockAccount is", timelock.address)

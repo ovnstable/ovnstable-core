@@ -930,7 +930,8 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x4bb6b2efe7036020ba6f02a05602546c9f25bf28';
                     break;
                 case BASE.usdc:
-                    from = '0x3304E22DDaa22bCdC5fCa2269b418046aE7b566A';
+                    // from = '0x3304E22DDaa22bCdC5fCa2269b418046aE7b566A';
+                    from = '0x425fc782110110e2aFD2677e3C91EA77Fd7e0A47';
                     break;
                 case BASE.dai:
                     from = '0x428AB2BA90Eba0a4Be7aF34C9Ac451ab061AC010';
@@ -1086,6 +1087,13 @@ async function transferAsset(assetAddress, to, amount) {
         params: [from],
     });
 
+
+    console.log("DEBUG: asset =", asset.address);
+
+    console.log("DEBUG: address =", from);
+    let amountFrom = await asset.balanceOf(from);
+
+    console.log("DEBUG: balance =", amountFrom);
     let account = await hre.ethers.getSigner(from);
 
     if (!amount) {

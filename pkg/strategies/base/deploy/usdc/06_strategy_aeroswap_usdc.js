@@ -14,20 +14,15 @@ let strategyName = 'StrategyAerodromeSwapUsdc';
 
 module.exports = async ({deployments}) => {
 
-    console.log("@1")
     const {save} = deployments;
 
-    console.log("@2")
-    // let wallet = await initWallet();
-    console.log("@3")
+    let wallet = await initWallet();
 
-    // await transferETH(10, wallet.address);
+    await transferETH(10, wallet.address);
 
-    console.log("@4")
     await deploySection(async (name) => {
         await deployProxy(name, deployments, save);
     });
-    console.log("@5")
 
     await settingSection(strategyName, async (strategy) => {
         await (await strategy.setParams(await getParams())).wait();
@@ -35,13 +30,14 @@ module.exports = async ({deployments}) => {
 };
     
 async function getParams() {
+    console.log("------")
     return {
         pool: '0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147',
         rewardSwapPool: '0x6cDcb1C4A4D1C3C6d054b27AC5B77e89eAFb971d', // v2 pool
         // rewardSwapPool: '0xBE00fF35AF70E8415D0eB605a286D8A45466A4c1', // cl pool
         // tickRange: [-1, 0], // old
         binSearchIterations: 20,
-        swapSimulatorAddress: "0x8F573ABeb41c232faA1661E222c8E4F658b83B06",
+        swapSimulatorAddress: "0x989c0A8052eeCCBf7b15834febF8DE2a537A26C4", // 0x8F573ABeb41c232faA1661E222c8E4F658b83B06
         npmAddress: BASE.aerodromeNpm,
         aeroTokenAddress: BASE.aero,
         rewardSwapSlippageBP: 50,
