@@ -437,6 +437,21 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         _stake(address(usdb), 0);
     }
 
+    function claimMerkleTreeRewardsToWallet(
+        address beneficiary,
+        address distributor, 
+        address[] calldata users,
+        address[] calldata tokens,
+        uint256[] calldata amounts,
+        bytes32[][] calldata proofs
+    ) public onlyPortfolioAgent { 
+        IDistributor(distributor).claim(users, tokens, amounts, proofs);
+
+        uint256 fnxBalance = fnx.balanceOf(address(this));
+
+        fnx.transfer(beneficiary, fnxBalance);
+    }
+
     function _sqrt(uint x) internal pure returns (uint y) {
         uint z = (x + 1) / 2;
         y = x;
