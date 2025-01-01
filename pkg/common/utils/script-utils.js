@@ -630,7 +630,7 @@ async function getPrice() {
         params = { gasPrice: "10000000", gasLimit: "25000000" }; // todo
     } else if (process.env.ETH_NETWORK === 'ZKSYNC') {
         let { maxFeePerGas, maxPriorityFeePerGas } = await ethers.provider.getFeeData();
-        return { maxFeePerGas, maxPriorityFeePerGas, gasLimit: 200000000 }
+        return { maxFeePerGas, maxPriorityFeePerGas, gasLimit: 30000000 }
     } else if (process.env.ETH_NETWORK === 'BASE') {
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('50')).div(100);
@@ -841,26 +841,14 @@ async function getDevWallet() {
 
 
 async function transferETH(amount, to) {
-    if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
-        let provider = new Provider("http://localhost:8545"); //8011
-        let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
-        console.log(`Balance [${fromE18(await provider.getBalance(wallet.address))}]:`);
-
-        await wallet.transfer({
-            to: to,
-            token: '0x0000000000000000000000000000000000000000',
-            amount: ethers.utils.parseEther(amount + ""),
-        });
-    } else {
-        let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
-        let walletWithProvider = new ethers.Wallet(privateKey, hre.ethers.provider);
-
-        // вернул как было. у меня не работала почему-то твоя версия
-        await walletWithProvider.sendTransaction({
-            to: to,
-            value: ethers.utils.parseEther(amount + "")
-        });
-    }
+    
+    let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
+    let walletWithProvider = new ethers.Wallet(privateKey, hre.ethers.provider);
+    
+    await walletWithProvider.sendTransaction({
+        to: to,
+        value: ethers.utils.parseEther(amount + "")
+    });
 
     console.log(`[Node] Transfer ETH [${fromE18(await hre.ethers.provider.getBalance(to))}] to [${to}]`);
 }
