@@ -5,7 +5,7 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Balancer.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Wombat.sol";
-import "./../libraries/AuraRewardUsdcUsdtDaiLibrary.sol";
+import "./libraries/AuraRewardUsdcUsdtDaiLibrary.sol";
 
 contract StrategyBalancerDai is Strategy {
 

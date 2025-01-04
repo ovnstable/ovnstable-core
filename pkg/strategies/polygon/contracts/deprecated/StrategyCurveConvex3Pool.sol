@@ -3,7 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Curve.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Convex.sol";
+// import "@overnight-contracts/connectors/contracts/stuff/Convex.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Synapse.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
@@ -22,7 +22,7 @@ contract StrategyCurveConvex3Pool is Strategy {
     IERC20 public lpToken;
     IStableSwapPool public pool;
     IBooster public booster;
-    IConvexRewardPool public rewardPool;
+    // IConvexRewardPool public rewardPool;
     uint256 public pid;
 
     ISwapRouter public uniswapV3Router;
@@ -102,7 +102,7 @@ contract StrategyCurveConvex3Pool is Strategy {
         lpToken = IERC20(params.lpToken);
         pool = IStableSwapPool(params.pool);
         booster = IBooster(params.booster);
-        rewardPool = IConvexRewardPool(params.rewardPool);
+        // rewardPool = IConvexRewardPool(params.rewardPool);
         pid = params.pid;
 
         uniswapV3Router = ISwapRouter(params.uniswapV3Router);
@@ -157,7 +157,7 @@ contract StrategyCurveConvex3Pool is Strategy {
         uint256 amountLpTokens = _getAmountLpTokens(OvnMath.addBasisPoints(_amount, swapSlippageBP));
 
         // unstake from Convex
-        rewardPool.withdraw(amountLpTokens, false);
+        // rewardPool.withdraw(amountLpTokens, false);
 
         // remove liquidity
         uint256 lpTokenBalance = lpToken.balanceOf(address(this));
@@ -181,10 +181,10 @@ contract StrategyCurveConvex3Pool is Strategy {
     ) internal override returns (uint256) {
 
         // get amount to unstake
-        uint256 amountLpTokens = rewardPool.balanceOf(address(this));
+        // uint256 amountLpTokens = rewardPool.balanceOf(address(this));
 
         // unstake from Convex
-        rewardPool.withdraw(amountLpTokens, false);
+        // rewardPool.withdraw(amountLpTokens, false);
 
         // remove liquidity
         uint256 lpTokenBalance = lpToken.balanceOf(address(this));
@@ -215,7 +215,7 @@ contract StrategyCurveConvex3Pool is Strategy {
         uint256 usdtBalance = usdt.balanceOf(address(this));
         uint256 daiBalance = dai.balanceOf(address(this));
         uint256 lpTokenTotal = lpToken.totalSupply();
-        uint256 lpTokenBalance = rewardPool.balanceOf(address(this));
+        uint256 lpTokenBalance = 0; // rewardPool.balanceOf(address(this));
 
         for (uint256 i = 0; i < 3; i++) {
             address coin = pool.underlying_coins(i);
@@ -242,9 +242,9 @@ contract StrategyCurveConvex3Pool is Strategy {
     function _claimRewards(address _to) internal override returns (uint256) {
 
         // claim rewards
-        if (rewardPool.balanceOf(address(this)) > 0) {
-            rewardPool.getReward(address(this));
-        }
+        // if (rewardPool.balanceOf(address(this)) > 0) {
+            // rewardPool.getReward(address(this));
+        // }
 
         // sell rewards
         uint256 totalUsdc;

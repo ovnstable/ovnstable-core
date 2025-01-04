@@ -8,7 +8,7 @@ import "@overnight-contracts/connectors/contracts/stuff/Chainlink.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Wombat.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
-import "../libraries/PendleRewardDaiUsdtLibrary.sol";
+import "./libraries/PendleRewardDaiUsdtLibrary.sol";
 
 
 contract StrategyPendleDaiUsdt is Strategy {

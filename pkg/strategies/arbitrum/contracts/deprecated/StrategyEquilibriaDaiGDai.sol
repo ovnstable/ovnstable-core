@@ -5,11 +5,14 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Pendle.sol";
-import "@overnight-contracts/connectors/contracts/stuff/Magpie.sol";
-import "../libraries/PendleRewardDaiGDaiLibrary.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Equilibria.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Camelot.sol";
 
+import "./libraries/EquilibriaRewardDaiGDaiLibrary.sol";
 
-contract StrategyPendleDaiGDai is Strategy {
+import "hardhat/console.sol";
+
+contract StrategyEquilibriaDaiGDai is Strategy {
 
     // --- structs
 
@@ -22,13 +25,8 @@ contract StrategyPendleDaiGDai is Strategy {
         address pendleRouterAddress;
         address gDaiAddress;
         address pendlePtOracleAddress;
-
-        address uniswapV3Router;
-        address pendleAddress;
         uint256 thresholdBalancePercent;
 
-        address depositHelperMgp;
-        address masterMgp;
     }
 
     // --- params
@@ -44,11 +42,11 @@ contract StrategyPendleDaiGDai is Strategy {
     IGToken public gDai;
 
     ISwapRouter public uniswapV3Router;
-    IERC20 public pendle;
     uint256 public thresholdBalancePercent;
 
-    PendleMarketDepositHelper public depositHelperMgp;
-    MasterMagpie public masterMgp;
+    IPendleBooster public pendleBooster;
+    IBaseRewardPool public baseRewardPool;
+    IEqbZap public eqbZap;
 
     // --- events
 
@@ -74,15 +72,13 @@ contract StrategyPendleDaiGDai is Strategy {
         gDai = IGToken(params.gDaiAddress);
 
         pendleRouter = IPendleRouter(params.pendleRouterAddress);
-        uniswapV3Router = ISwapRouter(params.uniswapV3Router);
         ptOracle = IPendlePtOracle(params.pendlePtOracleAddress);
-
-        pendle = IERC20(params.pendleAddress);
 
         thresholdBalancePercent = params.thresholdBalancePercent;
 
-        depositHelperMgp = PendleMarketDepositHelper(params.depositHelperMgp);
-        masterMgp = MasterMagpie(params.masterMgp);
+        pendleBooster = IPendleBooster(0x4D32C8Ff2fACC771eC7Efc70d6A8468bC30C26bF);
+        baseRewardPool = IBaseRewardPool(0x03b86b5b4f49FD2059c813B3f928c0b276C88E4E);
+        eqbZap = IEqbZap(0xc7517f481Cc0a645e63f870830A4B2e580421e32);
 
         uint256 MAX_VALUE = 2 ** 256 - 1;
         dai.approve(address(sy), MAX_VALUE);
@@ -97,10 +93,8 @@ contract StrategyPendleDaiGDai is Strategy {
         pt.approve(address(pendleRouter), MAX_VALUE);
         yt.approve(address(pendleRouter), MAX_VALUE);
         lp.approve(address(pendleRouter), MAX_VALUE);
+        lp.approve(address(pendleBooster), MAX_VALUE);
 
-        // https://arbiscan.io/address/0x6DB96BBEB081d2a85E0954C252f2c1dC108b3f81
-        // PendleStaking
-        lp.approve(address(0x6DB96BBEB081d2a85E0954C252f2c1dC108b3f81), MAX_VALUE);
 
         emit StrategyUpdatedParams();
     }
@@ -164,8 +158,7 @@ contract StrategyPendleDaiGDai is Strategy {
         }
 
         pendleRouter.addLiquidityDualSyAndPt(address(this), address(lp), sy.balanceOf(address(this)), pt.balanceOf(address(this)), 0);
-
-        depositHelperMgp.depositMarket(address(lp), lp.balanceOf(address(this)));
+        pendleBooster.deposit(2, lp.balanceOf(address(this)), true);
     }
 
     function _movePtToSy(uint256 ptBalance) private {
@@ -244,22 +237,25 @@ contract StrategyPendleDaiGDai is Strategy {
         // 2. Redeem from (pt+yt) to gdai
         // 3. Redeem from sy to gdai
 
-       depositHelperMgp.withdrawMarket(address(lp), lpAmount);
-       pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
+        IERC20 eqbLp = IERC20(0x183b30706ff2655e7aB0aB37867DD7AF8Cb75e78);
+        eqbLp.approve(address(eqbZap), type(uint256).max);
 
-       {
-           uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
-           SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
-           TokenOutput memory output = TokenOutput(address(gDai), 0, address(gDai), address(0x0), address(0x0), swapData);
-           pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
-       }
+        eqbZap.withdraw(2, lpAmount);
+        pendleRouter.removeLiquidityDualSyAndPt(address(this), address(lp), lpAmount, 0, 0);
 
-       if (clearDiff) {
-           _movePtToSy(pt.balanceOf(address(this)));
-           _moveYtToSy(yt.balanceOf(address(this)));
-       }
+        {
+            uint256 minAmount = (pt.balanceOf(address(this)) < yt.balanceOf(address(this))) ? pt.balanceOf(address(this)): yt.balanceOf(address(this));
+            SwapData memory swapData = SwapData(SwapType.NONE, address(0x0), abi.encodeWithSignature("", ""), false);
+            TokenOutput memory output = TokenOutput(address(gDai), 0, address(gDai), address(0x0), address(0x0), swapData);
+            pendleRouter.redeemPyToToken(address(this), address(yt), minAmount, output);
+        }
 
-       sy.redeem(address(this), sy.balanceOf(address(this)), address(gDai), 0, false);
+        if (clearDiff) {
+            _movePtToSy(pt.balanceOf(address(this)));
+            _moveYtToSy(yt.balanceOf(address(this)));
+        }
+
+        sy.redeem(address(this), sy.balanceOf(address(this)), address(gDai), 0, false);
     }
 
     function maxWithdrawNow() public view returns (uint256) {
@@ -275,20 +271,28 @@ contract StrategyPendleDaiGDai is Strategy {
         return feed.nextEpochValuesRequestCount() == 0;
     }
 
+    function makeWithdrawRequest() external onlyPortfolioAgent {
+        gDai.makeWithdrawRequest(gDai.balanceOf(address(this)), address(this));
+    }
+
+
     function unstakeToGDaiAndMakeRequest(uint256 _amount, bool isUnstakeFull) public onlyPortfolioAgent {
+
+        uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
 
         // if you CAN make request and NEED make request
         if (isActivePhase() && gDai.totalSharesBeingWithdrawn(address(this)) == 0) {
-            uint256 lpAmount = isUnstakeFull ? depositHelperMgp.balance(address(lp), address(this)) : calcLpByAmount(OvnMath.addBasisPoints(_amount, 10));
+            uint256 lpAmount = isUnstakeFull ? baseRewardPool.balanceOf(address(this)) : calcLpByAmount(OvnMath.addBasisPoints(_amount, 10));
             _unstakeExactLp(lpAmount, isUnstakeFull);
             gDai.makeWithdrawRequest(gDai.balanceOf(address(this)), address(this));
         }
+
+        require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
     }
 
     function getAmountsByLp() public view returns (uint256 syAmount, uint256 ptAmount) {
 
-
-        uint256 lpTokenBalance = depositHelperMgp.balance(address(lp), address(this));
+        uint256 lpTokenBalance = baseRewardPool.balanceOf(address(this));
         lpTokenBalance += lp.balanceOf(address(this));
         MarketStorage memory marketStorage = lp._storage();
         uint256 ptReserves = uint256(uint128(marketStorage.totalPt));
@@ -365,49 +369,19 @@ contract StrategyPendleDaiGDai is Strategy {
 
     }
 
-    function sendLPTokens(uint256 bps) external onlyAdmin {
-        require(bps != 0, "Zero bps not allowed");
-
-        address to = 0xa2FC2759cba72D91Cc7a834e16241FF41d022E94; // Equilibria gDAI
-
-        uint256 lpAmount = depositHelperMgp.balance(address(lp), address(this)) * bps / 10000;
-        if (lpAmount > 0) {
-            depositHelperMgp.withdrawMarket(address(lp), lpAmount);
-            uint256 sendAmount = lp.balanceOf(address(this));
-            if (sendAmount > 0) {
-                lp.transfer(to, sendAmount);
-            }
-        }
-
-        uint256 ytAmount = yt.balanceOf(address(this)) * bps / 10000;
-        if(ytAmount > 0){
-            yt.transfer(to, ytAmount);
-        }
-
-        uint256 syAmount = sy.balanceOf(address(this)) * bps / 10000;
-        if(syAmount > 0){
-            sy.transfer(to, syAmount);
-        }
-
-        uint256 ptAmount = pt.balanceOf(address(this)) * bps / 10000;
-        if(ptAmount > 0){
-            pt.transfer(to, ptAmount);
-        }
-    }
-
     function _claimRewards(address _to) internal override returns (uint256) {
 
-        depositHelperMgp.harvest(address(lp));
-
-        PendleRewardDaiGDaiLibrary.claimSpecPnp();
+        baseRewardPool.getReward(address(this));
 
         _equPtYt();
 
-        uint256 totalDai;        
-        totalDai += PendleRewardDaiGDaiLibrary.swapRewardToDai(pendle);
-        
-        totalDai += PendleRewardDaiGDaiLibrary.swapPnpToDai();
-        
+        EquilibriaRewardDaiGDaiLibrary.transferXEqbToTreasure();
+
+        uint256 totalDai;
+
+        totalDai += EquilibriaRewardDaiGDaiLibrary.swapEqbToDai();
+        totalDai += EquilibriaRewardDaiGDaiLibrary.swapPendleToDai();
+
         if (totalDai > 0) {
             dai.transfer(_to, totalDai);
         }
