@@ -10,7 +10,7 @@ async function main() {
 
     // await decrementWeight(1);
 
-    let pauseTime = 1000;
+    let pauseTime = 15;
 
     const provider = new ethers.providers.JsonRpcProvider(
         "http://localhost:8545"
@@ -34,17 +34,17 @@ async function main() {
     
     let isLeverageIncrease = false;
 
-    let iterations = 6;
+    let iterations = 20;
 
     let wallet = await initWallet();
-    await transferETH(1, wallet.address);
+    await transferETH(1, signerAddress);
     
     let swapper = await getContract('AeroSwap', 'base_usdc');
 
 
     let exchange = await getContract('Exchange', 'base_usdc');
-    let usdp = await getERC20ByAddress(BASE.usdcPlus, wallet.address);
-    let usdc = await getERC20ByAddress(BASE.usdc, wallet.address);
+    let usdp = await getERC20ByAddress(BASE.usdcPlus, signerAddress);
+    let usdc = await getERC20ByAddress(BASE.usdc, signerAddress);
     let pool = await hre.ethers.getContractAt("@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol:ICLPool", poolAddress);
 
     let mainStrategy = await getContract('StrategyAerodromeSwapUsdc', 'base_usdc');
@@ -54,9 +54,11 @@ async function main() {
     await mainStrategy.testUpgrade();
     console.log("Tested!")
 
-    // console.log("Transferring...")
-    // await transferAsset(BASE.usdcPlus, signerAddress, 60000000000);
-    // console.log("Transfered!")
+    console.log("Transferring...")
+    await transferAsset(BASE.usdcPlus, signerAddress, 60000000000);
+    console.log("Transfered!")
+
+    
 
     let money = await usdp.balanceOf(signerAddress); 
     console.log("TRESEARY BALANCE: ", money);
@@ -70,6 +72,9 @@ async function main() {
 
     let sAsset = isLeverageIncrease ? usdc : usdp;
     let dAsset = isLeverageIncrease ? usdp : usdc;
+
+    let usdbBalance0 = await sAsset.balanceOf(signerAddress);
+    console.log("sAsset balance at the start: " + usdbBalance0.toString());
 
     let gas = {
         // gasLimit: 35000000,
@@ -101,6 +106,7 @@ async function main() {
         await logCommon(await hre.ethers.provider.getBlockNumber(), "| (before all)");
 
         let sBalance = await sAsset.balanceOf(signerAddress); 
+        console.log("DEBUG: sBalance = ", sBalance);
         await new Promise(resolve => setTimeout(resolve, pauseTime));
         let bn = (await (await sAsset.connect(dev5).approve(exchange.address, sBalance, gas)).wait()).blockNumber;
 
@@ -138,6 +144,9 @@ async function main() {
         
 
         let dBalance = await dAsset.balanceOf(signerAddress);
+
+        console.log("DEBUG: dBalance =", dBalance);
+
         await new Promise(resolve => setTimeout(resolve, pauseTime));
         bn = (await (await dAsset.connect(dev5).approve(swapper.address, dBalance, gas)).wait()).blockNumber;
     
@@ -148,7 +157,12 @@ async function main() {
 
     
 
-        let N = 99700; // TODO: Заменить на баланс кошелька или что-то аналогичное
+        // let N = 99700; // TODO: Заменить на баланс кошелька или что-то аналогичное
+
+        // let dBalance = await dAsset.balanceOf(signerAddress);
+        // let N = parseInt(sBalance.hex, 16);
+        let N = Math.trunc(sBalance.toString() / 1e6 * 1.005);
+        console.log("N = ", N);
 
         let cashTargetShare = (cashStrategyAmountStart / (swapStrategyAmountStart - i * N + cashStrategyAmountStart));
         let cashTargetWeight = cashTargetShare * 100000;
@@ -192,7 +206,7 @@ async function main() {
         await logCommon(bn, "| (after balance)");
     }
 
-    let usdbBalance = await sAsset.balanceOf(wallet.address);
+    let usdbBalance = await sAsset.balanceOf(signerAddress);
     console.log("USDB balance at the end: " + usdbBalance.toString());
 }
 
@@ -271,6 +285,10 @@ main()
         process.exit(1);
     });
 
+
+
+    // 99802
+    // 99689
 
 
 //     -----iteration  0 -----
