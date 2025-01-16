@@ -5,6 +5,7 @@ import {Strategy} from "@overnight-contracts/core/contracts/Strategy.sol";
 import {ICLPool, IERC20, INonfungiblePositionManager, ICLGauge, TickMath, FullMath, LiquidityAmounts, AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ISwapSimulator} from "./../interfaces/ISwapSimulator.sol";
+import "hardhat/console.sol";
 
 
 contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
@@ -70,6 +71,10 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         __Strategy_init();
     }
 
+    function testUpgrade() public {
+        console.log("DEBUG: There is this function!");
+    }
+
 
     // --- Setters
 
@@ -82,7 +87,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         binSearchIterations = params.binSearchIterations;
         swapSimulator = ISwapSimulator(params.swapSimulatorAddress);
         npm = INonfungiblePositionManager(params.npmAddress);
-        gauge = ICLGauge(pool.gauge());
+        // gauge = ICLGauge(pool.gauge());
         aero = IERC20(params.aeroTokenAddress);
         rewardSwapSlippageBP = params.rewardSwapSlippageBP;
         swapRouter = params.swapRouter;
@@ -111,10 +116,12 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _stake(address, uint256) internal override {
+        console.log("AerodromeSwap: _stake");
         _deposit(0, true);
     }
 
     function _unstake(address _asset, uint256 _amount, address) internal override returns (uint256) {
+        console.log("AerodromeSwap: _unstake");
         require(_asset == address(usdc), "");
         require(_amount > 0, ""); 
         require(stakedTokenId != 0, "");
@@ -135,6 +142,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _totalValue() internal view returns (uint256) {
+        console.log("AerodromeSwap: _totalValue");
         uint256 amount0 = 0;
         uint256 amount1 = 0;
 
@@ -158,9 +166,9 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         }
 
         uint256 balanceUsdcBefore = usdc.balanceOf(address(this));
-        if (gauge.stakedContains(address(this), stakedTokenId)) {
-            gauge.withdraw(stakedTokenId);
-        }
+        // if (gauge.stakedContains(address(this), stakedTokenId)) {
+        //     gauge.withdraw(stakedTokenId);
+        // }
 
         _collect();
 
@@ -186,12 +194,14 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             usdc.transfer(_beneficiary, claimedUsdc);
         }
 
-        npm.approve(address(gauge), stakedTokenId);
-        gauge.deposit(stakedTokenId);
+        // npm.approve(address(gauge), stakedTokenId);
+        // gauge.deposit(stakedTokenId);
         return claimedUsdc;
     }
 
     function _deposit(uint256 assetToLock, bool zeroForOne) internal {
+        console.log("AerodromeSwap: _deposit");
+
         uint256 amount0 = usdc.balanceOf(address(this));
         if (amount0 >= assetToLock) {
             amount0 -= assetToLock;
@@ -236,14 +246,14 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             });
             (stakedTokenId,,,) = npm.mint(params);
 
-            npm.approve(address(gauge), stakedTokenId);
-            gauge.deposit(stakedTokenId);
+            // npm.approve(address(gauge), stakedTokenId);
+            // gauge.deposit(stakedTokenId);
 
             emit Staked(stakedTokenId);
         } else {
-            if (gauge.stakedContains(address(this), stakedTokenId)) {
-                gauge.withdraw(stakedTokenId);
-            }
+            // if (gauge.stakedContains(address(this), stakedTokenId)) {
+            //     gauge.withdraw(stakedTokenId);
+            // }
 
             INonfungiblePositionManager.IncreaseLiquidityParams memory params = INonfungiblePositionManager.IncreaseLiquidityParams({
                 tokenId: stakedTokenId,
@@ -255,12 +265,16 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             });
             npm.increaseLiquidity(params);
 
-            npm.approve(address(gauge), stakedTokenId);
-            gauge.deposit(stakedTokenId);
+            // npm.approve(address(gauge), stakedTokenId);
+            // gauge.deposit(stakedTokenId);
         }
     }
 
     function _withdraw(uint256 amount, bool isFull) internal {
+        console.log("AerodromeSwap: _withdraw");
+
+        console.log("#0");
+
         if (gauge.stakedContains(address(this), stakedTokenId)) {
             gauge.withdraw(stakedTokenId);
         }
@@ -269,6 +283,9 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         if (liquidity == 0) {
             return;
         }
+
+        console.log("#1");
+
 
         (uint160 sqrtRatioX96,,,,,) = pool.slot0();
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
@@ -280,7 +297,11 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
         uint128 requiredLiquidityWithReserve;
 
+        console.log("#2");
+
         if ((amount0 > 0 || amount1 > 0)  && !isFull) {
+
+            console.log("#3");
             uint128 requiredLiquidity = uint128(FullMath.mulDiv(
                 uint256(liquidity),
                 amount,
@@ -296,20 +317,34 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             if (requiredLiquidityWithReserve > liquidity) {
                 requiredLiquidityWithReserve = liquidity;
             }
+            console.log("#4");
         }
+
+        console.log("#5");
 
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
             tokenId: stakedTokenId,
-            liquidity: liquidity,
+            liquidity: requiredLiquidityWithReserve,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp
+            deadline: block.timestamp 
         });
 
+        console.log("stakedTokenId:                ", stakedTokenId);
+        console.log("requiredLiquidityWithReserve: ", requiredLiquidityWithReserve);
+        console.log("liquidity:                    ", liquidity);
+        console.log("block.timestamp:              ", block.timestamp);
+
+        console.log("#5.5");
+
         npm.decreaseLiquidity(params);
+
+        console.log("#5.75");
         _collect();
+        console.log("#6");
 
         if (isFull) {
+            console.log("#7");
             npm.burn(stakedTokenId);
             stakedTokenId = 0;
 
@@ -321,6 +356,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             }
             return;
         }
+        console.log("#8");
         
         uint256 amountToStake0 = usdc.balanceOf(address(this));
         uint256 amountToStake1 = usdcPlus.balanceOf(address(this));
@@ -333,6 +369,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         usdcPlus.transfer(address(swapSimulator), amountToStake1);
         
         uint256 amountUsdcPlusToSwap = _calculateAmountToSwap(amount - amountToStake0);
+        console.log("#9");
 
         (uint160 currentSqrtRatioX96,,,,,) = pool.slot0();
         
@@ -344,9 +381,11 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         swapSimulator.withdrawAll(address(pool));
         
         _deposit(amount, false); 
+        console.log("#10");
     }
 
     function _collect() internal {
+        
         INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
             tokenId: stakedTokenId,
             recipient: address(this),
@@ -357,6 +396,8 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _simulateSwap(bool zeroForOne) internal returns (uint256 amountToSwap) {
+        console.log("AerodromeSwap: _simulateSwap");
+
         uint256 amount0 = usdc.balanceOf(address(swapSimulator));
         uint256 amount1 = usdcPlus.balanceOf(address(swapSimulator));
 
