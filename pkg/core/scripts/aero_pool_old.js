@@ -13,7 +13,7 @@ async function main() {
     // return;
     console.log("blockNumber: ", await hre.ethers.provider.getBlockNumber());
     await logCommon(await hre.ethers.provider.getBlockNumber(), "| (start)");
-    return;
+    // return;
     
     let isLeverageIncrease = false;
 

@@ -16,6 +16,8 @@ async function main() {
         "http://localhost:8545"
     );
 
+    // ПАУЗА: похоже, что в этом случае нужно сначала свапнуть + на USDC, и уже на них минтить 
+
     await provider.send("hardhat_impersonateAccount", ["0x086dFe298907DFf27BD593BD85208D57e0155c94"]);
     const dev5 = provider.getSigner("0x086dFe298907DFf27BD593BD85208D57e0155c94");
     
@@ -24,8 +26,8 @@ async function main() {
     
     await logCommon(await hre.ethers.provider.getBlockNumber(), "| (start)");
 
-    let iterations = 20;
-    let isLeverageIncrease = false;
+    let iterations = 10;
+    let isLeverageIncrease = true; // !!!!!
 
     let wallet = await initWallet();
     
@@ -36,12 +38,12 @@ async function main() {
     let usdc = await getERC20ByAddress(BASE.usdc, dev5Address);
     let pool = await hre.ethers.getContractAt("@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol:ICLPool", poolAddress);
 
-    await transferAsset(BASE.usdcPlus, dev5Address, 60000000000);
+    await transferAsset(BASE.usdc, dev5Address, 100000000000);
 
     let pm = await getContract('PortfolioManager', 'base_usdc');
 
-    let sAsset = isLeverageIncrease ? usdc : usdp;
-    let dAsset = isLeverageIncrease ? usdp : usdc;
+    let sAsset = isLeverageIncrease ? usdc : usdp; // USDC
+    let dAsset = isLeverageIncrease ? usdp : usdc; // USDP
 
    
     let gas = {
@@ -53,24 +55,43 @@ async function main() {
     let swapStrategyAmountStart = 0;
     let cashStrategyAmountStart = 0;
 
-    console.log("Первичная балансировка...")
-    bn = (await (await pm.connect(dev5).balance(gas)).wait()).blockNumber;
-    console.log("Первичная балансировка проведена!")
+    // console.log("Первичная балансировка...")
+    // bn = (await (await pm.connect(dev5).balance(gas)).wait()).blockNumber;
+    // console.log("Первичная балансировка проведена!")
 
     let strategyWeights = await pm.getAllStrategyWeights();
     let newWeights = JSON.parse(JSON.stringify(strategyWeights));
 
     let cashStartWeight = parseInt(newWeights[0][2].hex, 16)
     console.log("Начальный вес CASH-стратегии = ", cashStartWeight)
+
+    // сначала просто немного сдвинем цену влево:
+
+    await logCommon(await hre.ethers.provider.getBlockNumber(), "| (before initial swap)");
+    await transferAsset(BASE.usdc, dev5Address, 100000000000);
+    bn = (await (await sAsset.connect(dev5).approve(swapper.address, 100000000000, gas)).wait()).blockNumber;
+    bn = (await (await swapper.connect(dev5).swap(poolAddress, 100000000000, 0n, true, gas)).wait()).blockNumber;
+    await logCommon(await hre.ethers.provider.getBlockNumber(), "| (after initial swap)");
+
         
+
+    // СЧИТАЕМ, ЧТО ДЛЯ РАБОТЫ ЭТОГО СКРИПТА НУЖНО ЧТОБЫ ИЗНАЧАЛЬНО НА БАЛАНСЕ БЫЛИ USDC
 
     for (let i = 0; i < iterations; i++) {
         console.log("-----iteration ", i, "-----");
         await logCommon(await hre.ethers.provider.getBlockNumber(), "| (before all)");
 
         let sBalance = await sAsset.balanceOf(dev5Address); 
-        console.log("DEBUG: sBalance = ", sBalance);
+        let dBalance2 = await dAsset.balanceOf(dev5Address); 
+        // let sBalance = 10000;
+
+        console.log("DEBUG: USDC  balance: = ", sBalance);
+        console.log("DEBUG: USDCP balance: = ", dBalance2);
+
+        // return;
         await new Promise(resolve => setTimeout(resolve, pauseTime));
+
+
         let bn = (await (await sAsset.connect(dev5).approve(exchange.address, sBalance, gas)).wait()).blockNumber;
 
         if (i == 0) {
@@ -98,24 +119,42 @@ async function main() {
 
 
         await new Promise(resolve => setTimeout(resolve, pauseTime)); // (?) А зачем делать эти паузы?
-        if (isLeverageIncrease) {
-            bn = (await (await exchange.connect(dev5).buy(usdc.address, sBalance, gas)).wait()).blockNumber;
-        } else {
-            bn = (await (await exchange.connect(dev5).redeem(usdc.address, sBalance, gas)).wait()).blockNumber;
-        }
+        
+        bn = (await (await exchange.connect(dev5).buy(usdc.address, sBalance, gas)).wait()).blockNumber;
+       
         await logCommon(bn, "| (after exchange)");
         
 
-        let dBalance = await dAsset.balanceOf(dev5Address);
+        // let dBalance = await dAsset.balanceOf(dev5Address);
+        let dBalance = 100000000000;
 
+        console.log("#0")
         console.log("DEBUG: dBalance =", dBalance);
 
         await new Promise(resolve => setTimeout(resolve, pauseTime));
+
+        console.log("#1")
         bn = (await (await dAsset.connect(dev5).approve(swapper.address, dBalance, gas)).wait()).blockNumber;
     
-
+        console.log("#2")
         await new Promise(resolve => setTimeout(resolve, pauseTime));
-        bn = (await (await swapper.connect(dev5).swap(poolAddress, dBalance, 0n, !isLeverageIncrease, gas)).wait()).blockNumber;                                                  
+        console.log("#3")
+
+        let dBalance3 = await dAsset.balanceOf(dev5Address);
+        console.log("DEBUG: dBalance =", dBalance3);
+
+
+
+        bn = (await (await swapper.connect(dev5).swap(poolAddress, dBalance, 0n, !isLeverageIncrease, gas)).wait()).blockNumber;
+        
+
+
+
+        
+        // bn = (await (await swapper.connect(dev5).swap(poolAddress, dBalance, 0n, true, gas)).wait()).blockNumber;
+
+                                                                //                     ???    
+        console.log("#4")                                              
         await logCommon(bn, "| (after swap)");
 
     
@@ -123,7 +162,7 @@ async function main() {
         let N = Math.trunc(sBalance.toString() / 1e6);
         console.log("N = ", N);
 
-        let cashTargetShare = (cashStrategyAmountStart / (swapStrategyAmountStart - i * N + cashStrategyAmountStart));
+        let cashTargetShare = (cashStrategyAmountStart / (swapStrategyAmountStart + i * N + cashStrategyAmountStart));
         let cashTargetWeight = cashTargetShare * 100000;
 
         console.log("cashTargetShare:     ", cashTargetShare);
@@ -140,30 +179,32 @@ async function main() {
         let cashDiff = cashTargetWeight - cashCurrentWeight;
         console.log("cashDiff:            ", cashDiff);
     
-        if (cashDiff >= 1) {
-            console.log("Вес увеличился больше чем на 1")
+        if (cashDiff <= -1) {
+            console.log("Вес уменьшился больше чем на 1")
             let roundedCashDiff = Math.trunc(cashDiff)
             console.log("roundedCashDiff:     ", roundedCashDiff);
-            console.log("Увеличиваем вес...")
+            console.log("уменьшаем вес...")
             await decrementWeight(roundedCashDiff);
-            console.log("Вес увеличен!")
+            console.log("Вес уменьшен!")
 
             console.log("Проверяем результат...");
             let strategyWeights = await pm.getAllStrategyWeights();
             let newWeights = JSON.parse(JSON.stringify(strategyWeights));
             let cashStartWeight = parseInt(newWeights[0][2].hex, 16)
             console.log("Новый вес CASH-стратегии: ", cashStartWeight)
+
+            
         }
 
-
-
-        await new Promise(resolve => setTimeout(resolve, pauseTime));
         console.log("Балансируем...")
         bn = (await (await pm.connect(dev5).balance(gas)).wait()).blockNumber;
         console.log("Балансировка выполнена!")
 
+        await new Promise(resolve => setTimeout(resolve, pauseTime));
         await logCommon(bn, "| (after balance)");
     }
+
+    // 80024.923914
 
     let usdbBalance = await sAsset.balanceOf(dev5Address);
     console.log("USDB balance at the end: " + usdbBalance.toString());
