@@ -63,17 +63,12 @@ async function main() {
 
     let sAsset = isLeverageIncrease ? anotherToken : ourToken;
     let dAsset = isLeverageIncrease ? ourToken : anotherToken;
-
    
     let gas = {
         gasLimit: 30000000, 
         maxFeePerGas: "38000000",
         maxPriorityFeePerGas: "1300000",
     }
-    
-    let swapStrategyInitAmount = 0;
-    let cashStrategyInitAmount = 0;
-
 
     let cashInitWeight = await getCashWeight(pm);
     console.log("CASH-strategy initial weight: ", cashInitWeight);
@@ -86,15 +81,12 @@ async function main() {
     let anotherTokenAmountFormatted = (Number(anotherTokenAmount) / 1e6)
     let ourTokenAmountFormatted = (Number(ourTokenAmount) / 1e6)
 
-    swapStrategyInitAmount = anotherTokenAmountFormatted + ourTokenAmountFormatted;
+    let swapStrategyInitAmount = anotherTokenAmountFormatted + ourTokenAmountFormatted;
 
     let m2m = await getContract('Mark2Market', stand); 
     let assets = await m2m.strategyAssets();
     let cashNav = assets[cashStrategyPMIndex].netAssetValue; 
-    let cashStrategyInitAmountFormatted = (Number(cashNav) / 1e6);
-
-    cashStrategyInitAmount = cashStrategyInitAmountFormatted;
-    
+    let cashStrategyInitAmount = (Number(cashNav) / 1e6);    
         
 
     for (let i = 0; i < iterations; i++) {
