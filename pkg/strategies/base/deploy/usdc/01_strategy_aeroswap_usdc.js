@@ -13,14 +13,7 @@ const { Roles } = require('@overnight-contracts/common/utils/roles');
 let strategyName = 'StrategyAerodromeSwapUsdc';
 
 module.exports = async ({deployments}) => {
-
-    console.log("Деплоим то, что нужно")
-
     const {save} = deployments;
-
-    let wallet = await initWallet();
-
-    await transferETH(1, wallet.address);
 
     await deploySection(async (name) => {
         await deployProxy(name, deployments, save);
