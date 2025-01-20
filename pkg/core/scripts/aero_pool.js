@@ -5,12 +5,11 @@ const { engineSendTxSigned } = require("@overnight-contracts/common/utils/engine
 const { BigNumber } = require("ethers");
 
 let poolAddress = "0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147";
+let pauseTime = 15;
 
 async function main() {
-
-    // await decrementWeight(1);
-
-    let pauseTime = 15;
+    let iterations = 20;
+    let isLeverageIncrease = false;
 
     const provider = new ethers.providers.JsonRpcProvider(
         "http://localhost:8545"
@@ -18,17 +17,11 @@ async function main() {
 
     await provider.send("hardhat_impersonateAccount", ["0x086dFe298907DFf27BD593BD85208D57e0155c94"]);
     const dev5 = provider.getSigner("0x086dFe298907DFf27BD593BD85208D57e0155c94");
-    
     const dev5Address = await dev5.getAddress();
-    // await transferETH(1, dev5Address);
     
     await logCommon(await hre.ethers.provider.getBlockNumber(), "| (start)");
 
-    let iterations = 20;
-    let isLeverageIncrease = false;
-
     let wallet = await initWallet();
-    
     
     let swapper = await getContract('AeroSwap', 'base_usdc');
     let exchange = await getContract('Exchange', 'base_usdc');
@@ -36,94 +29,88 @@ async function main() {
     let usdc = await getERC20ByAddress(BASE.usdc, dev5Address);
     let pool = await hre.ethers.getContractAt("@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol:ICLPool", poolAddress);
 
-    await transferAsset(BASE.usdcPlus, dev5Address, 60000000000);
-
     let pm = await getContract('PortfolioManager', 'base_usdc');
 
-    let sAsset = isLeverageIncrease ? usdc : usdp;
+    let sAsset = isLeverageIncrease ? usdc : usdp; // Токен, в котором изначально должна лежать сумма, которую мы прокручиваем
     let dAsset = isLeverageIncrease ? usdp : usdc;
 
    
     let gas = {
-        gasLimit: 30000000, // было 35000000
+        gasLimit: 30000000, 
         maxFeePerGas: "38000000",
         maxPriorityFeePerGas: "1300000",
     }
     
-    let swapStrategyAmountStart = 0;
-    let cashStrategyAmountStart = 0;
+    let swapStrategyInitAmount = 0;
+    let cashStrategyInitAmount = 0;
 
-    console.log("Первичная балансировка...")
-    bn = (await (await pm.connect(dev5).balance(gas)).wait()).blockNumber;
-    console.log("Первичная балансировка проведена!")
 
-    let strategyWeights = await pm.getAllStrategyWeights();
-    let newWeights = JSON.parse(JSON.stringify(strategyWeights));
-
-    let cashStartWeight = parseInt(newWeights[0][2].hex, 16)
-    console.log("Начальный вес CASH-стратегии = ", cashStartWeight)
+    let cashInitWeight = await getCashWeight(pm);
+    console.log("CASH-strategy initial weight: ", cashInitWeight);
         
 
     for (let i = 0; i < iterations; i++) {
         console.log("-----iteration ", i, "-----");
         await logCommon(await hre.ethers.provider.getBlockNumber(), "| (before all)");
 
+
+        // Approve asset to burn USDCP:
         let sBalance = await sAsset.balanceOf(dev5Address); 
-        console.log("DEBUG: sBalance = ", sBalance);
         await new Promise(resolve => setTimeout(resolve, pauseTime));
         let bn = (await (await sAsset.connect(dev5).approve(exchange.address, sBalance, gas)).wait()).blockNumber;
 
+        // Calculate inital amounts of assets in SWAP- and CASH- strategies so that calculate the correct weight change later:
         if (i == 0) {
-            let USDC_at_start = await usdc.balanceOf(poolAddress, {blockTag: bn});
-            let USDP_at_start = await usdp.balanceOf(poolAddress, {blockTag: bn});
+            let token0PoolAmount = await usdc.balanceOf(poolAddress, {blockTag: bn});
+            let token1PoolAmount = await usdp.balanceOf(poolAddress, {blockTag: bn});
+            let token0PoolAmountFormatted = (Number(token0PoolAmount) / 1e6)
+            let token1PoolAmountFormatted = (Number(token1PoolAmount) / 1e6)
 
-            let USDC_at_start_rounded = (Number(USDC_at_start) / 1e6)
-            let USDP_at_start_rounded = (Number(USDP_at_start) / 1e6)
+            swapStrategyInitAmount = token0PoolAmountFormatted + token1PoolAmountFormatted;
 
-            console.log("USDC_at_start_rounded: ", USDC_at_start_rounded);
-            console.log("USDP_at_start_rounded: ", USDP_at_start_rounded);
-
-            swapStrategyAmountStart = USDC_at_start_rounded + USDP_at_start_rounded;
 
             let m2m = await getContract('Mark2Market', 'base_usdc');
             let assets = await m2m.strategyAssets({blockTag: bn});
             let cashNav = assets[0].netAssetValue; 
+            let cashStrategyInitAmountFormatted = (Number(cashNav) / 1e6);
 
-            let cashStrategyAmountStart_rounded = (Number(cashNav) / 1e6)
-            cashStrategyAmountStart = cashStrategyAmountStart_rounded;
-
-            console.log("swapStrategyAmountStart = ", swapStrategyAmountStart)
-            console.log("cashStrategyAmountStart = ", cashStrategyAmountStart)
+            cashStrategyInitAmount = cashStrategyInitAmountFormatted;
         }
 
 
-        await new Promise(resolve => setTimeout(resolve, pauseTime)); // (?) А зачем делать эти паузы?
+        await new Promise(resolve => setTimeout(resolve, pauseTime));
         if (isLeverageIncrease) {
+            // Mint USDCP: 
             bn = (await (await exchange.connect(dev5).buy(usdc.address, sBalance, gas)).wait()).blockNumber;
         } else {
+            // Burn USDCP
             bn = (await (await exchange.connect(dev5).redeem(usdc.address, sBalance, gas)).wait()).blockNumber;
         }
         await logCommon(bn, "| (after exchange)");
         
 
+        // Swap USDC to USDCP:
         let dBalance = await dAsset.balanceOf(dev5Address);
-
-        console.log("DEBUG: dBalance =", dBalance);
-
+        console.log("DEBUG: dBalance =", dBalance)
+        // dBalance = 10000000000;
+        
         await new Promise(resolve => setTimeout(resolve, pauseTime));
         bn = (await (await dAsset.connect(dev5).approve(swapper.address, dBalance, gas)).wait()).blockNumber;
-    
-
         await new Promise(resolve => setTimeout(resolve, pauseTime));
         bn = (await (await swapper.connect(dev5).swap(poolAddress, dBalance, 0n, !isLeverageIncrease, gas)).wait()).blockNumber;                                                  
         await logCommon(bn, "| (after swap)");
 
     
-
+        // Calculate weight change:
         let N = Math.trunc(sBalance.toString() / 1e6);
-        console.log("N = ", N);
 
-        let cashTargetShare = (cashStrategyAmountStart / (swapStrategyAmountStart - i * N + cashStrategyAmountStart));
+        let cashTargetShare = 0;
+        if (isLeverageIncrease) {
+            cashTargetShare = (cashStrategyInitAmount / (swapStrategyInitAmount + i * N + cashStrategyInitAmount));
+        } else {
+            cashTargetShare = (cashStrategyInitAmount / (swapStrategyInitAmount - i * N + cashStrategyInitAmount));
+        }
+
         let cashTargetWeight = cashTargetShare * 100000;
 
         console.log("cashTargetShare:     ", cashTargetShare);
@@ -131,85 +118,47 @@ async function main() {
 
         await new Promise(resolve => setTimeout(resolve, pauseTime));
 
-        let pm = await getContract('PortfolioManager', 'base_usdc');
-        let strategyWeights = await pm.getAllStrategyWeights();
-        let newWeights = JSON.parse(JSON.stringify(strategyWeights));
-        let cashCurrentWeight = parseInt(newWeights[0][2].hex, 16);
-        console.log("cashCurrentWeight:   ", cashCurrentWeight);
+        let cashWeight = await getCashWeight(pm);
+        console.log("CASH-strategy current weight: ", cashWeight);
         
-        let cashDiff = cashTargetWeight - cashCurrentWeight;
+        let cashDiff = cashTargetWeight - cashWeight;
         console.log("cashDiff:            ", cashDiff);
-    
-        if (cashDiff >= 1) {
-            console.log("Вес увеличился больше чем на 1")
-            let roundedCashDiff = Math.trunc(cashDiff)
-            console.log("roundedCashDiff:     ", roundedCashDiff);
-            console.log("Увеличиваем вес...")
-            await decrementWeight(roundedCashDiff);
-            console.log("Вес увеличен!")
 
-            console.log("Проверяем результат...");
-            let strategyWeights = await pm.getAllStrategyWeights();
-            let newWeights = JSON.parse(JSON.stringify(strategyWeights));
-            let cashStartWeight = parseInt(newWeights[0][2].hex, 16)
-            console.log("Новый вес CASH-стратегии: ", cashStartWeight)
+        // If weight difference is greater than minimum possible change value
+        if ((isLeverageIncrease && cashDiff <= -1) || (!isLeverageIncrease && cashDiff >= 1)) {
+            console.log("Weight change is more than 1")
+            let roundedCashDiff = Math.trunc(cashDiff)
+            await decrementWeight(roundedCashDiff, pm, dev5);
+            
+            let cashNewWeight = await getCashWeight(pm);
+            console.log("CASH-strategy new weight: ", cashNewWeight);
         }
 
-
+        bn = (await (await pm.connect(dev5).balance(gas)).wait()).blockNumber;
 
         await new Promise(resolve => setTimeout(resolve, pauseTime));
-        console.log("Балансируем...")
-        bn = (await (await pm.connect(dev5).balance(gas)).wait()).blockNumber;
-        console.log("Балансировка выполнена!")
-
         await logCommon(bn, "| (after balance)");
     }
 
-    let usdbBalance = await sAsset.balanceOf(dev5Address);
-    console.log("USDB balance at the end: " + usdbBalance.toString());
+    let sAssetBalance = await sAsset.balanceOf(dev5Address);
+    console.log("USDC balance at the end: " + sAssetBalance.toString());
 }
 
-async function decrementWeight(diff) {
-    let pm = await getContract('PortfolioManager', 'base_usdc');
+async function getCashWeight(pm) {
+    let strategyWeightsJSON = await pm.getAllStrategyWeights();
+    let strategyWeights = JSON.parse(JSON.stringify(strategyWeightsJSON));
+    let cashWeight = parseInt(strategyWeights[0][2].hex, 16)
+    return cashWeight
+}
+
+async function decrementWeight(diff, pm, dev5) {
     let strategyWeights = await pm.getAllStrategyWeights();
     let newWeights = JSON.parse(JSON.stringify(strategyWeights));
-
-    console.log("newWeights[0][2] =", newWeights[0][2]);
-    console.log("diff =", diff);
-
-    console.log("dW #1")
-
     newWeights[0][2] = BigNumber.from(newWeights[0][2]).add(diff);
-    console.log("dW #2")
-
-    newWeights[1][2] = BigNumber.from(newWeights[1][2]).sub(diff); // (?) Почему у Никиты тут было newWeights[4][2]
-    console.log("dW #3")
-
-    const provider = new ethers.providers.JsonRpcProvider(
-        "http://localhost:8545"
-    );
-    console.log("dW #4")
-    await provider.send("hardhat_impersonateAccount", ["0x086dFe298907DFf27BD593BD85208D57e0155c94"]);
-    console.log("dW #5")
-    const dev5 = provider.getSigner("0x086dFe298907DFf27BD593BD85208D57e0155c94");
-    console.log("dW #6")
-
+    newWeights[1][2] = BigNumber.from(newWeights[1][2]).sub(diff); 
     await (await pm.connect(dev5).setStrategyWeights(newWeights)).wait();
-    console.log("dW #7")
 }
 
-async function logBalances(type) {
-    await new Promise(resolve => setTimeout(resolve, pauseTime));
-    let wallet = await initWallet();
-
-    let usdp = await getERC20ByAddress(BASE.usdcPlus, "0x086dFe298907DFf27BD593BD85208D57e0155c94");
-    let usdc = await getERC20ByAddress(BASE.usdc, "0x086dFe298907DFf27BD593BD85208D57e0155c94");
-
-    let usdPlusBalance = await usdp.balanceOf("0x086dFe298907DFf27BD593BD85208D57e0155c94");
-    console.log(`USD+ balance ${type.toUpperCase()} SWAP: `, usdPlusBalance.toString());
-    let usdbBalance = await usdc.balanceOf("0x086dFe298907DFf27BD593BD85208D57e0155c94");
-    console.log(`USDB balance ${type.toUpperCase()} SWAP: `, usdbBalance.toString());
-}
 
 async function logCommon(bn, text) {
     let wallet = await initWallet();
@@ -221,7 +170,6 @@ async function logCommon(bn, text) {
     let assets = await m2m.strategyAssets({blockTag: bn});
     let totalNetAssets = await m2m.totalNetAssets({blockTag: bn});
     let cashNav = assets[0].netAssetValue; 
-    // let strategyNav = assets[4].netAssetValue; // Cannot read properties of undefined (reading 'netAssetValue')
 
     let usdPlusPoolBalance = await usdp.balanceOf(poolAddress, {blockTag: bn});
     let usdcPoolBalance = await usdc.balanceOf(poolAddress, {blockTag: bn});
@@ -230,7 +178,6 @@ async function logCommon(bn, text) {
         "usdp=",(Number(usdPlusPoolBalance) / 1e6).toFixed(0),
         "usdc=",(Number(usdcPoolBalance) / 1e6).toFixed(0),
         "cash=",(Number(cashNav) / 1e6).toFixed(0),
-        // "str=",(Number(strategyNav) / 1e6).toFixed(0),
         "nav=",(Number(totalNetAssets) / 1e6).toFixed(0),
         text
     );
@@ -243,75 +190,3 @@ main()
         console.error(error);
         process.exit(1);
     });
-
-
-
-    // 99802
-    // 99689
-
-
-//     -----iteration  0 -----
-
-//     bn= 25070418 usdp= 66819160 usdc= 48734 cash= 301875 nav= 67168329 | (before all)
-//     bn= 25070420 usdp= 66819160 usdc= 48734 cash= 262076 nav= 67128530 | (after exchange)
-//     bn= 25070422 usdp= 66779364 usdc= 88533 cash= 262076 nav= 67128530 | (after swap)
-
-//     CASH target:  0.004494210891819119
-
-//     bn= 25070423 usdp= 66779364 usdc= 48632 cash= 302078 nav= 67128526 | (after balance)
-
-//     -----iteration  1 -----
-
-//     bn= 25070423 usdp= 66779364 usdc= 48632 cash= 302078 nav= 67128526 | (before all)
-//     bn= 25070425 usdp= 66779364 usdc= 48632 cash= 262286 nav= 67088735 | (after exchange)
-//     bn= 25070427 usdp= 66739576 usdc= 88424 cash= 262286 nav= 67088735 | (after swap)
-    
-//     CASH target:  0.004496871533232875
-    
-//     bn= 25070428 usdp= 66739576 usdc= 48811 cash= 301899 nav= 67088739 | (after balance)
-
-//     -----iteration  2 -----
-    
-//     bn= 25070428 usdp= 66739576 usdc= 48811 cash= 301899 nav= 67088739 | (before all)
-//     bn= 25070430 usdp= 66739576 usdc= 48811 cash= 262115 nav= 67048954 | (after exchange)
-//     bn= 25070432 usdp= 66699796 usdc= 88596 cash= 262115 nav= 67048954 | (after swap)
-    
-//     CASH target:  0.004499535326793367
-    
-//     bn= 25070433 usdp= 66699795 usdc= 48990 cash= 301720 nav= 67048958 | (after balance)
-
-//     -----iteration  3 -----
-    
-//     bn= 25070433 usdp= 66699795 usdc= 48990 cash= 301720 nav= 67048958 | (before all)
-//     bn= 25070435 usdp= 66699795 usdc= 48990 cash= 261944 nav= 67009181 | (after exchange)
-//     bn= 25070437 usdp= 66660022 usdc= 88767 cash= 261944 nav= 67009181 | (after swap)
-    
-//     CASH target:  0.004502202278105591
-    
-//     bn= 25070438 usdp= 66660023 usdc= 49169 cash= 301541 nav= 67009185 | (after balance)
-
-//     -----iteration  4 -----
-    
-//     bn= 25070438 usdp= 66660023 usdc= 49169 cash= 301541 nav= 67009185 | (before all)
-//     bn= 25070440 usdp= 66660023 usdc= 49169 cash= 261772 nav= 66969416 | (after exchange)
-//     bn= 25070442 usdp= 66620258 usdc= 88939 cash= 261772 nav= 66969416 | (after swap)
-    
-//     CASH target:  0.004504872392787834
-    
-//     bn= 25070443 usdp= 66620257 usdc= 49348 cash= 301362 nav= 66969420 | (after balance)
-
-// CASH
-//     301875
-//     301362
-// -513$
-
-// USDC
-//     48734
-//     49348
-// +614$
-
-// USDP
-//     66819160
-//     66620257
-// -198903$
-
