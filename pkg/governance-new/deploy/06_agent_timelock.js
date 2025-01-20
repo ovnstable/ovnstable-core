@@ -48,6 +48,11 @@ module.exports = async ({deployments}) => {
             ovnAgent = "0xf9e4a8bbF4BD7700077a36F6bdDB615c221E6E04";
             gateway = "0xe432150cce91c13a887f7D836923d5597adD8E31";
             break
+        case "sonic":
+            ovnAgent = "0xC58d68c3ACBc630C6726Fe8128f3b53dF2005cdb";
+            gateway = "NOT DEPLOYED YET";
+            throw "Axelar gateway not deployed yet on Sonic";            
+            break
         default:
             throw new Error('Unknown chain');
     }
