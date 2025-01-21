@@ -14,6 +14,7 @@ import "./interfaces/IRoleManager.sol";
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
+    bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
 
     address public portfolioManager;
     uint256 public swapSlippageBP;
@@ -22,6 +23,8 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
     IRoleManager public roleManager;
     
     string public name;
+
+    ClaimConfig public claimConfig;
 
     function __Strategy_init() internal initializer {
         __AccessControl_init();
@@ -55,6 +58,11 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     modifier onlyPortfolioAgent() {
         require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
+        _;
+    }
+
+    modifier onlyUnit(){
+        require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
         _;
     }
 
@@ -166,6 +174,52 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         revert("Not implemented");
     }
 
+    function claimMerkl(
+        address[] calldata users,
+        address[] calldata tokens,
+        uint256[] calldata amounts,
+        bytes32[][] calldata proofs
+    ) external virtual onlyUnit {
+        ClaimConfig memory config = claimConfig; 
+        if (claimConfig.operation == Operation.REINVEST) {
+            _reinvest(users, tokens, amounts, proofs, config);
+        } else if (claimConfig.operation == Operation.SEND){
+            _sendToTreshery(users, tokens, amounts, proofs, config);
+        } else {
+            _custom(users, tokens, amounts, proofs, config);
+        }
+    }
 
-    uint256[44] private __gap;
+    function _reinvest(
+        address[] calldata users,
+        address[] calldata tokens,
+        uint256[] calldata amounts,
+        bytes32[][] calldata proofs,
+        ClaimConfig memory claimConfig
+    ) internal virtual {
+        revert("Not implemented");
+    }
+
+    function _sendToTreshery(
+        address[] calldata users,
+        address[] calldata tokens,
+        uint256[] calldata amounts,
+        bytes32[][] calldata proofs,
+        ClaimConfig memory claimConfig
+    ) internal virtual {
+        revert("Not implemented");
+    }
+
+    function _custom(
+        address[] calldata users,
+        address[] calldata tokens,
+        uint256[] calldata amounts,
+        bytes32[][] calldata proofs,
+        ClaimConfig memory claimConfig
+    ) internal virtual {
+        revert("Not implemented");
+    }
+
+
+    uint256[42] private __gap;
 }

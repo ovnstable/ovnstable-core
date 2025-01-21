@@ -410,15 +410,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         return 0;
     }
 
-    function claimMerkleTreeRewards(
-        address distributor, 
-        address[] calldata users,
-        address[] calldata tokens,
-        uint256[] calldata amounts,
-        bytes32[][] calldata proofs
-    ) public onlyPortfolioAgent { 
-        IDistributor(distributor).claim(users, tokens, amounts, proofs);
-
+    function _swapClaims() internal {
         uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
         if (usdPlusBalance > 0) {
             usdPlus.transfer(address(swapSimulator), usdPlusBalance);
@@ -433,23 +425,46 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
             swapSimulator.swap(address(poolFnxUsdb), fnxBalance, _calculateSlippageLimitBorder(sqrtRatioFnxUsdbX96, false), false);
             swapSimulator.withdrawAll(address(poolFnxUsdb)); 
         }
+    }
+
+    function _reinvest(
+        address[] calldata users,
+        address[] calldata tokens,
+        uint256[] calldata amounts,
+        bytes32[][] calldata proofs,
+        ClaimConfig memory claimConfig
+    ) internal override onlyPortfolioAgent { 
+        IDistributor(claimConfig.distributor).claim(users, tokens, amounts, proofs);
+
+        _swapClaims();
     
         _stake(address(usdb), 0);
     }
 
-    function claimMerkleTreeRewardsToWallet(
-        address beneficiary,
-        address distributor, 
+    function _sendToTreshery(
         address[] calldata users,
         address[] calldata tokens,
         uint256[] calldata amounts,
-        bytes32[][] calldata proofs
-    ) public onlyPortfolioAgent { 
-        IDistributor(distributor).claim(users, tokens, amounts, proofs);
+        bytes32[][] calldata proofs,
+        ClaimConfig memory claimConfig
+    ) internal override onlyPortfolioAgent { 
+        IDistributor(claimConfig.distributor).claim(users, tokens, amounts, proofs);
 
-        uint256 fnxBalance = fnx.balanceOf(address(this));
+        _swapClaims();
 
-        fnx.transfer(beneficiary, fnxBalance);
+        uint256 usdbBalance = usdb.balanceOf(address(this));
+
+        usdb.transfer(claimConfig.beneficiary, usdbBalance);
+    }
+
+    function _custom(
+        address[] calldata users,
+        address[] calldata tokens,
+        uint256[] calldata amounts,
+        bytes32[][] calldata proofs,
+        ClaimConfig memory claimConfig
+    ) internal override {
+        revert("Not implemented");
     }
 
     function _sqrt(uint x) internal pure returns (uint y) {
