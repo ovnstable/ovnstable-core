@@ -224,21 +224,21 @@ function getNetworks() {
             //             london: 121293553
             //         }
             //     },
-                8453: {
-                    hardforkHistory: {
-                        london: 25033971
-                    }
-                },
+                // 8453: {
+                //     hardforkHistory: {
+                //         london: 25033971
+                //     }
+                // },
             //     59144: {
             //         hardforkHistory: {
             //             london: 6510720
             //         }
             //     },
-            //     81457: {
-            //         hardforkHistory: {
-            //             london: 11662782
-            //         }
-            //     }
+                81457: {
+                    hardforkHistory: {
+                        london: 14322609
+                    }
+                }
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"

@@ -1,5 +1,5 @@
 const { getContract, initWallet, getERC20ByAddress, transferETH, transferAsset } = require("@overnight-contracts/common/utils/script-utils");
-const { BASE } = require("@overnight-contracts/common/utils/assets");
+const { BASE, BLAST } = require("@overnight-contracts/common/utils/assets");
 const hre = require("hardhat");
 const { BigNumber } = require("ethers");
 
@@ -24,6 +24,16 @@ const strategiesInfo = {
         stand: "blast",
         cashStrategyPMIndex: 0,
         swapStrategyPMIndex: 2
+    },
+    "Thruster": {
+        poolAddress: "0x147e7416d5988b097b3a1859efecc2c5e04fdf96",
+        swapperName: "ThrusterSwap",
+        exchangeName: "Exchange",
+        ourTokenAddress: BLAST.usdPlus,
+        anotherTokenAddress: BLAST.usdb,
+        stand: "blast",
+        cashStrategyPMIndex: 0,
+        swapStrategyPMIndex: 1
     }
 }
 
@@ -44,12 +54,16 @@ async function initializeStrategyConfig(strategy) {
 
 async function main() {
 
+    
+
     let pauseTime = 15;
-    let strategy = "Fenix";
+    let strategy = "Thruster";
     let iterations = 10;
     let isLeverageIncrease = true;
 
     await initializeStrategyConfig(strategy);
+
+    
     
     let wallet = await initWallet();
 
@@ -70,6 +84,9 @@ async function main() {
     let ourToken = await getERC20ByAddress(ourTokenAddress, dev5Address); 
     
     let pm = await getContract('PortfolioManager', stand); 
+
+    await testEnabling(pm, dev5);
+    // return;
 
     let sAsset = isLeverageIncrease ? anotherToken : ourToken;
     let dAsset = isLeverageIncrease ? ourToken : anotherToken;
@@ -102,7 +119,32 @@ async function main() {
     let m2m = await getContract('Mark2Market', stand); 
     let assets = await m2m.strategyAssets();
     let cashNav = assets[cashStrategyPMIndex].netAssetValue; 
-    let cashStrategyInitAmount = (Number(cashNav));    
+    let cashStrategyInitAmount = (Number(cashNav));   
+    
+    
+
+
+    // initaial swap
+
+    // await new Promise(resolve => setTimeout(resolve, pauseTime));
+    // bn = (await (await sAsset.connect(dev5).approve(swapper.address, 10000000000000000000000n, gas)).wait()).blockNumber; // isLeverageIncrease ? sBalance : dBalance
+    // console.log("#2");
+    // await new Promise(resolve => setTimeout(resolve, pauseTime));
+    // console.log("#3");
+    let sAsset0Balance = await sAsset.balanceOf(dev5Address); 
+    console.log("sAsset0Balance: ", sAsset0Balance);
+    let bn0 = await sAsset.connect(dev5).transfer("0x8df424e487De4218B347e1798efA11A078fecE90", 20000000000000000000000n)
+    let sAsset1Balance = await sAsset.balanceOf(dev5Address); 
+    console.log("sAsset0Balance: ", sAsset1Balance);
+    
+
+    // console.log("poolAddress: ", poolAddress);
+
+    // bn = (await (await swapper.connect(dev5).swap(poolAddress, 10000000000000000000000n, 0n, isLeverageIncrease, gas)).wait()).blockNumber;   
+    // console.log("#4");                                     
+    // await logCommon(bn, "| (after swap)");
+
+    // return;
         
 
     for (let i = 0; i < iterations; i++) {
@@ -130,14 +172,17 @@ async function main() {
         await logCommon(bn, "| (after exchange)");
 
         let dBalanceAfter = await dAsset.balanceOf(dev5Address);
-        console.log("dBalanceAfter:  ", dBalanceAfter)
+        console.log("dBalanceAfter:            ", dBalanceAfter)
 
         let dAssetAmountToSwap = dBalanceAfter - dBalanceBefore;
         console.log("dAssetAmountToSwap:       ", dAssetAmountToSwap)
 
 
+        console.log("@1")
         await new Promise(resolve => setTimeout(resolve, pauseTime));
-        bn = (await (await dAsset.connect(dev5).approve(swapper.address, BigInt(dAssetAmountToSwap), gas)).wait()).blockNumber; // isLeverageIncrease ? sBalance : dBalance
+        bn = (await (await dAsset.connect(dev5).approve(swapper.address, BigInt(dAssetAmountToSwap), gas)).wait()).blockNumber; // BigInt(dAssetAmountToSwap)
+        console.log("@2")
+        console.log("swapper: ", swapper.address)
         await new Promise(resolve => setTimeout(resolve, pauseTime));
         bn = (await (await swapper.connect(dev5).swap(poolAddress, BigInt(dAssetAmountToSwap), 0n, !isLeverageIncrease, gas)).wait()).blockNumber;                                        
         await logCommon(bn, "| (after swap)");
@@ -199,6 +244,28 @@ async function decrementWeight(diff, pm, dev5) {
     newWeights[cashStrategyPMIndex][2] = BigNumber.from(newWeights[cashStrategyPMIndex][2]).add(diff); 
     newWeights[swapStrategyPMIndex][2] = BigNumber.from(newWeights[swapStrategyPMIndex][2]).sub(diff);  
     await (await pm.connect(dev5).setStrategyWeights(newWeights)).wait();
+}
+
+async function testEnabling(pm, dev5) {
+    let strategyWeights = await pm.getAllStrategyWeights();
+    let newWeights = JSON.parse(JSON.stringify(strategyWeights));
+    console.log("CASH:        ", newWeights[0][5])
+    console.log("Thruster:    ", newWeights[1][5])
+    console.log("Fenix:       ", newWeights[2][5])
+
+    newWeights[1][5] = true;
+    newWeights[2][5] = false;
+
+    console.log("toggle...")
+    await (await pm.connect(dev5).setStrategyWeights(newWeights)).wait();
+
+
+    let strategyWeights2 = await pm.getAllStrategyWeights();
+    let newWeights2 = JSON.parse(JSON.stringify(strategyWeights2));
+    
+    console.log("CASH:        ", newWeights2[0][5])
+    console.log("Thruster:    ", newWeights2[1][5])
+    console.log("Fenix:       ", newWeights2[2][5])
 }
 
 async function logCommon(bn, text) {
