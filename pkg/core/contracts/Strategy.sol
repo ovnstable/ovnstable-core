@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
+import {IDistributor} from "@overnight-contracts/connectors/contracts/stuff/Fenix.sol";
 
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IRoleManager.sol";
@@ -88,6 +89,12 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
     function setStrategyName(string memory _name) public onlyPortfolioAgent {
         name = _name;
+    }
+
+    function setClaimConfig(ClaimConfig memory _claimConfig) public onlyPortfolioManager {
+        claimConfig.operation = _claimConfig.operation;
+        claimConfig.beneficiary = _claimConfig.beneficiary;
+        claimConfig.distributor = _claimConfig.distributor;
     }
 
     // --- logic
@@ -180,46 +187,33 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         uint256[] calldata amounts,
         bytes32[][] calldata proofs
     ) external virtual onlyUnit {
-        ClaimConfig memory config = claimConfig; 
+        ClaimConfig memory config = claimConfig;
+        IDistributor(config.distributor).claim(users, tokens, amounts, proofs);
         if (claimConfig.operation == Operation.REINVEST) {
-            _reinvest(users, tokens, amounts, proofs, config);
+            _reinvest();
         } else if (claimConfig.operation == Operation.SEND){
-            _sendToTreshery(users, tokens, amounts, proofs, config);
+            _sendToTreshery(config);
         } else {
-            _custom(users, tokens, amounts, proofs, config);
+            _custom(config);
         }
     }
 
-    function _reinvest(
-        address[] calldata users,
-        address[] calldata tokens,
-        uint256[] calldata amounts,
-        bytes32[][] calldata proofs,
-        ClaimConfig memory claimConfig
-    ) internal virtual {
+    function _reinvest() internal virtual {
         revert("Not implemented");
     }
 
     function _sendToTreshery(
-        address[] calldata users,
-        address[] calldata tokens,
-        uint256[] calldata amounts,
-        bytes32[][] calldata proofs,
         ClaimConfig memory claimConfig
     ) internal virtual {
         revert("Not implemented");
     }
 
     function _custom(
-        address[] calldata users,
-        address[] calldata tokens,
-        uint256[] calldata amounts,
-        bytes32[][] calldata proofs,
         ClaimConfig memory claimConfig
     ) internal virtual {
         revert("Not implemented");
     }
 
 
-    uint256[42] private __gap;
+    uint256[32] private __gap;
 }

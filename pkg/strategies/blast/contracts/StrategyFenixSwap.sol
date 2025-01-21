@@ -427,43 +427,17 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         }
     }
 
-    function _reinvest(
-        address[] calldata users,
-        address[] calldata tokens,
-        uint256[] calldata amounts,
-        bytes32[][] calldata proofs,
-        ClaimConfig memory claimConfig
-    ) internal override onlyPortfolioAgent { 
-        IDistributor(claimConfig.distributor).claim(users, tokens, amounts, proofs);
-
+    function _reinvest() internal override { 
         _swapClaims();
-    
         _stake(address(usdb), 0);
     }
 
-    function _sendToTreshery(
-        address[] calldata users,
-        address[] calldata tokens,
-        uint256[] calldata amounts,
-        bytes32[][] calldata proofs,
-        ClaimConfig memory claimConfig
-    ) internal override onlyPortfolioAgent { 
-        IDistributor(claimConfig.distributor).claim(users, tokens, amounts, proofs);
-
+    function _sendToTreshery(ClaimConfig memory claimConfig) internal override { 
         _swapClaims();
-
-        uint256 usdbBalance = usdb.balanceOf(address(this));
-
-        usdb.transfer(claimConfig.beneficiary, usdbBalance);
+        usdb.transfer(claimConfig.beneficiary, usdb.balanceOf(address(this)));
     }
 
-    function _custom(
-        address[] calldata users,
-        address[] calldata tokens,
-        uint256[] calldata amounts,
-        bytes32[][] calldata proofs,
-        ClaimConfig memory claimConfig
-    ) internal override {
+    function _custom(ClaimConfig memory claimConfig) internal override {
         revert("Not implemented");
     }
 
