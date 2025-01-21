@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "hardhat/console.sol";
 import {ISwapSimulator} from "./../interfaces/ISwapSimulator.sol";
 
 contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
@@ -55,8 +54,6 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         uint160 sqrtPriceLimitX96,
         bool zeroForOne
     ) public onlyStrategy {
-        console.log("   swap_ starts");
-        
         ICLPool pool = ICLPool(pair);
         SwapCallbackData memory data = SwapCallbackData({
             tokenA: pool.token0(),
@@ -66,9 +63,7 @@ contract SwapSimulatorAerodrome is ISwapSimulator, Initializable, AccessControlU
         
         uint160 poolBorder = zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1;
 
-        console.log("   swap_ #1");
         pool.swap(address(this), zeroForOne, int256(amountIn), poolBorder, abi.encode(data));
-        console.log("   swap_ #2");
 
         (uint160 newSqrtRatioX96,,,,,) = pool.slot0();
 

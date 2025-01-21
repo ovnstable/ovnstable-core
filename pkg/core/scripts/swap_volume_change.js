@@ -14,6 +14,16 @@ const strategiesInfo = {
         stand: "base_usdc",
         cashStrategyPMIndex: 0,
         swapStrategyPMIndex: 1
+    },
+    "Fenix": {
+        poolAddress: "0x6a1de1841c5c3712e3bc7c75ce3d57dedec6915f",
+        swapperName: "FenixSwap",
+        exchangeName: "Exchange",
+        ourTokenAddress: "0x4fee793d435c6d2c10c135983bb9d6d4fc7b9bbd",
+        anotherTokenAddress: "0x4300000000000000000000000000000000000003",
+        stand: "blast",
+        cashStrategyPMIndex: 0,
+        swapStrategyPMIndex: 2
     }
 }
 
@@ -35,9 +45,9 @@ async function initializeStrategyConfig(strategy) {
 async function main() {
 
     let pauseTime = 15;
-    let strategy = "Aerodrome";
-    let iterations = 36;
-    let isLeverageIncrease = false;
+    let strategy = "Fenix";
+    let iterations = 10;
+    let isLeverageIncrease = true;
 
     await initializeStrategyConfig(strategy);
     
@@ -63,6 +73,13 @@ async function main() {
 
     let sAsset = isLeverageIncrease ? anotherToken : ourToken;
     let dAsset = isLeverageIncrease ? ourToken : anotherToken;
+
+    let strategyWeightsJSON = await pm.getAllStrategyWeights();
+    let strategyWeights = JSON.parse(JSON.stringify(strategyWeightsJSON));
+    let cashWeight = parseInt(strategyWeights[cashStrategyPMIndex][2].hex, 16)
+    let swapWeight = parseInt(strategyWeights[swapStrategyPMIndex][2].hex, 16)
+
+    let availableShare = (swapWeight + cashWeight) / 100000; // то есть какую долю портфеля составляют доли свап- и кэш- стратегий вместе (если только они - то 1)
    
     let gas = {
         gasLimit: 30000000, 
@@ -73,20 +90,19 @@ async function main() {
     let cashInitWeight = await getCashWeight(pm);
     console.log("CASH-strategy initial weight: ", cashInitWeight);
 
-
     // Calculate inital amounts of assets in SWAP- and CASH- strategies so that calculate the correct weight change later:
     
     let anotherTokenAmount = await anotherToken.balanceOf(poolAddress);
     let ourTokenAmount = await ourToken.balanceOf(poolAddress);
-    let anotherTokenAmountFormatted = (Number(anotherTokenAmount) / 1e6)
-    let ourTokenAmountFormatted = (Number(ourTokenAmount) / 1e6)
+    let anotherTokenAmountFormatted = (Number(anotherTokenAmount))
+    let ourTokenAmountFormatted = (Number(ourTokenAmount))
 
     let swapStrategyInitAmount = anotherTokenAmountFormatted + ourTokenAmountFormatted;
 
     let m2m = await getContract('Mark2Market', stand); 
     let assets = await m2m.strategyAssets();
     let cashNav = assets[cashStrategyPMIndex].netAssetValue; 
-    let cashStrategyInitAmount = (Number(cashNav) / 1e6);    
+    let cashStrategyInitAmount = (Number(cashNav));    
         
 
     for (let i = 0; i < iterations; i++) {
@@ -121,25 +137,25 @@ async function main() {
 
 
         await new Promise(resolve => setTimeout(resolve, pauseTime));
-        bn = (await (await dAsset.connect(dev5).approve(swapper.address, dAssetAmountToSwap, gas)).wait()).blockNumber; // isLeverageIncrease ? sBalance : dBalance
+        bn = (await (await dAsset.connect(dev5).approve(swapper.address, BigInt(dAssetAmountToSwap), gas)).wait()).blockNumber; // isLeverageIncrease ? sBalance : dBalance
         await new Promise(resolve => setTimeout(resolve, pauseTime));
-        bn = (await (await swapper.connect(dev5).swap(poolAddress, dAssetAmountToSwap, 0n, !isLeverageIncrease, gas)).wait()).blockNumber;                                        
+        bn = (await (await swapper.connect(dev5).swap(poolAddress, BigInt(dAssetAmountToSwap), 0n, !isLeverageIncrease, gas)).wait()).blockNumber;                                        
         await logCommon(bn, "| (after swap)");
 
     
         // Calculate weight change:
-        let N = Math.trunc(dAssetAmountToSwap / 1e6);
+        let N = dAssetAmountToSwap;
+        let cashTargetRelativeShare = 0;
 
-        let cashTargetShare = 0;
         if (isLeverageIncrease) {
-            cashTargetShare = (cashStrategyInitAmount / (swapStrategyInitAmount + i * N + cashStrategyInitAmount));
+            cashTargetRelativeShare = (cashStrategyInitAmount / (swapStrategyInitAmount + i * N + cashStrategyInitAmount));
         } else {
-            cashTargetShare = (cashStrategyInitAmount / (swapStrategyInitAmount - i * N + cashStrategyInitAmount));
+            cashTargetRelativeShare = (cashStrategyInitAmount / (swapStrategyInitAmount - i * N + cashStrategyInitAmount));
         }
 
-        let cashTargetWeight = cashTargetShare * 100000;
+        let cashTargetRelativeWeight = cashTargetRelativeShare * 100000;
+        let cashTargetWeight = cashTargetRelativeWeight * availableShare;
 
-        console.log("cashTargetShare:     ", cashTargetShare);
         console.log("cashTargetWeight:    ", cashTargetWeight);
 
         await new Promise(resolve => setTimeout(resolve, pauseTime));
@@ -202,10 +218,10 @@ async function logCommon(bn, text) {
     let anotherTokenPoolBalance = await anotherToken.balanceOf(poolAddress, {blockTag: bn});
 
     console.log("bn=", bn,
-        "usdp=",(Number(ourTokenPoolBalance) / 1e6).toFixed(0),
-        "usdc=",(Number(anotherTokenPoolBalance) / 1e6).toFixed(0), 
-        "cash=",(Number(cashNav) / 1e6).toFixed(0),
-        "nav=",(Number(totalNetAssets) / 1e6).toFixed(0), 
+        "usdp=",(Number(ourTokenPoolBalance) / 1e18).toFixed(0),
+        "usdc=",(Number(anotherTokenPoolBalance) / 1e18).toFixed(0), 
+        "cash=",(Number(cashNav) / 1e18).toFixed(0),
+        "nav=",(Number(totalNetAssets) / 1e18).toFixed(0), 
         text
     );
 }
