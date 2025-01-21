@@ -54,8 +54,6 @@ async function initializeStrategyConfig(strategy) {
 
 async function main() {
 
-    
-
     let pauseTime = 15;
     let strategy = "Thruster";
     let iterations = 10;
@@ -63,8 +61,6 @@ async function main() {
 
     await initializeStrategyConfig(strategy);
 
-    
-    
     let wallet = await initWallet();
 
     // --->
@@ -85,8 +81,7 @@ async function main() {
     
     let pm = await getContract('PortfolioManager', stand); 
 
-    await testEnabling(pm, dev5);
-    // return;
+    await testEnabling(pm, dev5); // for Thruster only now
 
     let sAsset = isLeverageIncrease ? anotherToken : ourToken;
     let dAsset = isLeverageIncrease ? ourToken : anotherToken;
@@ -96,7 +91,7 @@ async function main() {
     let cashWeight = parseInt(strategyWeights[cashStrategyPMIndex][2].hex, 16)
     let swapWeight = parseInt(strategyWeights[swapStrategyPMIndex][2].hex, 16)
 
-    let availableShare = (swapWeight + cashWeight) / 100000; // то есть какую долю портфеля составляют доли свап- и кэш- стратегий вместе (если только они - то 1)
+    let availableShare = (swapWeight + cashWeight) / 100000; // какую долю портфеля составляют доли свап- и кэш- стратегий вместе (если только они - то 1)
    
     let gas = {
         gasLimit: 30000000, 
@@ -121,32 +116,8 @@ async function main() {
     let cashNav = assets[cashStrategyPMIndex].netAssetValue; 
     let cashStrategyInitAmount = (Number(cashNav));   
     
-    
-
-
-    // initaial swap
-
-    // await new Promise(resolve => setTimeout(resolve, pauseTime));
-    // bn = (await (await sAsset.connect(dev5).approve(swapper.address, 10000000000000000000000n, gas)).wait()).blockNumber; // isLeverageIncrease ? sBalance : dBalance
-    // console.log("#2");
-    // await new Promise(resolve => setTimeout(resolve, pauseTime));
-    // console.log("#3");
-    let sAsset0Balance = await sAsset.balanceOf(dev5Address); 
-    console.log("sAsset0Balance: ", sAsset0Balance);
-    let bn0 = await sAsset.connect(dev5).transfer("0x8df424e487De4218B347e1798efA11A078fecE90", 20000000000000000000000n)
-    let sAsset1Balance = await sAsset.balanceOf(dev5Address); 
-    console.log("sAsset0Balance: ", sAsset1Balance);
-    
-
-    // console.log("poolAddress: ", poolAddress);
-
-    // bn = (await (await swapper.connect(dev5).swap(poolAddress, 10000000000000000000000n, 0n, isLeverageIncrease, gas)).wait()).blockNumber;   
-    // console.log("#4");                                     
-    // await logCommon(bn, "| (after swap)");
-
-    // return;
-        
-
+    let bn0 = await sAsset.connect(dev5).transfer("0x8df424e487De4218B347e1798efA11A078fecE90", 20000000000000000000000n) // for Thruster testing only
+ 
     for (let i = 0; i < iterations; i++) {
         console.log("-----iteration ", i, "-----");
         await logCommon(await hre.ethers.provider.getBlockNumber(), "| (before all)");
@@ -178,11 +149,8 @@ async function main() {
         console.log("dAssetAmountToSwap:       ", dAssetAmountToSwap)
 
 
-        console.log("@1")
         await new Promise(resolve => setTimeout(resolve, pauseTime));
         bn = (await (await dAsset.connect(dev5).approve(swapper.address, BigInt(dAssetAmountToSwap), gas)).wait()).blockNumber; // BigInt(dAssetAmountToSwap)
-        console.log("@2")
-        console.log("swapper: ", swapper.address)
         await new Promise(resolve => setTimeout(resolve, pauseTime));
         bn = (await (await swapper.connect(dev5).swap(poolAddress, BigInt(dAssetAmountToSwap), 0n, !isLeverageIncrease, gas)).wait()).blockNumber;                                        
         await logCommon(bn, "| (after swap)");
@@ -249,23 +217,11 @@ async function decrementWeight(diff, pm, dev5) {
 async function testEnabling(pm, dev5) {
     let strategyWeights = await pm.getAllStrategyWeights();
     let newWeights = JSON.parse(JSON.stringify(strategyWeights));
-    console.log("CASH:        ", newWeights[0][5])
-    console.log("Thruster:    ", newWeights[1][5])
-    console.log("Fenix:       ", newWeights[2][5])
 
     newWeights[1][5] = true;
     newWeights[2][5] = false;
 
-    console.log("toggle...")
     await (await pm.connect(dev5).setStrategyWeights(newWeights)).wait();
-
-
-    let strategyWeights2 = await pm.getAllStrategyWeights();
-    let newWeights2 = JSON.parse(JSON.stringify(strategyWeights2));
-    
-    console.log("CASH:        ", newWeights2[0][5])
-    console.log("Thruster:    ", newWeights2[1][5])
-    console.log("Fenix:       ", newWeights2[2][5])
 }
 
 async function logCommon(bn, text) {
