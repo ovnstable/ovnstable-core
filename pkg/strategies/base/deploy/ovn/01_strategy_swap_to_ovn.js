@@ -19,7 +19,11 @@ module.exports = async ({ deployments }) => {
 async function getParams() {
     return {
         usdPlus: BASE.usdPlus,
-        ovn: BASE.ovn
+        ovn: BASE.ovn,
+        inchSwapper: BASE.inchSwapper,
+        aerodromeRouter: BASE.aerodromeRouter,
+        ovnUsdPlusPool: "0x61366A4e6b1DB1b85DD701f2f4BFa275EF271197", // vAMM-OVN/USD+ Basic Volatile 1.0%
+        slippageBp: 100
     };
 }
 
