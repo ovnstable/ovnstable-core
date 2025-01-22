@@ -37,7 +37,10 @@ async function getParams() {
         lowerTick: -1,
         upperTick: 0,
         fnxTokenAddress: '0x52f847356b38720b55ee18cb3e094ca11c85a192',
+        wethTokenAddress: '0x4300000000000000000000000000000000000004',
         poolFnxUsdb: '0xb3B4484bdFb6885f96421c3399B666a1c9D27Fca',
+        poolFnxWeth: '0x2e3281E50479d6C42328bA6F2E4aFd971e43Ca2d',
+        poolUsdbWeth: '0x1D74611f3EF04E7252f7651526711a937Aa1f75e',
         rewardSwapSlippageBP: 500,
         liquidityDecreaseDeviationBP: 500
     };

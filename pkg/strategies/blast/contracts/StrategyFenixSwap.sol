@@ -33,6 +33,10 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
 
     uint256 liquidityDecreaseDeviationBP;
 
+    IERC20 private weth;
+    ICLPool private poolFnxWeth;
+    ICLPool private poolUsdbWeth;
+
     // --- events
     event StrategyUpdatedParams();
     event SwapErrorInternal(string message);
@@ -51,7 +55,10 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         int24 lowerTick;
         int24 upperTick;
         address fnxTokenAddress;
+        address wethTokenAddress;
         address poolFnxUsdb;
+        address poolFnxWeth; 
+        address poolUsdbWeth;
         uint256 rewardSwapSlippageBP;
         uint256 liquidityDecreaseDeviationBP;
     }
@@ -73,6 +80,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         usdb = IERC20(pool.token0());
         usdPlus = IERC20(pool.token1());
         fnx = IERC20(params.fnxTokenAddress);
+        weth = IERC20(params.wethTokenAddress);
 
         swapSimulator = ISwapSimulator(params.swapSimulatorAddress);
         npm = INonfungiblePositionManager(params.npmAddress);
@@ -85,6 +93,8 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         upperTick = params.upperTick;
 
         poolFnxUsdb = ICLPool(params.poolFnxUsdb);
+        poolFnxWeth = ICLPool(params.poolFnxWeth);
+        poolUsdbWeth = ICLPool(params.poolUsdbWeth);
         
         emit StrategyUpdatedParams();
     }
@@ -448,5 +458,21 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
             y = z;
             z = (x / z + z) / 2;
         }
+    }
+
+    function swapFNXtoUSDB() internal {
+        uint256 fnxBalance = fnx.balanceOf(address(this));
+        require(fnxBalance > 0, "FNX balance zero");
+
+        fnx.transfer(address(swapSimulator), fnxBalance);
+        (uint160 sqrtRatioFnxWethX96,,,,,) = poolFnxWeth.globalState();
+        swapSimulator.swap(address(poolFnxWeth), fnxBalance, _calculateSlippageLimitBorder(sqrtRatioFnxWethX96, false), false);
+        swapSimulator.withdrawAll(address(poolFnxWeth));         
+
+        uint256 wethBalance = weth.balanceOf(address(this));
+        weth.transfer(address(swapSimulator), wethBalance);
+        (uint160 sqrtRatioUsdbWethX96,,,,,) = poolUsdbWeth.globalState();
+        swapSimulator.swap(address(poolUsdbWeth), wethBalance,  _calculateSlippageLimitBorder(sqrtRatioUsdbWethX96, false), false);
+        swapSimulator.withdrawAll(address(poolUsdbWeth)); 
     }
 }
