@@ -35,6 +35,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     uint256 liquidityDecreaseDeviationBP;
 
     // --- events
+
     event StrategyUpdatedParams();
     event SwapErrorInternal(string message);
     event Staked(uint256 tokenId);
@@ -44,7 +45,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
 
     // --- structs
-
+    
     struct StrategyParams {
         address pool;
         address rewardSwapPool;
@@ -70,7 +71,6 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         __Strategy_init();
     }
 
-
     // --- Setters
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
@@ -82,7 +82,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         binSearchIterations = params.binSearchIterations;
         swapSimulator = ISwapSimulator(params.swapSimulatorAddress);
         npm = INonfungiblePositionManager(params.npmAddress);
-        gauge = ICLGauge(pool.gauge());
+        // gauge = ICLGauge(pool.gauge());
         aero = IERC20(params.aeroTokenAddress);
         rewardSwapSlippageBP = params.rewardSwapSlippageBP;
         swapRouter = params.swapRouter;
@@ -186,12 +186,13 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             usdc.transfer(_beneficiary, claimedUsdc);
         }
 
-        npm.approve(address(gauge), stakedTokenId);
-        gauge.deposit(stakedTokenId);
+        // npm.approve(address(gauge), stakedTokenId);
+        // gauge.deposit(stakedTokenId);
         return claimedUsdc;
     }
 
     function _deposit(uint256 assetToLock, bool zeroForOne) internal {
+
         uint256 amount0 = usdc.balanceOf(address(this));
         if (amount0 >= assetToLock) {
             amount0 -= assetToLock;
@@ -219,6 +220,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         usdc.approve(address(npm), amount0);
         usdcPlus.approve(address(npm), amount1);
 
+
         if (stakedTokenId == 0) {
             INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
                 token0: pool.token0(),
@@ -236,8 +238,8 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             });
             (stakedTokenId,,,) = npm.mint(params);
 
-            npm.approve(address(gauge), stakedTokenId);
-            gauge.deposit(stakedTokenId);
+            // npm.approve(address(gauge), stakedTokenId);
+            // gauge.deposit(stakedTokenId);
 
             emit Staked(stakedTokenId);
         } else {
@@ -255,8 +257,8 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             });
             npm.increaseLiquidity(params);
 
-            npm.approve(address(gauge), stakedTokenId);
-            gauge.deposit(stakedTokenId);
+            // npm.approve(address(gauge), stakedTokenId);
+            // gauge.deposit(stakedTokenId);
         }
     }
 
@@ -300,10 +302,10 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
             tokenId: stakedTokenId,
-            liquidity: liquidity,
+            liquidity: requiredLiquidityWithReserve,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp
+            deadline: block.timestamp 
         });
 
         npm.decreaseLiquidity(params);
@@ -333,7 +335,6 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         usdcPlus.transfer(address(swapSimulator), amountToStake1);
         
         uint256 amountUsdcPlusToSwap = _calculateAmountToSwap(amount - amountToStake0);
-
         (uint160 currentSqrtRatioX96,,,,,) = pool.slot0();
         
         if (currentSqrtRatioX96 > TickMath.getSqrtRatioAtTick(upperTick)) { 
@@ -347,6 +348,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _collect() internal {
+        
         INonfungiblePositionManager.CollectParams memory collectParams = INonfungiblePositionManager.CollectParams({
             tokenId: stakedTokenId,
             recipient: address(this),
@@ -378,16 +380,13 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             if (mid == 0) {
                 break;
             }
-
             try swapSimulator.simulateSwap(address(pool), mid, zeroForOne, lowerTick, upperTick) {
 
             } catch Error(string memory reason) {
-                
                 emit SwapErrorInternal(reason);
                 break;
             }
             catch (bytes memory _data) {
-                
                 bytes memory data;
                 assembly {
                     data := add(_data, 4)
@@ -399,7 +398,6 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
                 if (swapResult[3] == 0) {
                     r = mid;
                 } else {
-
                     bool compareResult = zeroForOne ? 
                     _compareRatios(swapResult[0], swapResult[1], swapResult[2], swapResult[3]) : 
                     _compareRatios(swapResult[1], swapResult[0], swapResult[3], swapResult[2]);
