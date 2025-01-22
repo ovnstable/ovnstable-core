@@ -26,6 +26,7 @@ async function main() {
     //await (await exchange.setAbroad(1000100, 1000360)).wait();
     await (await exchange.setOracleLoss(0, 100000)).wait();
     await (await exchange.setCompensateLoss(0, 100000)).wait();
+    await (await exchange.setPayoutTimes(1734019200, 21600, 0)).wait();
 
     console.log('Base-setting done()');
 }

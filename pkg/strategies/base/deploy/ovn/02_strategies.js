@@ -3,7 +3,6 @@ const {createProposal} = require("@overnight-contracts/common/utils/governance")
 const {Roles} = require("@overnight-contracts/common/utils/roles");
 
 async function main() {
-    return;
     let cashStrategy = await getContract('StrategySwapToOvn');
 
     let weights = [
