@@ -136,3 +136,32 @@ Then you can kill the process with:
 ```
 kill -9 <PID>
 ```
+
+
+## Solutions to common errors
+
+1. HardhatError: HH103: Account [account address] is not managed by the node you are connected to
+
+Try to replace the way you do impersonate for this address. Example:
+
+### Was
+```
+await hre.network.provider.request({
+   method: 'hardhat_impersonateAccount',
+   params: [ownerAddress],
+});
+const owner = await ethers.getSigner(ownerAddress);
+```
+
+### Become
+```
+const provider = new ethers.providers.JsonRpcProvider(
+   "http://localhost:8545"
+);
+await provider.send(
+   "hardhat_impersonateAccount", 
+   [ownerAddress]
+);
+const owner = provider.getSigner(ownerAddress);
+```
+

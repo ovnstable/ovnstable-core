@@ -950,7 +950,7 @@ async function transferAsset(assetAddress, to, amount) {
                     break
 
                 case BASE.usdcPlus:
-                    from = '0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46';
+                    from = '0xe497285e466227f4e8648209e34b465daa1f90a0';
                     break
 
                 default:
