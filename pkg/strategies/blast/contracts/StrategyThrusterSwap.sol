@@ -152,21 +152,7 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     }
 
     function _totalValue() internal view returns (uint256) {
-        uint256 amount0 = 0;
-        uint256 amount1 = 0;
-
-        if (tokenLP != 0) {
-            (uint160 sqrtRatioX96,,,,,,) = pool.slot0();
-            (,,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
-            (amount0, amount1) = LiquidityAmounts.getAmountsForLiquidity(
-                sqrtRatioX96,
-                TickMath.getSqrtRatioAtTick(lowerTick),
-                TickMath.getSqrtRatioAtTick(upperTick),
-                liquidity
-            );
-        }
-        uint256 totalValue = amount0 + amount1 + usdb.balanceOf(address(this)) + usdPlus.balanceOf(address(this));
-        return totalValue;
+        return swapSimulator.totalValue(tokenLP, address(pool), address(npm), lowerTick, upperTick, address(usdb), address(usdPlus));
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
@@ -242,8 +228,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
     }
 
     function _withdraw(uint256 amount, bool isFull) internal {
-        // _collect_rewards_hyperlock();
-
         nfpBooster.withdraw(tokenLP, address(this)); 
 
         (,,,,,,, uint128 liquidity,,,,) = npm.positions(tokenLP);
@@ -337,16 +321,6 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         });
         npm.collect(collectParams);
     }
-
-    function _collect_rewards_hyperlock() internal {
-        INFPBooster.CollectParams memory collectParams = INFPBooster.CollectParams({
-            tokenId: tokenLP,
-            recipient: address(this),
-            amount0Max: type(uint128).max,
-            amount1Max: type(uint128).max
-        });
-        nfpBooster.collect(collectParams);
-    } 
 
     function _simulateSwap(bool zeroForOne) internal returns (uint256 amountToSwap) {
         uint256 amount0 = usdb.balanceOf(address(swapSimulator));
@@ -443,20 +417,22 @@ contract StrategyThrusterSwap is Strategy, IERC721Receiver {
         return a * d > b * c;
     }
 
-    function _calculateSlippageLimitBorder(uint160 sqrtRatioX96, bool zeroForOne) internal view returns (uint160) {
-        if (zeroForOne) {
-            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 - rewardSwapSlippageBP), 100));
-        } else {
-            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 + rewardSwapSlippageBP), 100));
-        }        
+    function _swapRewards() internal {
+        thrust.transfer(address(swapSimulator), thrust.balanceOf(address(this)));
+        swapSimulator.swapRewards(address(thrust), address(weth), address(poolWethThrust), address(poolUsdbWeth), rewardSwapSlippageBP);
     }
 
-    function _sqrt(uint x) internal pure returns (uint y) {
-        uint z = (x + 1) / 2;
-        y = x;
-        while (z < y) {
-            y = z;
-            z = (x / z + z) / 2;
-        }
+    function _reinvest() internal override { 
+        _swapRewards();
+        _stake(address(usdb), 0);
+    }
+
+    function _sendToTreshery(ClaimConfig memory claimConfig) internal override { 
+        _swapRewards();
+        usdb.transfer(claimConfig.beneficiary, usdb.balanceOf(address(this)));
+    }
+
+    function _custom(ClaimConfig memory claimConfig) internal override {
+        revert("Not implemented");
     }
 }

@@ -408,71 +408,26 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         npm.collect(collectParams);
     }
 
-    function _calculateSlippageLimitBorder(uint160 sqrtRatioX96, bool zeroForOne) internal view returns (uint160) {
-        if (zeroForOne) {
-            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 - rewardSwapSlippageBP), 100));
-        } else {
-            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 + rewardSwapSlippageBP), 100));
-        }        
-    }
-
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
         return 0;
     }
 
-    function _swapClaims() internal {
-        uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
-        if (usdPlusBalance > 0) {
-            usdPlus.transfer(address(swapSimulator), usdPlusBalance);
-            swapSimulator.swap(address(pool), usdPlusBalance, TickMath.getSqrtRatioAtTick(upperTick), false);
-            swapSimulator.withdrawAll(address(pool));
-        }
-
-        uint256 fnxBalance = fnx.balanceOf(address(this));
-        if (fnxBalance > 0) {
-            (uint160 sqrtRatioFnxUsdbX96,,,,,) = poolFnxUsdb.globalState();
-            fnx.transfer(address(swapSimulator), fnxBalance);
-            swapSimulator.swap(address(poolFnxUsdb), fnxBalance, _calculateSlippageLimitBorder(sqrtRatioFnxUsdbX96, false), false);
-            swapSimulator.withdrawAll(address(poolFnxUsdb)); 
-        }
+    function _swapRewards() internal {
+        fnx.transfer(address(swapSimulator), fnx.balanceOf(address(this)));     
+        swapSimulator.swapRewards(address(fnx), address(weth), address(poolFnxWeth), address(poolUsdbWeth), rewardSwapSlippageBP);
     }
 
     function _reinvest() internal override { 
-        _swapClaims();
+        _swapRewards();
         _stake(address(usdb), 0);
     }
 
     function _sendToTreshery(ClaimConfig memory claimConfig) internal override { 
-        _swapClaims();
+        _swapRewards();
         usdb.transfer(claimConfig.beneficiary, usdb.balanceOf(address(this)));
     }
 
     function _custom(ClaimConfig memory claimConfig) internal override {
         revert("Not implemented");
-    }
-
-    function _sqrt(uint x) internal pure returns (uint y) {
-        uint z = (x + 1) / 2;
-        y = x;
-        while (z < y) {
-            y = z;
-            z = (x / z + z) / 2;
-        }
-    }
-
-    function swapFNXtoUSDB() internal {
-        uint256 fnxBalance = fnx.balanceOf(address(this));
-        require(fnxBalance > 0, "FNX balance zero");
-
-        fnx.transfer(address(swapSimulator), fnxBalance);
-        (uint160 sqrtRatioFnxWethX96,,,,,) = poolFnxWeth.globalState();
-        swapSimulator.swap(address(poolFnxWeth), fnxBalance, _calculateSlippageLimitBorder(sqrtRatioFnxWethX96, false), false);
-        swapSimulator.withdrawAll(address(poolFnxWeth));         
-
-        uint256 wethBalance = weth.balanceOf(address(this));
-        weth.transfer(address(swapSimulator), wethBalance);
-        (uint160 sqrtRatioUsdbWethX96,,,,,) = poolUsdbWeth.globalState();
-        swapSimulator.swap(address(poolUsdbWeth), wethBalance,  _calculateSlippageLimitBorder(sqrtRatioUsdbWethX96, false), false);
-        swapSimulator.withdrawAll(address(poolUsdbWeth)); 
     }
 }

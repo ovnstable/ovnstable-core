@@ -91,7 +91,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         name = _name;
     }
 
-    function setClaimConfig(ClaimConfig memory _claimConfig) public onlyPortfolioManager {
+    function setClaimConfig(ClaimConfig memory _claimConfig) public onlyPortfolioAgent {
         claimConfig.operation = _claimConfig.operation;
         claimConfig.beneficiary = _claimConfig.beneficiary;
         claimConfig.distributor = _claimConfig.distributor;

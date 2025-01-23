@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 const { getContract } = require("@overnight-contracts/common/utils/script-utils");
 const { createProposal, testProposal, testUsdPlus } = require("@overnight-contracts/common/utils/governance");
-const { COMMON } = require('@overnight-contracts/common/utils/assets');
+const { COMMON, BLAST } = require('@overnight-contracts/common/utils/assets');
 
 const path = require('path');
 
@@ -19,16 +19,16 @@ async function main() {
     let values = [];
     let abis = [];
 
-    const SwapSimulatorFenix = await getContract('SwapSimulatorFenix', 'blast');
-    const newSwapSimulatorFenixImpl = "0x3d4eE55c0b6E2644e634A99A8be16d26D95dc6f8";
+    const SwapSimulatorThruster = await getContract('SwapSimulatorThruster');
+    const newSwapSimulatorThrusterImpl = "0x6F5900b4Ce219d148730Ba7C5Ce1F4636353CCC3";
 
-    const StrategyFenixSwap = await getContract('StrategyFenixSwap', 'blast');
-    const newFenixSwapImpl = "0x0C7c6E0264A6f22E494f78283b06Fc6E996105ed";
+    const StrategyThrusterSwap = await getContract('StrategyThrusterSwap');
+    const newThrusterSwapImpl = "0x9C57041D88942aa3148EB8ff1F01589bDeB1642B";
 
-    addProposalItem(SwapSimulatorFenix, 'upgradeTo', [newSwapSimulatorFenixImpl]);
-    addProposalItem(StrategyFenixSwap, 'upgradeTo', [newFenixSwapImpl]);
-    addProposalItem(StrategyFenixSwap, 'setParams', [await getParams()]);
-    addProposalItem(StrategyFenixSwap, 'setClaimConfig', [await getConfig()]);
+    addProposalItem(SwapSimulatorThruster, "upgradeTo", [newSwapSimulatorThrusterImpl]);
+    addProposalItem(StrategyThrusterSwap, "upgradeTo", [newThrusterSwapImpl]);
+    addProposalItem(StrategyThrusterSwap, 'setParams', [await getParams()]);
+    addProposalItem(StrategyThrusterSwap, 'setClaimConfig', [await getConfig()]);
 
 
     // await testProposal(addresses, values, abis);
@@ -47,17 +47,22 @@ async function main() {
 
 async function getParams() {
     return {
-        pool: '0x6a1de1841c5c3712e3bc7c75ce3d57dedec6915f',
-        binSearchIterations: 20,
-        swapSimulatorAddress: '0xD34063601f4f512bAB89c0c0bF8aa947cAa55885',
-        npmAddress: '0x8881b3fb762d1d50e6172f621f107e24299aa1cd', 
+        pool: '0x147e7416d5988b097b3a1859efecc2c5e04fdf96',
+        swapSimulatorAddress: "0x0777Cdf187782832c9D98c0aB73cCdc19D271B54", 
+        npmAddress: '0x434575eaea081b735c985fa9bf63cd7b87e227f9', 
+        nfpBooster: '0xAd21b2055974075Ab3E126AC5bF8d7Ee3Fcd848a',
+
+        poolUsdbWeth: '0xf00DA13d2960Cf113edCef6e3f30D92E52906537',
+        poolWethHyper: '0xE16fbfcFB800E358De6c3210e86b5f23Fc0f2598',
+        poolWethThrust: '0x878C963776F374412C896e4B2a3DB84A36614c7C',
+
+        hyperTokenAddress: BLAST.hyper,
+        thrustTokenAddress: BLAST.thrust,
+        wethTokenAddress: BLAST.weth,
+
         lowerTick: -1,
         upperTick: 0,
-        fnxTokenAddress: '0x52f847356b38720b55ee18cb3e094ca11c85a192',
-        wethTokenAddress: '0x4300000000000000000000000000000000000004',
-        poolFnxUsdb: '0xb3B4484bdFb6885f96421c3399B666a1c9D27Fca',
-        poolFnxWeth: '0x2e3281E50479d6C42328bA6F2E4aFd971e43Ca2d',
-        poolUsdbWeth: '0x1D74611f3EF04E7252f7651526711a937Aa1f75e',
+        binSearchIterations: 20,
         rewardSwapSlippageBP: 500,
         liquidityDecreaseDeviationBP: 500
     };
