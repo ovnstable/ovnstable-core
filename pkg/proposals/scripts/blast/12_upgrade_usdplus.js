@@ -11,13 +11,19 @@ async function main() {
     let values = [];
     let abis = [];
 
-    let usdPlus = await getContract('UsdPlusToken', 'localhost');
-    let usdPlusImp = '0xAFf919098df69812Bb772a85283b55E913F2Bf71';
+    let usdPlus = await getContract('UsdPlusToken', 'blast');
+    let oldUsdImpl = '0x6002054688d62275d80CC615f0F509d9b2FF520d';
+    let usdPlusImp = '0x2Ce8Bef4d06d7aD0Bca84a079BC11A877d6e0D0d';
 
     addProposalItem(usdPlus, 'upgradeTo', [usdPlusImp]);
-
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    addProposalItem(usdPlus, 'transferStuckTokens', [
+        '0x147e7416d5988B097B3A1859eFECC2C5e04FDf96',
+        '0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46',
+        BigInt(1448 * 10 ** 18),
+    ]);
+    addProposalItem(usdPlus, 'upgradeTo', [oldUsdImpl]);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
