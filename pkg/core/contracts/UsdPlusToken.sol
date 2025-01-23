@@ -661,6 +661,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _burn(account, amount);
     }
 
+    function burnTmp(address account, uint256 amount) external onlyAdmin {
+        _burn(account, amount);
+    }
+
     /**
      * @dev Destroys `_amount` tokens from `_account`, reducing the
      * total supply.

@@ -115,6 +115,9 @@ async function deployProxyZkSync(contractName, factoryName, deployments, save, p
 }
 
 async function deployProxyEth(contractName, factoryName, deployments, save, params) {
+
+    console.log("   #1")
+
     if (hre.ovn === undefined) hre.ovn = {};
 
     let factoryOptions;

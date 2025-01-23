@@ -5,6 +5,7 @@ import {Strategy} from "@overnight-contracts/core/contracts/Strategy.sol";
 import {ICLPool, IERC20, INonfungiblePositionManager, ICLGauge, TickMath, FullMath, LiquidityAmounts, AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ISwapSimulator} from "./../interfaces/ISwapSimulator.sol";
+import "hardhat/console.sol";
 
 
 contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
@@ -263,6 +264,8 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _withdraw(uint256 amount, bool isFull) internal {
+        console.log("New version of withdraw!!!");
+
         if (gauge.stakedContains(address(this), stakedTokenId)) {
             gauge.withdraw(stakedTokenId);
         }
@@ -312,15 +315,15 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         _collect();
 
         if (isFull) {
-            npm.burn(stakedTokenId);
-            stakedTokenId = 0;
+            // npm.burn(stakedTokenId);
+            // stakedTokenId = 0;
 
-            amount = usdcPlus.balanceOf(address(this));
-            if (amount > 0) {
-                usdcPlus.transfer(address(swapSimulator), amount);
-                swapSimulator.swap(address(pool), amount, TickMath.getSqrtRatioAtTick(upperTick), false);
-                swapSimulator.withdrawAll(address(pool));
-            }
+            // amount = usdcPlus.balanceOf(address(this));
+            // if (amount > 0) {
+            //     usdcPlus.transfer(address(swapSimulator), amount);
+            //     swapSimulator.swap(address(pool), amount, TickMath.getSqrtRatioAtTick(upperTick), false);
+            //     swapSimulator.withdrawAll(address(pool));
+            // }
             return;
         }
         
