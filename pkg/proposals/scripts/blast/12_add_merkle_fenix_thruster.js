@@ -1,7 +1,9 @@
 const hre = require("hardhat");
 const { getContract } = require("@overnight-contracts/common/utils/script-utils");
 const { createProposal, testProposal, testUsdPlus } = require("@overnight-contracts/common/utils/governance");
-const { COMMON, BLAST } = require('@overnight-contracts/common/utils/assets');
+const { COMMON } = require('@overnight-contracts/common/utils/assets');
+const { getStrategyFenixSwapParams } = require('@overnight-contracts/strategies-blast/deploy/02_strategy_fenix_swap');
+const { getStrategyThrusterSwapParams } = require('@overnight-contracts/strategies-blast/deploy/04_strategy_thruster_swap');
 
 const path = require('path');
 
@@ -19,15 +21,26 @@ async function main() {
     let values = [];
     let abis = [];
 
-    const SwapSimulatorThruster = await getContract('SwapSimulatorThruster');
+    const SwapSimulatorFenix = await getContract('SwapSimulatorFenix', 'blast');
+    const newSwapSimulatorFenixImpl = "0x3d4eE55c0b6E2644e634A99A8be16d26D95dc6f8";
+
+    const StrategyFenixSwap = await getContract('StrategyFenixSwap', 'blast');
+    const newFenixSwapImpl = "0x0C7c6E0264A6f22E494f78283b06Fc6E996105ed";
+
+    const SwapSimulatorThruster = await getContract('SwapSimulatorThruster', 'blast');
     const newSwapSimulatorThrusterImpl = "0x6F5900b4Ce219d148730Ba7C5Ce1F4636353CCC3";
 
-    const StrategyThrusterSwap = await getContract('StrategyThrusterSwap');
+    const StrategyThrusterSwap = await getContract('StrategyThrusterSwap', 'blast');
     const newThrusterSwapImpl = "0x9C57041D88942aa3148EB8ff1F01589bDeB1642B";
+
+    addProposalItem(SwapSimulatorFenix, 'upgradeTo', [newSwapSimulatorFenixImpl]);
+    addProposalItem(StrategyFenixSwap, 'upgradeTo', [newFenixSwapImpl]);
+    addProposalItem(StrategyFenixSwap, 'setParams', [await getStrategyFenixSwapParams()]);
+    addProposalItem(StrategyFenixSwap, 'setClaimConfig', [await getConfig()]);
 
     addProposalItem(SwapSimulatorThruster, "upgradeTo", [newSwapSimulatorThrusterImpl]);
     addProposalItem(StrategyThrusterSwap, "upgradeTo", [newThrusterSwapImpl]);
-    addProposalItem(StrategyThrusterSwap, 'setParams', [await getParams()]);
+    addProposalItem(StrategyThrusterSwap, 'setParams', [await getStrategyThrusterSwapParams()]);
     addProposalItem(StrategyThrusterSwap, 'setClaimConfig', [await getConfig()]);
 
 
@@ -45,32 +58,9 @@ async function main() {
     }
 }
 
-async function getParams() {
-    return {
-        pool: '0x147e7416d5988b097b3a1859efecc2c5e04fdf96',
-        swapSimulatorAddress: "0x0777Cdf187782832c9D98c0aB73cCdc19D271B54", 
-        npmAddress: '0x434575eaea081b735c985fa9bf63cd7b87e227f9', 
-        nfpBooster: '0xAd21b2055974075Ab3E126AC5bF8d7Ee3Fcd848a',
-
-        poolUsdbWeth: '0xf00DA13d2960Cf113edCef6e3f30D92E52906537',
-        poolWethHyper: '0xE16fbfcFB800E358De6c3210e86b5f23Fc0f2598',
-        poolWethThrust: '0x878C963776F374412C896e4B2a3DB84A36614c7C',
-
-        hyperTokenAddress: BLAST.hyper,
-        thrustTokenAddress: BLAST.thrust,
-        wethTokenAddress: BLAST.weth,
-
-        lowerTick: -1,
-        upperTick: 0,
-        binSearchIterations: 20,
-        rewardSwapSlippageBP: 500,
-        liquidityDecreaseDeviationBP: 500
-    };
-}
-
 async function getConfig() {
     return {
-        operation: OPERATIONS.SEND,
+        operation: OPERATIONS.REINVEST,
         beneficiary: COMMON.rewardWallet,
         distributor: "0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae",
         __gap: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
