@@ -25,13 +25,13 @@ async function main() {
     const newSwapSimulatorFenixImpl = "0x3d4eE55c0b6E2644e634A99A8be16d26D95dc6f8";
 
     const StrategyFenixSwap = await getContract('StrategyFenixSwap', 'blast');
-    const newFenixSwapImpl = "0x0C7c6E0264A6f22E494f78283b06Fc6E996105ed";
+    const newFenixSwapImpl = "0xD61e6AB3D1dF3a3433CE27fC6c1CD0816220FA07";
 
     const SwapSimulatorThruster = await getContract('SwapSimulatorThruster', 'blast');
     const newSwapSimulatorThrusterImpl = "0x6F5900b4Ce219d148730Ba7C5Ce1F4636353CCC3";
 
     const StrategyThrusterSwap = await getContract('StrategyThrusterSwap', 'blast');
-    const newThrusterSwapImpl = "0x9C57041D88942aa3148EB8ff1F01589bDeB1642B";
+    const newThrusterSwapImpl = "0xE62ECe12576Af7be4E525e7c0884c657Cd68C89F";
 
     addProposalItem(SwapSimulatorFenix, 'upgradeTo', [newSwapSimulatorFenixImpl]);
     addProposalItem(StrategyFenixSwap, 'upgradeTo', [newFenixSwapImpl]);

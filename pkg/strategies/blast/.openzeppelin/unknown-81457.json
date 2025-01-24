@@ -7283,7 +7283,11 @@
           }
         },
         "namespaces": {}
-      }
+      },
+      "allAddresses": [
+        "0x9C57041D88942aa3148EB8ff1F01589bDeB1642B",
+        "0xE62ECe12576Af7be4E525e7c0884c657Cd68C89F"
+      ]
     },
     "6fdac984fb6ff9dc4140398c6c8e1e2530cb7356c705a47a8716c66a033a390c": {
       "address": "0x0C7c6E0264A6f22E494f78283b06Fc6E996105ed",
@@ -7721,7 +7725,11 @@
           }
         },
         "namespaces": {}
-      }
+      },
+      "allAddresses": [
+        "0x0C7c6E0264A6f22E494f78283b06Fc6E996105ed",
+        "0xD61e6AB3D1dF3a3433CE27fC6c1CD0816220FA07"
+      ]
     }
   }
 }
