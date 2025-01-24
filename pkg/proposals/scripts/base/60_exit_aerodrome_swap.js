@@ -13,9 +13,8 @@ async function main() {
     let abis = [];
 
 
-    
     let aerodromSwap = await getContract('StrategyAerodromeSwapUsdc', 'base_usdc');
-    let aerodromSwapImp = "0x8A6cAee85d3E47Bd1D0Bc1c4d89B134C386d8AD4"; // !!!
+    let aerodromSwapImp = "0x8A6cAee85d3E47Bd1D0Bc1c4d89B134C386d8AD4"; 
     addProposalItem(aerodromSwap, 'upgradeTo', [aerodromSwapImp]);
 
     
@@ -23,7 +22,7 @@ async function main() {
     
 
     let usdcPlus = await getContract('UsdPlusToken');
-    let usdcPlusNewImpl = "0x1a14B9E6d7F984661b4E294aB1f10990D8b43696"; // !!!
+    let usdcPlusNewImpl = "0x7eb8D0177CF6B11a6dB57E2AE483549Af89A7F66"; 
     addProposalItem(usdcPlus, 'upgradeTo', [usdcPlusNewImpl]);
 
 
@@ -41,12 +40,8 @@ async function main() {
     addProposalItem(aerodromSwap, 'setStrategyParams', [timelock.address, rm.address]);
 
 
-    let beneficiary = "0x8df424e487De4218B347e1798efA11A078fecE90";
+    let beneficiary = "0x8df424e487De4218B347e1798efA11A078fecE90"; // !!!
     addProposalItem(aerodromSwap, 'unstake', [BASE.usdc, 1234, beneficiary, true]);
-
-    // await strategy.connect(timelockSigner).unstake(usdc.address, 7, beneficiary, true);
-
-
 
 
     // let pm = await getContract('PortfolioManager', 'base');
@@ -56,24 +51,23 @@ async function main() {
     let wallet = await initWallet();
     let usdc = await getERC20ByAddress(BASE.usdc, wallet.address);
 
-    let usdcBalance0 = await usdc.balanceOf("0xcc9c1edae4D3b8d151Ebc56e749aD08b09f50248");
+    let usdcBalanceOnStrategy0 = await usdc.balanceOf("0xcc9c1edae4D3b8d151Ebc56e749aD08b09f50248");
     let beneficiaryBalance0 = await usdc.balanceOf(beneficiary);
+    console.log("usdcBalanceOnStrategy 0:       ", usdcBalanceOnStrategy0);
+    console.log("beneficiaryBalance 0:          ", beneficiaryBalance0);
 
-    console.log("USDC balance 0:       ", usdcBalance0);
-    console.log("beneficiaryBalance 0: ", beneficiaryBalance0);
 
     await testProposal(addresses, values, abis);
 
 
-    let usdcBalance1 = await usdc.balanceOf("0xcc9c1edae4D3b8d151Ebc56e749aD08b09f50248");
+    let usdcBalanceOnStrategy1 = await usdc.balanceOf("0xcc9c1edae4D3b8d151Ebc56e749aD08b09f50248");
     let beneficiaryBalance1 = await usdc.balanceOf(beneficiary);
-
-    console.log("USDC balance 1:       ", usdcBalance1);
-    console.log("beneficiaryBalance 1: ", beneficiaryBalance1);
-
+    console.log("usdcBalanceOnStrategy 1:       ", usdcBalanceOnStrategy1);
+    console.log("beneficiaryBalance 1:          ", beneficiaryBalance1);
 
 
     // await createProposal(filename, addresses, values, abis);
+
 
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
