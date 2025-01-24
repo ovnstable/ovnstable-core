@@ -15,7 +15,6 @@ import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
 
-
 /**
  * @dev Fork of OUSD version
  * In previous version it was UsdPlusTokenOld.sol therefore save slot storage for deleted variables
@@ -659,10 +658,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * @dev Burns tokens, decreasing totalSupply.
      */
     function burn(address account, uint256 amount) external notPaused onlyExchanger {
-        _burn(account, amount);
-    }
-
-    function burnTmp(address account, uint256 amount) external onlyAdmin {
         _burn(account, amount);
     }
 
