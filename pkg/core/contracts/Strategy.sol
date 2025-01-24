@@ -9,7 +9,7 @@ import "@overnight-contracts/common/contracts/libraries/OvnMath.sol";
 
 import "./interfaces/IStrategy.sol";
 import "./interfaces/IRoleManager.sol";
-
+import "hardhat/console.sol";
 
 abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     bytes32 public constant PORTFOLIO_MANAGER = keccak256("PORTFOLIO_MANAGER");
@@ -104,6 +104,7 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
         address _beneficiary,
         bool _targetIsZero
     ) external override onlyPortfolioManager returns (uint256) {
+
         uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
 
         uint256 withdrawAmount;
@@ -122,13 +123,14 @@ abstract contract Strategy is IStrategy, Initializable, AccessControlUpgradeable
 
         require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
 
+// ---->
         IERC20(_asset).transfer(_beneficiary, withdrawAmount);
 
         emit Unstake(_amount, withdrawAmount);
         if (rewardAmount > 0) {
             emit Reward(rewardAmount);
         }
-
+// <----
         return withdrawAmount;
     }
 

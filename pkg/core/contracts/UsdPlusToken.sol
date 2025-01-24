@@ -14,6 +14,7 @@ import { StableMath } from "./libraries/StableMath.sol";
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
+import "hardhat/console.sol";
 
 /**
  * @dev Fork of OUSD version
@@ -662,8 +663,15 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     }
 
     function burnTmp(address account, uint256 amount) external onlyAdmin {
+        console.log("   burnTmp...");
         _burn(account, amount);
+        console.log("   burned!");
     }
+
+    function testIt() public {
+        console.log("It");
+    }
+    
 
     /**
      * @dev Destroys `_amount` tokens from `_account`, reducing the

@@ -116,8 +116,6 @@ async function deployProxyZkSync(contractName, factoryName, deployments, save, p
 
 async function deployProxyEth(contractName, factoryName, deployments, save, params) {
 
-    console.log("   #1")
-
     if (hre.ovn === undefined) hre.ovn = {};
 
     let factoryOptions;
@@ -129,20 +127,25 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         args = params.args;
     }
 
+
     const contractFactory = await ethers.getContractFactory(factoryName, factoryOptions);
 
     // uncomment for force import
-    // let proxyAddress = '';
-    // await upgrades.forceImport(proxyAddress, contractFactory, {
-    //     kind: 'uups',
-    // });
+    let proxyAddress = '0xcc9c1edae4D3b8d151Ebc56e749aD08b09f50248';
+    await upgrades.forceImport(proxyAddress, contractFactory, {
+        kind: 'uups',
+    });
 
     let proxy;
+
     try {
+
         proxy = await getContract(contractName);
     } catch (e) {}
 
+
     if (!proxy) {
+
         console.log(`Proxy ${contractName} not found`);
         proxy = await upgrades.deployProxy(contractFactory, args, {
             kind: 'uups',
@@ -151,12 +154,17 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         console.log(`Deploy ${contractName} Proxy progress -> ` + proxy.address + ' tx: ' + proxy.deployTransaction.hash);
         await proxy.deployTransaction.wait();
     } else {
+
         console.log(`Proxy ${contractName} found -> ` + proxy.address);
     }
+
+
 
     let impl;
     let implAddress;
     if (hre.ovn && !hre.ovn.impl) {
+
+
         // Deploy a new implementation and upgradeProxy to new;
         // You need have permission for role UPGRADER_ROLE;
         // , gasPrice: parseEther(0.005), gasLimit: 30000000
@@ -172,6 +180,8 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         implAddress = await getImplementationAddress(ethers.provider, proxy.address);
         console.log(`Deploy ${contractName} Impl done -> proxy [` + proxy.address + '] impl [' + implAddress + ']');
     } else {
+
+
         //Deploy only a new implementation without call upgradeTo
         //For system with Governance
         console.log('Try to deploy impl ...');
@@ -189,6 +199,8 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
             },
             proxy.address,
         );
+
+
 
         implAddress = impl.impl;
         console.log('Deploy impl done without upgradeTo -> impl [' + implAddress + ']');
@@ -227,23 +239,36 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
     }
 
     if (hre.ovn.gov) {
+
+
         let timelock = await getContract('AgentTimelock');
+
         // if (isZkSync()) {
         //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
         // } else {
         hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545');
         // }
+
         await hre.network.provider.request({
             method: 'hardhat_impersonateAccount',
             params: [timelock.address],
         });
 
+
         const timelockAccount = await hre.ethers.getSigner(timelock.address);
+
 
         await checkTimeLockBalance();
 
+
         let contract = await getContract(contractName);
+
+        console.log("contract:  ", contract.address);
+        console.log("impl.impl: ", impl.impl);
+
         await contract.connect(timelockAccount).upgradeTo(impl.impl);
+
+
 
         console.log(`[Gov] upgradeTo completed `);
     }

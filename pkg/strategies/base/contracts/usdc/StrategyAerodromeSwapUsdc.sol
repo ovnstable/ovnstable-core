@@ -100,6 +100,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     // --- logic
 
     function netAssetValue() external view override returns (uint256) {
+        console.log("netAssetValue!!!!");
         return _totalValue();
     }
 
@@ -116,6 +117,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _unstake(address _asset, uint256 _amount, address) internal override returns (uint256) {
+        console.log("_unstake!!!");
         require(_asset == address(usdc), "");
         require(_amount > 0, ""); 
         require(stakedTokenId != 0, "");
@@ -127,15 +129,24 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _unstakeFull(address _asset, address) internal override returns (uint256) {
+
+        console.log("   _unstakeFull - - -");
+
         require(_asset == address(usdc) || _asset == address(usdcPlus), "");
         require(stakedTokenId != 0, "");
 
         _withdraw(0, true);
 
-        return usdc.balanceOf(address(this));
+        return usdc.balanceOf(address(this));  // !!!!
+    }
+
+    function unstakeFullTmp() public {
+        console.log("unstakeFullTmp!");
+        _withdraw(0, true);
     }
 
     function _totalValue() internal view returns (uint256) {
+        console.log("TVL!!!");
         uint256 amount0 = 0;
         uint256 amount1 = 0;
 
@@ -150,13 +161,22 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             );
         }
         uint256 totalValue = amount0 + amount1 + usdc.balanceOf(address(this)) + usdcPlus.balanceOf(address(this));
+
+        console.log("   amount0:        ", amount0);
+        console.log("   amount1:        ", amount1);
+        console.log("   usdcBalance:    ", usdc.balanceOf(address(this)));
+        console.log("   usdcPBalance:   ", usdcPlus.balanceOf(address(this)));
+
         return totalValue;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
+        console.log("_claimRewards!!!");
         if (stakedTokenId == 0) {
             return 0;
         }
+
+        console.log("#1");
 
         uint256 balanceUsdcBefore = usdc.balanceOf(address(this));
         if (gauge.stakedContains(address(this), stakedTokenId)) {
@@ -189,6 +209,8 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
         // npm.approve(address(gauge), stakedTokenId);
         // gauge.deposit(stakedTokenId);
+
+        console.log("#N");
         return claimedUsdc;
     }
 
@@ -264,16 +286,22 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _withdraw(uint256 amount, bool isFull) internal {
-        console.log("New version of withdraw!!!");
+        console.log("New version of withdraw!!!---");
 
+        console.log("   _w1");
         if (gauge.stakedContains(address(this), stakedTokenId)) {
+            console.log("   _w2");
             gauge.withdraw(stakedTokenId);
         }
+
+        console.log("   _w3");
 
         (,,,,,,, uint128 liquidity,,,,) = npm.positions(stakedTokenId);
         if (liquidity == 0) {
             return;
         }
+
+        console.log("   _w4");
 
         (uint160 sqrtRatioX96,,,,,) = pool.slot0();
         (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
@@ -284,8 +312,10 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         );
 
         uint128 requiredLiquidityWithReserve;
+        console.log("   _w5");
 
         if ((amount0 > 0 || amount1 > 0)  && !isFull) {
+            console.log("   _w6");
             uint128 requiredLiquidity = uint128(FullMath.mulDiv(
                 uint256(liquidity),
                 amount,
@@ -303,6 +333,19 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             }
         }
 
+        if (isFull) {
+            requiredLiquidityWithReserve = liquidity;
+        }
+
+        console.log("   _w7");
+
+        console.log("requiredLiquidityWithReserve: ", requiredLiquidityWithReserve);
+
+        console.log("liquidity:                    ", liquidity);
+        
+
+        // liquidity
+
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
             tokenId: stakedTokenId,
             liquidity: requiredLiquidityWithReserve,
@@ -311,10 +354,17 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             deadline: block.timestamp 
         });
 
+        console.log("   _w8");
+
         npm.decreaseLiquidity(params);
+
+        console.log("   _w9");
         _collect();
+        console.log("   _w10");
 
         if (isFull) {
+
+            console.log("   _w11");
             // npm.burn(stakedTokenId);
             // stakedTokenId = 0;
 
@@ -348,6 +398,8 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         swapSimulator.withdrawAll(address(pool));
         
         _deposit(amount, false); 
+
+        
     }
 
     function _collect() internal {

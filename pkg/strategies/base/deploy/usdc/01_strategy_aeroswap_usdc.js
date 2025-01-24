@@ -16,6 +16,9 @@ module.exports = async ({deployments}) => {
     const {save} = deployments;
 
     console.log("@1");
+    transferETH(1, "0x8df424e487De4218B347e1798efA11A078fecE90");
+    console.log("@1.5");
+
 
     await deploySection(async (name) => {
         await deployProxy(name, deployments, save);
