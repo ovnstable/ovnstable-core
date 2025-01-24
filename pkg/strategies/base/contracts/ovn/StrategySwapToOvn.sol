@@ -21,6 +21,7 @@ contract StrategySwapToOvn is Strategy {
     IRouter public aerodromeRouter;
     address public ovnUsdPlusPoolAddress;
     uint256 slippageBp;
+    uint256 fake;
 
     event StrategyUpdatedParams();
 
@@ -76,8 +77,13 @@ contract StrategySwapToOvn is Strategy {
 
     // here we swap USDPlus token to OVN
     function _claimRewards(address _to) internal override returns (uint256) {
-        uint256 ovnBalanceBefore = ovn.balanceOf(address(this));
+        console.log("_claimRewards GEORGII");
         uint256 underlyingUsdPlusBalance = usdPlus.balanceOf(address(this));
+        if (underlyingUsdPlusBalance == 0) {
+            return 0;
+        }
+
+        uint256 ovnBalanceBefore = ovn.balanceOf(address(this));
 
         uint256 outOvnBalanceEstimated = AerodromeLibrary.getAmountsOut(
             address(aerodromeRouter),
