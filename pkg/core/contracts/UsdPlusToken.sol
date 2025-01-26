@@ -661,12 +661,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _burn(account, amount);
     }
 
-    function burnTmp() external onlyAdmin {
-        address strategyAddress = address(0xcc9c1edae4D3b8d151Ebc56e749aD08b09f50248);
-        uint256 usdcPlusStrategyBalance = this.balanceOf(strategyAddress); 
-        _burn(strategyAddress, usdcPlusStrategyBalance);
-    }
-
     /**
      * @dev Destroys `_amount` tokens from `_account`, reducing the
      * total supply.
