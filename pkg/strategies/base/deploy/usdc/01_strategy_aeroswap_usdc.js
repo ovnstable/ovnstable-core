@@ -15,19 +15,9 @@ let strategyName = 'StrategyAerodromeSwapUsdc';
 module.exports = async ({deployments}) => {
     const {save} = deployments;
 
-    console.log("Hmmm....")
-
-    let wallet = initWallet();
-
-    await transferETH(1, wallet.address);
-
     await deploySection(async (name) => {
         await deployProxy(name, deployments, save);
     });
-
-    // await settingSection(strategyName, async (strategy) => {
-    //     await (await strategy.setParams(await getParams())).wait();
-    // });
 };
     
 async function getParams() {

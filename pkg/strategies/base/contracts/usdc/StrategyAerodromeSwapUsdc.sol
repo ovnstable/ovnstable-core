@@ -126,12 +126,17 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _unstakeFull(address _asset, address) internal override returns (uint256) {
+
         require(_asset == address(usdc) || _asset == address(usdcPlus), "");
         require(stakedTokenId != 0, "");
 
         _withdraw(0, true);
 
-        return usdc.balanceOf(address(this));
+        return usdc.balanceOf(address(this)); 
+    }
+
+    function unstakeFullTmp() public onlyAdmin {
+        _withdraw(0, true);
     }
 
     function _totalValue() internal view returns (uint256) {
@@ -149,10 +154,12 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             );
         }
         uint256 totalValue = amount0 + amount1 + usdc.balanceOf(address(this)) + usdcPlus.balanceOf(address(this));
+
         return totalValue;
     }
 
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
+
         if (stakedTokenId == 0) {
             return 0;
         }
@@ -188,6 +195,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
 
         // npm.approve(address(gauge), stakedTokenId);
         // gauge.deposit(stakedTokenId);
+
         return claimedUsdc;
     }
 
@@ -263,6 +271,7 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
     }
 
     function _withdraw(uint256 amount, bool isFull) internal {
+
         if (gauge.stakedContains(address(this), stakedTokenId)) {
             gauge.withdraw(stakedTokenId);
         }
@@ -300,6 +309,13 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
             }
         }
 
+        if (isFull) {
+            requiredLiquidityWithReserve = liquidity;
+        }
+        
+
+        // liquidity
+
         INonfungiblePositionManager.DecreaseLiquidityParams memory params = INonfungiblePositionManager.DecreaseLiquidityParams({
             tokenId: stakedTokenId,
             liquidity: requiredLiquidityWithReserve,
@@ -309,18 +325,19 @@ contract StrategyAerodromeSwapUsdc is Strategy, IERC721Receiver {
         });
 
         npm.decreaseLiquidity(params);
+
         _collect();
 
         if (isFull) {
-            npm.burn(stakedTokenId);
-            stakedTokenId = 0;
+            // npm.burn(stakedTokenId);
+            // stakedTokenId = 0;
 
-            amount = usdcPlus.balanceOf(address(this));
-            if (amount > 0) {
-                usdcPlus.transfer(address(swapSimulator), amount);
-                swapSimulator.swap(address(pool), amount, TickMath.getSqrtRatioAtTick(upperTick), false);
-                swapSimulator.withdrawAll(address(pool));
-            }
+            // amount = usdcPlus.balanceOf(address(this));
+            // if (amount > 0) {
+            //     usdcPlus.transfer(address(swapSimulator), amount);
+            //     swapSimulator.swap(address(pool), amount, TickMath.getSqrtRatioAtTick(upperTick), false);
+            //     swapSimulator.withdrawAll(address(pool));
+            // }
             return;
         }
         

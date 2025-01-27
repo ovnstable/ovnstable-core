@@ -611,10 +611,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
         console.log('Total USD+: ' + totalUsdPlus);
         console.log('Difference is: ', totalUsdPlus - fromAsset(totalNetAssets.toString(), stand));
     }
-
 }
-
-
 
 async function getPrice() {
     let params = { gasPrice: "1000000000", gasLimit: "30000000" };
@@ -644,6 +641,89 @@ async function getPrice() {
     }
 
     return params;
+}
+
+
+async function getPrice2() {
+
+    let network = process.env.ETH_NETWORK;
+    
+    const ChainIds = {
+        'ARBITRUM': '42161',
+        'BASE': '8453',
+        'BLAST': '81457',
+        'BSC': '56',
+        'ETHEREUM': '1',
+        'LINEA': '59144',
+        'MODE': '34443',
+        'OPTIMISM': '10',
+        'POLYGON': '137',
+        'ZKSYNC': '324'
+    };
+    
+    const GasLimits = {
+        'ARBITRUM': '25000000',
+        'BASE': '30000000',
+        'BLAST': '25000000',
+        'ETHEREUM': '30000000',
+        'LINEA': '20000000',
+        'MODE': '30000000',
+        'OPTIMISM': '20000000',
+        'POLYGON': '30000000',
+        'ZKSYNC': '30000000',
+        'BSC': '15000000'
+    }
+    
+    if (network === 'BSC') {
+        return {
+            gasPrice: '3000000000',
+            gasLimit: GasLimits[network]
+        }
+    }
+
+    try {
+        const response = await fetch(`https://api.blocknative.com/gasprices/blockprices?chainid=${ChainIds[network]}&confidenceLevels=99`, {
+            method: 'GET',
+            headers: {
+                'Authorization': process.env.BLOCKNATIVE_API_KEY
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        const gasData = {
+            network: data.system,
+            maxPrice: data.maxPrice,
+            currentBlockNumber: data.currentBlockNumber,
+            msSinceLastBlock: data.msSinceLastBlock,
+            blockNumber2: data.blockPrices[0].blockNumber,
+            estimatedTransactionCount: data.blockPrices[0].estimatedTransactionCount,
+            baseFeePerGas: data.blockPrices[0].baseFeePerGas,
+            confidence: data.blockPrices[0].estimatedPrices[0].confidence,
+            price: data.blockPrices[0].estimatedPrices[0].price,
+            maxPriorityFeePerGas: data.blockPrices[0].estimatedPrices[0].maxPriorityFeePerGas,
+            maxFeePerGas: data.blockPrices[0].estimatedPrices[0].maxFeePerGas,
+        };
+
+        const gasPrice = {
+            maxPriorityFeePerGas: Math.round(gasData.maxPriorityFeePerGas * 1e9).toString(),
+            maxFeePerGas: Math.round(gasData.maxFeePerGas * 1e9).toString(),
+            // price: Math.round(gasData.price * 1e9).toString(),
+            // maxPriorityFeePerGasNmb: gasData.maxPriorityFeePerGas,
+            // maxFeePerGasNmb: gasData.maxFeePerGas,
+            // priceNmb: gasData.price,
+            gasLimit: GasLimits[network]
+        }
+
+        return gasPrice;
+    } catch (error) {
+        console.error('Error fetching gas prices:', error);
+        throw error;
+    }
 }
 
 
@@ -1335,6 +1415,7 @@ module.exports = {
     transferAsset: transferAsset,
     showM2M: showM2M,
     getPrice: getPrice,
+    getPrice2: getPrice2,
     getContract: getContract,
     findEvent: findEvent,
     getContractByAddress: getContractByAddress,
