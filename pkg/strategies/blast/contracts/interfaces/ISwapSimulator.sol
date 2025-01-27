@@ -56,5 +56,5 @@ interface ISwapSimulator {
 
     function totalValue(uint256 tokenLP, address poolAddress, address npmAddress, int24 lowerTick, int24 upperTick, address usdbAddress, address usdPlusAddress) external view returns (uint256);
 
-    function swapRewards(address tokenAddress, address wethAddress, address wethToken, address usdbWeth, uint256 rewardSwapSlippageBP) external;
+    function swapRewards(address tokenAddress, address wethAddress, address wethTokenPool, address usdbWethPool, uint256 rewardSwapSlippageBP) external;
 }

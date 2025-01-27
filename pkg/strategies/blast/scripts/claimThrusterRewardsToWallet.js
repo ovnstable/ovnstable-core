@@ -30,26 +30,26 @@ async function main() {
     await thrusterSwap.connect(unitAccount).claimMerkl(
         ["0x147812C2282eC48512a6f6f11F7c98d78D1ad74B"], // users
         ["0xE36072DD051Ce26261BF50CD966311cab62C596e"], // tokens
-        ["23219651603805000000000"],                   // amounts
+        ["24708305254725000000000"],                   // amounts
         [                                               // proofs
             [
-                "0xc19e0d16c95fe56cde0290a5293bca751f17407d0ea1fdaf6b5f84e02c780fa1",
-                "0x1034d3fe52694da11046f5e3a8bbde65ea4bb6d4ecbdd376f8b083cbe350bc46",
-                "0x2b7da01215a396aad4f9f2fd08a5045dc4073fad3596f26209dcb293ced7243e",
-                "0x4f32a5e302acadc89e7d4cc8f3fcd48bd4b0226d130a87af63eac5483e5f0e12",
-                "0x84d951ecf6514ff40a15c059093115b1ff901034dcba009711e933b06fba6118",
-                "0xadc696d5203a8b20b278970d179f21c9f4c5d6be2b51950fb76a1c5bf98b9ea0",
-                "0x882f7ee86c1fec711d0dc44a6a53e6f17ca5007d9e5677863afda89b389e6ce5",
-                "0x13c5012a08a636c406d9c67be4e0be539f599404466adb2e619519bb71d8c7e4",
-                "0x412348f1fef3b33aed5905a8a4e8747d71478c74bd6b22e4b8fbb62ae2a36b81",
-                "0x96798c60e2b37c4eb063880dd6062b761f0434855d388f4e97ff26c9b6eac339",
-                "0x5f0005dce059713859c78470d14abe73362a7200124bf0128abc9c32b03ba383",
-                "0xe7f1c6763bd2c1cfea2a7bbe8a9de075c5131eed9937fcda7be6540b3f460ad1",
-                "0xb064a7a5800b3bb3a4806415afc8014fd5a2254c070e7e21be385c5ad7dbb119",
-                "0xba2d21bba65b1e809bc5e2707f9ae8bc4a27854ba0646af9d9fad7392e51f55c",
-                "0x3c1a69352af20d1a132158e311f503291d532ee95ee82441c6cbaa5ff64293b0",
-                "0xb993350c8e68f573d060572a26035a4c3450eacfeb21a93d54532d49e79c7d41",
-                "0xd368fa33e94407274c7ae98a5c691167597838d84dba660de8d3d6e231155c6c"
+                "0xc2877674ed83cba366063fdb02a5b8e4329cf11c00b94d47792e375287cf7aec",
+                "0xf1b3cd2871f8873c57cb09513c9020974067526b22770ec63cb0adbead377bce",
+                "0xb0594facc938ddcc0c5b56ef8d87b2ea0254fbca098436662a0e92c9fd1d296b",
+                "0xc76bb4b05a152f766addf54fa1f076ee5a50cf65b100759c32d657278f79a10d",
+                "0x860bc6aa72ebfafa3d5ce1c2e113595d0e705db734baa1b82477dbf195ccae9c",
+                "0x46aa44ec2b24082c93e9a2c828fd982df48b9efc2619ae75f8a9c671b545287c",
+                "0xcdb83d89c11ba55d29a71be42114c1cec427922622a22b06725761dc3d58df98",
+                "0x4dd3bb69f44175d449d934a405feb0e4c613874ebf721a895163c76c56b6d3a8",
+                "0x06763a75e9c06db4523398a30ccd3e84889e9f0a562083ef82e3b948af1820a7",
+                "0xf2312ad0a00c003737fa2f97e582b56e5e6034a33cc569ca2e88773a558529db",
+                "0xaf3de7c167a8851c9fa68eacab7c112ab3fc906e8a0b817e855bc00738c8dd0e",
+                "0x163172b3f9f1ba44e8f807ca77ae450987a6257561a6ec6071fad02f17077691",
+                "0x3b30e9f022ee3ed6e1a671db2ee18b154883cce1e391c842d60b536a8a4fb383",
+                "0x137d76a1b6f27d14ed2ce7b774472a25922378b2904c0e5dfb92330973008a02",
+                "0x015f870da955bc4bb89203c56bf0093b1cf846a969cbb865a0a7e7f67b2ed518",
+                "0xf6b3d78235b5f58d37a7992769ea893dfa17a1db8f75f08efaf8a3fad9a5ecb5",
+                "0x5c66b925b9a03dabdf8e62f0c9429f372fbc42430665574adc384b47025cd2e2"
             ]
         ]
     , gas);

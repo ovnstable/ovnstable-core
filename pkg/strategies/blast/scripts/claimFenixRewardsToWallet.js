@@ -7,7 +7,7 @@ let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
 
 async function main() {
-    let fenixSwap = await getContract('StrategyFenixSwap', 'localhost'); 
+    let fenixSwap = await getContract('StrategyFenixSwap', 'blast'); 
     let gas = {
         gasLimit: 20000000,
         // maxFeePerGas: "38000000",
@@ -30,24 +30,26 @@ async function main() {
     await fenixSwap.connect(unitAccount).claimMerkl(
         ["0xa09A8e94FBaAC9261af8f34d810D96b923B559D2"], // users
         ["0x52f847356b38720B55ee18Cb3e094ca11C85A192"], // tokens
-        ["758649110431330000000000"],                   // amounts
+        ["788941545730620000000000"],                   // amounts
         [                                               // proofs
             [
-                "0xead00ed97ed19a8b873582abd2a9a951302d7718fbc9cd481f102ffab9668789",
-                "0x536f0d38fa261e0b852bc47b72338c5af5dc9904fa9ef6b491034abd07501d45",
-                "0x2f5c204ae7d3daed5d08a1eec93012ff94836956414f7deb26ad7862eaac33a0",
-                "0x89d3a0f3c0f7006c4df48dfb117f045299ba7155352fe20bf02396fccf3aef8f",
-                "0xa80573ccdc6f54a3ff05f9f05fadb1b02fe3bb4867d6edab2dced9b00c2b03e1",
-                "0x2a26aa6f67afef5b9e70a4ad412717fd503259b16ac787ea83a6eb925134d4af",
-                "0xaa4c87b02d93d5f071cbdd1d1a2d49768425fc21aaf4173e609edc1ac8c4c208",
-                "0xff8d5801ef451391f30af699ad1bab19652e9e74b7e5ecfa41d04d61d134be72",
-                "0xa8c6d279cb2e991d20a3ae9ec47bd99606417a4a91977aa3d499d626087f991c",
-                "0x39fd4c32a87e6c2764768b80184543df3a83e1ac8dd0bdfa656c3cbcf5702719",
-                "0xf3672843aab63c3371c66977f25b83c5d8f8864294bcb7806e44f82943d9f2cb",
-                "0xdc66288b4bac10d08613debb0e520293446e5a07152375a0122dc5093f36f4ba",
-                "0xe7f597bff34e65c216712be1392b890da84b3c13bc4ef72b9024956ca26b26c9",
-                "0xbec921621d2c94a680db07344cba33f2755cf3502395ba2fc8247dfea0eea372",
-                "0x497ed320bbac7c4aca28246af59070fbb40280330bd1ae480a755476206077e0"
+                "0x273164c7b1ec27a47c767e2c03d8debf5271252abed1bb9276c6a5244dd21f87",
+                "0xf637bca3cb73d6a3b86075a09841e5983caf1bdfc2a5e1d6a6098c3389911a4e",
+                "0x9f17d4d85d770c720e4914cbff660ae53405395051a0505186b5588f9d4df1a8",
+                "0x705b37094ed7079a28ac6b674ca48a16cff42c9fe24d1dad3821153e88483c12",
+                "0x8fdc0371db07a120e387699fa4dfd0f8194058add846f7d1e3b931e4707d9527",
+                "0x2ece8b46e3dc77af2fad621bdf392baa9d10065782eca5c15fee626e02cbaacb",
+                "0x0a1f42b867349cf82c97e8868cc826463483cbb26c706c5e2afeb70733b7e2d5",
+                "0x452a053b3b09978f3be71983c385777466c931e5275d88a601bec96fa4d17ff5",
+                "0x424c7e7f65359c63325a9e532d29d461e39e12ff9079f4d5f4c0aee0ab8eeccd",
+                "0x89c393c5bb2bed91d7d04c715e1e1003a344e6e77f6e28fa4ec6f55d5e062427",
+                "0xc66db52ef6e0a13a2831cd18e8c403cd3362a1456265371886ec1e7b003a6620",
+                "0x63c22597b9d2b581da6397d5868668da8338c0762cff7862f08b31f9e56c7aa4",
+                "0x971ad6af45bb44a286b7a6cc14d05914b1f250225207da3964e5eb1b74430958",
+                "0x3a6b4e3d74aaa12975a0ae6bf307830a2d0acc2b8dfade190eee172937570240",
+                "0xfc1a70f118a400254631ef6068856e54a29116bd1dd24dfb9fb6ffaa8de3c24c",
+                "0xa21755fb97cab698178abc57f80c5841b740c5975c1017dda508fab3861bbe67",
+                "0x5c66b925b9a03dabdf8e62f0c9429f372fbc42430665574adc384b47025cd2e2"
             ]
         ]
     , gas);
