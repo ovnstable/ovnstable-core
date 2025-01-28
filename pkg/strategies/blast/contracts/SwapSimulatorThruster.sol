@@ -177,13 +177,13 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
         }
     }
 
-    function swapRewards(address thrustAddress, address wethAddress, address wethTrust, address usdbWeth, uint256 rewardSwapSlippageBP) external onlyStrategy {
-        IERC20 thrust = IERC20(thrustAddress);
+    function swapRewards(address tokenAddress, address wethAddress, address wethTokenPool, address usdbWethPool, uint256 rewardSwapSlippageBP) external onlyStrategy {
+        IERC20 thrust = IERC20(tokenAddress);
         uint256 thrustBalance = thrust.balanceOf(address(this));
         if (thrustBalance > 0) {
-            (uint160 sqrtRatioWethThrustX96,,,,,,) = ICLPool(wethTrust).slot0();
+            (uint160 sqrtRatioWethThrustX96,,,,,,) = ICLPool(wethTokenPool).slot0();
             swap(
-                wethTrust, 
+                wethTokenPool, 
                 thrustBalance, 
                 _calculateSlippageLimitBorder(sqrtRatioWethThrustX96, false, rewardSwapSlippageBP),
                 false
@@ -191,15 +191,15 @@ contract SwapSimulatorThruster is ISwapSimulator, Initializable, AccessControlUp
 
             IERC20 weth = IERC20(wethAddress);
             uint256 wethBalance = weth.balanceOf(address(this));
-            (uint160 sqrtRatioUsdbWethX96,,,,,,) = ICLPool(usdbWeth).slot0();
+            (uint160 sqrtRatioUsdbWethX96,,,,,,) = ICLPool(usdbWethPool).slot0();
             swap(
-                usdbWeth, 
+                usdbWethPool, 
                 wethBalance, 
                 _calculateSlippageLimitBorder(sqrtRatioUsdbWethX96, false, rewardSwapSlippageBP),
                 false
             );
 
-            IERC20 usdb = IERC20(ICLPool(wethTrust).token0());
+            IERC20 usdb = IERC20(ICLPool(usdbWethPool).token0());
             if (thrust.balanceOf(address(this)) > 0) {
                 thrust.transfer(msg.sender, thrust.balanceOf(address(this)));
             }

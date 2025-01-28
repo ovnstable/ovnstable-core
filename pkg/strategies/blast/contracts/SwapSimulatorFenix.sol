@@ -132,19 +132,19 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
        revert("Not implemented");
     }
 
-    function swapRewards(address tokenAddress, address wethAddress, address wethToken, address usdbWeth, uint256 rewardSwapSlippageBP) external onlyStrategy {
+    function swapRewards(address tokenAddress, address wethAddress, address wethTokenPool, address usdbWethPool, uint256 rewardSwapSlippageBP) external onlyStrategy {
         IERC20 fnx = IERC20(tokenAddress);
         uint256 fnxBalance = fnx.balanceOf(address(this));
         if (fnxBalance > 0) {
-            (uint160 sqrtRatioFnxWethX96,,,,,) = ICLPool(wethToken).globalState();
-            swap(wethToken, fnxBalance, _calculateSlippageLimitBorder(sqrtRatioFnxWethX96, false, rewardSwapSlippageBP), false);
+            (uint160 sqrtRatioFnxWethX96,,,,,) = ICLPool(wethTokenPool).globalState();
+            swap(wethTokenPool, fnxBalance, _calculateSlippageLimitBorder(sqrtRatioFnxWethX96, false, rewardSwapSlippageBP), false);
 
             IERC20 weth = IERC20(wethAddress);
             uint256 wethBalance = weth.balanceOf(address(this));
-            (uint160 sqrtRatioUsdbWethX96,,,,,) = ICLPool(usdbWeth).globalState();
-            swap(usdbWeth, wethBalance,  _calculateSlippageLimitBorder(sqrtRatioUsdbWethX96, false, rewardSwapSlippageBP), false);
+            (uint160 sqrtRatioUsdbWethX96,,,,,) = ICLPool(usdbWethPool).globalState();
+            swap(usdbWethPool, wethBalance,  _calculateSlippageLimitBorder(sqrtRatioUsdbWethX96, false, rewardSwapSlippageBP), false);
 
-            IERC20 usdb = IERC20(ICLPool(wethToken).token0());
+            IERC20 usdb = IERC20(ICLPool(usdbWethPool).token0());
             if (fnx.balanceOf(address(this)) > 0) {
                 fnx.transfer(msg.sender, fnx.balanceOf(address(this)));
             }
