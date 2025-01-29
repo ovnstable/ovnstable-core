@@ -107,6 +107,9 @@ contract StrategySwapToOvn is Strategy {
         console.log("ovnBalanceAfter:", ovnBalanceAfter);
         uint256 totalRewardsClaimedOvn = ovnBalanceAfter - ovnBalanceBefore;
         console.log("totalRewardsClaimedOvn:", totalRewardsClaimedOvn);
+
+        require(totalRewardsClaimedOvn >= amountOutMin, "Swapped OVN is less than amountOutMin");
+
         if (totalRewardsClaimedOvn > 0) {
             ovn.transfer(_to, totalRewardsClaimedOvn);
         }
