@@ -62,7 +62,8 @@ function getNetworks() {
             url: node_url('base'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: "auto",            
+            //gasPrice: "auto",            
+            gasPrice: 30087736,
             gas: 21000000,
             zksync: false,
         },
@@ -88,7 +89,7 @@ function getNetworks() {
             accounts: accountsNetwork,
             timeout: timeout,
             //gasPrice: "auto",
-            gasPrice: 20087736,
+            gasPrice: 120087736,
             zksync: false,
         },
 

@@ -36,6 +36,7 @@ function toAsset(value, stand = process.env.STAND) {
         stand === 'optimism_dai' ||
         stand === 'arbitrum_eth' ||
         stand === "base_dai" ||
+        stand === "base_ovn" ||
         stand === "arbitrum_dai" ||
         stand === "blast" ||
         stand === "blast_usdc") {
@@ -65,6 +66,7 @@ function fromAsset(value, stand = process.env.STAND) {
         stand === 'optimism_dai' ||
         stand === 'arbitrum_eth' ||
         stand === 'base_dai' ||
+        stand === "base_ovn" ||
         stand === 'arbitrum_dai' ||
         stand === 'blast' ||
         stand === 'blast_usdc') {

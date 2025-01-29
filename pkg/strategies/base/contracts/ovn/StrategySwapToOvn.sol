@@ -7,21 +7,27 @@ import '@overnight-contracts/connectors/contracts/stuff/Chainlink.sol';
 import '@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol';
 import {AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
-
 import "hardhat/console.sol";
 
 /**
  * This strategy holds OVN and on ClaimRewards swaps USD+ to OVN
  */
 contract StrategySwapToOvn is Strategy {
+
+    bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
    
     IERC20 public usdPlus;
     IERC20 public ovn;
     IInchSwapper public inchSwapper;
-    IRouter public aerodromeRouter;
-    address public ovnUsdPlusPoolAddress;
-    uint256 slippageBp;
-    uint256 fake;
+    uint256 public slippageBp;
+    uint256 public ovnOraclePriceExpiration;
+    uint256 public ovnDm;
+    uint256 public usdPlusDm;
+    uint256 public ovnUsdPriceDm;
+
+    // state
+    uint256 ovnUsdPrice;
+    uint256 ovnUsdPriceUpdateTimestamp;
 
     event StrategyUpdatedParams();
 
@@ -29,9 +35,9 @@ contract StrategySwapToOvn is Strategy {
         address usdPlus;
         address ovn;
         address inchSwapper;
-        address aerodromeRouter;
-        address ovnUsdPlusPool;
         uint256 slippageBp;
+        uint256 ovnOraclePriceExpiration;
+        uint256 ovnUsdPriceDecimals;
     }
 
     // ---  constructor
@@ -46,12 +52,15 @@ contract StrategySwapToOvn is Strategy {
     // --- Setters
 
     function setParams(StrategyParams calldata params) external onlyAdmin {
-        usdPlus = IERC20(params.usdPlus);
-        ovn = IERC20(params.ovn);
+        usdPlus = IERC20(params.usdPlus);        
+        ovn = IERC20(params.ovn);        
         inchSwapper = IInchSwapper(params.inchSwapper);
-        aerodromeRouter = IRouter(params.aerodromeRouter);
-        ovnUsdPlusPoolAddress = params.ovnUsdPlusPool;
         slippageBp = params.slippageBp;
+        ovnOraclePriceExpiration = params.ovnOraclePriceExpiration;        
+
+        usdPlusDm = 10 ** IERC20Metadata(params.usdPlus).decimals();
+        ovnDm = 10 ** IERC20Metadata(params.ovn).decimals();
+        ovnUsdPriceDm = 10**params.ovnUsdPriceDecimals;
     }
 
     // --- logic
@@ -77,32 +86,39 @@ contract StrategySwapToOvn is Strategy {
 
     // here we swap USDPlus token to OVN
     function _claimRewards(address _to) internal override returns (uint256) {
-        console.log("_claimRewards GEORGII");
         uint256 underlyingUsdPlusBalance = usdPlus.balanceOf(address(this));
         if (underlyingUsdPlusBalance == 0) {
             return 0;
         }
 
+        require(block.timestamp - ovnUsdPriceUpdateTimestamp <= ovnOraclePriceExpiration, "OVN price expired");
+
         uint256 ovnBalanceBefore = ovn.balanceOf(address(this));
+        console.log("ovnBalanceBefore:", ovnBalanceBefore);
+        uint256 outOvnBalanceEstimated = (underlyingUsdPlusBalance * ovnUsdPriceDm * ovnDm)  / (ovnUsdPrice * usdPlusDm);
+        console.log("outOvnBalanceEstimated:", outOvnBalanceEstimated);
+        uint256 amountOutMin = OvnMath.subBasisPoints(outOvnBalanceEstimated, slippageBp);
+        console.log("amountOutMin:", amountOutMin);
 
-        uint256 outOvnBalanceEstimated = AerodromeLibrary.getAmountsOut(
-            address(aerodromeRouter),
-            address(usdPlus),
-            address(ovn),
-            ovnUsdPlusPoolAddress,
-            underlyingUsdPlusBalance
-        );
-
-        uint256 amountOutMin = outOvnBalanceEstimated * (10_000 - slippageBp) / 10_000;
         usdPlus.approve(address(inchSwapper), underlyingUsdPlusBalance);
         inchSwapper.swap(address(this), address(usdPlus), address(ovn), underlyingUsdPlusBalance, amountOutMin);
 
         uint256 ovnBalanceAfter = ovn.balanceOf(address(this));
-        uint256 totalRewardsClaimedOvn = ovnBalanceBefore - ovnBalanceAfter;
+        console.log("ovnBalanceAfter:", ovnBalanceAfter);
+        uint256 totalRewardsClaimedOvn = ovnBalanceAfter - ovnBalanceBefore;
+        console.log("totalRewardsClaimedOvn:", totalRewardsClaimedOvn);
         if (totalRewardsClaimedOvn > 0) {
             ovn.transfer(_to, totalRewardsClaimedOvn);
         }
 
         return totalRewardsClaimedOvn;
+    }
+
+    // precision is 10
+    function updateOvnUsdPrice(uint256 _ovnUsdPrice) external {
+        require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
+
+        ovnUsdPrice = _ovnUsdPrice;
+        ovnUsdPriceUpdateTimestamp = block.timestamp;
     }
 }

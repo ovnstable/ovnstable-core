@@ -13,7 +13,7 @@ async function main() {
             "maxWeight": 100,
             "riskFactor": 0,
             "enabled": true,
-            "enabledReward": false
+            "enabledReward": true
         }
     ]
 
