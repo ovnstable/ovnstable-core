@@ -89,7 +89,7 @@ function getNetworks() {
             accounts: accountsNetwork,
             timeout: timeout,
             //gasPrice: "auto",
-            gasPrice: 120087736,
+            gasPrice: 20087736,
             zksync: false,
         },
 

@@ -2,12 +2,8 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import '@overnight-contracts/core/contracts/Strategy.sol';
-import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Chainlink.sol';
 import '@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol';
-import '@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol';
-import {AerodromeLibrary} from "@overnight-contracts/connectors/contracts/stuff/Aerodrome.sol";
-import "hardhat/console.sol";
 
 /**
  * This strategy holds OVN and on ClaimRewards swaps USD+ to OVN
@@ -94,19 +90,14 @@ contract StrategySwapToOvn is Strategy {
         require(block.timestamp - ovnUsdPriceUpdateTimestamp <= ovnOraclePriceExpiration, "OVN price expired");
 
         uint256 ovnBalanceBefore = ovn.balanceOf(address(this));
-        console.log("ovnBalanceBefore:", ovnBalanceBefore);
         uint256 outOvnBalanceEstimated = (underlyingUsdPlusBalance * ovnUsdPriceDm * ovnDm)  / (ovnUsdPrice * usdPlusDm);
-        console.log("outOvnBalanceEstimated:", outOvnBalanceEstimated);
         uint256 amountOutMin = OvnMath.subBasisPoints(outOvnBalanceEstimated, slippageBp);
-        console.log("amountOutMin:", amountOutMin);
 
         usdPlus.approve(address(inchSwapper), underlyingUsdPlusBalance);
         inchSwapper.swap(address(this), address(usdPlus), address(ovn), underlyingUsdPlusBalance, amountOutMin);
 
         uint256 ovnBalanceAfter = ovn.balanceOf(address(this));
-        console.log("ovnBalanceAfter:", ovnBalanceAfter);
         uint256 totalRewardsClaimedOvn = ovnBalanceAfter - ovnBalanceBefore;
-        console.log("totalRewardsClaimedOvn:", totalRewardsClaimedOvn);
 
         require(totalRewardsClaimedOvn >= amountOutMin, "Swapped OVN is less than amountOutMin");
 
@@ -117,7 +108,6 @@ contract StrategySwapToOvn is Strategy {
         return totalRewardsClaimedOvn;
     }
 
-    // precision is 10
     function updateOvnUsdPrice(uint256 _ovnUsdPrice) external {
         require(roleManager.hasRole(UNIT_ROLE, msg.sender), "Restricted to Unit");
 
