@@ -124,7 +124,6 @@ async function showRules(names){
             items.push({
                 name: name,
                 address: contract.address,
-                timelock: timeLock.address,
                 roleAdminWallet: (await contract.hasRole(await contract.DEFAULT_ADMIN_ROLE(), wallet.address)),
                 roleAdminTimelock: (await contract.hasRole(await contract.DEFAULT_ADMIN_ROLE(), timeLock.address)),
 
@@ -136,6 +135,7 @@ async function showRules(names){
         }
     }
 
+    console.log("timeLock.address:", timeLock.address)
     console.table(items);
 }
 

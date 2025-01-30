@@ -40,8 +40,7 @@ async function main() {
         // "StrategySiloUsdcCbBTC",
         // "StrategySiloUsdcWstETH",
         // "StrategySiloUsdcCbETH"
-        "SwapSimulatorFenix",
-        "StrategyFenixSwap"
+        "StrategySwapToOvn"
     ]
     // let mainAddress = (await initWallet()).address;
     // await transferETH(100, mainAddress);   
@@ -106,13 +105,13 @@ async function showRules(names) {
             roleUpgradeWallet = (await contract.hasRole(await contract.UPGRADER_ROLE(), wallet.address))
             roleUpgradeTimelock = (await contract.hasRole(await contract.UPGRADER_ROLE(), timeLock.address))
         } catch (e) {
+            console.error(e);
         }
 
         try {
             items.push({
                 name: name,
                 address: contract.address,
-                timelock: timeLock.address,
                 roleAdminWallet: (await contract.hasRole(await contract.DEFAULT_ADMIN_ROLE(), wallet.address)),
                 roleAdminTimelock: (await contract.hasRole(await contract.DEFAULT_ADMIN_ROLE(), timeLock.address)),
 
@@ -124,6 +123,7 @@ async function showRules(names) {
         }
     }
 
+    console.log("timelock address:", timeLock.address)
     console.table(items);
 }
 
