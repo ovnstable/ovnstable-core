@@ -52,7 +52,7 @@ function getNetworks() {
             timeout: timeout,
             accounts: accountsNetwork,
             zksync: false,
-            gasPrice: 20087736,
+            gasPrice: 200087736,
         }
     }
 
