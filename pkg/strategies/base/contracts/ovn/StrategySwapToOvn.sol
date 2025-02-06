@@ -65,7 +65,7 @@ contract StrategySwapToOvn is Strategy {
     }
 
     function _unstake(address _asset, uint256 _amount, address _beneficiary) internal override returns (uint256) {
-        return ovn.balanceOf(address(this));
+        return _amount;
     }
 
     function _unstakeFull(address _asset, address _beneficiary) internal override returns (uint256) {
