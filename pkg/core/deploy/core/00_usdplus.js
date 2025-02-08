@@ -29,6 +29,9 @@ module.exports = async ({ deployments }) => {
             console.log("%2");
             params = { args: ["USDC+", "USDC+", 6] };
             break;
+        case "base_ovn":
+            params = { args: ["OVN+", "OVN+", 18] };
+            break;    
         case "blast":
             params = { args: ["USD+", "USD+", 18] };
             break;

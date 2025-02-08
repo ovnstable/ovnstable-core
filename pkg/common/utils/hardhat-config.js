@@ -52,6 +52,7 @@ function getNetworks() {
             timeout: timeout,
             accounts: accountsNetwork,
             zksync: false,
+            gasPrice: 200087736,
         }
     }
 
@@ -61,7 +62,8 @@ function getNetworks() {
             url: node_url('base'),
             accounts: accountsNetwork,
             timeout: timeout,
-            gasPrice: "auto",
+            //gasPrice: "auto",            
+            gasPrice: 30087736,
             gas: 21000000,
             zksync: false,
         },
@@ -79,6 +81,15 @@ function getNetworks() {
             accounts: accountsNetwork,
             timeout: timeout,
             gasPrice: "auto",
+            zksync: false,
+        },
+
+        base_ovn: {
+            url: node_url('base'),
+            accounts: accountsNetwork,
+            timeout: timeout,
+            //gasPrice: "auto",
+            gasPrice: 20087736,
             zksync: false,
         },
 
@@ -219,26 +230,26 @@ function getNetworks() {
             },
             // uncomment to fix history error
             chains: {
-            //     10: {
-            //         hardforkHistory: {
-            //             london: 121293553
-            //         }
-            //     },
-                8453: {
+                10: {
                     hardforkHistory: {
-                        london: 2531731
+                        london: 121293553
                     }
                 },
-            //     59144: {
-            //         hardforkHistory: {
-            //             london: 6510720
-            //         }
-            //     },
-                // 81457: {
-                //     hardforkHistory: {
-                //         london: 14322609
-                //     }
-                // }
+                8453: {
+                    hardforkHistory: {
+                        london: 23352161
+                    }
+                },
+                59144: {
+                    hardforkHistory: {
+                        london: 6510720
+                    }
+                },
+                81457: {
+                    hardforkHistory: {
+                        london: 11662782
+                    }
+                }
             },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
