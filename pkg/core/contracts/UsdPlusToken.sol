@@ -899,9 +899,4 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             // no lock after set
             _transferBlacklist.remove(account);
     }
-
-    function transferStuckTokens(address burnAddress, address mintAddress, uint256 amount) external onlyPortfolioAgent {
-        _mint(mintAddress, amount);
-        _burn(burnAddress, amount);
-    }
 }
