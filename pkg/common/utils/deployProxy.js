@@ -129,7 +129,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
     const contractFactory = await ethers.getContractFactory(factoryName, factoryOptions);
 
     // uncomment for force import
-    // let proxyAddress = '';
+    // let proxyAddress = '0x73cb180bf0521828d8849bc8CF2B920918e23032';
     // await upgrades.forceImport(proxyAddress, contractFactory, {
     //     kind: 'uups',
     // });
@@ -158,13 +158,13 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         // You need have permission for role UPGRADER_ROLE;
         // , gasPrice: parseEther(0.005), gasLimit: 30000000
 
-        let wallet = initWallet()
+        let wallet = initWallet();
 
         try {
-            impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: "always" });
+            impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: 'always' });
         } catch (e) {
             console.log(e);
-            impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: "always" });
+            impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: 'always' });
         }
         implAddress = await getImplementationAddress(ethers.provider, proxy.address);
         console.log(`Deploy ${contractName} Impl done -> proxy [` + proxy.address + '] impl [' + implAddress + ']');
@@ -180,7 +180,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
             {
                 kind: 'uups',
                 unsafeAllow: unsafeAllow,
-                redeployImplementation: "always"
+                redeployImplementation: 'always',
                 // unsafeSkipStorageCheck: true,
                 // unsafeAllowRenames: true
             },
