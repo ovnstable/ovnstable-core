@@ -169,8 +169,8 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         implAddress = await getImplementationAddress(ethers.provider, proxy.address);
         console.log(`Deploy ${contractName} Impl done -> proxy [` + proxy.address + '] impl [' + implAddress + ']');
     } else {
-        //Deploy only a new implementation without call upgradeTo
-        //For system with Governance
+        // Deploy only a new implementation without call upgradeTo
+        // For system with Governance
         console.log('Try to deploy impl ...');
 
         // impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow });
