@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import {Strategy, Initializable, AccessControlUpgradeable, UUPSUpgradeable, IERC20, IERC20Metadata} from "@overnight-contracts/core/contracts/Strategy.sol";
-import {ICLPool, TickMath, LiquidityAmounts} from "@overnight-contracts/connectors/contracts/stuff/Fenix.sol";
+import {ICLPool, TickMath, LiquidityAmounts, FullMath} from "@overnight-contracts/connectors/contracts/stuff/Fenix.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ISwapSimulator} from "./interfaces/ISwapSimulator.sol";
 
@@ -126,5 +126,51 @@ contract SwapSimulatorFenix is ISwapSimulator, Initializable, AccessControlUpgra
 
         token0Amount = token0Amount * (denominator / dec0);
         token1Amount = token1Amount * (denominator / dec1);
+    }
+
+    function totalValue(uint256, address, address, int24, int24, address, address) external onlyStrategy view returns (uint256) {
+       revert("Not implemented");
+    }
+
+    function swapRewards(address tokenAddress, address wethAddress, address wethTokenPool, address usdbWethPool, uint256 rewardSwapSlippageBP) external onlyStrategy {
+        IERC20 fnx = IERC20(tokenAddress);
+        uint256 fnxBalance = fnx.balanceOf(address(this));
+        if (fnxBalance > 0) {
+            (uint160 sqrtRatioFnxWethX96,,,,,) = ICLPool(wethTokenPool).globalState();
+            swap(wethTokenPool, fnxBalance, _calculateSlippageLimitBorder(sqrtRatioFnxWethX96, false, rewardSwapSlippageBP), false);
+
+            IERC20 weth = IERC20(wethAddress);
+            uint256 wethBalance = weth.balanceOf(address(this));
+            (uint160 sqrtRatioUsdbWethX96,,,,,) = ICLPool(usdbWethPool).globalState();
+            swap(usdbWethPool, wethBalance,  _calculateSlippageLimitBorder(sqrtRatioUsdbWethX96, false, rewardSwapSlippageBP), false);
+
+            IERC20 usdb = IERC20(ICLPool(usdbWethPool).token0());
+            if (fnx.balanceOf(address(this)) > 0) {
+                fnx.transfer(msg.sender, fnx.balanceOf(address(this)));
+            }
+            if (weth.balanceOf(address(this)) > 0) {
+                weth.transfer(msg.sender, weth.balanceOf(address(this)));
+            }
+            if (usdb.balanceOf(address(this)) > 0) {
+                usdb.transfer(msg.sender, usdb.balanceOf(address(this)));
+            }
+        }        
+    }
+
+    function _calculateSlippageLimitBorder(uint160 sqrtRatioX96, bool zeroForOne, uint256 rewardSwapSlippageBP) internal pure returns (uint160) {
+        if (zeroForOne) {
+            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 - rewardSwapSlippageBP), 100));
+        } else {
+            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 + rewardSwapSlippageBP), 100));
+        }        
+    }
+
+    function _sqrt(uint x) internal pure returns (uint y) {
+        uint z = (x + 1) / 2;
+        y = x;
+        while (z < y) {
+            y = z;
+            z = (x / z + z) / 2;
+        }
     }
 }

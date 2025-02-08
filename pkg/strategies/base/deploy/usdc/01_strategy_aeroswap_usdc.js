@@ -13,16 +13,11 @@ const { Roles } = require('@overnight-contracts/common/utils/roles');
 let strategyName = 'StrategyAerodromeSwapUsdc';
 
 module.exports = async ({deployments}) => {
-
     const {save} = deployments;
 
     await deploySection(async (name) => {
         await deployProxy(name, deployments, save);
     });
-
-    // await settingSection(strategyName, async (strategy) => {
-    //     await (await strategy.setParams(await getParams())).wait();
-    // });
 };
     
 async function getParams() {

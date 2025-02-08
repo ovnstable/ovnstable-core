@@ -3,6 +3,13 @@
   "abi": [
     {
       "inputs": [],
+      "name": "burnTmp",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },

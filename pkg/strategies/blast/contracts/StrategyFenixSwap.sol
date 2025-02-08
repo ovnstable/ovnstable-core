@@ -33,6 +33,10 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
 
     uint256 liquidityDecreaseDeviationBP;
 
+    IERC20 private weth;
+    ICLPool private poolFnxWeth;
+    ICLPool private poolUsdbWeth;
+
     // --- events
     event StrategyUpdatedParams();
     event SwapErrorInternal(string message);
@@ -51,7 +55,10 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         int24 lowerTick;
         int24 upperTick;
         address fnxTokenAddress;
+        address wethTokenAddress;
         address poolFnxUsdb;
+        address poolFnxWeth; 
+        address poolUsdbWeth;
         uint256 rewardSwapSlippageBP;
         uint256 liquidityDecreaseDeviationBP;
     }
@@ -73,6 +80,7 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         usdb = IERC20(pool.token0());
         usdPlus = IERC20(pool.token1());
         fnx = IERC20(params.fnxTokenAddress);
+        weth = IERC20(params.wethTokenAddress);
 
         swapSimulator = ISwapSimulator(params.swapSimulatorAddress);
         npm = INonfungiblePositionManager(params.npmAddress);
@@ -85,6 +93,8 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         upperTick = params.upperTick;
 
         poolFnxUsdb = ICLPool(params.poolFnxUsdb);
+        poolFnxWeth = ICLPool(params.poolFnxWeth);
+        poolUsdbWeth = ICLPool(params.poolUsdbWeth);
         
         emit StrategyUpdatedParams();
     }
@@ -398,66 +408,26 @@ contract StrategyFenixSwap is Strategy, IERC721Receiver {
         npm.collect(collectParams);
     }
 
-    function _calculateSlippageLimitBorder(uint160 sqrtRatioX96, bool zeroForOne) internal view returns (uint160) {
-        if (zeroForOne) {
-            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 - rewardSwapSlippageBP), 100));
-        } else {
-            return uint160(FullMath.mulDiv(uint256(sqrtRatioX96), _sqrt(10000 + rewardSwapSlippageBP), 100));
-        }        
-    }
-
     function _claimRewards(address _beneficiary) internal override returns (uint256) {
         return 0;
     }
 
-    function claimMerkleTreeRewards(
-        address distributor, 
-        address[] calldata users,
-        address[] calldata tokens,
-        uint256[] calldata amounts,
-        bytes32[][] calldata proofs
-    ) public onlyPortfolioAgent { 
-        IDistributor(distributor).claim(users, tokens, amounts, proofs);
+    function _swapRewards() internal {
+        fnx.transfer(address(swapSimulator), fnx.balanceOf(address(this)));     
+        swapSimulator.swapRewards(address(fnx), address(weth), address(poolFnxWeth), address(poolUsdbWeth), rewardSwapSlippageBP);
+    }
 
-        uint256 usdPlusBalance = usdPlus.balanceOf(address(this));
-        if (usdPlusBalance > 0) {
-            usdPlus.transfer(address(swapSimulator), usdPlusBalance);
-            swapSimulator.swap(address(pool), usdPlusBalance, TickMath.getSqrtRatioAtTick(upperTick), false);
-            swapSimulator.withdrawAll(address(pool));
-        }
-
-        uint256 fnxBalance = fnx.balanceOf(address(this));
-        if (fnxBalance > 0) {
-            (uint160 sqrtRatioFnxUsdbX96,,,,,) = poolFnxUsdb.globalState();
-            fnx.transfer(address(swapSimulator), fnxBalance);
-            swapSimulator.swap(address(poolFnxUsdb), fnxBalance, _calculateSlippageLimitBorder(sqrtRatioFnxUsdbX96, false), false);
-            swapSimulator.withdrawAll(address(poolFnxUsdb)); 
-        }
-    
+    function _reinvest() internal override { 
+        _swapRewards();
         _stake(address(usdb), 0);
     }
 
-    function claimMerkleTreeRewardsToWallet(
-        address beneficiary,
-        address distributor, 
-        address[] calldata users,
-        address[] calldata tokens,
-        uint256[] calldata amounts,
-        bytes32[][] calldata proofs
-    ) public onlyPortfolioAgent { 
-        IDistributor(distributor).claim(users, tokens, amounts, proofs);
-
-        uint256 fnxBalance = fnx.balanceOf(address(this));
-
-        fnx.transfer(beneficiary, fnxBalance);
+    function _sendToTreshery(ClaimConfig memory claimConfig) internal override { 
+        _swapRewards();
+        usdb.transfer(claimConfig.beneficiary, usdb.balanceOf(address(this)));
     }
 
-    function _sqrt(uint x) internal pure returns (uint y) {
-        uint z = (x + 1) / 2;
-        y = x;
-        while (z < y) {
-            y = z;
-            z = (x / z + z) / 2;
-        }
+    function _custom(ClaimConfig memory claimConfig) internal override {
+        revert("Not implemented");
     }
 }

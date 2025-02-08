@@ -4,6 +4,7 @@ const hre = require("hardhat");
 const { ethers } = require("hardhat");
 
 module.exports = async ({ deployments }) => {
+    console.log("%1");
     const { save } = deployments;
     if (hre.network.name === "localhost") await transferETH(1, await getWalletAddress());
     let params;
@@ -25,6 +26,7 @@ module.exports = async ({ deployments }) => {
             params = { args: ["USDT+", "USDT+", 6] };
             break;
         case "base_usdc":
+            console.log("%2");
             params = { args: ["USDC+", "USDC+", 6] };
             break;
         case "base_ovn":
@@ -50,4 +52,4 @@ module.exports = async ({ deployments }) => {
     console.log("totalSupply: " + (await usdPlus.totalSupply()));
 };
 
-module.exports.tags = ["base", "UsdPlusToken"];
+module.exports.tags = ["base_usdc", "UsdPlusToken"];
