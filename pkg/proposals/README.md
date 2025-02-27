@@ -1,4 +1,4 @@
-# Propsals
+# Proposals
 
 ## Setup local network
 
@@ -18,12 +18,12 @@ Run `npx hardhat node --last`
 At the end of propasl use:
 
 - testProposal() for testing transation with abi updates and etc.
-- testStrategy() for testing startegies
+- testStrategy() for testing strategies
 - testUsdPlus()
 
 ## How to execute proposal
 
-1. Comment out all tesing functions
+1. Comment out all testing functions
 2. Run inside /proposal folder `npx hardhat run ./scripts/[network]/[file name].js --network [network]`  
    ex: `npx hardhat run ./scripts/arbitrum/34_update_silo_claim.js --network arbitrum --stand arbitrum`
 3. File would be saved inside ./batches/[network]
