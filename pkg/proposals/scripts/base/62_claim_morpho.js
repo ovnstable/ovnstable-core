@@ -17,7 +17,7 @@ filename = filename.substring(0, filename.indexOf(".js"));
 async function main() {
 
     let wallet = await initWallet();
-    await transferETH(1, wallet.address);
+    // await transferETH(1, wallet.address);
     
     let addresses = [];
     let values = [];
@@ -52,10 +52,10 @@ async function main() {
 
     
 
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
     // await testUsdPlus(filename, 'base');
     // await testStrategy(filename, morpho, 'base');
-    // await createProposal(filename, addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     console.log("treasury morpho", (await morphoToken.balanceOf(COMMON.rewardWallet)).toString());
     console.log("direct morpho", (await morphoToken.balanceOf(morphoDirect.address)).toString());
