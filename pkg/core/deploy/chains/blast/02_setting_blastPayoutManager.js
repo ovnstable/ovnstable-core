@@ -40,6 +40,7 @@ module.exports = async () => {
         let dex = "Thruster";
         
         items.push(createSkim('0xF2d0a6699FEA86fFf3EB5B64CDC53878e1D19D6f', usdPlus.address, 'USDB/USD+', dex));
+        items.push(createSkim('0x147e7416d5988b097b3a1859efecc2c5e04fdf96', usdPlus.address, 'USDB/USD+', dex));
         items.push(createSkim('0x21f25b792d2e14378F93A4C3260A53f4a889e68D', usdPlus.address, 'wETH/USD+', dex));
         items.push(createSkim('0xF4Ef0fec1CC82042a591Bccc691730bd1c6F5eb6', usdPlus.address, 'sFRAX/USD+', dex));
        
