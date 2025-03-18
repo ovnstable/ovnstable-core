@@ -11,6 +11,7 @@ const { Wallet, Provider } = require("zksync-web3");
 const { Deployer } = require("@matterlabs/hardhat-zksync-deploy");
 const { BigNumber } = require("ethers");
 const { updateFeeData } = require("./hardhat-ovn");
+const HedgeExchangerABI = require('./abi/HedgeExchanger.json');
 
 let ethers = require('hardhat').ethers;
 
@@ -165,7 +166,9 @@ async function setDepositor(strategyName, strategy) {
     if (strategyName.includes('Smm') || strategyName.includes('Ets')) {
         console.log('Try to setDepositor');
         let wallet = await initWallet();
-        let diamondStrategy = await ethers.getContractAt(DIAMOND_STRATEGY, await strategy.strategy(), wallet);
+        let he = await strategy.hedgeExchanger();
+        console.log(`hedgheExchanger: ${he}`);
+        let diamondStrategy = await ethers.getContractAt(DIAMOND_STRATEGY, he, wallet);
 
         if (await diamondStrategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address)) {
             await (await diamondStrategy.setDepositor(strategy.address));
