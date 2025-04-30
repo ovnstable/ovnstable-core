@@ -24,45 +24,45 @@ async function main() {
     const signers = await ethers.getSigners();
     const account = signers[0];
 
-    if (hre.network.name === 'localhost') {
-        // if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
-        //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
-        // } else {
-        hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
-        // }
-    }
+    // if (hre.network.name === 'localhost') {
+    //     // if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
+    //     //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8011')
+    //     // } else {
+    //     hre.ethers.provider = new hre.ethers.providers.JsonRpcProvider('http://localhost:8545')
+    //     // }
+    // }
 
-    await hre.network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: ["0x086dFe298907DFf27BD593BD85208D57e0155c94"],
-    });
+    // await hre.network.provider.request({
+    //     method: "hardhat_impersonateAccount",
+    //     params: ["0x086dFe298907DFf27BD593BD85208D57e0155c94"],
+    // });
 
-    const account3 = await hre.ethers.getSigner("0x086dFe298907DFf27BD593BD85208D57e0155c94");
+    // const account3 = await hre.ethers.getSigner("0x086dFe298907DFf27BD593BD85208D57e0155c94");
     // let account1 = await ethers.getImpersonatedSigner("0x086dFe298907DFf27BD593BD85208D57e0155c94");
 
-    await transferETH(10, account3.address);
+    // await transferETH(10, account3.address);
 
     
-    console.log(account.address);
-    console.log(account3.address);
-    console.log((await account3.getBalance()).toString());
+    // console.log(account.address);
+    // console.log(account3.address);
+    // console.log((await account3.getBalance()).toString());
 
-    console.log(account.address);
-    console.log((await account.getBalance()).toString());
+    // console.log(account.address);
+    // console.log((await account.getBalance()).toString());
 
     let ex = await getContract('FundExchange');
-    let fund = await getContract('MotivationalFund');
+    // let fund = await getContract('MotivationalFund');
 
-    let bal1 = await fund.balanceOf("0xE3Bad39b9A2330104D0399b17333d994F38C509D");
+    // let bal1 = await fund.balanceOf("0xE3Bad39b9A2330104D0399b17333d994F38C509D");
     
     console.log("payout");
-    await (await ex.connect(account3).payout()).wait();
+    await (await ex.payout()).wait();
 
-    let bal2 = await fund.balanceOf("0xE3Bad39b9A2330104D0399b17333d994F38C509D");
+    // let bal2 = await fund.balanceOf("0xE3Bad39b9A2330104D0399b17333d994F38C509D");
 
-    console.log("bal1", bal1.toString());
-    console.log("bal2", bal2.toString());
-    console.log("total deposit", (await ex.totalDeposit()).toString());
+    // console.log("bal1", bal1.toString());
+    // console.log("bal2", bal2.toString());
+    // console.log("total deposit", (await ex.totalDeposit()).toString());
 }
 
 main()
