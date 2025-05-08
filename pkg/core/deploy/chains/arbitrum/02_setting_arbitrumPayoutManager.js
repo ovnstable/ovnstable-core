@@ -1,17 +1,10 @@
-const { ethers } = require('hardhat');
-const { getContract, getPrice } = require('@overnight-contracts/common/utils/script-utils');
-const {
-    createSkim,
-    createSkimTo,
-    createSkimToWithFee,
-    createBribe,
-    createBribeWithFee,
-    createSync,
-    createCustomBribe,
-    createCustom,
-} = require('@overnight-contracts/common/utils/payoutListener');
-const { Roles } = require('@overnight-contracts/common/utils/roles');
-const { COMMON } = require('@overnight-contracts/common/utils/assets');
+const { ethers } = require("hardhat");
+const { getContract, getPrice, transferETH } = require("@overnight-contracts/common/utils/script-utils");
+const { createSkim, createSkimTo, createSkimToWithFee, createBribe, createBribeWithFee, createSync, createCustomBribe,
+    createCustom
+} = require("@overnight-contracts/common/utils/payoutListener");
+const { Roles } = require("@overnight-contracts/common/utils/roles");
+const { COMMON } = require("@overnight-contracts/common/utils/assets");
 
 module.exports = async () => {
     const payoutManager = await getContract('ArbitrumPayoutManager', 'arbitrum');
@@ -28,6 +21,7 @@ module.exports = async () => {
     items.push(...pancakeswap());
     items.push(...traderjoe());
     items.push(...uniswap());
+
     await (await payoutManager.addItems(items)).wait();
 
     console.log('ArbitrumPayoutManager setting done');
@@ -101,6 +95,10 @@ module.exports = async () => {
         items.push(createSkim('0x7548BD60CB8f627A9b8ed94f8ca174348DbE6A05', usdPlus.address, 'USDC/USD+', dex));
         items.push(createSkim('0x67ab7DC903A10838a0de8861dfDFF3287cF98e5c', usdPlus.address, 'USDT/USD+', dex));
         items.push(createSkim('0x421803dA50d3932Caa36bD1731d36a0E2AF93542', usdPlus.address, 'ETH/USD+', dex));
+        // items.push(createCustom('0x3dD2FdBA71282083D440687cce9e4231AAAc534E', usdPlus.address, 'ETH/USD+', dex, '0x0000000000000000000000000000000000000000', 20, COMMON.rewardWallet));
+        // items.push(createCustom('0x7548BD60CB8f627A9b8ed94f8ca174348DbE6A05', usdPlus.address, 'USDC/USD+', dex, '0x0000000000000000000000000000000000000000', 20, COMMON.rewardWallet));
+        // items.push(createCustom('0x67ab7DC903A10838a0de8861dfDFF3287cF98e5c', usdPlus.address, 'USDT/USD+', dex, '0x0000000000000000000000000000000000000000', 20, COMMON.rewardWallet));
+        // items.push(createCustom('0x421803dA50d3932Caa36bD1731d36a0E2AF93542', usdPlus.address, 'ETH/USD+', dex, '0x0000000000000000000000000000000000000000', 20, COMMON.rewardWallet));
 
         return items;
     }
