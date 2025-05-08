@@ -31,4 +31,16 @@ interface IStrategy {
 
     function claimRewards(address _to) external returns (uint256);
 
+    struct ClaimConfig {
+        Operation operation;
+        address beneficiary;
+        address distributor;
+        uint256[10] __gap;
+    }
+
+    enum Operation {
+        REINVEST,
+        SEND,
+        CUSTOM
+    }
 }

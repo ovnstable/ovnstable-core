@@ -16,6 +16,7 @@ module.exports = async () => {
     let items = [];
 
     items.push(...velodrome());
+    items.push(...uniswap());
     await (await payoutManager.addItems(items)).wait();
 
     console.log('OptimismPayoutManager setting done');
@@ -39,6 +40,20 @@ module.exports = async () => {
         items.push(createSkim('0x9dA9D8dCdAC3Cab214d2bd241C3835B90aA8fFdE', usdPlus.address, 'CL100-WETH/USD+', dex));
         items.push(createSkim('0x995eB8f1A44824E58352E6F83d4d64801243468D', usdPlus.address, 'CL200-OP/USD+', dex));
         items.push(createSkim('0xfd5F39c74E63f1dacE336350afDF11E85BBD56F4', usdPlus.address, 'CL1-USDC/USD+', dex));
+        items.push(createSkim('0xBF7b6236A68F63F75765517cedCdF45f0CD0470C', usdPlus.address, 'vAMM-WETH/USD+', dex));
+
+        return items;
+    }
+
+    function uniswap() {
+        let dex = 'Uniswap';
+        let items = [];
+
+        items.push(createSkim('0xfC1505B3d4Cd16Bb2336394ad11071638710950F', usdPlus.address, 'OP/USD+', dex));
+        items.push(createSkim('0x2582886F65EA71ECd3CFfD12089C55Fb9C75E9db', usdPlus.address, 'USD+/USDC.e', dex));
+        items.push(createSkim('0x52f8Cf4DB80B11beAB7FbaBE30f587b7d5cCB89D', usdPlus.address, 'ETH/USD+', dex));
+        items.push(createSkim('0x2A64B1162509c36Ee86EA83a05a2B56d18B3F60a', usdPlus.address, 'USD+/USDC.e', dex));
+
         return items;
     }
 

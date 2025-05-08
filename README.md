@@ -4,7 +4,7 @@ This repository contains all contracts Overnight
 
 ##### Requirement:
 
-- Node v16
+- Node v22.13.0 (v16 does not work anymore on contracts compilation)
 - yarn v1.22.18
 
 ## README navigation
@@ -71,6 +71,7 @@ This repository contains is next modules:
 1. Set in .env file your parameters and check actual gas price in gas station.
 2. Deploy core and setting in pkg/core
    npx hardhat deploy --tags base,setting --network bsc_usdt
+   (upd. Jan 2025 - better to run deploy scripts one-by-one by setting appropriate tags - more control over process)
 3. Run base setting in pkg/core
    npx hardhat run scripts/base-setting.js --network bsc_usdt
 4. Verify core in pkg/core and verify it on scan service.
@@ -109,4 +110,59 @@ This repository contains is next modules:
 
 ```ProviderError: Sender doesn't have enough funds to send tx. The max upfront cost is: 43660859593337616 and the sender's balance is: 9128357391882676.```
 
+--------------------------------
+
+Error message contains: <b>Previous implementation doesn't registers</b> -> find latest impl in file ```pkg/strategies/(network)/.openzeppelin/(network).json``` and replace impl address with yours.
+
+--------------------------------
+
 Error message contains word: <b>history</b> -> go to this file: ```pkg/common/utils/hardhat-config.js``` and ctrl+f for ```history```. May be you'll also need to update block number there.
+
+--------------------------------
+
+```
+Error: listen EADDRINUSE: address already in use 127.0.0.1:8545
+```
+
+This error means that port 8545 is already in use. You need to stop the process running on port 8545 and run again.
+
+You can find the process running on port 8545 by running:
+
+```
+lsof -i tcp:8545
+```
+
+Then you can kill the process with:
+
+```
+kill -9 <PID>
+```
+
+
+## Solutions to common errors
+
+1. HardhatError: HH103: Account [account address] is not managed by the node you are connected to
+
+Try to replace the way you do impersonate for this address. Example:
+
+### Was
+```
+await hre.network.provider.request({
+   method: 'hardhat_impersonateAccount',
+   params: [ownerAddress],
+});
+const owner = await ethers.getSigner(ownerAddress);
+```
+
+### Become
+```
+const provider = new ethers.providers.JsonRpcProvider(
+   "http://localhost:8545"
+);
+await provider.send(
+   "hardhat_impersonateAccount", 
+   [ownerAddress]
+);
+const owner = provider.getSigner(ownerAddress);
+```
+

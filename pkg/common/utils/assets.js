@@ -4,6 +4,7 @@ dotenv.config({ path: __dirname + '/../../../.env' });
 let COMMON = {
     rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
     treasureWallet: "0xe497285e466227f4e8648209e34b465daa1f90a0",
+    dev5: "0x086dFe298907DFf27BD593BD85208D57e0155c94"
 }
 
 let BASE = {
@@ -37,6 +38,7 @@ let BASE = {
     dola: '0x4621b7A9c75199271F773Ebd9A499dbd165c3191',
     sfrax: '0xe4796cCB6bB5DE2290C417Ac337F2b66CA2E770E',
     ovn: '0xA3d1a8DEB97B111454B294E2324EfAD13a9d8396',
+    ovnPlus: '0x8cd408bBb63B804AFDcf2110A34E123B0F9BA132',
     eusd: '0xCfA3Ef56d303AE4fAabA0592388F19d7C3399FB4',
     wstEth: '0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452',
     wUsdPlus: '0xd95ca61CE9aAF2143E81Ef5462C0c2325172E028',
@@ -447,13 +449,18 @@ let BLAST = {
     usdPlus: "0x4fEE793d435c6D2c10C135983BB9d6D4fC7B9BBd",
     usdb: "0x4300000000000000000000000000000000000003",
     weth: "0x4300000000000000000000000000000000000004",
+    hyper: "0xec73284e4ec9bcea1a7dddf489eaa324c3f7dd31",
+    thrust: "0xe36072dd051ce26261bf50cd966311cab62c596e",
     z0USDB: "0x23A58cbe25E36e26639bdD969B0531d3aD5F9c34",
     zerolendPoolUsdb: "0xa70B0F3C2470AbBE104BdB3F3aaa9C7C54BEA7A8",
     zerolandRewardsController: "0x94dc19a5bd17e84d90e63ff3fba9c3b76e5e4012",
     earlyZERO: "0x81b3184A3B5d4612F2c26A53Da8D99474B91B2D2",
     // oracles
     oracleApi3Usdb: "0x1f41f26933e83ef6178E3368BD01662882c06677",
-    oracleApi3Eth: "0xa47Fd122b11CdD7aad7c3e8B740FB91D83Ce43D1"
+    oracleApi3Eth: "0xa47Fd122b11CdD7aad7c3e8B740FB91D83Ce43D1",
+    fnx: "0x52f847356b38720B55ee18Cb3e094ca11C85A192",
+    distributor: "0x3ef3d8ba38ebe18db133cec108f4d14ce00dd9ae",
+    voter: "0x56129f1c0aed4adbee862986face5ba8c9ac3d9b"
 }
 
 function getAsset(name) {

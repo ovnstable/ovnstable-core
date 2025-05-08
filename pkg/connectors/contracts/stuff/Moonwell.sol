@@ -10,6 +10,7 @@ interface IUnitroller {
     function enterMarkets(address[] calldata mTokens) external returns (uint[] memory);
     function exitMarket(address mToken) external returns (uint);
     function claimReward() external;
+    function markets(address mToken) external returns (bool, uint);
 }
 
 interface IMToken {

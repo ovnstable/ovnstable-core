@@ -11,6 +11,7 @@ const { Wallet, Provider } = require("zksync-web3");
 const { Deployer } = require("@matterlabs/hardhat-zksync-deploy");
 const { BigNumber } = require("ethers");
 const { updateFeeData } = require("./hardhat-ovn");
+const HedgeExchangerABI = require('./abi/HedgeExchanger.json');
 
 let ethers = require('hardhat').ethers;
 
@@ -137,6 +138,8 @@ async function settingSection(id, exec, wallet) {
             let pm = await getContract('PortfolioManager', process.env.STAND);
             let roleManager = await getContract('RoleManager', process.env.STAND);
             await (await strategy.setStrategyParams(pm.address, roleManager.address)).wait();
+            // await (await strategy.setStrategyParams(wallet.address, roleManager.address)).wait();
+
             await exec(strategy);
             try {
                 await setDepositor(strategyName, strategy);
@@ -163,7 +166,9 @@ async function setDepositor(strategyName, strategy) {
     if (strategyName.includes('Smm') || strategyName.includes('Ets')) {
         console.log('Try to setDepositor');
         let wallet = await initWallet();
-        let diamondStrategy = await ethers.getContractAt(DIAMOND_STRATEGY, await strategy.strategy(), wallet);
+        let he = await strategy.hedgeExchanger();
+        console.log(`hedgheExchanger: ${he}`);
+        let diamondStrategy = await ethers.getContractAt(DIAMOND_STRATEGY, he, wallet);
 
         if (await diamondStrategy.hasRole(Roles.DEFAULT_ADMIN_ROLE, wallet.address)) {
             await (await diamondStrategy.setDepositor(strategy.address));
@@ -390,7 +395,7 @@ async function getERC721(name, wallet) {
 
 async function getERC20ByAddress(address, wallet) {
 
-    console.log("address in getERC20ByAddress: ", address);
+    // console.log("address in getERC20ByAddress: ", address);
 
     let ethers = hre.ethers;
 
@@ -422,7 +427,10 @@ async function getCoreAsset(stand = process.env.STAND) {
     } else if (stand === 'base') {
         return await getERC20('usdc');
 
-    } else if (stand === 'arbitrum_eth') {
+    } else if (stand === 'base_ovn') {
+        return await getERC20('ovn');
+    }
+    else if (stand === 'arbitrum_eth') {
         return await getERC20('weth');
 
     } else if (stand === 'base_usdc') {
@@ -569,7 +577,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
     }
 
 
-    let strategiesMapping = await getStrategyMapping();
+    // let strategiesMapping = await getStrategyMapping();
 
     let sum = 0;
 
@@ -582,11 +590,11 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
             continue;
         }
 
-        let mapping = strategiesMapping.find(value => value.address === asset.strategy);
+        // let mapping = strategiesMapping.find(value => value.address === asset.strategy);
 
         items.push(
             {
-                name: mapping ? mapping.name : asset.strategy,
+                name: asset.strategy,
                 netAssetValue: fromAsset(asset.netAssetValue.toString(), stand),
                 liquidationValue: fromAsset(asset.liquidationValue.toString(), stand),
                 targetWeight: weight.targetWeight.toNumber() / 1000,
@@ -609,10 +617,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
         console.log('Total USD+: ' + totalUsdPlus);
         console.log('Difference is: ', totalUsdPlus - fromAsset(totalNetAssets.toString(), stand));
     }
-
 }
-
-
 
 async function getPrice() {
     let params = { gasPrice: "1000000000", gasLimit: "30000000" };
@@ -628,7 +633,7 @@ async function getPrice() {
         params = { gasPrice: "10000000", gasLimit: "25000000" }; // todo
     } else if (process.env.ETH_NETWORK === 'ZKSYNC') {
         let { maxFeePerGas, maxPriorityFeePerGas } = await ethers.provider.getFeeData();
-        return { maxFeePerGas, maxPriorityFeePerGas, gasLimit: 200000000 }
+        return { maxFeePerGas, maxPriorityFeePerGas, gasLimit: 30000000 }
     } else if (process.env.ETH_NETWORK === 'BASE') {
         let gasPrice = await ethers.provider.getGasPrice();
         let percentage = gasPrice.mul(BigNumber.from('50')).div(100);
@@ -642,6 +647,89 @@ async function getPrice() {
     }
 
     return params;
+}
+
+
+async function getPrice2() {
+
+    let network = process.env.ETH_NETWORK;
+    
+    const ChainIds = {
+        'ARBITRUM': '42161',
+        'BASE': '8453',
+        'BLAST': '81457',
+        'BSC': '56',
+        'ETHEREUM': '1',
+        'LINEA': '59144',
+        'MODE': '34443',
+        'OPTIMISM': '10',
+        'POLYGON': '137',
+        'ZKSYNC': '324'
+    };
+    
+    const GasLimits = {
+        'ARBITRUM': '25000000',
+        'BASE': '30000000',
+        'BLAST': '25000000',
+        'ETHEREUM': '30000000',
+        'LINEA': '20000000',
+        'MODE': '30000000',
+        'OPTIMISM': '20000000',
+        'POLYGON': '30000000',
+        'ZKSYNC': '30000000',
+        'BSC': '15000000'
+    }
+    
+    if (network === 'BSC') {
+        return {
+            gasPrice: '3000000000',
+            gasLimit: GasLimits[network]
+        }
+    }
+
+    try {
+        const response = await fetch(`https://api.blocknative.com/gasprices/blockprices?chainid=${ChainIds[network]}&confidenceLevels=99`, {
+            method: 'GET',
+            headers: {
+                'Authorization': process.env.BLOCKNATIVE_API_KEY
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        const gasData = {
+            network: data.system,
+            maxPrice: data.maxPrice,
+            currentBlockNumber: data.currentBlockNumber,
+            msSinceLastBlock: data.msSinceLastBlock,
+            blockNumber2: data.blockPrices[0].blockNumber,
+            estimatedTransactionCount: data.blockPrices[0].estimatedTransactionCount,
+            baseFeePerGas: data.blockPrices[0].baseFeePerGas,
+            confidence: data.blockPrices[0].estimatedPrices[0].confidence,
+            price: data.blockPrices[0].estimatedPrices[0].price,
+            maxPriorityFeePerGas: data.blockPrices[0].estimatedPrices[0].maxPriorityFeePerGas,
+            maxFeePerGas: data.blockPrices[0].estimatedPrices[0].maxFeePerGas,
+        };
+
+        const gasPrice = {
+            maxPriorityFeePerGas: Math.round(gasData.maxPriorityFeePerGas * 1e9).toString(),
+            maxFeePerGas: Math.round(gasData.maxFeePerGas * 1e9).toString(),
+            // price: Math.round(gasData.price * 1e9).toString(),
+            // maxPriorityFeePerGasNmb: gasData.maxPriorityFeePerGas,
+            // maxFeePerGasNmb: gasData.maxFeePerGas,
+            // priceNmb: gasData.price,
+            gasLimit: GasLimits[network]
+        }
+
+        return gasPrice;
+    } catch (error) {
+        console.error('Error fetching gas prices:', error);
+        throw error;
+    }
 }
 
 
@@ -839,26 +927,14 @@ async function getDevWallet() {
 
 
 async function transferETH(amount, to) {
-    if (((hre.ovn && hre.ovn.stand) || process.env.STAND).startsWith('zksync')) {
-        let provider = new Provider("http://localhost:8545"); //8011
-        let wallet = new Wallet('0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110', provider, hre.ethers.provider);
-        console.log(`Balance [${fromE18(await provider.getBalance(wallet.address))}]:`);
-
-        await wallet.transfer({
-            to: to,
-            token: '0x0000000000000000000000000000000000000000',
-            amount: ethers.utils.parseEther(amount + ""),
-        });
-    } else {
-        let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
-        let walletWithProvider = new ethers.Wallet(privateKey, hre.ethers.provider);
-
-        // вернул как было. у меня не работала почему-то твоя версия
-        await walletWithProvider.sendTransaction({
-            to: to,
-            value: ethers.utils.parseEther(amount + "")
-        });
-    }
+    
+    let privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // Ganache key
+    let walletWithProvider = new ethers.Wallet(privateKey, hre.ethers.provider);
+    
+    await walletWithProvider.sendTransaction({
+        to: to,
+        value: ethers.utils.parseEther(amount + "")
+    });
 
     console.log(`[Node] Transfer ETH [${fromE18(await hre.ethers.provider.getBalance(to))}] to [${to}]`);
 }
@@ -928,7 +1004,8 @@ async function transferAsset(assetAddress, to, amount) {
                     from = '0x4bb6b2efe7036020ba6f02a05602546c9f25bf28';
                     break;
                 case BASE.usdc:
-                    from = '0x3304E22DDaa22bCdC5fCa2269b418046aE7b566A';
+                    // from = '0x3304E22DDaa22bCdC5fCa2269b418046aE7b566A';
+                    from = '0x425fc782110110e2aFD2677e3C91EA77Fd7e0A47';
                     break;
                 case BASE.dai:
                     from = '0x428AB2BA90Eba0a4Be7aF34C9Ac451ab061AC010';
@@ -959,7 +1036,7 @@ async function transferAsset(assetAddress, to, amount) {
                     break
 
                 case BASE.usdcPlus:
-                    from = '0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46';
+                    from = '0xe497285e466227f4e8648209e34b465daa1f90a0';
                     break
 
                 default:
@@ -1054,7 +1131,10 @@ async function transferAsset(assetAddress, to, amount) {
         case "BLAST":
             switch (assetAddress) {
                 case BLAST.usdb:
-                    from = '0x15c59df002950e3b7e287de9c0c91aa63e8d9937';
+                    from = '0x236F233dBf78341d25fB0F1bD14cb2bA4b8a777c';
+                    break;
+                case BLAST.fnx:
+                    from = '0x1Ab7C6aD635d99C9637E08a95290a21d677501de';
                     break;
                 default:
                     throw new Error('Unknown asset address');
@@ -1081,6 +1161,13 @@ async function transferAsset(assetAddress, to, amount) {
         params: [from],
     });
 
+
+    console.log("DEBUG: asset =", asset.address);
+
+    console.log("DEBUG: address =", from);
+    let amountFrom = await asset.balanceOf(from);
+
+    console.log("DEBUG: balance =", amountFrom);
     let account = await hre.ethers.getSigner(from);
 
     if (!amount) {
@@ -1334,6 +1421,7 @@ module.exports = {
     transferAsset: transferAsset,
     showM2M: showM2M,
     getPrice: getPrice,
+    getPrice2: getPrice2,
     getContract: getContract,
     findEvent: findEvent,
     getContractByAddress: getContractByAddress,

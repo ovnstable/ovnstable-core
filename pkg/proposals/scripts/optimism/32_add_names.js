@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const { getContract } = require("@overnight-contracts/common/utils/script-utils");
-const { createProposal, testProposal } = require("@overnight-contracts/common/utils/governance");
+const { createProposal, testProposal, testUsdPlus } = require("@overnight-contracts/common/utils/governance");
 
 const path = require('path');
 
@@ -13,20 +13,19 @@ async function main() {
     let abis = [];
 
     let pm = await getContract('PortfolioManager', 'optimism');
-    let timelock = await getContract('AgentTimelock', 'optimism');
-    let rm = await getContract('RoleManager', 'optimism');
 
     const StrategyAave = await getContract('StrategyAave', 'optimism');
-    const newAaveImpl = "0xEAEd84c2676F76760b9354153546484F488Fd9A6";
+    const newAaveImpl = "0x1236f2Bae307d9EFa1b055C2577613e07b1aaFa9";
 
     addProposalItem(StrategyAave, "upgradeTo", [newAaveImpl]);
 
-    addProposalItem(StrategyAave, 'setStrategyParams', [pm.address, rm.address, "AAVE"]);
+    // addProposalItem(StrategyAave, "setSlippages", [1n, 1n, 1n]);
+    addProposalItem(StrategyAave, "setStrategyName", ["AAVE"]);
 
-    addProposalItem(pm, 'upgradeTo', ['0x80212Fc2baa3782eC0B5384fFe6E1ED8306340b0']);
-
+    addProposalItem(pm, "upgradeTo", ["0x80212Fc2baa3782eC0B5384fFe6E1ED8306340b0"]);
 
     // await testProposal(addresses, values, abis);
+    // await testUsdPlus(filename, 'optimism');
 
     await createProposal(filename, addresses, values, abis);
 

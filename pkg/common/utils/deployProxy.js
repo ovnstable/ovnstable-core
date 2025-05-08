@@ -129,10 +129,10 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
     const contractFactory = await ethers.getContractFactory(factoryName, factoryOptions);
 
     // uncomment for force import
-    //    let proxyAddress = '';
-    //    await upgrades.forceImport(proxyAddress, contractFactory, {
-    //        kind: 'uups',
-    //    });
+    // let proxyAddress = '0x73cb180bf0521828d8849bc8CF2B920918e23032';
+    // await upgrades.forceImport(proxyAddress, contractFactory, {
+    //     kind: 'uups',
+    // });
 
     let proxy;
     try {
@@ -157,17 +157,20 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         // Deploy a new implementation and upgradeProxy to new;
         // You need have permission for role UPGRADER_ROLE;
         // , gasPrice: parseEther(0.005), gasLimit: 30000000
+
+        let wallet = initWallet();
+
         try {
-            impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: "always" });
+            impl = await upgrades.upgradeProxy(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: 'always' });
         } catch (e) {
             console.log(e);
-            impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: "always" });
+            impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow, redeployImplementation: 'always' });
         }
         implAddress = await getImplementationAddress(ethers.provider, proxy.address);
         console.log(`Deploy ${contractName} Impl done -> proxy [` + proxy.address + '] impl [' + implAddress + ']');
     } else {
-        //Deploy only a new implementation without call upgradeTo
-        //For system with Governance
+        // Deploy only a new implementation without call upgradeTo
+        // For system with Governance
         console.log('Try to deploy impl ...');
 
         // impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow });
@@ -177,7 +180,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
             {
                 kind: 'uups',
                 unsafeAllow: unsafeAllow,
-                redeployImplementation: "always"
+                redeployImplementation: 'always',
                 // unsafeSkipStorageCheck: true,
                 // unsafeAllowRenames: true
             },

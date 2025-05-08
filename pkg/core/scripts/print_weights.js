@@ -1,4 +1,4 @@
-const { getContract, getStrategyMapping, getStrategy } = require("@overnight-contracts/common/utils/script-utils");
+const { getContract, getStrategyMapping } = require("@overnight-contracts/common/utils/script-utils");
 const { createProposal } = require("@overnight-contracts/common/utils/governance");
 
 async function main() {
@@ -17,7 +17,7 @@ async function main() {
 
         let item = {
             "strategy": weight.weight.strategy,
-            "name": weight.name,
+            "name": weight.name ? weight.name : 'Not found',
             "minWeight": weight.weight.minWeight / 1000,
             "targetWeight": weight.weight.targetWeight / 1000,
             "riskFactor": weight.weight.riskFactor / 1000,
@@ -39,4 +39,3 @@ main()
         console.error(error);
         process.exit(1);
     });
-

@@ -32,7 +32,7 @@ async function main() {
         network = process.env.STAND;
     }
 
-    let name = "12_fix_negative_rebase";
+    let name = "57_upgrade_aerodrome_swap";
     let batch = JSON.parse(
         await fs.readFileSync(`./batches/${network}/${name}.json`),
     );
