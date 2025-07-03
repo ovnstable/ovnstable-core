@@ -15,14 +15,12 @@ async function main() {
 
     let usdc = await getERC20('usdcCircle');
 
-    await usdc.approve(bebopVault.address, toE6(10));
-
     // --- deposit
 
     let balanceWallet = await usdc.balanceOf(wallet.address);
     console.log('balanceWallet1', balanceWallet.toString());
 
-    await bebopVault.depositERC20(ARBITRUM.usdcCircle, toE6(10));
+    await usdc.connect(wallet).transfer(bebopVault.address, toE6(10));
 
     let balanceVault = await bebopVault.getERC20Balance(ARBITRUM.usdcCircle);
     console.log('balanceVault', balanceVault.toString());

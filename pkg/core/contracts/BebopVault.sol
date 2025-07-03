@@ -7,13 +7,12 @@ import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
-import "./interfaces/IRoleManager.sol";
+import './interfaces/IRoleManager.sol';
 
-contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable, PausableUpgradeable {
+contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable {
     using Address for address payable;
     using SafeERC20 for IERC20;
-    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
+    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256('PORTFOLIO_AGENT_ROLE');
 
     // ---  fields
 
@@ -40,7 +39,7 @@ contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable,
     }
 
     modifier onlyPortfolioAgent() {
-        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), "Restricted to Portfolio Agent");
+        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), 'Restricted to Portfolio Agent');
         _;
     }
 
@@ -60,7 +59,6 @@ contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable,
 
     function initialize() public initializer {
         __AccessControl_init();
-        __Pausable_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -70,31 +68,18 @@ contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable,
 
     // --- contract logic
 
-    function pause() public onlyAdmin {
-        _pause();
-    }
-
-    function unpause() public onlyAdmin {
-        _unpause();
-    }
-
-    function addWithdrawer(address withdrawer) external whenNotPaused onlyAdmin {
+    function addWithdrawer(address withdrawer) external onlyAdmin {
         require(withdrawer != address(0), 'Zero address');
         allowedWithdrawers[withdrawer] = true;
         emit WithdrawerAdded(withdrawer);
     }
 
-    function removeWithdrawer(address withdrawer) external whenNotPaused onlyAdmin {
+    function removeWithdrawer(address withdrawer) external onlyAdmin {
         allowedWithdrawers[withdrawer] = false;
         emit WithdrawerRemoved(withdrawer);
     }
 
-    function depositERC20(address token, uint256 amount) external whenNotPaused {
-        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-        emit ERC20Deposited(token, msg.sender, amount);
-    }
-
-    function withdrawERC20(address token, address to, uint256 amount) external whenNotPaused onlyAllowedWithdrawer {
+    function withdrawERC20(address token, address to, uint256 amount) external onlyAllowedWithdrawer {
         IERC20(token).safeTransfer(to, amount);
         emit ERC20Withdrawn(token, to, amount);
     }
@@ -103,7 +88,7 @@ contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable,
         return IERC20(token).balanceOf(address(this));
     }
 
-    function approveERC20(address token, address spender, uint256 amount) external whenNotPaused onlyPortfolioAgent {
+    function approveERC20(address token, address spender, uint256 amount) external onlyAdmin {
         require(spender != address(0), 'Invalid spender');
         require(token != address(0), 'Invalid token');
 
