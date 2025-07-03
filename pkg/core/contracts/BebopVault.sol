@@ -12,12 +12,10 @@ import './interfaces/IRoleManager.sol';
 contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable {
     using Address for address payable;
     using SafeERC20 for IERC20;
-    bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256('PORTFOLIO_AGENT_ROLE');
 
     // ---  fields
 
     mapping(address => bool) public allowedWithdrawers;
-    IRoleManager public roleManager;
 
     // ---  events
 
@@ -36,18 +34,6 @@ contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable 
     modifier onlyAllowedWithdrawer() {
         require(allowedWithdrawers[msg.sender], 'Not allowed withdrawer');
         _;
-    }
-
-    modifier onlyPortfolioAgent() {
-        require(roleManager.hasRole(PORTFOLIO_AGENT_ROLE, msg.sender), 'Restricted to Portfolio Agent');
-        _;
-    }
-
-    // --- setters
-
-    function setVaultParams(address _roleManager) public onlyAdmin {
-        require(_roleManager != address(0), 'Zero address');
-        roleManager = IRoleManager(_roleManager);
     }
 
     // ---  constructor
@@ -79,16 +65,16 @@ contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable 
         emit WithdrawerRemoved(withdrawer);
     }
 
-    function withdrawERC20(address token, address to, uint256 amount) external onlyAllowedWithdrawer {
-        IERC20(token).safeTransfer(to, amount);
-        emit ERC20Withdrawn(token, to, amount);
+    function withdrawERC20(address token, uint256 amount) external onlyAllowedWithdrawer {
+        IERC20(token).safeTransfer(msg.sender, amount);
+        emit ERC20Withdrawn(token, msg.sender, amount);
     }
 
     function getERC20Balance(address token) external view returns (uint256) {
         return IERC20(token).balanceOf(address(this));
     }
 
-    function approveERC20(address token, address spender, uint256 amount) external onlyPortfolioAgent {
+    function approveERC20(address token, address spender, uint256 amount) external onlyAdmin {
         require(spender != address(0), 'Invalid spender');
         require(token != address(0), 'Invalid token');
 
