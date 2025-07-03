@@ -88,7 +88,7 @@ contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable 
         return IERC20(token).balanceOf(address(this));
     }
 
-    function approveERC20(address token, address spender, uint256 amount) external onlyAdmin {
+    function approveERC20(address token, address spender, uint256 amount) external onlyPortfolioAgent {
         require(spender != address(0), 'Invalid spender');
         require(token != address(0), 'Invalid token');
 
