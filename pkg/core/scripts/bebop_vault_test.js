@@ -9,8 +9,6 @@ async function main() {
 
     let bebopVault = await getContract('BebopVault', 'localhost');
 
-    await bebopVault.setVaultParams('0xD9F74C70c28bba1d9dB0c44c5a2651cBEB45f3BA');
-
     await bebopVault.addWithdrawer(wallet.address);
 
     let usdc = await getERC20('usdcCircle');
@@ -18,25 +16,28 @@ async function main() {
     // --- deposit
 
     let balanceWallet = await usdc.balanceOf(wallet.address);
-    console.log('balanceWallet1', balanceWallet.toString());
-
-    await usdc.connect(wallet).transfer(bebopVault.address, toE6(10));
+    console.log('balanceWallet before deposit', balanceWallet.toString());
 
     let balanceVault = await bebopVault.getERC20Balance(ARBITRUM.usdcCircle);
-    console.log('balanceVault', balanceVault.toString());
+    console.log('balanceVault before deposit', balanceVault.toString());
+
+    await usdc.connect(wallet).transfer(bebopVault.address, toE6(11));
 
     balanceWallet = await usdc.balanceOf(wallet.address);
-    console.log('balanceWallet2', balanceWallet.toString());
+    console.log('balanceWallet after deposit', balanceWallet.toString());
+
+    balanceVault = await bebopVault.getERC20Balance(ARBITRUM.usdcCircle);
+    console.log('balanceVault after deposit', balanceVault.toString());
 
     // --- withdraw
 
-    await bebopVault.withdrawERC20(ARBITRUM.usdcCircle, wallet.address, toE6(10));
-
-    balanceVault = await bebopVault.getERC20Balance(ARBITRUM.usdcCircle);
-    console.log('balanceVault2', balanceVault.toString());
+    await bebopVault.withdrawERC20(ARBITRUM.usdcCircle, toE6(10));
 
     balanceWallet = await usdc.balanceOf(wallet.address);
-    console.log('balanceWallet3', balanceWallet.toString());
+    console.log('balanceWallet after withdraw', balanceWallet.toString());
+
+    balanceVault = await bebopVault.getERC20Balance(ARBITRUM.usdcCircle);
+    console.log('balanceVault after withdraw', balanceVault.toString());
 
     // --- approve
 
