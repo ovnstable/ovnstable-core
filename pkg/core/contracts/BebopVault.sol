@@ -7,6 +7,7 @@ import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol';
+import '@overnight-contracts/connectors/contracts/stuff/BebopSettlement.sol';
 import './interfaces/IRoleManager.sol';
 
 contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable {
@@ -16,6 +17,7 @@ contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable 
     // ---  fields
 
     mapping(address => bool) public allowedWithdrawers;
+    address public bebopSettlement;
 
     // ---  events
 
@@ -34,6 +36,13 @@ contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable 
     modifier onlyAllowedWithdrawer() {
         require(allowedWithdrawers[msg.sender], 'Not allowed withdrawer');
         _;
+    }
+
+    // ---  setters
+
+    function setBebopSettlement(address _bebopSettlement) external onlyAdmin {
+        require(_bebopSettlement != address(0), 'Invalid bebop settlement');
+        bebopSettlement = _bebopSettlement;
     }
 
     // ---  constructor
@@ -83,5 +92,11 @@ contract BebopVault is Initializable, UUPSUpgradeable, AccessControlUpgradeable 
             erc20.safeApprove(spender, 0);
         }
         erc20.safeApprove(spender, amount);
+    }
+
+    function registerOrderSigner(address signer, bool allowed) external onlyAdmin {
+        require(signer != address(0), 'Invalid signer');
+        
+        IBebopSettlement(bebopSettlement).registerAllowedOrderSigner(signer, allowed);
     }
 }

@@ -107,6 +107,9 @@ let BASE = {
     uniswapNpm: "0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1",
 
     pancakeMasterChef: "0xC6A2Db661D5a5690172d8eB0a7DEA2d3008665A3",
+
+    // bebop
+    bebopSettlement: "0xbbbbbBB520d69a9775E85b458C58c648259FAD5F",
 };
 
 let LINEA = {
@@ -267,7 +270,10 @@ let ARBITRUM = {
     wombatBasePool: "0xc6bc781E20f9323012F6e422bdf552Ff06bA6CD1",
     wombatOvnPool: "0xCF20fDA54e37f3fB456930f02fb07FccF49e4849",
 
-    pancakeMasterChef: "0x5e09ACf80C0296740eC5d6F643005a4ef8DaA694"
+    pancakeMasterChef: "0x5e09ACf80C0296740eC5d6F643005a4ef8DaA694",
+
+    // bebop
+    bebopSettlement: "0xbbbbbBB520d69a9775E85b458C58c648259FAD5F",
 }
 
 let BSC = {

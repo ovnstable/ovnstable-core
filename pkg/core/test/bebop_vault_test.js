@@ -9,6 +9,10 @@ async function main() {
 
     let bebopVault = await getContract('BebopVault', 'localhost');
 
+    let bebopSettlement = await bebopVault.bebopSettlement();
+
+    console.log('bebopSettlement', bebopSettlement);
+
     await bebopVault.addWithdrawer(wallet.address);
 
     let usdc = await getERC20('usdcCircle');
