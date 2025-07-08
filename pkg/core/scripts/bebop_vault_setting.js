@@ -18,6 +18,10 @@ async function main() {
     let xusd = await getERC20('usdPlus');
     let weth = await getERC20('weth');
 
+    console.log('usdt', usdt.address);
+    console.log('xusd', xusd.address);
+    console.log('weth', weth.address);
+
     // --- approve
 
     let uint256max = 2n ** 256n - 1n;

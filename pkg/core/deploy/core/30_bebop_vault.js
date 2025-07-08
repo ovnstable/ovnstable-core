@@ -1,5 +1,5 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
-const { BASE } = require("@overnight-contracts/common/utils/assets");
+const { COMMON } = require("@overnight-contracts/common/utils/assets");
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
@@ -13,7 +13,7 @@ module.exports = async ({deployments}) => {
 };
 
 async function getParams() {
-    return BASE.bebopSettlement;
+    return COMMON.bebopSettlement;
 }
 
 module.exports.tags = ['BebopVault'];
