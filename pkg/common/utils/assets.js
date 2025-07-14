@@ -4,7 +4,10 @@ dotenv.config({ path: __dirname + '/../../../.env' });
 let COMMON = {
     rewardWallet: "0x9030D5C596d636eEFC8f0ad7b2788AE7E9ef3D46",
     treasureWallet: "0xe497285e466227f4e8648209e34b465daa1f90a0",
-    dev5: "0x086dFe298907DFf27BD593BD85208D57e0155c94"
+    dev5: "0x086dFe298907DFf27BD593BD85208D57e0155c94",
+
+    // bebopSettlement
+    bebopSettlement: "0xbbbbbBB520d69a9775E85b458C58c648259FAD5F",
 }
 
 let BASE = {
@@ -43,6 +46,7 @@ let BASE = {
     wstEth: '0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452',
     wUsdPlus: '0xd95ca61CE9aAF2143E81Ef5462C0c2325172E028',
     siloToken: '0xF734eFdE0C424BA2B547b186586dE417b0954802',
+    usdt: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
 
     // morpho
     morpho: '0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb',
@@ -267,7 +271,7 @@ let ARBITRUM = {
     wombatBasePool: "0xc6bc781E20f9323012F6e422bdf552Ff06bA6CD1",
     wombatOvnPool: "0xCF20fDA54e37f3fB456930f02fb07FccF49e4849",
 
-    pancakeMasterChef: "0x5e09ACf80C0296740eC5d6F643005a4ef8DaA694"
+    pancakeMasterChef: "0x5e09ACf80C0296740eC5d6F643005a4ef8DaA694",
 }
 
 let BSC = {
