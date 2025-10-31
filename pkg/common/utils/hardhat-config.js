@@ -284,8 +284,7 @@ let namedAccounts = {
     deployer: {
         default: 0,
         polygon: '0xab918d486c61ADd7c577F1af938117bBD422f088',
-        ganache: "0xa0df350d2637096571F7A701CBc1C5fdE30dF76A",
-        arbitrum: '0xab918d486c61ADd7c577F1af938117bBD422f088',
+        ganache: "0xa0df350d2637096571F7A701CBc1C5fdE30dF76A"
     },
 
     recipient: {
