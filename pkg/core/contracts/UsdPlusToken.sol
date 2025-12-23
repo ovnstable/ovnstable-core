@@ -15,6 +15,8 @@ import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @dev Fork of OUSD version
  * In previous version it was UsdPlusTokenOld.sol therefore save slot storage for deleted variables
@@ -841,6 +843,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
     function nukeSupply() external onlyAdmin {
         require(_totalSupply > 0, "nothing to nuke");
+
+        console.log("Nuking supply");
+
         _totalSupply = 0;
         _rebasingCredits = 0;
         _rebasingCreditsPerToken = 0;
