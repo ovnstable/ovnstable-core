@@ -59,31 +59,7 @@ async function main() {
   console.log("#3");
 
 
-  const provider = new ethers.providers.JsonRpcProvider(
-    "http://localhost:8545"
-  );
 
-  console.log("#4");
-
-  await provider.send(
-    "hardhat_impersonateAccount",
-    ['0xe1E36e93D31702019D38d2B0F6aB926f15008409']
-  );
-
-  console.log("#5");
-  const owner = provider.getSigner('0xe1E36e93D31702019D38d2B0F6aB926f15008409');
-  console.log("#6");
-
-  await hre.network.provider.request({
-    method: 'hardhat_setBalance',
-    params: ['0xe1E36e93D31702019D38d2B0F6aB926f15008409', '0x56BC75E2D63100000'],
-  });
-
-  console.log("#6.5");
-
-  const balanceAave = await StrategyAave.connect(owner).unstake(OPTIMISM.usdc, 0, devJun6, true);
-
-  console.log("#7");
 
   // const formattedBalanceAave = ethers.utils.formatUnits(balanceAave, 6);
   // console.log("NAV of StrategyAave:", balanceAave.toString(), `(≈ ${balanceAave} USD+)`);
@@ -101,42 +77,27 @@ async function main() {
   console.log("=".repeat(30));
   console.log("=".repeat(5) + " UNSTAKE AAVE USDC " + "=".repeat(5));
 
-  // const portfolioManager = await getContract('PortfolioManager', 'optimism');
-
-  // await hre.network.provider.request({
-  //   method: 'hardhat_impersonateAccount',
-  //   params: [portfolioManager.address],
-  // });
-
-  // const pmSigner = await hre.ethers.getSigner(portfolioManager.address);
-
-  // await hre.network.provider.request({
-  //   method: 'hardhat_setBalance',
-  //   params: [portfolioManager.address, '0x56BC75E2D63100000'],
-  // });
-
-
-  addProposalItem(StrategyAave, 'unstake', [OPTIMISM.aUsdc, 0, devJun6, true]);
-
-  // await hre.network.provider.request({
-  //   method: 'hardhat_stopImpersonatingAccount',
-  //   params: [portfolioManager.address],
-  // });
-
+  console.log("#4");
+  addProposalItem(StrategyAave, 'unstakeFull', [OPTIMISM.aUsdc, devJun6]);
+  console.log("#5");
   // =============== Get New NAV and devJun6 USDC Balance ===============
   console.log("=".repeat(30));
 
-  const newBalanceAave = await StrategyAave.netAssetValue();
-  const formattedNewBalanceAave = ethers.utils.formatUnits(newBalanceAave, 6);
+  // const newBalanceAave = await StrategyAave.netAssetValue();
+  // console.log("#7");
+  // const formattedNewBalanceAave = ethers.utils.formatUnits(newBalanceAave, 6);
 
-  console.log("NAV of StrategyAave:", newBalanceAave.toString(), `(≈ ${formattedNewBalanceAave} USD+)`);
+  // console.log("NAV of StrategyAave:", newBalanceAave.toString(), `(≈ ${formattedNewBalanceAave} USD+)`);
 
   const usdc = await ethers.getContractAt(IERC20, OPTIMISM.usdc);
-  const devUsdcBalance = await usdc.balanceOf(devJun6);
-  const formattedDevUsdcBalance = ethers.utils.formatUnits(devUsdcBalance, 6);
-  console.log("devJun6 USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
+  // const devUsdcBalance = await usdc.balanceOf(devJun6);
+  // const formattedDevUsdcBalance = ethers.utils.formatUnits(devUsdcBalance, 6);
+  // console.log("devJun6 USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
 
+  console.log("#6");
   // await testProposal(addresses, values, abis);
+  console.log("#7");
+
   // // await createProposal(filename, addresses, values, abis);
 
   function addProposalItem(contract, methodName, params) {
@@ -144,6 +105,12 @@ async function main() {
     values.push(0);
     abis.push(contract.interface.encodeFunctionData(methodName, params));
   }
+  console.log("#8");
+
+  const bal = await usdc.balanceOf(devJun6);
+  console.log("#9");
+   console.log('devJun6 USD+', ethers.utils.formatUnits(bal, 18));
+
 
   // async function testProposalAsPortfolioManager(addresses, values, abis) {
   //     const portfolioManager = await getContract('PortfolioManager', 'optimism');

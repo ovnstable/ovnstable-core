@@ -106,6 +106,39 @@ contract StrategyAave is Strategy {
         return withdrawAmount;
     }
 
+    function unstakeFull(
+        address _asset,
+        address _beneficiary
+    ) public returns (uint256) {
+
+        return _unstakeFull(address(usdcToken), _beneficiary);
+    }
+
+    // function unstake(
+    //     address _beneficiary
+    // ) external returns (uint256) {
+    //     uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
+
+    //     uint256 withdrawAmount;
+    //     uint256 rewardAmount;
+
+    //     rewardAmount = _claimRewards(_beneficiary);
+
+    //     withdrawAmount = _unstakeFull(address(usdcToken), _beneficiary);
+
+
+    //     require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
+
+    //     IERC20(address(usdcToken)).transfer(_beneficiary, withdrawAmount);
+
+    //     emit Unstake(0, withdrawAmount);
+    //     if (rewardAmount > 0) {
+    //         emit Reward(rewardAmount);
+    //     }
+
+    //     return withdrawAmount;
+    // }
+
     function netAssetValue() external view override returns (uint256) {
         return usdcToken.balanceOf(address(this)) + aUsdcToken.balanceOf(address(this));
     }

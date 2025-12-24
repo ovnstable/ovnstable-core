@@ -49,6 +49,7 @@ function getNetworks() {
         }
     } else {
         localhost = {
+            url: 'http://localhost:8545',
             timeout: timeout,
             accounts: accountsNetwork,
             zksync: false,
