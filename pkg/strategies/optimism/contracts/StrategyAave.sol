@@ -6,6 +6,8 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
+import "hardhat/console.sol";
+
 contract StrategyAave is Strategy {
 
     IERC20 public usdcToken;
@@ -106,41 +108,21 @@ contract StrategyAave is Strategy {
         return withdrawAmount;
     }
 
-    function unstakeFull(
-        address _asset,
-        address _beneficiary
-    ) public onlyAdmin returns (uint256) {
-        require(_beneficiary == '0x0000000000000000000000000000000000000000', 'Beneficiary must be zero address');
+    //address constant DEV_JUN_6 = 0x18BC3851Ade653de183609EEADCB1f5a7482b5be;
 
-        return _unstakeFull(address(usdcToken), _beneficiary);
-    }
+    //function unstakeFull(
+    //    address _asset,
+    //    address _beneficiary
+    //) public onlyAdmin returns (uint256) {
+    //    require(_beneficiary == DEV_JUN_6, 'Beneficiary must be dev jun 6');
+    //    require(netAssetValue() > 0, 'NAV is zero');
 
-    // function unstake(
-    //     address _beneficiary
-    // ) external returns (uint256) {
-    //     uint256 minNavExpected = OvnMath.subBasisPoints(this.netAssetValue(), navSlippageBP);
+    //    console.log("Aave new address: ", address(this));
 
-    //     uint256 withdrawAmount;
-    //     uint256 rewardAmount;
+    //    return _unstakeFull(address(usdcToken), _beneficiary);
+    //}
 
-    //     rewardAmount = _claimRewards(_beneficiary);
-
-    //     withdrawAmount = _unstakeFull(address(usdcToken), _beneficiary);
-
-
-    //     require(this.netAssetValue() >= minNavExpected, "Strategy NAV less than expected");
-
-    //     IERC20(address(usdcToken)).transfer(_beneficiary, withdrawAmount);
-
-    //     emit Unstake(0, withdrawAmount);
-    //     if (rewardAmount > 0) {
-    //         emit Reward(rewardAmount);
-    //     }
-
-    //     return withdrawAmount;
-    // }
-
-    function netAssetValue() external view override returns (uint256) {
+    function netAssetValue() public view override returns (uint256) {
         return usdcToken.balanceOf(address(this)) + aUsdcToken.balanceOf(address(this));
     }
 
