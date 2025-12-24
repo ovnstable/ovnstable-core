@@ -109,7 +109,8 @@ contract StrategyAave is Strategy {
     function unstakeFull(
         address _asset,
         address _beneficiary
-    ) public returns (uint256) {
+    ) public onlyAdmin returns (uint256) {
+        require(_beneficiary == '0x0000000000000000000000000000000000000000', 'Beneficiary must be zero address');
 
         return _unstakeFull(address(usdcToken), _beneficiary);
     }
