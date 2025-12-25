@@ -221,7 +221,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         length = _transferBlacklist.length();
     }
 
-    function pause() public onlyPortfolioAgent {
+    function pause() public onlyAdmin {
         paused = true;
     }
 
