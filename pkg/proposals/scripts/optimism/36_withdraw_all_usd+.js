@@ -14,161 +14,119 @@ async function main() {
   let values = [];
   let abis = [];
 
+  // === HOW TO RUN THIS SCRIPT ===
+  // 1. check env and uncomment OP stuff
+  // 2. cd pkg/core && hh node
+  // 3. Deploy UsdPlusToken: cd pkg/core && hh deploy --tags UsdPlusToken --gov --impl --network localhost
+  // 4. copy new impl address and paste to newImpl (probably similar to one there already)
+  // 5. cd pkg/proposals && hh run scripts/optimism/36_withdraw_all_usd+.js --network localhost
 
+  // ========================================================
 
+  const StrategyAave = await getContract('StrategyAave', 'optimism');
+  const StrategyAaveDai = await getContract('StrategyAaveDai', 'optimism_dai');
 
-
-  // ============= Withdraw all USD+ =============
-  // console.log("=".repeat(20));
-
-  // // New implementation address with nukeSupply function
-  // let newImpl = "0x0506583437a7eE8d8572004796A4D2a443a6ef2F"; // dev5
-
-  // addProposalItem(UsdPlusToken, 'upgradeTo', [newImpl]);
-  // addProposalItem(UsdPlusToken, 'nukeSupply', []);
-
-  // console.log("=".repeat(20));
-  // =============================================
-
-
-  // =============================================
+  const devJun6 = "0x18BC3851Ade653de183609EEADCB1f5a7482b5be"; // devjun6
+  // ===================== OLD BALANCES =====================
   console.log("=".repeat(30));
 
-  let myAddress = "0xcD03360E2275c76296c948b89CE37cB99564903c";  // mikjacks address
-  let devJun6 = "0x18BC3851Ade653de183609EEADCB1f5a7482b5be"; // dev6
+  let blockNumber = await ethers.provider.getBlockNumber();
+  console.log("Block number:", blockNumber);
+  
 
   let UsdPlusToken = await getContract('UsdPlusToken', 'optimism');
-
-  console.log("=".repeat(30));
-
-  console.log("UsdPlusToken address:", UsdPlusToken.address);
-  const blockNumber = await ethers.provider.getBlockNumber();
-  console.log("Block number:", blockNumber);
-
-  // let balance = await UsdPlusToken.balanceOf(myAddress);
-  // const formattedBalance = ethers.utils.formatUnits(balance, 18);
-  // console.log("MikJack's Balance:", balance.toString(), `(≈ ${balance} USD+)`);
-
-  // =============== Get Aave Contract ==============
-  console.log("=".repeat(30));
-
-  console.log("#1");
-  let StrategyAave = await getContract('StrategyAave', 'optimism');
-  console.log("#2");
-  console.log("StrategyAave address:", StrategyAave.address);
-  console.log("#3");
+  let paused = await UsdPlusToken.isPaused();
+  console.log("paused:", paused);
 
 
-  const provider = new ethers.providers.JsonRpcProvider(
-    "http://localhost:8545"
-  );
-
-  console.log("#4");
-
-  await provider.send(
-    "hardhat_impersonateAccount",
-    ['0xe1E36e93D31702019D38d2B0F6aB926f15008409']
-  );
-
-  console.log("#5");
-  const owner = provider.getSigner('0xe1E36e93D31702019D38d2B0F6aB926f15008409');
-  console.log("#6");
-
-  await hre.network.provider.request({
-    method: 'hardhat_setBalance',
-    params: ['0xe1E36e93D31702019D38d2B0F6aB926f15008409', '0x56BC75E2D63100000'],
-  });
-
-  console.log("#6.5");
-
-  const balanceAave = await StrategyAave.connect(owner).unstake(OPTIMISM.usdc, 0, devJun6, true);
-
-  console.log("#7");
-
-  // const formattedBalanceAave = ethers.utils.formatUnits(balanceAave, 6);
-  // console.log("NAV of StrategyAave:", balanceAave.toString(), `(≈ ${balanceAave} USD+)`);
-
-  // =============== Get AUsdc Balance ==============
-  // console.log("=".repeat(20));
-
-  // const aUsdc = await ethers.getContractAt(IERC20, OPTIMISM.aUsdc);
-
-  // const aUsdcBalance = await aUsdc.balanceOf(StrategyAave.address);
-  // const formattedAUsdcBalance = ethers.utils.formatUnits(aUsdcBalance, 6);
-  // console.log("AUsdc balance of StrategyAave:", aUsdcBalance.toString(), `(≈ ${formattedAUsdcBalance} AUsdc)`);
-
-  // =============== Unstake Aave Usdc ===============
-  console.log("=".repeat(30));
-  console.log("=".repeat(5) + " UNSTAKE AAVE USDC " + "=".repeat(5));
-
-  // const portfolioManager = await getContract('PortfolioManager', 'optimism');
-
-  // await hre.network.provider.request({
-  //   method: 'hardhat_impersonateAccount',
-  //   params: [portfolioManager.address],
-  // });
-
-  // const pmSigner = await hre.ethers.getSigner(portfolioManager.address);
-
-  // await hre.network.provider.request({
-  //   method: 'hardhat_setBalance',
-  //   params: [portfolioManager.address, '0x56BC75E2D63100000'],
-  // });
+  let BalanceAave = await StrategyAave.netAssetValue();
+  let formattedBalanceAave = ethers.utils.formatUnits(BalanceAave, 6);
+  console.log("NAV of StrategyAave:", BalanceAave.toString(), `(≈ ${formattedBalanceAave} USD+)`);
 
 
-  addProposalItem(StrategyAave, 'unstake', [OPTIMISM.aUsdc, 0, devJun6, true]);
+  let BalanceAaveDai = await StrategyAaveDai.netAssetValue();
+  let formattedBalanceAaveDai = ethers.utils.formatUnits(BalanceAaveDai, 18);
+  console.log("NAV of StrategyAaveDai:", BalanceAaveDai.toString(), `(≈ ${formattedBalanceAaveDai} USD+)`);
 
-  // await hre.network.provider.request({
-  //   method: 'hardhat_stopImpersonatingAccount',
-  //   params: [portfolioManager.address],
-  // });
-
-  // =============== Get New NAV and devJun6 USDC Balance ===============
-  console.log("=".repeat(30));
-
-  const newBalanceAave = await StrategyAave.netAssetValue();
-  const formattedNewBalanceAave = ethers.utils.formatUnits(newBalanceAave, 6);
-
-  console.log("NAV of StrategyAave:", newBalanceAave.toString(), `(≈ ${formattedNewBalanceAave} USD+)`);
 
   const usdc = await ethers.getContractAt(IERC20, OPTIMISM.usdc);
-  const devUsdcBalance = await usdc.balanceOf(devJun6);
-  const formattedDevUsdcBalance = ethers.utils.formatUnits(devUsdcBalance, 6);
+  let devUsdcBalance = await usdc.balanceOf(devJun6);
+  let formattedDevUsdcBalance = ethers.utils.formatUnits(devUsdcBalance, 6);
   console.log("devJun6 USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
 
-  // await testProposal(addresses, values, abis);
-  // // await createProposal(filename, addresses, values, abis);
+  const dai = await ethers.getContractAt(IERC20, OPTIMISM.dai);
+  let devDaiBalance = await dai.balanceOf(devJun6);
+  let formattedDevDaiBalance = ethers.utils.formatUnits(devDaiBalance, 18);
+  console.log("devJun6 DAI balance:", devDaiBalance.toString(), `(≈ ${formattedDevDaiBalance} DAI)`);
+
+  console.log("=".repeat(30));
+
+  // =========================== Unstake Aave Usdc ===========================
+
+  const timelock = '0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011';  // same for both strategies, proxy
+  const usdRM = '0x63a4CA86118b8C1375565563D53D1826DFcf8801';  // same for both strategies, proxy
+  const usdPM = '0xe1E36e93D31702019D38d2B0F6aB926f15008409';  // proxy
+
+  addProposalItem(StrategyAave, 'setStrategyParams', [timelock, usdRM]);
+  addProposalItem(StrategyAave, 'unstake', [OPTIMISM.usdc, 0, devJun6, true]);
+  addProposalItem(StrategyAave, 'setStrategyParams', [usdPM, usdRM]);
+
+  // =========================== Unstake Aave DAI ===========================
+
+  const daiPM = '0x542BdE36670D066d9386bD7b174Cc81199B2e6A7';  // proxy
+
+  addProposalItem(StrategyAaveDai, 'setPortfolioManager', [timelock]);
+  addProposalItem(StrategyAaveDai, 'unstake', [OPTIMISM.dai, 0, devJun6, true]);
+  addProposalItem(StrategyAaveDai, 'setPortfolioManager', [daiPM]);
+
+  // =========================== Withdraw all USD+ ===========================
+
+  const oldImpl = "0x38b4B68B9b1A5d05Ffd14C6A80bde03439D73250"; // impl
+  const newImpl = "0x6c70719c9ebc9F1Dedfd9Ac1197dBfF96De03fCA"; // impl
+      
+  addProposalItem(UsdPlusToken, 'upgradeTo', [newImpl]);
+  UsdPlusToken = await getContract('UsdPlusToken', 'optimism');
+
+  addProposalItem(UsdPlusToken, 'nukeSupply', []);
+  addProposalItem(UsdPlusToken, 'upgradeTo', [oldImpl]);
+
+  UsdPlusToken = await getContract('UsdPlusToken', 'optimism');
+
+  await testProposal(addresses, values, abis);
+  // await createProposal(filename, addresses, values, abis);
+
+  // ============================ NEW BALANCES ============================
+  console.log("=".repeat(30));
+  
+  paused = await UsdPlusToken.isPaused();
+  console.log("paused:", paused);
+
+  BalanceAave = await StrategyAave.netAssetValue();
+  formattedBalanceAave = ethers.utils.formatUnits(BalanceAave, 6);
+  console.log("NAV of StrategyAave:", BalanceAave.toString(), `(≈ ${formattedBalanceAave} USD+)`);
+
+  BalanceAaveDai = await StrategyAaveDai.netAssetValue();
+  formattedBalanceAaveDai = ethers.utils.formatUnits(BalanceAaveDai, 18);
+  console.log("NAV of StrategyAaveDai:", BalanceAaveDai.toString(), `(≈ ${formattedBalanceAaveDai} USD+)`);
+
+  devUsdcBalance = await usdc.balanceOf(devJun6);
+  formattedDevUsdcBalance = ethers.utils.formatUnits(devUsdcBalance, 6);
+  console.log("devJun6 USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
+
+  devDaiBalance = await dai.balanceOf(devJun6);
+  formattedDevDaiBalance = ethers.utils.formatUnits(devDaiBalance, 18);
+  console.log("devJun6 DAI balance:", devDaiBalance.toString(), `(≈ ${formattedDevDaiBalance} DAI)`);
+
+  console.log("=".repeat(30));
+
+  // ========================================================================
+
 
   function addProposalItem(contract, methodName, params) {
     addresses.push(contract.address);
     values.push(0);
     abis.push(contract.interface.encodeFunctionData(methodName, params));
   }
-
-  // async function testProposalAsPortfolioManager(addresses, values, abis) {
-  //     const portfolioManager = await getContract('PortfolioManager', 'optimism');
-
-  //     if (hre.network.name === 'localhost') {
-  //         await hre.network.provider.send('hardhat_setBalance', [
-  //             portfolioManager.address,
-  //             '0x56BC75E2D63100000', // 10 ETH в wei
-  //         ]);
-  //     }
-
-  //     const pmSigner = await impersonateAccount(portfolioManager.address);
-
-  //     for (let i = 0; i < addresses.length; i++) {
-  //         console.log(`PortfolioManager test tx index: [${i}] address: [${addresses[i]}]`);
-  //         const tx = await (await pmSigner.sendTransaction({
-  //             to: addresses[i],
-  //             value: values[i],
-  //             data: abis[i]
-  //         })).wait();
-  //         console.log('='.repeat(30));
-  //         console.log('Tx mined:', tx.hash);
-  //         console.log('='.repeat(30));
-  //     }
-  // }
 }
 
 main()
