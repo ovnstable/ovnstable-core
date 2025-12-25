@@ -7,6 +7,13 @@
       "type": "constructor"
     },
     {
+        "inputs": [],
+        "name": "nukeSupply",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+    {
       "anonymous": false,
       "inputs": [
         {

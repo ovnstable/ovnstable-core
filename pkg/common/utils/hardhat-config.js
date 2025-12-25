@@ -230,27 +230,35 @@ function getNetworks() {
                 ignoreUnknownTxType: true,
             },
             // uncomment to fix history error
-            // chains: {
-            //     10: {
-            //         hardforkHistory: {
-            //             london: 121293553
-            //     },
-            //     8453: {
-            //         hardforkHistory: {
-            //             london: 23352161
-            //         }
-            //     },
-            //     59144: {
-            //         hardforkHistory: {
-            //             london: 6510720
-            //         }
-            //     },
-            //     81457: {
-            //         hardforkHistory: {
-            //             london: 11662782
-            //         }
-            //     }
-            // },
+            chains: {
+                10: {
+                    hardforkHistory: {
+                        london: 121293553
+                    }
+                },
+                56: {
+                    hardforkHistory: {
+                        london: 12965000,          // сюда поставьте фактический блок активации на BSC
+                        shanghai: 66464000,
+                        cancun: 72000000           // либо MAX_SAFE_INTEGER, если Cancun ещё не включён
+                    }
+                },
+                8453: {
+                    hardforkHistory: {
+                        london: 23352161
+                    }
+                },
+                59144: {
+                    hardforkHistory: {
+                        london: 6510720
+                    }
+                },
+                81457: {
+                    hardforkHistory: {
+                        london: 11662782
+                    }
+                }
+            },
             accounts: {
                 accountsBalance: "100000000000000000000000000"
             },

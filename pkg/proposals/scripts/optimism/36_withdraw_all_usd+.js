@@ -64,12 +64,12 @@ async function main() {
   // =========================== Unstake Aave Usdc ===========================
 
   const timelock = '0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011';  // same for both strategies, proxy
-  const usdRM = '0x63a4CA86118b8C1375565563D53D1826DFcf8801';  // same for both strategies, proxy
+  const RM = '0x63a4CA86118b8C1375565563D53D1826DFcf8801';  // same for both strategies, proxy
   const usdPM = '0xe1E36e93D31702019D38d2B0F6aB926f15008409';  // proxy
 
-  addProposalItem(StrategyAave, 'setStrategyParams', [timelock, usdRM]);
+  addProposalItem(StrategyAave, 'setStrategyParams', [timelock, RM]);
   addProposalItem(StrategyAave, 'unstake', [OPTIMISM.usdc, 0, devJun6, true]);
-  addProposalItem(StrategyAave, 'setStrategyParams', [usdPM, usdRM]);
+  addProposalItem(StrategyAave, 'setStrategyParams', [usdPM, RM]);
 
   // =========================== Unstake Aave DAI ===========================
 
