@@ -17,8 +17,3 @@ module.exports = {
     gasReporter: config.gasReport
 
 };
-
-// console.log("=".repeat(20));
-// console.log(config.getNetworks().localhost);
-// console.log(config.getNetworks().hardhat);
-// console.log("=".repeat(20));
