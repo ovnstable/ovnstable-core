@@ -14,97 +14,126 @@ async function main() {
   let values = [];
   let abis = [];
 
+  // === HOW TO RUN THIS SCRIPT ===
+  // 1. check env and uncomment bsc stuff
+  // 2. cd pkg/core && hh clean && hh node 
+  // | it may be helpful to remove cache & local folders.
+  // | If JSON-RPC refuses to response, change block number to more recent one.
+  // 3. Deploy UsdPlusToken: cd pkg/core && hh deploy --tags UsdPlusToken --gov --impl --network localhost
+  // 4. Add nukeSupply func to ABI:
+  // ---
+  // {
+  //   "inputs": [],
+  //   "name": "nukeSupply",
+  //   "outputs": [],
+  //   "stateMutability": "nonpayable",
+  //   "type": "function"
+  // },
+  // ---
+  // 5. copy new impl address and paste to newImpl (probably similar to one there already)
+  // 6. cd pkg/proposals && hh run scripts/bsc/14_withdraw_all_usd+.js --network localhost
+
+  // ========================================================
+
+  const StrategyVenusUsdc = await getContract('StrategyVenusUsdc', 'bsc');
+  const StrategyVenusUsdt = await getContract('StrategyVenusUsdt', 'bsc_usdt');
+
+  // const devJun6 = "0x18BC3851Ade653de183609EEADCB1f5a7482b5be"; // devjun6
+
+  const dev = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
+  // ===================== OLD BALANCES =====================
   console.log("=".repeat(30));
+
+  let blockNumber = await ethers.provider.getBlockNumber();
+  console.log("Block number:", blockNumber);
+  
 
   let UsdPlusToken = await getContract('UsdPlusToken', 'bsc');
-  console.log("UsdPlusToken address:", UsdPlusToken.address);
-  const devJun6 = "0x18BC3851Ade653de183609EEADCB1f5a7482b5be"; // dev6
-  const StrategyVenusUsdc = await getContract('StrategyVenusUsdc', 'bsc');
-  console.log("StrategyVenusUsdc address:", StrategyVenusUsdc.address);
-  const StrategyVenusUsdt = await getContract('StrategyVenusUsdt', 'bsc_usdt');
-  console.log("StrategyVenusUsdt address:", StrategyVenusUsdt.address);
+  let paused = await UsdPlusToken.isPaused();
+  console.log("paused:", paused);
+
+
+  let BalanceVenusUsdc = await StrategyVenusUsdc.netAssetValue();
+  let formattedBalanceVenusUsdc = ethers.utils.formatUnits(BalanceVenusUsdc, 18);
+  console.log("NAV of StrategyVenusUsdc:", BalanceVenusUsdc.toString(), `(≈ ${formattedBalanceVenusUsdc} USDC)`);
+
+
+  let BalanceVenusUsdt = await StrategyVenusUsdt.netAssetValue();
+  let formattedBalanceVenusUsdt = ethers.utils.formatUnits(BalanceVenusUsdt, 18);
+  console.log("NAV of StrategyVenusUsdt:", BalanceVenusUsdt.toString(), `(≈ ${formattedBalanceVenusUsdt} USDT)`);
+
+
+  const usdc = await ethers.getContractAt(IERC20, BSC.usdc);
+  let devUsdcBalance = await usdc.balanceOf(dev);
+  let formattedDevUsdcBalance = ethers.utils.formatUnits(devUsdcBalance, 18);
+  console.log("dev USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
+
+  const usdt = await ethers.getContractAt(IERC20, BSC.usdt);
+  let devUsdtBalance = await usdt.balanceOf(dev);
+  let formattedDevUsdtBalance = ethers.utils.formatUnits(devUsdtBalance, 18);
+  console.log("dev USDT balance:", devUsdtBalance.toString(), `(≈ ${formattedDevUsdtBalance} USDT)`);
 
   console.log("=".repeat(30));
 
-  // =============== Unstake VENUS USDC ===============
+  // // =========================== Unstake Venus Usdc ===========================
 
-  const oldImplVenusUsdc="0x996D44BF6A5f965BD2A93FBCFEf80Da2C7214cfD";
-  const newImplVenusUsdc= await getContract('StrategyVenusUsdc', 'bsc').address;
-  console.log("newImplVenusUsdc address:", newImplVenusUsdc);
+  const timelock = '0x7f947D141FED32595916E150740a5e60d479E95F';  // same for both strategies, proxy
+  const usdPM = '0xff34aad62aeA14E1dA04E90967b36c188Ac9A770';  // proxy
 
-  const timelock = '0x7f947D141FED32595916E150740a5e60d479E95F';
-  const usdRM = '0x6bA1b8BbFF6Ec08544D9C4a7675D298cc8Fdb875';
-  const usdPM = '0xff34aad62aeA14E1dA04E90967b36c188Ac9A770';
+  addProposalItem(StrategyVenusUsdc, 'setPortfolioManager', [timelock]);
+  addProposalItem(StrategyVenusUsdc, 'unstake', [BSC.usdc, 0, dev, true]);
+  addProposalItem(StrategyVenusUsdc, 'setPortfolioManager', [usdPM]);
 
-  console.log("#1");
-  addProposalItem(StrategyVenusUsdc, 'upgradeTo', [newImplVenusUsdc]);
-  console.log("#1");
+  // =========================== Unstake Venus Usdt ===========================
 
-  addProposalItem(StrategyVenusUsdc, 'setStrategyParams', [timelock, usdRM]);
-  console.log("#2");
-  addProposalItem(StrategyVenusUsdc, 'unstake', [BSC.usdc, 0, devJun6, true]);
-  console.log("#3");
-  addProposalItem(StrategyVenusUsdc, 'setStrategyParams', [usdPM, usdRM]);
-  console.log("#4");
-  addProposalItem(StrategyVenusUsdc, 'upgradeTo', [oldImplVenusUsdc]);
-  console.log("#5");
+  const usdtPM = '0x4788b55aBcA88610F1586A90017337399A62f8ae';  // proxy
 
-  // =============== Unstake VENUS USDT ===============
+  addProposalItem(StrategyVenusUsdt, 'setPortfolioManager', [timelock]);
+  addProposalItem(StrategyVenusUsdt, 'unstake', [BSC.usdt, 0, dev, true]);
+  addProposalItem(StrategyVenusUsdt, 'setPortfolioManager', [usdtPM]);
 
-  const oldImplVenusUsdt="0x4a3ebae2fb28aa96Cf570854715CBE37D9D9D475";
-  const newImplVenusUsdt= await getContract('StrategyVenusUsdt', 'bsc_usdt').address;
+  // // =========================== Withdraw all USD+ ===========================
 
-  const usdtRM = '0x6bA1b8BbFF6Ec08544D9C4a7675D298cc8Fdb875';
-  const usdtPM = '0x4788b55aBcA88610F1586A90017337399A62f8ae';
-
-  addProposalItem(StrategyVenusUsdt, 'upgradeTo', [newImplVenusUsdt]);
-
-  addProposalItem(StrategyVenusUsdt, 'setStrategyParams', [timelock, usdtRM]);
-  addProposalItem(StrategyVenusUsdt, 'unstake', [BSC.usdt, 0, devJun6, true]);
-  addProposalItem(StrategyVenusUsdt, 'setStrategyParams', [usdtPM, usdtRM]);
-
-  addProposalItem(StrategyVenusUsdt, 'upgradeTo', [oldImplVenusUsdt]);
-
-  // ============= Withdraw all USD+ =============
-  const oldImpl = "0x6002054688d62275d80CC615f0F509d9b2FF520d";
-  const newImpl = "0x3F18c87dc965ca8F5aB580Fc7F8446bCDb2E58a5";
+  const oldImpl = "0x6002054688d62275d80CC615f0F509d9b2FF520d"; // impl
+  const newImpl = "0x3F18c87dc965ca8F5aB580Fc7F8446bCDb2E58a5"; // impl
       
   addProposalItem(UsdPlusToken, 'upgradeTo', [newImpl]);
   UsdPlusToken = await getContract('UsdPlusToken', 'bsc');
 
   addProposalItem(UsdPlusToken, 'nukeSupply', []);
-  addProposalItem(UsdPlusToken, 'pause', []);
   addProposalItem(UsdPlusToken, 'upgradeTo', [oldImpl]);
 
   UsdPlusToken = await getContract('UsdPlusToken', 'bsc');
 
   await testProposal(addresses, values, abis);
-  // await createProposal(filename, addresses, values, abis);
+  // // await createProposal(filename, addresses, values, abis);
 
-  // =============== Get New NAV and devJun6 USDC && DAI Balance ===============
+  // // ============================ NEW BALANCES ============================
   console.log("=".repeat(30));
   
-  const paused = await UsdPlusToken.isPaused();
+  paused = await UsdPlusToken.isPaused();
   console.log("paused:", paused);
 
-  const newBalanceVenusUsdc = await StrategyVenusUsdc.netAssetValue();
-  const newBalanceVenusUsdt = await StrategyVenusUsdt.netAssetValue();
+  BalanceVenusUsdc = await StrategyVenusUsdc.netAssetValue();
+  formattedBalanceVenusUsdc = ethers.utils.formatUnits(BalanceVenusUsdc, 18);
+  console.log("NAV of StrategyVenusUsdc:", BalanceVenusUsdc.toString(), `(≈ ${formattedBalanceVenusUsdc} USDC)`);
 
-  const formattedNewBalanceVenusUsdc = ethers.utils.formatUnits(newBalanceVenusUsdc, 6);
-  console.log("NAV of StrategyVenusUsdc:", newBalanceVenusUsdc.toString(), `(≈ ${formattedNewBalanceVenusUsdc} USD+)`);
+  BalanceVenusUsdt = await StrategyVenusUsdt.netAssetValue();
+  formattedBalanceVenusUsdt = ethers.utils.formatUnits(BalanceVenusUsdt, 18);
+  console.log("NAV of StrategyVenusUsdt:", BalanceVenusUsdt.toString(), `(≈ ${formattedBalanceVenusUsdt} USDT)`);
 
-  const formattedNewBalanceVenusUsdt = ethers.utils.formatUnits(newBalanceVenusUsdt, 18);
-  console.log("NAV of StrategyVenusUsdt:", newBalanceVenusUsdt.toString(), `(≈ ${formattedNewBalanceVenusUsdt} USD+)`);
+  devUsdcBalance = await usdc.balanceOf(dev);
+  formattedDevUsdcBalance = ethers.utils.formatUnits(devUsdcBalance, 18);
+  console.log("dev USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
 
-  const usdc = await ethers.getContractAt(IERC20, BSC.usdc);
-  const devUsdcBalance = await usdc.balanceOf(devJun6);
-  const formattedDevUsdcBalance = ethers.utils.formatUnits(devUsdcBalance, 6);
-  console.log("devJun6 USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
+  devUsdtBalance = await usdt.balanceOf(dev);
+  formattedDevUsdtBalance = ethers.utils.formatUnits(devUsdtBalance, 18);
+  console.log("dev USDT balance:", devUsdtBalance.toString(), `(≈ ${formattedDevUsdtBalance} USDT)`);
 
-  const usdt = await ethers.getContractAt(IERC20, BSC.usdt);
-  const devUsdtBalance = await usdt.balanceOf(devJun6);
-  const formattedDevUsdtBalance = ethers.utils.formatUnits(devUsdtBalance, 18);
-  console.log("devJun6 USDT balance:", devUsdtBalance.toString(), `(≈ ${formattedDevUsdtBalance} USDT)`);
+  console.log("=".repeat(30));
+
+  // // ========================================================================
+
 
   function addProposalItem(contract, methodName, params) {
     addresses.push(contract.address);

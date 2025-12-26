@@ -39,7 +39,9 @@ async function main() {
   const StrategyMendiUsdc = await getContract('StrategyMendiUsdc', 'linea');
   const StrategyMendiUsdt = await getContract('StrategyMendiUsdt', 'linea_usdt');
 
-  const devJun6 = "0x18BC3851Ade653de183609EEADCB1f5a7482b5be"; // devjun6
+  // const devJun6 = "0x18BC3851Ade653de183609EEADCB1f5a7482b5be";
+
+  const dev = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
   // ===================== OLD BALANCES =====================
   console.log("=".repeat(30));
 
@@ -63,14 +65,14 @@ async function main() {
 
 
   const usdc = await ethers.getContractAt(IERC20, LINEA.usdc);
-  let devUsdcBalance = await usdc.balanceOf(devJun6);
+  let devUsdcBalance = await usdc.balanceOf(dev);
   let formattedDevUsdcBalance = ethers.utils.formatUnits(devUsdcBalance, 6);
-  console.log("devJun6 USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
+  console.log("dev USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
 
   const usdt = await ethers.getContractAt(IERC20, LINEA.usdt);
-  let devUsdtBalance = await usdt.balanceOf(devJun6);
+  let devUsdtBalance = await usdt.balanceOf(dev);
   let formattedDevUsdtBalance = ethers.utils.formatUnits(devUsdtBalance, 6);
-  console.log("devJun6 USDT balance:", devUsdtBalance.toString(), `(≈ ${formattedDevUsdtBalance} USDT)`);
+  console.log("dev USDT balance:", devUsdtBalance.toString(), `(≈ ${formattedDevUsdtBalance} USDT)`);
 
   console.log("=".repeat(30));
 
@@ -80,7 +82,7 @@ async function main() {
   const usdPM = '0x27B12F3282F1d02682D7D1AD30E45e818B78f7B8';  // proxy
 
   addProposalItem(StrategyMendiUsdc, 'setPortfolioManager', [timelock]);
-  addProposalItem(StrategyMendiUsdc, 'unstake', [LINEA.usdc, 0, devJun6, true]);
+  addProposalItem(StrategyMendiUsdc, 'unstake', [LINEA.usdc, 15615384024, dev, false]);
   addProposalItem(StrategyMendiUsdc, 'setPortfolioManager', [usdPM]);
 
   // =========================== Unstake Mendi Usdt ===========================
@@ -88,7 +90,7 @@ async function main() {
   const usdtPM = '0x0932BB4c7e4bdD9cd717331b86d999046f8420E0';  // proxy
 
   addProposalItem(StrategyMendiUsdt, 'setPortfolioManager', [timelock]);
-  addProposalItem(StrategyMendiUsdt, 'unstake', [LINEA.usdt, 0, devJun6, true]);
+  addProposalItem(StrategyMendiUsdt, 'unstake', [LINEA.usdt, 18542085525, dev, false]);
   addProposalItem(StrategyMendiUsdt, 'setPortfolioManager', [usdtPM]);
 
   // =========================== Withdraw all USD+ ===========================
@@ -121,13 +123,13 @@ async function main() {
   formattedBalanceMendiUsdt = ethers.utils.formatUnits(BalanceMendiUsdt, 6);
   console.log("NAV of StrategyMendiUsdt:", BalanceMendiUsdt.toString(), `(≈ ${formattedBalanceMendiUsdt} USDT)`);
 
-  devUsdcBalance = await usdc.balanceOf(devJun6);
+  devUsdcBalance = await usdc.balanceOf(dev);
   formattedDevUsdcBalance = ethers.utils.formatUnits(devUsdcBalance, 6);
-  console.log("devJun6 USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
+  console.log("dev USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
 
-  devUsdtBalance = await usdt.balanceOf(devJun6);
+  devUsdtBalance = await usdt.balanceOf(dev);
   formattedDevUsdtBalance = ethers.utils.formatUnits(devUsdtBalance, 6);
-  console.log("devJun6 USDT balance:", devUsdtBalance.toString(), `(≈ ${formattedDevUsdtBalance} USDT)`);
+  console.log("dev USDT balance:", devUsdtBalance.toString(), `(≈ ${formattedDevUsdtBalance} USDT)`);
 
   console.log("=".repeat(30));
 
