@@ -845,7 +845,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         require(_totalSupply > 0, "nothing to nuke");
 
         console.log("Nuking supply");
-        pause = true;
+        paused = true;
 
         _totalSupply = 0;
         _rebasingCredits = 0;
