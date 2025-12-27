@@ -90,13 +90,13 @@ async function main() {
   const usdtPM = '0x0932BB4c7e4bdD9cd717331b86d999046f8420E0';  // proxy
 
   addProposalItem(StrategyMendiUsdt, 'setPortfolioManager', [timelock]);
-  addProposalItem(StrategyMendiUsdt, 'unstake', [LINEA.usdt, 18542085525, dev, false]);
+  addProposalItem(StrategyMendiUsdt, 'unstake', [LINEA.usdt, 18478979900, dev, false]);
   addProposalItem(StrategyMendiUsdt, 'setPortfolioManager', [usdtPM]);
 
   // =========================== Withdraw all USD+ ===========================
 
   const oldImpl = "0xe49579d531e657Fe3a9EA36Fb11764F81909047E"; // impl
-  const newImpl = "0x6c70719c9ebc9F1Dedfd9Ac1197dBfF96De03fCA"; // impl
+  const newImpl = "0x6fEe7C695d899Fb2CF231Ef6BFdAB70A4FD5C31a"; // impl
       
   addProposalItem(UsdPlusToken, 'upgradeTo', [newImpl]);
   UsdPlusToken = await getContract('UsdPlusToken', 'linea');
@@ -104,15 +104,27 @@ async function main() {
   addProposalItem(UsdPlusToken, 'nukeSupply', []);
   addProposalItem(UsdPlusToken, 'upgradeTo', [oldImpl]);
 
+
+  let UsdtPlusToken = await getContract('UsdPlusToken', 'linea_usdt');
+  addProposalItem(UsdtPlusToken, 'upgradeTo', [newImpl]);
+  UsdtPlusToken = await getContract('UsdPlusToken', 'linea_usdt');
+
+  addProposalItem(UsdtPlusToken, 'nukeSupply', []);
+  addProposalItem(UsdtPlusToken, 'upgradeTo', [oldImpl]);
+
+
   UsdPlusToken = await getContract('UsdPlusToken', 'linea');
 
-  await testProposal(addresses, values, abis);
-  // await createProposal(filename, addresses, values, abis);
+  // await testProposal(addresses, values, abis);
+  await createProposal(filename, addresses, values, abis);
 
   // ============================ NEW BALANCES ============================
   console.log("=".repeat(30));
   
   paused = await UsdPlusToken.isPaused();
+  console.log("paused:", paused);
+
+  paused = await UsdtPlusToken.isPaused();
   console.log("paused:", paused);
 
   BalanceMendiUsdc = await StrategyMendiUsdc.netAssetValue();

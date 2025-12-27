@@ -2,6 +2,19 @@
   "address": "0x1E1F509963A6D33e169D9497b11c7DbFe73B7F13",
   "abi": [
     {
+      "inputs": [],
+      "name": "isPaused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "constant": false,
       "inputs": [],
       "name": "migrationLineaInit",

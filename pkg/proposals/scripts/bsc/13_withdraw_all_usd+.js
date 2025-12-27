@@ -95,7 +95,7 @@ async function main() {
   // // =========================== Withdraw all USD+ ===========================
 
   const oldImpl = "0x6002054688d62275d80CC615f0F509d9b2FF520d"; // impl
-  const newImpl = "0x3F18c87dc965ca8F5aB580Fc7F8446bCDb2E58a5"; // impl
+  const newImpl = "0xDA5d1fc2E79Ab76Fd28cd17EC3124A3Eca6d595B"; // impl
       
   addProposalItem(UsdPlusToken, 'upgradeTo', [newImpl]);
   UsdPlusToken = await getContract('UsdPlusToken', 'bsc');
@@ -103,15 +103,26 @@ async function main() {
   addProposalItem(UsdPlusToken, 'nukeSupply', []);
   addProposalItem(UsdPlusToken, 'upgradeTo', [oldImpl]);
 
+  let UsdtPlusToken = await getContract('UsdPlusToken', 'bsc_usdt');
+  addProposalItem(UsdtPlusToken, 'upgradeTo', [newImpl]);
+  UsdtPlusToken = await getContract('UsdPlusToken', 'bsc_usdt');
+
+  addProposalItem(UsdtPlusToken, 'nukeSupply', []);
+  addProposalItem(UsdtPlusToken, 'upgradeTo', [oldImpl]);
+
+
   UsdPlusToken = await getContract('UsdPlusToken', 'bsc');
 
-  await testProposal(addresses, values, abis);
-  // // await createProposal(filename, addresses, values, abis);
+  // await testProposal(addresses, values, abis);
+  await createProposal(filename, addresses, values, abis);
 
   // // ============================ NEW BALANCES ============================
   console.log("=".repeat(30));
   
   paused = await UsdPlusToken.isPaused();
+  console.log("paused:", paused);
+
+  paused = await UsdtPlusToken.isPaused();
   console.log("paused:", paused);
 
   BalanceVenusUsdc = await StrategyVenusUsdc.netAssetValue();
