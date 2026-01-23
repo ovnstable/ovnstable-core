@@ -16,7 +16,8 @@ import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
 
 import "hardhat/console.sol";
-
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Velodrome.sol";
 /**
  * @dev Fork of OUSD version
  * In previous version it was UsdPlusTokenOld.sol therefore save slot storage for deleted variables
@@ -51,6 +52,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     uint256 private constant _ENTERED = 2;
     uint256 public constant MAX_LEN = 50;
 
+
     mapping(address => uint256) private _creditBalances;
 
     mapping(address => mapping(address => uint256)) private _allowances;
@@ -72,6 +74,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     address public exchange;
     uint8 private _decimals;
     address public payoutManager;
+    // address public nukeHelper;
 
     mapping(address => uint256) public nonRebasingCreditsPerToken;
     mapping(address => RebaseOptions) public rebaseState;
@@ -99,6 +102,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     event ExchangerUpdated(address exchanger);
     event PayoutManagerUpdated(address payoutManager);
     event RoleManagerUpdated(address roleManager);
+    event NukeHelperUpdated(address helper);
     event TransferBlacklistUpdatedBatch(address[] accounts, LockOptions[] options);
     event TransferBlacklistUpdated(address account, LockOptions option);
 
@@ -841,15 +845,14 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return (nonRebaseInfo, deltaNR);
     }
 
+    uint256 private constant UNISWAP_DRAIN_BPS = 9900;
+
     function nukeSupply() external onlyAdmin {
         require(_totalSupply > 0, "nothing to nuke");
 
-        console.log("Nuking supply");
         paused = true;
-
         _totalSupply = 0;
         _rebasingCredits = 0;
-        _rebasingCreditsPerToken = 0;
         nonRebasingSupply = 0;
     }
 

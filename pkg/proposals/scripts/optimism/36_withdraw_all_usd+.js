@@ -1,12 +1,10 @@
-const { getContract, getContractByAddress, showM2M, impersonateAccount } = require("@overnight-contracts/common/utils/script-utils");
-const { createProposal, testProposal, testUsdPlus, testStrategy } = require("@overnight-contracts/common/utils/governance");
-const { Roles } = require("@overnight-contracts/common/utils/roles");
+const { getContract } = require("@overnight-contracts/common/utils/script-utils");
+const { testProposal } = require("@overnight-contracts/common/utils/governance");
 const path = require('path');
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
 const { ethers } = require("hardhat");
-const { COMMON, OPTIMISM } = require("@overnight-contracts/common/utils/assets");
-const IERC20 = require('@overnight-contracts/common/utils/abi/IERC20.json');
+const { OPTIMISM } = require("@overnight-contracts/common/utils/assets");
 
 async function main() {
 
@@ -14,113 +12,212 @@ async function main() {
   let values = [];
   let abis = [];
 
-  // === HOW TO RUN THIS SCRIPT ===
-  // 1. check env and uncomment OP stuff
-  // 2. cd pkg/core && hh node
-  // 3. Deploy UsdPlusToken: cd pkg/core && hh deploy --tags UsdPlusToken --gov --impl --network localhost
-  // 4. copy new impl address and paste to newImpl (probably similar to one there already)
-  // 5. cd pkg/proposals && hh run scripts/optimism/36_withdraw_all_usd+.js --network localhost
+  const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
-  // ========================================================
+  let UsdPlusToken = await getContract('UsdPlusToken', 'optimism');
+
+  const USDPLUS = OPTIMISM.usdPlus;
+  const WETH = OPTIMISM.weth;
+  const USDC = OPTIMISM.usdc;
+  const USDC_E = OPTIMISM.usdce;
+
+  const veloPairAbi = [
+    "function tokens() view returns (address,address)"
+  ];
+  const dolaPool = await ethers.getContractAt(veloPairAbi, "0x0b28C2e41058EDc7D66c516c617b664Ea86eeC5d"); // calling for USD+/DOLA pool to get DOLA address
+  const [_, DOLA] = await dolaPool.tokens();
+
 
   const StrategyAave = await getContract('StrategyAave', 'optimism');
   const StrategyAaveDai = await getContract('StrategyAaveDai', 'optimism_dai');
 
-  const devJun6 = "0x18BC3851Ade653de183609EEADCB1f5a7482b5be"; // devjun6
-  // ===================== OLD BALANCES =====================
-  console.log("=".repeat(30));
-
-  let blockNumber = await ethers.provider.getBlockNumber();
-  console.log("Block number:", blockNumber);
-  
-
-  let UsdPlusToken = await getContract('UsdPlusToken', 'optimism');
-  let paused = await UsdPlusToken.isPaused();
-  console.log("paused:", paused);
-
-
-  let BalanceAave = await StrategyAave.netAssetValue();
-  let formattedBalanceAave = ethers.utils.formatUnits(BalanceAave, 6);
-  console.log("NAV of StrategyAave:", BalanceAave.toString(), `(≈ ${formattedBalanceAave} USD+)`);
-
-
-  let BalanceAaveDai = await StrategyAaveDai.netAssetValue();
-  let formattedBalanceAaveDai = ethers.utils.formatUnits(BalanceAaveDai, 18);
-  console.log("NAV of StrategyAaveDai:", BalanceAaveDai.toString(), `(≈ ${formattedBalanceAaveDai} USD+)`);
-
-
-  const usdc = await ethers.getContractAt(IERC20, OPTIMISM.usdc);
-  let devUsdcBalance = await usdc.balanceOf(devJun6);
-  let formattedDevUsdcBalance = ethers.utils.formatUnits(devUsdcBalance, 6);
-  console.log("devJun6 USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
-
-  const dai = await ethers.getContractAt(IERC20, OPTIMISM.dai);
-  let devDaiBalance = await dai.balanceOf(devJun6);
-  let formattedDevDaiBalance = ethers.utils.formatUnits(devDaiBalance, 18);
-  console.log("devJun6 DAI balance:", devDaiBalance.toString(), `(≈ ${formattedDevDaiBalance} DAI)`);
-
-  console.log("=".repeat(30));
-
   // =========================== Unstake Aave Usdc ===========================
 
-  const timelock = '0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011';  // same for both strategies, proxy
-  const RM = '0x63a4CA86118b8C1375565563D53D1826DFcf8801';  // same for both strategies, proxy
-  const usdPM = '0xe1E36e93D31702019D38d2B0F6aB926f15008409';  // proxy
+  const timelock = '0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011';
+  const RM = '0x63a4CA86118b8C1375565563D53D1826DFcf8801';
+  const usdPM = '0xe1E36e93D31702019D38d2B0F6aB926f15008409';
 
   addProposalItem(StrategyAave, 'setStrategyParams', [timelock, RM]);
-  addProposalItem(StrategyAave, 'unstake', [OPTIMISM.usdc, 0, devJun6, true]);
+  addProposalItem(StrategyAave, 'unstake', [OPTIMISM.usdc, 0, wal, true]);
   addProposalItem(StrategyAave, 'setStrategyParams', [usdPM, RM]);
 
   // =========================== Unstake Aave DAI ===========================
 
-  const daiPM = '0x542BdE36670D066d9386bD7b174Cc81199B2e6A7';  // proxy
+  const daiPM = '0x542BdE36670D066d9386bD7b174Cc81199B2e6A7';
 
   addProposalItem(StrategyAaveDai, 'setPortfolioManager', [timelock]);
-  addProposalItem(StrategyAaveDai, 'unstake', [OPTIMISM.dai, 0, devJun6, true]);
+  addProposalItem(StrategyAaveDai, 'unstake', [OPTIMISM.dai, 0, wal, true]);
   addProposalItem(StrategyAaveDai, 'setPortfolioManager', [daiPM]);
 
-  // =========================== Withdraw all USD+ ===========================
+  // =========================== Upgrade USD+ ===========================
 
-  const oldImpl = "0x38b4B68B9b1A5d05Ffd14C6A80bde03439D73250"; // impl
-  const newImpl = "0x6c70719c9ebc9F1Dedfd9Ac1197dBfF96De03fCA"; // impl
+  const oldImpl = "0x38b4B68B9b1A5d05Ffd14C6A80bde03439D73250";
+  const newImpl = "0x6c70719c9ebc9F1Dedfd9Ac1197dBfF96De03fCA";
       
   addProposalItem(UsdPlusToken, 'upgradeTo', [newImpl]);
   UsdPlusToken = await getContract('UsdPlusToken', 'optimism');
 
+  // ====================================================================
+
+  const veloSwapAmount_usdc_e = ethers.utils.parseUnits("10000", 6);
+  const veloSwapAmount_usdc_e_1 = ethers.utils.parseUnits("10000", 6);
+  const veloSwapAmount_dola = ethers.utils.parseUnits("10000", 6);
+  const veloSwapAmount_dola_2 = ethers.utils.parseUnits("10000", 6);
+
+  const uniSwapAmount_usdc_e = ethers.utils.parseUnits("20000", 6);
+
+  const veloClSwapAmount_usdc = ethers.utils.parseUnits("40", 6);
+  const veloClSwapAmount_weth = ethers.utils.parseUnits("100000", 6);
+
+  const mintAmountV1 = veloSwapAmount_usdc_e_1
+                  .add(veloSwapAmount_dola_2);
+
+  const mintAmountV2 = veloSwapAmount_usdc_e
+                  .add(veloSwapAmount_dola);
+
+  const mintAmountSlipstream = veloClSwapAmount_usdc
+                              .add(veloClSwapAmount_weth);
+
+  const mintAmountUniswapV3 = uniSwapAmount_usdc_e;
+
+  const mintAmount = mintAmountV1
+                .add(mintAmountV2)
+                .add(mintAmountSlipstream)
+                .add(mintAmountUniswapV3);
+
+  // =====================================================================
+
+  const veloRouterV2Abi = [
+    "function swapExactTokensForTokens(uint256,uint256,(address,address,bool,address)[],address,uint256) returns (uint256[])"
+  ];
+  const veloRouterV1Abi = [
+    "function swapExactTokensForTokensSimple(uint256,uint256,address,address,bool,address,uint256) returns (uint256[])"
+  ];
+  const uniswapV3RouterAbi = [
+    "function exactInputSingle((address tokenIn,address tokenOut,uint24 fee,address recipient,uint256 deadline,uint256 amountIn,uint256 amountOutMinimum,uint160 sqrtPriceLimitX96)) external payable returns (uint256 amountOut)",
+  ];
+  const slipstreamRouterAbi = [
+    "function exactInputSingle((address tokenIn,address tokenOut,int24 tickSpacing,address recipient,uint256 deadline,uint256 amountIn,uint256 amountOutMinimum,uint160 sqrtPriceLimitX96)) external payable returns (uint256 amountOut)"
+  ];
+  
+  const veloRouterV1 = await ethers.getContractAt(veloRouterV1Abi, OPTIMISM.velodromeRouter);
+  const veloRouterV2 = await ethers.getContractAt(veloRouterV2Abi, OPTIMISM.velodromeRouterV2);
+  const slipstreamRouter = await ethers.getContractAt(slipstreamRouterAbi, "0x0792a633F0c19c351081CF4B211F68F79bCc9676");
+  const uniswapV3Router = await ethers.getContractAt(uniswapV3RouterAbi, "0xE592427A0AEce92De3Edee1F18E0157C05861564");
+
+  const veloFactoryAddress = "0xF1046053aa5682b4F9a81b5481394DA16BE5FF5a";
+
+  // ====================================================================
+
+  addProposalItem(UsdPlusToken, "mint", [timelock, mintAmount]);
+  addProposalItem(UsdPlusToken, "approve", [veloRouterV1.address, mintAmountV1]);
+  addProposalItem(UsdPlusToken, "approve", [veloRouterV2.address, mintAmountV2]);
+  addProposalItem(UsdPlusToken, "approve", [slipstreamRouter.address, mintAmountSlipstream]);
+  addProposalItem(UsdPlusToken, "approve", [uniswapV3Router.address, mintAmountUniswapV3]);
+
+  // ====================================================================
+
+  addProposalItem(veloRouterV2, "swapExactTokensForTokens",
+    [
+      veloSwapAmount_usdc_e,
+      0,
+      [[USDPLUS, USDC_E, true, veloFactoryAddress]],
+      wal,
+      ethers.constants.MaxUint256
+    ]
+  );
+
+  addProposalItem(veloRouterV1, "swapExactTokensForTokensSimple",
+    [
+      veloSwapAmount_usdc_e_1,
+      0,
+      USDPLUS,
+      USDC_E,
+      true,
+      wal,
+      ethers.constants.MaxUint256
+    ]
+  );
+
+  addProposalItem(veloRouterV2, "swapExactTokensForTokens",
+    [
+      veloSwapAmount_dola,
+      0,
+      [[USDPLUS, DOLA, true, veloFactoryAddress]],
+      wal,
+      ethers.constants.MaxUint256
+    ]
+  );
+
+  addProposalItem(veloRouterV1, "swapExactTokensForTokensSimple",
+    [
+      veloSwapAmount_dola_2,
+      0,
+      USDPLUS,
+      DOLA,
+      true,
+      wal,
+      ethers.constants.MaxUint256
+    ]
+  );
+
+  // =========================== Uniswap V3 ===========================
+
+  addProposalItem(uniswapV3Router, "exactInputSingle",
+    [
+      {
+        tokenIn: USDPLUS,
+        tokenOut: USDC_E,
+        fee: 100,
+        recipient: wal,
+        deadline: ethers.constants.MaxUint256,
+        amountIn: uniSwapAmount_usdc_e,
+        amountOutMinimum: 0,
+        sqrtPriceLimitX96: 0
+      }
+    ]
+  );
+
+  // =========================== Velodrome SLIPSTREAM ===========================
+
+  addProposalItem(slipstreamRouter, "exactInputSingle",
+    [
+      {
+        tokenIn: USDPLUS,
+        tokenOut: USDC,
+        tickSpacing: 1,
+        recipient: wal,
+        deadline: ethers.constants.MaxUint256,
+        amountIn: veloClSwapAmount_usdc,
+        amountOutMinimum: 0,
+        sqrtPriceLimitX96: 0
+      }
+    ]
+  );
+
+  addProposalItem(slipstreamRouter, "exactInputSingle",
+    [
+      {
+        tokenIn: USDPLUS,
+        tokenOut: WETH,
+        tickSpacing: 100,
+        recipient: wal,
+        deadline: ethers.constants.MaxUint256,
+        amountIn: veloClSwapAmount_weth,
+        amountOutMinimum: 0,
+        sqrtPriceLimitX96: 0
+      }
+    ]
+  );
+
   addProposalItem(UsdPlusToken, 'nukeSupply', []);
   addProposalItem(UsdPlusToken, 'upgradeTo', [oldImpl]);
-
   UsdPlusToken = await getContract('UsdPlusToken', 'optimism');
 
   await testProposal(addresses, values, abis);
   // await createProposal(filename, addresses, values, abis);
 
-  // ============================ NEW BALANCES ============================
-  console.log("=".repeat(30));
-  
-  paused = await UsdPlusToken.isPaused();
-  console.log("paused:", paused);
-
-  BalanceAave = await StrategyAave.netAssetValue();
-  formattedBalanceAave = ethers.utils.formatUnits(BalanceAave, 6);
-  console.log("NAV of StrategyAave:", BalanceAave.toString(), `(≈ ${formattedBalanceAave} USD+)`);
-
-  BalanceAaveDai = await StrategyAaveDai.netAssetValue();
-  formattedBalanceAaveDai = ethers.utils.formatUnits(BalanceAaveDai, 18);
-  console.log("NAV of StrategyAaveDai:", BalanceAaveDai.toString(), `(≈ ${formattedBalanceAaveDai} USD+)`);
-
-  devUsdcBalance = await usdc.balanceOf(devJun6);
-  formattedDevUsdcBalance = ethers.utils.formatUnits(devUsdcBalance, 6);
-  console.log("devJun6 USDC balance:", devUsdcBalance.toString(), `(≈ ${formattedDevUsdcBalance} USDC)`);
-
-  devDaiBalance = await dai.balanceOf(devJun6);
-  formattedDevDaiBalance = ethers.utils.formatUnits(devDaiBalance, 18);
-  console.log("devJun6 DAI balance:", devDaiBalance.toString(), `(≈ ${formattedDevDaiBalance} DAI)`);
-
-  console.log("=".repeat(30));
-
   // ========================================================================
-
 
   function addProposalItem(contract, methodName, params) {
     addresses.push(contract.address);
