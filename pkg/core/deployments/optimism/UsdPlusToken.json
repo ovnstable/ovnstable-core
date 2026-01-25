@@ -518,7 +518,13 @@
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
       "name": "nukeSupply",
       "outputs": [],
       "stateMutability": "nonpayable",

@@ -190,12 +190,6 @@ async function main() {
   const usdPM = '0xe1E36e93D31702019D38d2B0F6aB926f15008409';
   const daiPM = '0x542BdE36670D066d9386bD7b174Cc81199B2e6A7';
 
-  // =========================== Burn lest USD+ ===========================
-
-  const burnAmount = await UsdPlusToken.balanceOf(timelock);
-  console.log("burnAmount:", burnAmount);
-  addProposalItem(UsdPlusToken, "burn", [timelock, burnAmount]);
-
   const StrategyAave = await getContract('StrategyAave', 'optimism');
   const StrategyAaveDai = await getContract('StrategyAaveDai', 'optimism_dai');
 
@@ -226,9 +220,9 @@ async function main() {
 
   // =========================== Nuke USD+ and Dai+ ===========================
 
-  addProposalItem(UsdPlusToken, 'nukeSupply', []);
+  addProposalItem(UsdPlusToken, 'nukeSupply', [timelock]);
   addProposalItem(UsdPlusToken, 'upgradeTo', [oldImplUsdPlus]);
-  addProposalItem(DaiPlusToken, 'nukeSupply', []);
+  addProposalItem(DaiPlusToken, 'nukeSupply', [timelock]);
   addProposalItem(DaiPlusToken, 'upgradeTo', [oldImplDaiPlus]);
 
   // ========================================================================

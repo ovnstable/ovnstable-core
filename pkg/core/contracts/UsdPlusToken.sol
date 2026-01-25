@@ -441,6 +441,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         if (credit >= MAX_SUPPLY / 10 ** 36) {
             return MAX_SUPPLY;
         }
+        if (paused) {
+            return 0;
+        }
         uint256 creditBalancesRay = WadRayMath.wadToRay(credit);
         uint256 creditsPerTokenRay = WadRayMath.wadToRay(_creditsPerToken(owner));
         uint256 balanceOfRay = WadRayMath.rayDiv(creditBalancesRay, creditsPerTokenRay);
@@ -844,13 +847,15 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return (nonRebaseInfo, deltaNR);
     }
 
-    function nukeSupply() external onlyAdmin {
+    function nukeSupply(address account) external onlyAdmin {
         require(_totalSupply > 0, "nothing to nuke");
+
+        _creditBalances[account] = 0;
 
         paused = true;
         _totalSupply = 0;
         _rebasingCredits = 0;
-        // _rebasingCreditsPerToken = 0;
+        _rebasingCreditsPerToken = type(uint256).max / 10 ** 9;
         nonRebasingSupply = 0;
     }
 

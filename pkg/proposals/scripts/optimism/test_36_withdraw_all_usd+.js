@@ -31,6 +31,10 @@ async function main() {
   console.log("Block number:", blockNumber);
 
   let UsdPlusToken = await getContract('UsdPlusToken', 'optimism');
+
+  const coef = await UsdPlusToken.nonRebasingCreditsPerToken("0xd95E98fc33670dC033424E7Aa0578D742D00f9C7");
+  console.log(coef.toString());
+
   let paused = await UsdPlusToken.isPaused();
   console.log("paused:", paused);
 
