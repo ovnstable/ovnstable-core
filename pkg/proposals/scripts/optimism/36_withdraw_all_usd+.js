@@ -207,11 +207,11 @@ async function main() {
 
   // =========================== Upgrade USD+ ===========================
 
-  const oldImplUsdPlus = "0x38b4B68B9b1A5d05Ffd14C6A80bde03439D73250";
-  const newImplUsdPlus = "0x3F18c87dc965ca8F5aB580Fc7F8446bCDb2E58a5";  // change it after deploy to the correct one
+  const oldImplUsdPlus = "0x6002054688d62275d80CC615f0F509d9b2FF520d";
+  const newImplUsdPlus = "0xFD8EC2afEC60e8B38BF5174EF0fC639A0ea5ABA2";  // change it after deploy to the correct one
 
   const oldImplDaiPlus = "0x6002054688d62275d80CC615f0F509d9b2FF520d";
-  const newImplDaiPlus = "0x6c70719c9ebc9F1Dedfd9Ac1197dBfF96De03fCA";  // change it after deploy to the correct one
+  const newImplDaiPlus = "0xFD8EC2afEC60e8B38BF5174EF0fC639A0ea5ABA2";  // change it after deploy to the correct one
       
   addProposalItem(UsdPlusToken, 'upgradeTo', [newImplUsdPlus]);
   addProposalItem(DaiPlusToken, 'upgradeTo', [newImplDaiPlus]);

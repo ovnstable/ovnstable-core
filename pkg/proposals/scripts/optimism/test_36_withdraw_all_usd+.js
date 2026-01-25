@@ -26,6 +26,7 @@ async function main() {
   console.log("=".repeat(30));
 
   const devJun6 = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856"; // devjun6
+  const timelock = "0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011";
 
   let blockNumber = await ethers.provider.getBlockNumber();
   console.log("Block number:", blockNumber);
@@ -53,6 +54,17 @@ async function main() {
     const formatted = ethers.utils.formatUnits(balance, decimals);
     console.log(
       `devJun6 ${tokenName} balance (/10^${decimals}):`,
+      balance.toString(),
+      `(≈ ${formatted} ${tokenName})`
+    );
+    return { balance, formatted };
+  }
+
+  async function logTimelockBalance(token, tokenName, decimals) {
+    const balance = await token.balanceOf(timelock);
+    const formatted = ethers.utils.formatUnits(balance, decimals);
+    console.log(
+      `timelock ${tokenName} balance (/10^${decimals}):`,
       balance.toString(),
       `(≈ ${formatted} ${tokenName})`
     );
@@ -207,6 +219,9 @@ async function main() {
 
   await logSlipstreamPoolBalances(veloClPoolAddress_usdc, "USDC", 6, "USD+", 6);
   await logSlipstreamPoolBalances(veloClPoolAddress_weth, "WETH", 18, "USD+", 6);
+
+  await logTimelockBalance(UsdPlusToken, "USD+", 6);
+
 
   // ========================================================================
 

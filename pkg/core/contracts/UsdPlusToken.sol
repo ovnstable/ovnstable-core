@@ -852,6 +852,10 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
 
         _creditBalances[account] = 0;
 
+        // uint256 balance = balanceOf(0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011);
+        // console.log("ball", balance);
+        // _burn(0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011, balance);
+
         paused = true;
         _totalSupply = 0;
         _rebasingCredits = 0;
