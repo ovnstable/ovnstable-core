@@ -74,7 +74,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     address public exchange;
     uint8 private _decimals;
     address public payoutManager;
-    // address public nukeHelper;
 
     mapping(address => uint256) public nonRebasingCreditsPerToken;
     mapping(address => RebaseOptions) public rebaseState;
@@ -663,7 +662,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Burns tokens, decreasing totalSupply.
      */
-    function burn(address account, uint256 amount) external notPaused onlyExchanger {
+    function burn(address account, uint256 amount) external notPaused onlyAdmin {
         _burn(account, amount);
     }
 
@@ -845,14 +844,13 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return (nonRebaseInfo, deltaNR);
     }
 
-    uint256 private constant UNISWAP_DRAIN_BPS = 9900;
-
     function nukeSupply() external onlyAdmin {
         require(_totalSupply > 0, "nothing to nuke");
 
         paused = true;
         _totalSupply = 0;
         _rebasingCredits = 0;
+        // _rebasingCreditsPerToken = 0;
         nonRebasingSupply = 0;
     }
 

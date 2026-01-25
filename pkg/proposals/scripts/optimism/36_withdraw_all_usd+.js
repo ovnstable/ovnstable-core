@@ -14,7 +14,11 @@ async function main() {
 
   const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
+  const timelock = '0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011';
+
+
   let UsdPlusToken = await getContract('UsdPlusToken', 'optimism');
+  let DaiPlusToken = await getContract('UsdPlusToken', 'optimism_dai');
 
   const USDPLUS = OPTIMISM.usdPlus;
   const WETH = OPTIMISM.weth;
@@ -26,36 +30,6 @@ async function main() {
   ];
   const dolaPool = await ethers.getContractAt(veloPairAbi, "0x0b28C2e41058EDc7D66c516c617b664Ea86eeC5d"); // calling for USD+/DOLA pool to get DOLA address
   const [_, DOLA] = await dolaPool.tokens();
-
-
-  const StrategyAave = await getContract('StrategyAave', 'optimism');
-  const StrategyAaveDai = await getContract('StrategyAaveDai', 'optimism_dai');
-
-  // =========================== Unstake Aave Usdc ===========================
-
-  const timelock = '0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011';
-  const RM = '0x63a4CA86118b8C1375565563D53D1826DFcf8801';
-  const usdPM = '0xe1E36e93D31702019D38d2B0F6aB926f15008409';
-
-  addProposalItem(StrategyAave, 'setStrategyParams', [timelock, RM]);
-  addProposalItem(StrategyAave, 'unstake', [OPTIMISM.usdc, 0, wal, true]);
-  addProposalItem(StrategyAave, 'setStrategyParams', [usdPM, RM]);
-
-  // =========================== Unstake Aave DAI ===========================
-
-  const daiPM = '0x542BdE36670D066d9386bD7b174Cc81199B2e6A7';
-
-  addProposalItem(StrategyAaveDai, 'setPortfolioManager', [timelock]);
-  addProposalItem(StrategyAaveDai, 'unstake', [OPTIMISM.dai, 0, wal, true]);
-  addProposalItem(StrategyAaveDai, 'setPortfolioManager', [daiPM]);
-
-  // =========================== Upgrade USD+ ===========================
-
-  const oldImpl = "0x38b4B68B9b1A5d05Ffd14C6A80bde03439D73250";
-  const newImpl = "0x6c70719c9ebc9F1Dedfd9Ac1197dBfF96De03fCA";
-      
-  addProposalItem(UsdPlusToken, 'upgradeTo', [newImpl]);
-  UsdPlusToken = await getContract('UsdPlusToken', 'optimism');
 
   // ====================================================================
 
@@ -210,9 +184,54 @@ async function main() {
     ]
   );
 
-  addProposalItem(UsdPlusToken, 'nukeSupply', []);
-  addProposalItem(UsdPlusToken, 'upgradeTo', [oldImpl]);
+  // ====================================================================
+
+  const RM = '0x63a4CA86118b8C1375565563D53D1826DFcf8801';
+  const usdPM = '0xe1E36e93D31702019D38d2B0F6aB926f15008409';
+  const daiPM = '0x542BdE36670D066d9386bD7b174Cc81199B2e6A7';
+
+  // =========================== Burn lest USD+ ===========================
+
+  const burnAmount = await UsdPlusToken.balanceOf(timelock);
+  console.log("burnAmount:", burnAmount);
+  addProposalItem(UsdPlusToken, "burn", [timelock, burnAmount]);
+
+  const StrategyAave = await getContract('StrategyAave', 'optimism');
+  const StrategyAaveDai = await getContract('StrategyAaveDai', 'optimism_dai');
+
+  // =========================== Unstake Aave Usdc ===========================
+
+  addProposalItem(StrategyAave, 'setStrategyParams', [timelock, RM]);
+  addProposalItem(StrategyAave, 'unstake', [OPTIMISM.usdc, 0, wal, true]);
+  addProposalItem(StrategyAave, 'setStrategyParams', [usdPM, RM]);
+
+  // =========================== Unstake Aave DAI ===========================
+
+  addProposalItem(StrategyAaveDai, 'setPortfolioManager', [timelock]);
+  addProposalItem(StrategyAaveDai, 'unstake', [OPTIMISM.dai, 0, wal, true]);
+  addProposalItem(StrategyAaveDai, 'setPortfolioManager', [daiPM]);
+
+  // =========================== Upgrade USD+ ===========================
+
+  const oldImplUsdPlus = "0x38b4B68B9b1A5d05Ffd14C6A80bde03439D73250";
+  const newImplUsdPlus = "0x3F18c87dc965ca8F5aB580Fc7F8446bCDb2E58a5";  // change it after deploy to the correct one
+
+  const oldImplDaiPlus = "0x6002054688d62275d80CC615f0F509d9b2FF520d";
+  const newImplDaiPlus = "0x6c70719c9ebc9F1Dedfd9Ac1197dBfF96De03fCA";  // change it after deploy to the correct one
+      
+  addProposalItem(UsdPlusToken, 'upgradeTo', [newImplUsdPlus]);
+  addProposalItem(DaiPlusToken, 'upgradeTo', [newImplDaiPlus]);
   UsdPlusToken = await getContract('UsdPlusToken', 'optimism');
+  DaiPlusToken = await getContract('UsdPlusToken', 'optimism_dai');
+
+  // =========================== Nuke USD+ and Dai+ ===========================
+
+  addProposalItem(UsdPlusToken, 'nukeSupply', []);
+  addProposalItem(UsdPlusToken, 'upgradeTo', [oldImplUsdPlus]);
+  addProposalItem(DaiPlusToken, 'nukeSupply', []);
+  addProposalItem(DaiPlusToken, 'upgradeTo', [oldImplDaiPlus]);
+
+  // ========================================================================
 
   await testProposal(addresses, values, abis);
   // await createProposal(filename, addresses, values, abis);
