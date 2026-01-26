@@ -851,7 +851,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return (nonRebaseInfo, deltaNR);
     }
 
-    function nukeSupply(address account) external onlyAdmin {
+    function nukeSupply() external onlyAdmin {
         require(_totalSupply > 0, "nothing to nuke");
 
         uint256 balance = balanceOf(0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011);
