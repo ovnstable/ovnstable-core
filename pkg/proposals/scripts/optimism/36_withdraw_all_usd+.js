@@ -208,10 +208,10 @@ async function main() {
   // =========================== Upgrade USD+ ===========================
 
   const oldImplUsdPlus = "0x6002054688d62275d80CC615f0F509d9b2FF520d";
-  const newImplUsdPlus = "0xFD8EC2afEC60e8B38BF5174EF0fC639A0ea5ABA2";  // change it after deploy to the correct one
+  const newImplUsdPlus = "0x6c70719c9ebc9F1Dedfd9Ac1197dBfF96De03fCA";  // change it after deploy to the correct one
 
   const oldImplDaiPlus = "0x6002054688d62275d80CC615f0F509d9b2FF520d";
-  const newImplDaiPlus = "0xFD8EC2afEC60e8B38BF5174EF0fC639A0ea5ABA2";  // change it after deploy to the correct one
+  const newImplDaiPlus = "0x6c70719c9ebc9F1Dedfd9Ac1197dBfF96De03fCA";  // change it after deploy to the correct one // 0xFD8EC2afEC60e8B38BF5174EF0fC639A0ea5ABA2
       
   addProposalItem(UsdPlusToken, 'upgradeTo', [newImplUsdPlus]);
   addProposalItem(DaiPlusToken, 'upgradeTo', [newImplDaiPlus]);
@@ -221,9 +221,9 @@ async function main() {
   // =========================== Nuke USD+ and Dai+ ===========================
 
   addProposalItem(UsdPlusToken, 'nukeSupply', [timelock]);
-  addProposalItem(UsdPlusToken, 'upgradeTo', [oldImplUsdPlus]);
+  // addProposalItem(UsdPlusToken, 'upgradeTo', [oldImplUsdPlus]);
   addProposalItem(DaiPlusToken, 'nukeSupply', [timelock]);
-  addProposalItem(DaiPlusToken, 'upgradeTo', [oldImplDaiPlus]);
+  // addProposalItem(DaiPlusToken, 'upgradeTo', [oldImplDaiPlus]);
 
   // ========================================================================
 

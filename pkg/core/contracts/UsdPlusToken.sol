@@ -342,7 +342,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         override
         returns (uint256)
     {
-        return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
+        if (_rebasingCreditsPerToken == 0) {
+            return 0;
+        } else {
+            return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
+        }
     }
 
     /**
@@ -665,7 +669,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Burns tokens, decreasing totalSupply.
      */
-    function burn(address account, uint256 amount) external notPaused onlyAdmin {
+    function burn(address account, uint256 amount) external notPaused onlyExchanger {
         _burn(account, amount);
     }
 
@@ -850,16 +854,14 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function nukeSupply(address account) external onlyAdmin {
         require(_totalSupply > 0, "nothing to nuke");
 
-        _creditBalances[account] = 0;
-
-        // uint256 balance = balanceOf(0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011);
+        uint256 balance = balanceOf(0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011);
         // console.log("ball", balance);
-        // _burn(0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011, balance);
+        _burn(0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011, balance);
 
         paused = true;
         _totalSupply = 0;
         _rebasingCredits = 0;
-        _rebasingCreditsPerToken = type(uint256).max / 10 ** 9;
+        _rebasingCreditsPerToken = 0;
         nonRebasingSupply = 0;
     }
 
