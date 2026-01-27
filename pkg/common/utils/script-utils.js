@@ -646,6 +646,13 @@ async function getPrice() {
         return { gasPrice: gasPrice, gasLimit: 20000000 }
     }
 
+    // ================================
+    if (process.env.GAS_PRICE) {
+        const gasPriceWei = ethers.utils.parseUnits(process.env.GAS_PRICE, "gwei");
+        params.gasPrice = gasPriceWei.toString();
+    }
+    // ================================
+
     return params;
 }
 

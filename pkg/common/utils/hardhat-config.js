@@ -52,7 +52,9 @@ function getNetworks() {
             timeout: timeout,
             accounts: accountsNetwork,
             zksync: false,
-            gasPrice: 200087736,
+            // ================================
+            gasPrice: "auto",    // 200087736
+            // ================================
         }
     }
 

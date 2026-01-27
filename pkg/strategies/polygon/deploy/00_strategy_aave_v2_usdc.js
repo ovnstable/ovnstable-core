@@ -1,9 +1,16 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {deploySection, settingSection} = require("@overnight-contracts/common/utils/script-utils");
+const { transferETH, getWalletAddress } = require("@overnight-contracts/common/utils/script-utils");
 const {POLYGON} = require("@overnight-contracts/common/utils/assets");
+const { ethers } = require("hardhat");
+
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
+    if (hre.network.name === "localhost") await transferETH(1, await getWalletAddress());
+    let blockNumber = await ethers.provider.getBlockNumber();
+    console.log("Block number:", blockNumber);
+
 
 
     await deploySection(async (name) => {
