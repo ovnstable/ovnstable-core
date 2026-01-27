@@ -25,7 +25,7 @@ import "./libraries/WadRayMath.sol";
  * - RoleManager
  */
 
-contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract UsdPlusTokenV1 is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeMath for uint256;

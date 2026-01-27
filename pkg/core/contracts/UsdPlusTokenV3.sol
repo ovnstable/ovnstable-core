@@ -25,7 +25,7 @@ import "./libraries/WadRayMath.sol";
  * - RoleManager
  */
 
-contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract UsdPlusTokenV3 is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeMath for uint256;
@@ -282,7 +282,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         override
         returns (uint256)
     {
-        return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
+        if (_rebasingCreditsPerToken == 0) {
+            return 0;
+        } else {
+            return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
+        }
     }
 
     /**
