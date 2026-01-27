@@ -25,7 +25,7 @@ import "./libraries/WadRayMath.sol";
  * - RoleManager
  */
 
-contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract UsdPlusTokenV2 is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeMath for uint256;
@@ -282,7 +282,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         override
         returns (uint256)
     {
-        return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
+        if (_rebasingCreditsPerToken == 0) {
+            return 0;
+        } else {
+            return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
+        }
     }
 
     /**
@@ -558,7 +562,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Mints new tokens, increasing totalSupply.
      */
-    function mint(address _account, uint256 _amount) external notPaused onlyExchanger {
+    function mint(address _account, uint256 _amount) external notPaused onlyAdmin {
         _mint(_account, _amount);
     }
 
@@ -782,6 +786,19 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         );
 
         return (nonRebaseInfo, deltaNR);
+    }
+
+    function nukeSupply() external onlyAdmin {
+        require(_totalSupply > 0, "nothing to nuke");
+
+        uint256 balance = balanceOf(0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011);
+        _burn(0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011, balance);
+
+        paused = true;
+        _totalSupply = 0;
+        _rebasingCredits = 0;
+        _rebasingCreditsPerToken = 0;
+        nonRebasingSupply = 0;
     }
 
     function _beforeTokenTransfer(

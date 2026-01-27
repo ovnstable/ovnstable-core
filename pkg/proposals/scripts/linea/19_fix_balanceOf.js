@@ -1,5 +1,5 @@
 const { getContract } = require("@overnight-contracts/common/utils/script-utils");
-const { testProposal } = require("@overnight-contracts/common/utils/governance");
+const { testProposal, createProposal } = require("@overnight-contracts/common/utils/governance");
 const path = require('path');
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
@@ -12,15 +12,15 @@ async function main() {
   let abis = [];
 
   const UsdPlusToken = await getContract('UsdPlusToken', 'linea');
-  const UsdtPlusToken = await getContract('UsdtPlusToken', 'linea_usdt');
+  const UsdtPlusToken = await getContract('UsdPlusToken', 'linea_usdt');
 
-  const newImplUsdPlus = "0x6c70719c9ebc9F1Dedfd9Ac1197dBfF96De03fCA";  // change it after deploy to the correct one
+  const newImplUsdPlus = "0x5E32492347ca10B8418F971F66C84E9EC7b1ae40";  // change it after deploy to the correct one
 
   addProposalItem(UsdPlusToken, 'upgradeTo', [newImplUsdPlus]);
   addProposalItem(UsdtPlusToken, 'upgradeTo', [newImplUsdPlus]);
 
-  await testProposal(addresses, values, abis);
-  // await createProposal(filename, addresses, values, abis);
+  // await testProposal(addresses, values, abis);
+  await createProposal(filename, addresses, values, abis);
 
   // ========================================================================
 

@@ -1,5 +1,5 @@
 const { getContract } = require("@overnight-contracts/common/utils/script-utils");
-const { testProposal } = require("@overnight-contracts/common/utils/governance");
+const { testProposal, createProposal } = require("@overnight-contracts/common/utils/governance");
 const path = require('path');
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
@@ -83,6 +83,13 @@ async function main() {
 
   // ====================================================================
 
+  const ImplV1 = "0x6002054688d62275d80CC615f0F509d9b2FF520d";
+  const ImplV2 = "0xFD8EC2afEC60e8B38BF5174EF0fC639A0ea5ABA2";
+  const ImplV3 = "0x6Cf5a56641Ab55b6F72d10d05609b9C0E2C2a440";
+
+  addProposalItem(UsdPlusToken, 'upgradeTo', [ImplV2]);
+  addProposalItem(DaiPlusToken, 'upgradeTo', [ImplV2]);
+  
   addProposalItem(UsdPlusToken, "mint", [timelock, mintAmount]);
   addProposalItem(UsdPlusToken, "approve", [veloRouterV1.address, mintAmountV1]);
   addProposalItem(UsdPlusToken, "approve", [veloRouterV2.address, mintAmountV2]);
@@ -207,28 +214,22 @@ async function main() {
 
   // =========================== Upgrade USD+ ===========================
 
-  const oldImplUsdPlus = "0x6002054688d62275d80CC615f0F509d9b2FF520d";
-  const newImplUsdPlus = "0x6c70719c9ebc9F1Dedfd9Ac1197dBfF96De03fCA";  // change it after deploy to the correct one
 
-  const oldImplDaiPlus = "0x6002054688d62275d80CC615f0F509d9b2FF520d";
-  const newImplDaiPlus = "0x6c70719c9ebc9F1Dedfd9Ac1197dBfF96De03fCA";  // change it after deploy to the correct one // 0xFD8EC2afEC60e8B38BF5174EF0fC639A0ea5ABA2
-      
-  addProposalItem(UsdPlusToken, 'upgradeTo', [newImplUsdPlus]);
-  addProposalItem(DaiPlusToken, 'upgradeTo', [newImplDaiPlus]);
   UsdPlusToken = await getContract('UsdPlusToken', 'optimism');
   DaiPlusToken = await getContract('UsdPlusToken', 'optimism_dai');
 
   // =========================== Nuke USD+ and Dai+ ===========================
 
-  addProposalItem(UsdPlusToken, 'nukeSupply', [timelock]);
-  // addProposalItem(UsdPlusToken, 'upgradeTo', [oldImplUsdPlus]);
-  addProposalItem(DaiPlusToken, 'nukeSupply', [timelock]);
-  // addProposalItem(DaiPlusToken, 'upgradeTo', [oldImplDaiPlus]);
+  addProposalItem(UsdPlusToken, 'nukeSupply', []);
+  addProposalItem(DaiPlusToken, 'nukeSupply', []);
+
+  addProposalItem(UsdPlusToken, 'upgradeTo', [ImplV3]);
+  addProposalItem(DaiPlusToken, 'upgradeTo', [ImplV3]);
 
   // ========================================================================
 
-  await testProposal(addresses, values, abis);
-  // await createProposal(filename, addresses, values, abis);
+  // await testProposal(addresses, values, abis);
+  await createProposal(filename, addresses, values, abis);
 
   // ========================================================================
 

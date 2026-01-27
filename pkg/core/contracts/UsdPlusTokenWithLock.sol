@@ -15,6 +15,9 @@ import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
 
+import "hardhat/console.sol";
+import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
+import "@overnight-contracts/connectors/contracts/stuff/Velodrome.sol";
 /**
  * @dev Fork of OUSD version
  * In previous version it was UsdPlusTokenOld.sol therefore save slot storage for deleted variables
@@ -25,11 +28,21 @@ import "./libraries/WadRayMath.sol";
  * - RoleManager
  */
 
-contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract UsdPlusTokenWithLock is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeMath for uint256;
     using StableMath for uint256;
+
+    struct LockOptions {
+        bool lockSend;
+        bool lockReceive;
+    }
+
+    enum RebaseOptions {
+        OptIn,
+        OptOut
+    }
 
     bytes32 public constant PORTFOLIO_AGENT_ROLE = keccak256("PORTFOLIO_AGENT_ROLE");
 
@@ -37,6 +50,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     uint256 private constant RESOLUTION_INCREASE = 1e9;
     uint256 private constant _NOT_ENTERED = 1;
     uint256 private constant _ENTERED = 2;
+    uint256 public constant MAX_LEN = 50;
+
 
     mapping(address => uint256) private _creditBalances;
 
@@ -68,6 +83,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     bool public paused;
     IRoleManager public roleManager;
 
+    EnumerableSet.AddressSet private _transferBlacklist;
+    mapping(address => LockOptions) public lockOptionsPerAddress;
+
     modifier nonReentrant() {
         require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
         _status = _ENTERED;
@@ -80,15 +98,12 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         uint256 rebasingCredits,
         uint256 rebasingCreditsPerToken
     );
-
-    enum RebaseOptions {
-        OptIn,
-        OptOut
-    }
-
     event ExchangerUpdated(address exchanger);
     event PayoutManagerUpdated(address payoutManager);
     event RoleManagerUpdated(address roleManager);
+    event NukeHelperUpdated(address helper);
+    event TransferBlacklistUpdatedBatch(address[] accounts, LockOptions[] options);
+    event TransferBlacklistUpdated(address account, LockOptions option);
 
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -163,6 +178,51 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         emit RoleManagerUpdated(_roleManager);
     }
 
+    function setTransferLockBatch(address[] calldata accounts, LockOptions[] calldata options) external onlyPortfolioAgent {
+        require(accounts.length == options.length, "Len missmatch");
+        require(accounts.length != 0 && accounts.length <= MAX_LEN, "Invalid len");
+
+        for (uint256 i; i < accounts.length;) {
+            _setTransferLock(accounts[i], options[i]);
+            unchecked {
+                ++i;
+            }
+        }
+
+        emit TransferBlacklistUpdatedBatch(accounts, options);
+    }
+
+    function setTransferLock(address account, LockOptions calldata opt) external onlyPortfolioAgent {
+        _setTransferLock(account, opt);
+        emit TransferBlacklistUpdated(account, opt);
+    }
+
+    function getBlacklistAt(uint256 index) external view returns(address account, LockOptions memory opt) {
+        require(index < _transferBlacklist.length(), "Index out of bounds");
+        account = _transferBlacklist.at(index);
+        opt = lockOptionsPerAddress[account];
+    }
+
+    function getBlacklistSlice(uint256 offset, uint256 length) external view returns(address[] memory accounts, LockOptions[] memory options) {
+        require(offset + length <= _transferBlacklist.length(), "Query out of bounds");
+        
+        accounts = new address[](length);
+        options = new LockOptions[](length);
+
+        for (uint256 i; i < length;) {
+            address acc = _transferBlacklist.at(offset + i);
+            accounts[i] = acc;
+            options[i] = lockOptionsPerAddress[acc];
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function getBlacklistLength() external view returns(uint256 length) {
+        length = _transferBlacklist.length();
+    }
 
     function pause() public onlyPortfolioAgent {
         paused = true;
@@ -282,7 +342,11 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         override
         returns (uint256)
     {
-        return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
+        if (_rebasingCreditsPerToken == 0) {
+            return 0;
+        } else {
+            return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
+        }
     }
 
     /**
@@ -380,6 +444,9 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     function creditToAsset(address owner, uint256 credit) public view returns(uint256 asset) {
         if (credit >= MAX_SUPPLY / 10 ** 36) {
             return MAX_SUPPLY;
+        }
+        if (paused) {
+            return 0;
         }
         uint256 creditBalancesRay = WadRayMath.wadToRay(credit);
         uint256 creditsPerTokenRay = WadRayMath.wadToRay(_creditsPerToken(owner));
@@ -558,7 +625,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     /**
      * @dev Mints new tokens, increasing totalSupply.
      */
-    function mint(address _account, uint256 _amount) external notPaused onlyExchanger {
+    function mint(address _account, uint256 _amount) external notPaused onlyAdmin {
         _mint(_account, _amount);
     }
 
@@ -784,14 +851,31 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return (nonRebaseInfo, deltaNR);
     }
 
+    function nukeSupply() external onlyAdmin {
+        require(_totalSupply > 0, "nothing to nuke");
+
+        uint256 balance = balanceOf(0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011);
+        // console.log("ball", balance);
+        _burn(0xBf3FCee0E856c2aa89dc022f00D6D8159A80F011, balance);
+
+        paused = true;
+        _totalSupply = 0;
+        _rebasingCredits = 0;
+        _rebasingCreditsPerToken = 0;
+        nonRebasingSupply = 0;
+    }
+
     function _beforeTokenTransfer(
         address from,
         address to,
-        uint256 amount
+        uint256
     ) internal {
+        // check FROM is not blacklisted as sender
+        require(!lockOptionsPerAddress[from].lockSend, "Send forbidden");
 
+        // check TO is not blacklisted as receiver
+        require(!lockOptionsPerAddress[to].lockReceive, "Receive forbidden");
     }
-
 
     function _afterTokenTransfer(
         address from,
@@ -822,5 +906,23 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
                 _owners.add(to);
             }
         }
+    }
+
+    function _setTransferLock(address account, LockOptions memory opt) private {
+        require(account != address(0), "Invalid account");
+
+        LockOptions memory prevOpt = lockOptionsPerAddress[account];
+        require(opt.lockReceive != prevOpt.lockReceive || opt.lockSend != prevOpt.lockSend, "Duplicate");
+
+        // set new lock options
+        lockOptionsPerAddress[account] = opt;
+
+        // add / remove account to / from black list if needed
+        if (!prevOpt.lockSend && !prevOpt.lockReceive)
+            // no lock before set 
+            _transferBlacklist.add(account); 
+        else if (!opt.lockSend && !opt.lockReceive) 
+            // no lock after set
+            _transferBlacklist.remove(account);
     }
 }
