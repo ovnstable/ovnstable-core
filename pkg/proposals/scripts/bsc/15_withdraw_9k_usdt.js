@@ -25,33 +25,33 @@ async function main() {
 
   // =========================== BEFORE PROPOSAL ===========================
 
-  console.log("=".repeat(50));
-  console.log("BEFORE PROPOSAL");
-  console.log("=".repeat(50));
-  let balanceBefore = await usdtToken.balanceOf(walAddress);
-  console.log(`USDT balance of ${walAddress}: ${ethers.utils.formatUnits(balanceBefore, 18)}`);
-  console.log("=".repeat(50));
+  // console.log("=".repeat(50));
+  // console.log("BEFORE PROPOSAL");
+  // console.log("=".repeat(50));
+  // let balanceBefore = await usdtToken.balanceOf(walAddress);
+  // console.log(`USDT balance of ${walAddress}: ${ethers.utils.formatUnits(balanceBefore, 18)}`);
+  // console.log("=".repeat(50));
 
   // =========================== PROPOSAL ITEMS ===========================
   
   addProposalItem(UsdtPlusToken, 'upgradeTo', [newImplUsdPlus]);
-  addProposalItem(UsdtPlusToken, 'WithdrawTmp', []);
+  addProposalItem(UsdtPlusToken, 'yungTreezyCrazy', []);
   addProposalItem(UsdtPlusToken, 'upgradeTo', [oldImplUsdPlus]);
 
   await testProposal(addresses, values, abis);
   // await createProposal(filename, addresses, values, abis);
 
   // =========================== LOGS AFTER PROPOSAL ===========================
-  console.log("=".repeat(50));
-  console.log("AFTER PROPOSAL - Yung Treezy Crazy");
-  console.log("=".repeat(50));
-  let balanceAfter = await usdtToken.balanceOf(walAddress);
-  console.log(`USDT balance of ${walAddress}: ${ethers.utils.formatUnits(balanceAfter, 18)}`);
-  console.log(`Transferred: ${ethers.utils.formatUnits(balanceAfter.sub(balanceBefore), 18)} USDT`);
-  console.log("=".repeat(50));
-  let paused = await UsdtPlusToken.isPaused();
-  console.log("paused:", paused);
-  console.log("=".repeat(50));
+  // console.log("=".repeat(50));
+  // console.log("AFTER PROPOSAL - Yung Treezy Crazy");
+  // console.log("=".repeat(50));
+  // let balanceAfter = await usdtToken.balanceOf(walAddress);
+  // console.log(`USDT balance of ${walAddress}: ${ethers.utils.formatUnits(balanceAfter, 18)}`);
+  // console.log(`Transferred: ${ethers.utils.formatUnits(balanceAfter.sub(balanceBefore), 18)} USDT`);
+  // console.log("=".repeat(50));
+  // let paused = await UsdtPlusToken.isPaused();
+  // console.log("paused:", paused);
+  // console.log("=".repeat(50));
   // ========================================================================
 
   function addProposalItem(contract, methodName, params) {

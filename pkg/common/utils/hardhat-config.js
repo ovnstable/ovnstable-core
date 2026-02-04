@@ -53,8 +53,7 @@ function getNetworks() {
             accounts: accountsNetwork,
             zksync: false,
             // ================================
-            // gasPrice: 200087736,
-            gasPrice: "auto",
+            gasPrice: "auto",    // 200087736
             // ================================
         }
     }
