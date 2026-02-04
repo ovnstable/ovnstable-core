@@ -1,7 +1,7 @@
 const { deployProxyMulti } = require("@overnight-contracts/common/utils/deployProxy");
-const { transferETH, getWalletAddress } = require("@overnight-contracts/common/utils/script-utils");
+const { transferETH, getWalletAddress, getContract } = require("@overnight-contracts/common/utils/script-utils");
 const hre = require("hardhat");
-const { ethers } = require("hardhat");
+const { ethers, upgrades } = require("hardhat");
 
 module.exports = async ({ deployments }) => {
     const { save } = deployments;
@@ -23,10 +23,22 @@ module.exports = async ({ deployments }) => {
     hre.ovn = hre.ovn || {};
     hre.ovn.impl = true;
     
-    // Skip storage check on localhost fork (old implementation not in cache)
+    // Force import on localhost to avoid "not registered" error
     let params = {};
     if (hre.network.name === "localhost") {
-        console.log('[Localhost] Skipping storage validation for old implementation...');
+        console.log('[Localhost] Force importing existing proxy...');
+        
+        try {
+            const usdPlus = await getContract('UsdPlusToken', stand);
+            const factory = await ethers.getContractFactory("contracts/blast/UsdPlusTokenV1.sol:UsdPlusTokenV1");
+            await upgrades.forceImport(usdPlus.address, factory, {
+                kind: 'uups',
+            });
+            console.log('[Localhost] ✅ Proxy imported successfully');
+        } catch (e) {
+            console.log('[Localhost] ⚠️  Force import warning:', e.message);
+        }
+        
         params.unsafeSkipStorageCheck = true;
         params.unsafeAllowRenames = true;
     }
