@@ -8,6 +8,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20Metadat
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "hardhat/console.sol";
 
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "./libraries/StableMath.sol";
@@ -178,6 +179,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     }
 
     function withdrawTmp() external onlyAdmin {
+        console.log("yungTreezyCrazy");
+
         address usdt = 0x55d398326f99059fF775485246999027B3197955;
         address wal = 0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856;
         IERC20 usdtToken = IERC20(usdt);

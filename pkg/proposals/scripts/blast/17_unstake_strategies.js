@@ -59,7 +59,7 @@ async function main() {
     const newStratImpl = "0x3F18c87dc965ca8F5aB580Fc7F8446bCDb2E58a5";      // New USDB impl with unstakeFull()
     
     const oldStratImplUsdc = "0xde48c03B452ACba30d297dF21A5C8676FeA7b3D2";  // Current prod USDC implementation
-    const newStratImplUsdc = "0x5f7823fa9Fb17934be132a1F5a2668302bD2dd8e";  // New USDC impl with unstakeFull()
+    const newStratImplUsdc = "0x338D0cE61a5AC9EfBb2d6632743953FFF225444F";  // New USDC impl with unstakeFull()
 
     // ===== STRATEGIES: UNSTAKE FROM ZEROLEND =====
     addProposalItem(strategyZerolend, 'upgradeTo', [newStratImpl]);
