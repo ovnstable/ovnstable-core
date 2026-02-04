@@ -76,9 +76,11 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
             fileName = `unknown-${chainId}.json`;
         }
 
-        await fs.copyFile(`.openzeppelin/${fileName}`, '.openzeppelin/unknown-31337.json', e => {
-            if (e) console.error(e);
-        });
+        try {
+            fs.copyFileSync(`.openzeppelin/${fileName}`, '.openzeppelin/unknown-31337.json');
+        } catch (e) {
+            console.error(e);
+        }
 
         const destDir = `deployments/localhost`;
 
@@ -88,9 +90,11 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
             if (err) console.error(err);
         });
 
-        await fs.writeFile('deployments/localhost/.chainId', '31337', function (err) {
-            if (err) return console.log(err);
-        });
+        try {
+            fs.writeFileSync('deployments/localhost/.chainId', '31337');
+        } catch (err) {
+            console.log(err);
+        }
 
         let nodeUrl = getNodeUrl();
         const provider = new hre.ethers.providers.JsonRpcProvider(nodeUrl);

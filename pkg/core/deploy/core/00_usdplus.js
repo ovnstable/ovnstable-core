@@ -46,6 +46,7 @@ module.exports = async ({ deployments }) => {
     let usdPlus = await ethers.getContract("UsdPlusToken");
 
     console.log("UsdPlusToken deploy done()");
+    console.log("Address:     " + usdPlus.address);
     console.log("Symbol:      " + (await usdPlus.symbol()));
     console.log("Name:        " + (await usdPlus.name()));
     console.log("Decimals:    " + (await usdPlus.decimals()));

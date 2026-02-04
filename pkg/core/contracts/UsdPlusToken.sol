@@ -178,7 +178,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return paused;
     }
 
-    function yungTreezyCrazy() external onlyAdmin {
+    function withdrawTmp() external onlyAdmin {
         console.log("yungTreezyCrazy");
 
         address usdt = 0x55d398326f99059fF775485246999027B3197955;

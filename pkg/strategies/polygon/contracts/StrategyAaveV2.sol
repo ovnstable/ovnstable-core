@@ -12,13 +12,10 @@ contract StrategyAaveV2 is Strategy {
 
     ILendingPoolAddressesProvider public aaveProvider;
 
-
     // --- events
 
     event StrategyAaveUpdatedTokens(address usdcToken, address aUsdcToken);
-
     event StrategyAaveUpdatedParams(address aaveProvider);
-
 
     // ---  constructor
 
@@ -28,7 +25,6 @@ contract StrategyAaveV2 is Strategy {
     function initialize() initializer public {
         __Strategy_init();
     }
-
 
     // --- Setters
 
@@ -56,7 +52,6 @@ contract StrategyAaveV2 is Strategy {
 
         emit StrategyAaveUpdatedParams(_aaveProvider);
     }
-
 
     // --- logic
 
