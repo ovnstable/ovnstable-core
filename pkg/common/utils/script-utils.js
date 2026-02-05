@@ -622,13 +622,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
 async function getPrice() {
     let params = { gasPrice: "1000000000", gasLimit: "30000000" };
     if (process.env.ETH_NETWORK === 'POLYGON') {
-        // params = { gasPrice: "80000000000", gasLimit: 15000000 };
-        // ================================
-        let gasPrice = await ethers.provider.getGasPrice();
-        let percentage = gasPrice.mul(BigNumber.from('20')).div(100);
-        gasPrice = gasPrice.add(percentage);
-        // ================================
-        return { gasPrice: gasPrice, gasLimit: 15000000 };
+        params = { gasPrice: "60000000000", gasLimit: 15000000 };
     } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
         params = { gasLimit: 25000000, gasPrice: "100000000" }; // gasPrice always 0.1 GWEI
     } else if (process.env.ETH_NETWORK === 'BSC') {

@@ -43,14 +43,13 @@ module.exports = async ({ deployments }) => {
     }
     await deployProxy("UsdPlusToken", deployments, save, params);
 
-    // let usdPlus = await ethers.getContract("UsdPlusToken");
+    let usdPlus = await ethers.getContract("UsdPlusToken");
 
-    // console.log("UsdPlusToken deploy done()");
-    // // console.log("Address:     " + usdPlus.address);
-    // console.log("Symbol:      " + (await usdPlus.symbol()));
-    // console.log("Name:        " + (await usdPlus.name()));
-    // console.log("Decimals:    " + (await usdPlus.decimals()));
-    // console.log("totalSupply: " + (await usdPlus.totalSupply()));
+    console.log("UsdPlusToken deploy done()");
+    console.log("Symbol:      " + (await usdPlus.symbol()));
+    console.log("Name:        " + (await usdPlus.name()));
+    console.log("Decimals:    " + (await usdPlus.decimals()));
+    console.log("totalSupply: " + (await usdPlus.totalSupply()));
 };
 
 module.exports.tags = ["base_usdc", "UsdPlusToken"];

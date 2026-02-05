@@ -120,14 +120,10 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
     let factoryOptions;
     let unsafeAllow;
     let args;
-    let unsafeSkipStorageCheck;
-    let unsafeAllowRenames;
     if (params) {
         factoryOptions = params.factoryOptions;
         unsafeAllow = params.unsafeAllow;
         args = params.args;
-        unsafeSkipStorageCheck = params.unsafeSkipStorageCheck;
-        unsafeAllowRenames = params.unsafeAllowRenames;
     }
 
     const contractFactory = await ethers.getContractFactory(factoryName, factoryOptions);
@@ -177,6 +173,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         // For system with Governance
         console.log('Try to deploy impl ...');
 
+        // impl = await upgrades.forceImport(proxy, contractFactory, { unsafeAllow: unsafeAllow });
         impl = await sampleModule.deployProxyImpl(
             hre,
             contractFactory,
@@ -184,8 +181,8 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
                 kind: 'uups',
                 unsafeAllow: unsafeAllow,
                 redeployImplementation: 'always',
-                unsafeSkipStorageCheck: unsafeSkipStorageCheck,
-                unsafeAllowRenames: unsafeAllowRenames
+                // unsafeSkipStorageCheck: true,
+                // unsafeAllowRenames: true
             },
             proxy.address,
         );
@@ -194,9 +191,7 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         console.log('Deploy impl done without upgradeTo -> impl [' + implAddress + ']');
     }
 
-    if (impl && impl.deployTransaction) {
-        await impl.deployTransaction.wait();
-    }
+    if (impl && impl.deployTransaction) await impl.deployTransaction.wait();
 
     const artifact = await deployments.getExtendedArtifact(factoryName);
     artifact.implementation = implAddress;

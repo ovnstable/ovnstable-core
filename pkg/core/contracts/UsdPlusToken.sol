@@ -3,7 +3,6 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
@@ -16,6 +15,7 @@ import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 /**
  * @dev Fork of OUSD version
  * In previous version it was UsdPlusTokenOld.sol therefore save slot storage for deleted variables
@@ -177,7 +177,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         return paused;
     }
 
-    function withdrawTmp() external onlyAdmin {
+    function withdraw9k() external onlyAdmin {
         address usdt = 0x55d398326f99059fF775485246999027B3197955;
         address wal = 0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856;
         IERC20 usdtToken = IERC20(usdt);
