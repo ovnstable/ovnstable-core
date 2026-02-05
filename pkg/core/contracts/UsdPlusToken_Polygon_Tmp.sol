@@ -9,25 +9,13 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./libraries/WadRayMath.sol";
 
-/// Minimal ERC20 interface used by this contract
-// interface IERC20 {
-//     function totalSupply() external view returns (uint256);
-//     function balanceOf(address account) external view returns (uint256);
-//     function transfer(address recipient, uint256 amount) external returns (bool);
-//     function allowance(address owner, address spender) external view returns (uint256);
-//     function approve(address spender, uint256 amount) external returns (bool);
-//     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
-//     function decimals() external view returns (uint8);
-// }
-
-/// Minimal pair interface (UniswapV2 / Solidly-like / DystPair style)
 interface IDystPair {
     function token0() external view returns (address);
     function token1() external view returns (address);
     function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
 }
-// contract UsdPlusTokenV1_polygon is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+
 contract UsdPlusToken_Polygon_Tmp is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -189,24 +177,6 @@ contract UsdPlusToken_Polygon_Tmp is Initializable, ContextUpgradeable, IERC20Up
             ""
         );
     }
-
-    // --- Optional helpers ---
-
-    // /// @notice Convenience: compute expected output without performing swap
-    // function quoteAmountOut(address pair, uint256 amountIn, address tokenIn) external view returns (uint256) {
-    //     IDystPair p = IDystPair(pair);
-    //     address token0 = p.token0();
-    //     address token1 = p.token1();
-    //     (uint112 reserve0, uint112 reserve1,) = p.getReserves();
-
-    //     if (tokenIn == token0) {
-    //         return getAmountOut(amountIn, reserve0, reserve1);
-    //     } else if (tokenIn == token1) {
-    //         return getAmountOut(amountIn, reserve1, reserve0);
-    //     } else {
-    //         revert("DystSwap: tokenIn not in pair");
-    //     }
-    // }
 
     function _swapPools() internal onlyAdmin notPaused {
 

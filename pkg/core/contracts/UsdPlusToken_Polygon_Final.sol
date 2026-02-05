@@ -9,11 +9,6 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./libraries/WadRayMath.sol";
 
-/*
-* contains _paused, pause(), unpause(), isPaused()
-* added isPaused() in transfer, transferFrom, approve, increaseAllowance, decreaseAllowance
-*/
-
 contract UsdPlusToken_Polygon_Final is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
     using WadRayMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
