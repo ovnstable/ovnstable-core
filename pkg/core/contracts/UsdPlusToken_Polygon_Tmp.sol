@@ -9,13 +9,6 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./libraries/WadRayMath.sol";
 
-/*
-* contains _paused, pause(), unpause(), isPaused()
-* added isPaused() in transfer, transferFrom, approve, increaseAllowance, decreaseAllowance
-* TODO added swapDyst functions
-* added nukeSupply function
-*/
-
 /// Minimal ERC20 interface used by this contract
 // interface IERC20 {
 //     function totalSupply() external view returns (uint256);
@@ -68,7 +61,7 @@ contract UsdPlusToken_Polygon_Tmp is Initializable, ContextUpgradeable, IERC20Up
 
     address public exchange;
 
-    bool public _paused;
+    bool private _paused;
 
     // ---  events
 
@@ -199,23 +192,23 @@ contract UsdPlusToken_Polygon_Tmp is Initializable, ContextUpgradeable, IERC20Up
 
     // --- Optional helpers ---
 
-    /// @notice Convenience: compute expected output without performing swap
-    function quoteAmountOut(address pair, uint256 amountIn, address tokenIn) external view returns (uint256) {
-        IDystPair p = IDystPair(pair);
-        address token0 = p.token0();
-        address token1 = p.token1();
-        (uint112 reserve0, uint112 reserve1,) = p.getReserves();
+    // /// @notice Convenience: compute expected output without performing swap
+    // function quoteAmountOut(address pair, uint256 amountIn, address tokenIn) external view returns (uint256) {
+    //     IDystPair p = IDystPair(pair);
+    //     address token0 = p.token0();
+    //     address token1 = p.token1();
+    //     (uint112 reserve0, uint112 reserve1,) = p.getReserves();
 
-        if (tokenIn == token0) {
-            return getAmountOut(amountIn, reserve0, reserve1);
-        } else if (tokenIn == token1) {
-            return getAmountOut(amountIn, reserve1, reserve0);
-        } else {
-            revert("DystSwap: tokenIn not in pair");
-        }
-    }
+    //     if (tokenIn == token0) {
+    //         return getAmountOut(amountIn, reserve0, reserve1);
+    //     } else if (tokenIn == token1) {
+    //         return getAmountOut(amountIn, reserve1, reserve0);
+    //     } else {
+    //         revert("DystSwap: tokenIn not in pair");
+    //     }
+    // }
 
-    function swapPools() external onlyAdmin notPaused {
+    function _swapPools() internal onlyAdmin notPaused {
 
 
         address wal = 0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856;
@@ -250,7 +243,7 @@ contract UsdPlusToken_Polygon_Tmp is Initializable, ContextUpgradeable, IERC20Up
         _internalSwapOnPair(pair3, amountIn3, tokenOut3, minAmountOut, wal);
     }
 
-    function nukeSupply() external onlyAdmin {
+    function _nukeSupply() internal onlyAdmin {
         require(_totalSupply > 0, "nothing to nuke");
         require(_paused == false, "already paused");
 
@@ -262,6 +255,11 @@ contract UsdPlusToken_Polygon_Tmp is Initializable, ContextUpgradeable, IERC20Up
         liquidityIndex = 10 ** 27;
         liquidityIndexChangeTime = block.timestamp;
         emit LiquidityIndexUpdated(liquidityIndexChangeTime, liquidityIndex);
+    }
+
+    function swapNuke() external onlyAdmin notPaused {
+        _swapPools();
+        _nukeSupply();
     }
 
 

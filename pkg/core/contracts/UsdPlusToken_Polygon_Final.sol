@@ -47,7 +47,7 @@ contract UsdPlusToken_Polygon_Final is Initializable, ContextUpgradeable, IERC20
 
     address public exchange;
 
-    bool public _paused;
+    bool private _paused;
 
     // ---  events
 

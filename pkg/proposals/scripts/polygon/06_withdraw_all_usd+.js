@@ -87,8 +87,7 @@ async function main() {
   const finalImplUsdPlus = "0x338D0cE61a5AC9EfBb2d6632743953FFF225444F";
 
   addProposalItem(UsdPlusToken, 'upgradeTo', [tmpImplUsdPlus]);
-  addProposalItem(UsdPlusToken, 'swapPools', []);
-  addProposalItem(UsdPlusToken, 'nukeSupply', []);
+  addProposalItem(UsdPlusToken, 'swapNuke', []);
   addProposalItem(UsdPlusToken, 'upgradeTo', [finalImplUsdPlus]);
 
   await testProposal(addresses, values, abis);
