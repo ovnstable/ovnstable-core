@@ -6,7 +6,7 @@ const { ethers } = require("hardhat");
 module.exports = async ({ deployments }) => {
     console.log("%1");
     const { save } = deployments;
-    if (hre.network.name === "localhost") await transferETH(1, await getWalletAddress());
+    if (hre.network.name === "localhost") await transferETH(10, await getWalletAddress());
     let params;
     switch (hre.ovn.stand || process.env.STAND) {
         case "optimism_dai":
