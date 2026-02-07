@@ -1,66 +1,6 @@
-/**
- * Proposal: Withdraw all funds from Zerolend strategies and nuke USD+ supply
- * 
- * PREREQUISITES:
- * 1. Deploy new implementations for both strategies with unstakeFull() function
- * 2. Deploy new UsdPlusToken implementation with nukeSupply() function
- * 3. Start local fork of Blast network on port 8545
- * 
- * DEPLOYMENT STEPS:
- * 
- * Step 1: Deploy new StrategyZerolend implementation (USDB)
- * Terminal: ~/ovnstable-core/pkg/strategies/blast
- * Command: STAND=blast hh deploy --tags StrategyZerolend --impl --gov --network localhost
- * Result: Copy new implementation address from output
- * 
- * Step 2: Deploy new StrategyZerolendUsdc implementation (USDC)
- * Terminal: ~/ovnstable-core/pkg/strategies/blast
- * Command: STAND=blast_usdc hh deploy --tags StrategyZerolendUsdc --impl --gov --network localhost
- * Result: Copy new implementation address from output
- * 
- * Step 3: Deploy new UsdPlusToken implementation
- * Terminal: ~/ovnstable-core/pkg/core
- * Command: STAND=blast hh deploy --tags UsdPlusTokenV1 --impl --gov --network localhost
- * Result: Copy new implementation address from output
- * 
- * Step 4: Update implementation addresses in this file
- * - Set newStratImpl to new USDB strategy implementation address
- * - Set newStratImplUsdc to new USDC strategy implementation address
- * - Set newUsdPlusImpl to new USD+ token implementation address
- * - Verify all old implementation addresses match current prod
- * 
- * Step 5: Test proposal execution locally
- * Terminal: ~/ovnstable-core/pkg/proposals
- * Command: node scripts/blast/16_withdraw_usdplus.js
- * 
- * Step 6: Create actual proposal (uncomment createProposal line, comment testProposal)
- * Command: node scripts/blast/16_withdraw_usdplus.js
- * 
- * WHAT THIS PROPOSAL DOES:
- * 
- * PART 1 - STRATEGIES (withdraw from Zerolend):
- * 1. Upgrades StrategyZerolend to new implementation (with unstakeFull)
- * 2. Calls unstakeFull() - converts z0USDB to USDB on strategy balance
- * 3. Downgrades StrategyZerolend back to old implementation
- * 4. Repeats steps 1-3 for StrategyZerolendUsdc
- * 
- * PART 2 - USD+ TOKEN (reset supply):
- * 5. Upgrades UsdPlusToken to new implementation (with nukeSupply)
- * 6. Calls nukeSupply() - resets totalSupply and liquidityIndex
- * 7. Downgrades UsdPlusToken back to old implementation
- * 
- * IMPORTANT NOTES:
- * - Both strategies (USDB and USDC) use the same underlying tokens: usdb/z0USDB
- * - unstakeFull() only converts tokens, does NOT transfer to external wallet
- * - Funds remain on strategy contract after execution
- * - nukeSupply() resets USD+ totalSupply to 0 and liquidityIndex to 1e27
- * - Total transactions: 9 (3 for USDB strategy + 3 for USDC strategy + 3 for USD+ token)
- */
-
-const { getContract, showM2M, transferETH } = require("@overnight-contracts/common/utils/script-utils");
+const { getContract, transferETH } = require("@overnight-contracts/common/utils/script-utils");
 const { fromE18 } = require("@overnight-contracts/common/utils/decimals");
-const { createProposal, testProposal, testUsdPlus, testStrategy } = require("@overnight-contracts/common/utils/governance");
-const { Roles } = require("@overnight-contracts/common/utils/roles");
+const { testProposal } = require("@overnight-contracts/common/utils/governance");
 const path = require('path');
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
@@ -74,18 +14,22 @@ const THRUSTER_POOL_ABI = [
     "function token1() external view returns (address)"
 ];
 
-
 async function main() {
 
     let addresses = [];
     let values = [];
     let abis = [];
 
+    const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
     const strategyZerolend = await getContract('StrategyZerolend', 'blast');
     const strategyZerolendUsdc = await getContract('StrategyZerolendUsdc', 'blast_usdc');
-    const usdPlus = await getContract('UsdPlusToken', 'blast');
+    const USD_Plus = await getContract('UsdPlusToken', 'blast');
+    const USDC_Plus = await getContract('UsdPlusToken', 'blast_usdc');
+
+    // =========================== LOGS BEFORE PROPOSAL ===========================
+
+
     
-    const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
     const usdb = await ethers.getContractAt(IERC20, BLAST.usdb);
     const z0USDB = await ethers.getContractAt(IERC20, BLAST.z0USDB);
     
@@ -104,22 +48,24 @@ async function main() {
     const pool2Token0 = await ethers.getContractAt(IERC20, pool2Token0Address);
     const pool2Token1 = await ethers.getContractAt(IERC20, pool2Token1Address);
 
-    // ===== LOGS BEFORE =====
     console.log("\n===== BEFORE EXECUTION =====\n");
     
-    // External wallet balance
+    // USD+ / USDC+ Tokens State
+    let usdPlusTotalSupply = await USD_Plus.totalSupply();
+    let usdPlusPaused = await USD_Plus.paused();
+    let usdcPlusTotalSupply = await USDC_Plus.totalSupply();
+    let usdcPlusPaused = await USDC_Plus.paused();
+    console.log("[USD+] totalSupply:", fromE18(usdPlusTotalSupply));
+    console.log("[USD+] paused:", usdPlusPaused);
+    console.log("[USDC+] totalSupply:", fromE18(usdcPlusTotalSupply));
+    console.log("[USDC+] paused:", usdcPlusPaused);
+    
+    console.log("");
+    
     let usdbBalanceWal = await usdb.balanceOf(wal);
     console.log("[WALLET] usdb balance:", fromE18(usdbBalanceWal));
     
     console.log("");
-    
-    // USD+ Token
-    // let totalSupply = await usdPlus.totalSupply();
-    // console.log("[USD+] totalSupply:", fromE18(totalSupply));
-    // let liquidityIndex = await usdPlus.liquidityIndex();
-    // console.log("[USD+] liquidityIndex:", liquidityIndex.toString());
-    
-    // console.log("");
     
     // USDB Strategy
     let z0USDBBalanceStrategy = await z0USDB.balanceOf(strategyZerolend.address);
@@ -167,22 +113,29 @@ async function main() {
     const newStratImplUsdc = "0x338D0cE61a5AC9EfBb2d6632743953FFF225444F";  // New USDC impl with unstakeFull()
 
     // ===== STRATEGIES: UNSTAKE FROM ZEROLEND =====
-    // addProposalItem(strategyZerolend, 'upgradeTo', [newStratImpl]);
-    // addProposalItem(strategyZerolend, 'unstakeFull', []);
-    // addProposalItem(strategyZerolend, 'upgradeTo', [oldStratImpl]);
+    addProposalItem(strategyZerolend, 'upgradeTo', [newStratImpl]);
+    addProposalItem(strategyZerolend, 'unstakeFull', []);
+    addProposalItem(strategyZerolend, 'upgradeTo', [oldStratImpl]);
 
-    // addProposalItem(strategyZerolendUsdc, 'upgradeTo', [newStratImplUsdc]);
-    // addProposalItem(strategyZerolendUsdc, 'unstakeFull', []);
-    // addProposalItem(strategyZerolendUsdc, 'upgradeTo', [oldStratImplUsdc]);
+    addProposalItem(strategyZerolendUsdc, 'upgradeTo', [newStratImplUsdc]);
+    addProposalItem(strategyZerolendUsdc, 'unstakeFull', []);
+    addProposalItem(strategyZerolendUsdc, 'upgradeTo', [oldStratImplUsdc]);
 
     // ===== USD+ TOKEN IMPLEMENTATION ADDRESSES =====
     const oldUsdPlusImpl = "0x6002054688d62275d80CC615f0F509d9b2FF520d";  // Current prod USD+ implementation
-    const newUsdPlusImpl = "0xD276C7AD3BD96898b044053c14456138fd449E90";  // New USD+ impl with nukeSupply()
+    const newUsdPlusImpl = "0x5f7823fa9Fb17934be132a1F5a2668302bD2dd8e";  // New USD+ impl with swapNuke()
+
+    // const newUsdcPlusImpl = "0xFd772f4BaCEe839d34AeF5C986bf016B6e29daA2";
 
     // ===== USD+ TOKEN: NUKE SUPPLY =====
-    addProposalItem(usdPlus, 'upgradeTo', [newUsdPlusImpl]);
-    addProposalItem(usdPlus, 'swapPools', []);
-    addProposalItem(usdPlus, 'upgradeTo', [oldUsdPlusImpl]);
+    addProposalItem(USD_Plus, 'upgradeTo', [newUsdPlusImpl]);
+    addProposalItem(USD_Plus, 'swapNuke', [true]);
+    addProposalItem(USD_Plus, 'upgradeTo', [oldUsdPlusImpl]);
+
+    // ===== USDC+ TOKEN: NUKE SUPPLY =====
+    addProposalItem(USDC_Plus, 'upgradeTo', [newUsdPlusImpl]);
+    addProposalItem(USDC_Plus, 'swapNuke', [false]);
+    addProposalItem(USDC_Plus, 'upgradeTo', [oldUsdPlusImpl]);
 
     if (hre.network.name === 'localhost') {
         const timelock = await getContract('AgentTimelock');
@@ -192,22 +145,25 @@ async function main() {
     await testProposal(addresses, values, abis);
     // await createProposal(filename, addresses, values, abis);
 
-    // ===== LOGS AFTER =====
+    // =========================== LOGS AFTER PROPOSAL ===========================
     console.log("\n===== AFTER EXECUTION =====\n");
+
+    // USD+ / USDC+ Tokens State
+    usdPlusTotalSupply = await USD_Plus.totalSupply();
+    usdPlusPaused = await USD_Plus.paused();
+    usdcPlusTotalSupply = await USDC_Plus.totalSupply();
+    usdcPlusPaused = await USDC_Plus.paused();
+    console.log("[USD+] totalSupply:", fromE18(usdPlusTotalSupply));
+    console.log("[USD+] paused:", usdPlusPaused);
+    console.log("[USDC+] totalSupply:", fromE18(usdcPlusTotalSupply));
+    console.log("[USDC+] paused:", usdcPlusPaused);
     
-    // External wallet balance
+    console.log("");
+
     usdbBalanceWal = await usdb.balanceOf(wal);
     console.log("[WALLET] usdb balance:", fromE18(usdbBalanceWal));
     
     console.log("");
-    
-    // USD+ Token
-    // totalSupply = await usdPlus.totalSupply();
-    // console.log("[USD+] totalSupply:", fromE18(totalSupply));
-    // liquidityIndex = await usdPlus.liquidityIndex();
-    // console.log("[USD+] liquidityIndex:", liquidityIndex.toString());
-    
-    // console.log("");
     
     // USDB Strategy
     NAV_usd = await strategyZerolend.netAssetValue();
@@ -246,6 +202,8 @@ async function main() {
     console.log(`  token1 (${pool2Token1Address}):`, fromE18(pool2Token1Balance));
     
     console.log("\n" + "=".repeat(50) + "\n");
+
+    // =================================================================
     
     function addProposalItem(contract, methodName, params) {
         addresses.push(contract.address);
