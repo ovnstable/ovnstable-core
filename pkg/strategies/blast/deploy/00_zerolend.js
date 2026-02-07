@@ -1,15 +1,10 @@
 const {deployProxy} = require("@overnight-contracts/common/utils/deployProxy");
 const {BLAST, COMMON} = require('@overnight-contracts/common/utils/assets');
 const {deploySection, settingSection, transferETH, getWalletAddress, getPrice} = require("@overnight-contracts/common/utils/script-utils");
-const hre = require("hardhat");
 
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
-
-    if (hre.network.name === 'localhost') {
-        await transferETH(1, await getWalletAddress());
-    }
 
 
     await deploySection(async (name) => {
