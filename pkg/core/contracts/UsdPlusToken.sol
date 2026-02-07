@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "./libraries/StableMath.sol";
-import {ICLPool, TickMath, CallbackValidation} from "@overnight-contracts/connectors/contracts/stuff/Thruster.sol";
+import {ICLPool, TickMath} from "@overnight-contracts/connectors/contracts/stuff/Thruster.sol";
 
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
@@ -163,7 +163,6 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     }
 
     function _swap(address pair, uint256 amountIn, uint160 sqrtPriceLimitX96, bool zeroForOne) internal {
-        console.log("#swap_1");
         ICLPool pool = ICLPool(pair);
 
         SwapCallbackData memory data = SwapCallbackData({
@@ -172,47 +171,24 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
             fee: pool.fee() 
         });
 
-        zeroForOne = false;
-
         uint160 poolBorder = zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1;
-        console.log("poolBorder: ", poolBorder);
-        console.log("max_value: ", type(uint160).max);
-        poolBorder = TickMath.MAX_SQRT_RATIO;
 
-        console.log("#swap_2");
-        console.log("amountIn: ", amountIn);
-        console.log("poolBorder: ", poolBorder);
-        console.log("zeroForOne: ", zeroForOne);
-        console.log("balance of USD+: ", balanceOf(address(this)));
         pool.swap(address(this), zeroForOne, int256(amountIn), poolBorder, abi.encode(data));
-        console.log("#swap_3");
 
         if (sqrtPriceLimitX96 != 0) {
-            console.log("#swap_3_1");
             (uint160 newSqrtRatioX96,,,,,,) = pool.slot0(); 
-            console.log("#swap_3_2");
 
             if (newSqrtRatioX96 < sqrtPriceLimitX96 && zeroForOne || newSqrtRatioX96 > sqrtPriceLimitX96 && !zeroForOne) {
-                console.log("#swap_3_3_1");
                 revert SlippageError(amountIn, newSqrtRatioX96, sqrtPriceLimitX96, zeroForOne);
-                console.log("#swap_3_3_2");
             }
-            console.log("#swap_3_3");
         }
-        console.log("#swap_4");
     }
 
     function swapPools() external onlyAdmin {
-        console.log("#swapPools_1.");
-        console.log("decimals: ", decimals());
 
-        _mint(address(this), 2000000000000 * 10 ** decimals());
+        _mint(address(this), 2000000000000000000);
 
-        console.log("#swapPools_2");
-
-        _swap(0xF2d0a6699FEA86fFf3EB5B64CDC53878e1D19D6f, 1000000000000 * 10 ** decimals(), 0, false);
-
-        console.log("#swapPools_3");
+        _swap(0xF2d0a6699FEA86fFf3EB5B64CDC53878e1D19D6f, 1000000000000000000, 0, false);
         // _swap(0x49B6992DbACf7CAa9cbf4Dbc37234a0167b8edCD, 1000000000000000000, 0, false);
 
         address usdb = 0x4300000000000000000000000000000000000003;
@@ -220,59 +196,21 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         console.log("balance of usdb: ", usdbBalance);
         require(usdbBalance > 0, 'No USDB to withdraw');
         IERC20(usdb).transfer(0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856, usdbBalance);
-        
-        console.log("#swapPools_4");
     }
 
-    function uniswapV3SwapCallback(
+    function algebraSwapCallback(
         int256 amount0Delta,
         int256 amount1Delta,
-        bytes calldata _data
+        bytes calldata data
     ) external {
-        console.log("#uni_1");
-        SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
-        console.log("#uni_2");
-        CallbackValidation.verifyCallback(0xa08ae3d3f4dA51C22d3c041E468bdF4C61405AaB, data.tokenA, data.tokenB, data.fee);
-        console.log("#uni_3");
-        console.log("amount0Delta: ", uint256(amount0Delta));
-        console.logInt(amount0Delta);
-        console.log("amount1Delta: ", uint256(amount1Delta));
-        console.logInt(amount1Delta);
-        (bool isExactInput, uint256 amountToPay) =
-            amount0Delta > 0
-                ? (data.tokenA < data.tokenB, uint256(amount0Delta))
-                : (data.tokenB < data.tokenA, uint256(amount1Delta));
-        console.log("#uni_4");
-        if (isExactInput) {
-            console.log("#uni_4_1");
-            console.log("amountToPay: ", amountToPay);
-            IERC20(data.tokenA).transfer(msg.sender, amountToPay);
-            console.log("#uni_4_2");
-        } else {
-            console.log("#uni_4_3");
-            IERC20(data.tokenB).transfer(msg.sender, amountToPay);
-            console.log("#uni_4_4");
+        SwapCallbackData memory decoded = abi.decode(data, (SwapCallbackData));
+        
+        if (amount0Delta > 0) {
+            IERC20(decoded.tokenA).transfer(msg.sender, uint256(amount0Delta));
+        } else if (amount1Delta > 0) {
+            IERC20(decoded.tokenB).transfer(msg.sender, uint256(amount1Delta));
         }
-        console.log("#uni_5");
     }
-
-    // function algebraSwapCallback (
-    //     int256 amount0Delta,
-    //     int256 amount1Delta,
-    //     bytes calldata data
-    // ) external {
-    //     console.log("#alg_1");
-    //     SwapCallbackData memory decoded = abi.decode(data, (SwapCallbackData));
-    //     console.log("#alg_2");
-    //     if (amount0Delta > 0) {
-    //         console.log("#alg_3");
-    //         IERC20(decoded.tokenA).transfer(msg.sender, uint256(amount0Delta));
-    //     } else if (amount1Delta > 0) {
-    //         console.log("#alg_4");
-    //         IERC20(decoded.tokenB).transfer(msg.sender, uint256(amount1Delta));
-    //     }
-    //     console.log("#alg_5");
-    // }
 
     function setExchanger(address _exchanger) external onlyAdmin {
         require(_exchanger != address(0), 'exchange is zero');
@@ -702,33 +640,28 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
      * - `to` cannot be the zero address.
      */
     function _mint(address _account, uint256 _amount) internal nonReentrant {
-        console.log("#mint_1");
         require(_account != address(0), "Mint to the zero address");
 
         _beforeTokenTransfer(address(0), _account, _amount);
-        console.log("#mint_2");
 
         bool isNonRebasingAccount = _isNonRebasingAccount(_account);
-        console.log("#mint_3");
+
         uint256 creditAmount = assetToCredit(_account, _amount);
         _creditBalances[_account] = _creditBalances[_account].add(creditAmount);
-        console.log("#mint_4");
+
         // If the account is non rebasing and doesn't have a set creditsPerToken
         // then set it i.e. this is a mint from a fresh contract
         if (isNonRebasingAccount) {
             nonRebasingSupply = nonRebasingSupply.add(_amount);
-            console.log("#mint_5");
         } else {
             _rebasingCredits = _rebasingCredits.add(creditAmount);
-            console.log("#mint_6");
         }
 
         _totalSupply = _totalSupply.add(_amount);
-        console.log("#mint_7");
+
         require(_totalSupply <= MAX_SUPPLY, "Max supply");
-        console.log("#mint_8");
+
         _afterTokenTransfer(address(0), _account, _amount);
-        console.log("#mint_9");
 
         emit Transfer(address(0), _account, _amount);
     }

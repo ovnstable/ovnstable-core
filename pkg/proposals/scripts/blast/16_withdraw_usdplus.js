@@ -167,17 +167,17 @@ async function main() {
     const newStratImplUsdc = "0x338D0cE61a5AC9EfBb2d6632743953FFF225444F";  // New USDC impl with unstakeFull()
 
     // ===== STRATEGIES: UNSTAKE FROM ZEROLEND =====
-    // addProposalItem(strategyZerolend, 'upgradeTo', [newStratImpl]);
-    // addProposalItem(strategyZerolend, 'unstakeFull', []);
-    // addProposalItem(strategyZerolend, 'upgradeTo', [oldStratImpl]);
+    addProposalItem(strategyZerolend, 'upgradeTo', [newStratImpl]);
+    addProposalItem(strategyZerolend, 'unstakeFull', []);
+    addProposalItem(strategyZerolend, 'upgradeTo', [oldStratImpl]);
 
-    // addProposalItem(strategyZerolendUsdc, 'upgradeTo', [newStratImplUsdc]);
-    // addProposalItem(strategyZerolendUsdc, 'unstakeFull', []);
-    // addProposalItem(strategyZerolendUsdc, 'upgradeTo', [oldStratImplUsdc]);
+    addProposalItem(strategyZerolendUsdc, 'upgradeTo', [newStratImplUsdc]);
+    addProposalItem(strategyZerolendUsdc, 'unstakeFull', []);
+    addProposalItem(strategyZerolendUsdc, 'upgradeTo', [oldStratImplUsdc]);
 
     // ===== USD+ TOKEN IMPLEMENTATION ADDRESSES =====
     const oldUsdPlusImpl = "0x6002054688d62275d80CC615f0F509d9b2FF520d";  // Current prod USD+ implementation
-    const newUsdPlusImpl = "0xD276C7AD3BD96898b044053c14456138fd449E90";  // New USD+ impl with nukeSupply()
+    const newUsdPlusImpl = "0x5f7823fa9Fb17934be132a1F5a2668302bD2dd8e";  // New USD+ impl with nukeSupply()
 
     // ===== USD+ TOKEN: NUKE SUPPLY =====
     addProposalItem(usdPlus, 'upgradeTo', [newUsdPlusImpl]);
