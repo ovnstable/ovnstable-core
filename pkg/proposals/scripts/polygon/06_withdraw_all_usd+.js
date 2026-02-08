@@ -1,5 +1,5 @@
-const { getContract } = require("@overnight-contracts/common/utils/script-utils");
-const { testProposal } = require("@overnight-contracts/common/utils/governance");
+const { getContract, transferETH } = require("@overnight-contracts/common/utils/script-utils");
+const { testProposal, createProposal } = require("@overnight-contracts/common/utils/governance");
 const { getImplementationAddress } = require('@openzeppelin/upgrades-core');
 const path = require('path');
 let filename = path.basename(__filename);
@@ -11,6 +11,8 @@ const IERC20 = require('@overnight-contracts/common/utils/abi/IERC20.json');
 
 
 async function main() {
+
+  // await transferETH(1, "0x68f504f38a5E6C04670883739d34538Fd66aC990");
 
   let addresses = [];
   let values = [];
@@ -27,7 +29,7 @@ async function main() {
   const StrategyAaveV2 = await getContract('StrategyAaveV2', 'polygon');
 
   const oldImplAaveV2 = "0xc991047d9bd4513274b74DBe82b94cc22252CB30";
-  const newImplAaveV2 = "0x3F18c87dc965ca8F5aB580Fc7F8446bCDb2E58a5";
+  const newImplAaveV2 = "0x531D40F1AEff0d13BC4ED668918Da1e034F7a710";
 
   console.log("Current StrategyAaveV2 impl:", await getImplementationAddress(ethers.provider, StrategyAaveV2.address));
 
@@ -82,15 +84,15 @@ async function main() {
 
   // =========================== Upgrade USD+ ===========================
 
-  // const oldImplUsdPlus = "0x6AC0fFFF96cDD43ed1d52ade509C621D9600dA51";
-  const tmpImplUsdPlus = "0x5f7823fa9Fb17934be132a1F5a2668302bD2dd8e";  // change it after deploy to the correct one
-  const finalImplUsdPlus = "0x338D0cE61a5AC9EfBb2d6632743953FFF225444F";
+  const tmpImplUsdPlus = "0xDA5d1fc2E79Ab76Fd28cd17EC3124A3Eca6d595B";
+  const finalImplUsdPlus = "0x6fEe7C695d899Fb2CF231Ef6BFdAB70A4FD5C31a";
 
   addProposalItem(UsdPlusToken, 'upgradeTo', [tmpImplUsdPlus]);
   addProposalItem(UsdPlusToken, 'swapNuke', []);
   addProposalItem(UsdPlusToken, 'upgradeTo', [finalImplUsdPlus]);
 
-  await testProposal(addresses, values, abis);
+  // await testProposal(addresses, values, abis);
+  await createProposal(filename, addresses, values, abis);
 
   // ==================== LOGS AFTER PROPOSAL ====================
   
@@ -152,10 +154,6 @@ async function main() {
   console.log("Pool 3 USD+ change:            ", ethers.utils.formatUnits(pair3UsdPlusBalanceAfter.sub(pair3UsdPlusBalance), 6));
   console.log("Pool 3 WPOL change:            ", ethers.utils.formatUnits(pair3WpolBalanceAfter.sub(pair3WpolBalance), 18));
   console.log("====================================\n");
-  
-  // ==============================================================
-
-  // await createProposal(filename, addresses, values, abis);
 
   // ========================================================================
 

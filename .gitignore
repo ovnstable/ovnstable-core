@@ -42,3 +42,4 @@ localhost
 
 artifacts-zk/
 cache-zk/
+.DS_Store
