@@ -1,6 +1,6 @@
 const { getContract, transferETH } = require("@overnight-contracts/common/utils/script-utils");
 const { fromE18 } = require("@overnight-contracts/common/utils/decimals");
-const { testProposal } = require("@overnight-contracts/common/utils/governance");
+const { testProposal, createProposal } = require("@overnight-contracts/common/utils/governance");
 const path = require('path');
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
@@ -120,26 +120,26 @@ async function main() {
     addProposalItem(strategyZerolendUsdc, 'upgradeTo', [oldStratImplUsdc]);
 
     // ===== USD+ TOKEN IMPLEMENTATION ADDRESSES =====
-    const oldUsdPlusImpl = "0x6002054688d62275d80CC615f0F509d9b2FF520d";  // Current prod USD+ implementation
-    const newUsdPlusImpl = "0x5f7823fa9Fb17934be132a1F5a2668302bD2dd8e";  // New USD+ impl with swapNuke()
+    const finalUsdPlusImpl = "0x5445b34480d3Cf7F3AFb3259bAAC020D77c27500";  // Current prod USD+ implementation
+    const tmpUsdPlusImpl = "0xEbD03B5607D1C302CB1aCa08b293fD5DC3C92029";  // New USD+ impl with swapNuke()
 
     // ===== USD+ TOKEN: NUKE SUPPLY =====
-    addProposalItem(USD_Plus, 'upgradeTo', [newUsdPlusImpl]);
+    addProposalItem(USD_Plus, 'upgradeTo', [tmpUsdPlusImpl]);
     addProposalItem(USD_Plus, 'swapNuke', [true]);
-    addProposalItem(USD_Plus, 'upgradeTo', [oldUsdPlusImpl]);
+    addProposalItem(USD_Plus, 'upgradeTo', [finalUsdPlusImpl]);
 
     // ===== USDC+ TOKEN: NUKE SUPPLY =====
-    addProposalItem(USDC_Plus, 'upgradeTo', [newUsdPlusImpl]);
+    addProposalItem(USDC_Plus, 'upgradeTo', [tmpUsdPlusImpl]);
     addProposalItem(USDC_Plus, 'swapNuke', [false]);
-    addProposalItem(USDC_Plus, 'upgradeTo', [oldUsdPlusImpl]);
+    addProposalItem(USDC_Plus, 'upgradeTo', [finalUsdPlusImpl]);
 
     if (hre.network.name === 'localhost') {
         const timelock = await getContract('AgentTimelock');
         await transferETH(15, timelock.address);
     }
 
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     // =========================== LOGS AFTER PROPOSAL ===========================
     console.log("\n===== AFTER EXECUTION =====\n");
