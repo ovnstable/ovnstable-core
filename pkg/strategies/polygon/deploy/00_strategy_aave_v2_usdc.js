@@ -7,12 +7,11 @@ const { ethers } = require("hardhat");
 
 module.exports = async ({deployments}) => {
     const {save} = deployments;
-    if (hre.network.name === "localhost") await transferETH(1, await getWalletAddress());
+    if (hre.network.name === "localhost") await transferETH(10, await getWalletAddress());
     let blockNumber = await ethers.provider.getBlockNumber();
     console.log("Block number:", blockNumber);
 
-
-
+    
     await deploySection(async (name) => {
         await deployProxy(name, deployments, save);
     });

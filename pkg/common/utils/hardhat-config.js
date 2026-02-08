@@ -259,6 +259,11 @@ function getNetworks() {
                     hardforkHistory: {
                         london: 11662782
                     }
+                },
+                137: {
+                    hardforkHistory: {
+                        london: 82711436
+                    }
                 }
             },
             accounts: {
