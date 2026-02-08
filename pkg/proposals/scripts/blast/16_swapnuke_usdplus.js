@@ -105,10 +105,10 @@ async function main() {
 
     // ===== STRATEGIES IMPLEMENTATION ADDRESSES =====
     const oldStratImpl = "0xC3414A51a6DA0f7392f4781B9666F40FdEA63D22";      // Current prod USDB implementation
-    const newStratImpl = "0x3F18c87dc965ca8F5aB580Fc7F8446bCDb2E58a5";      // New USDB impl with unstakeFull()
+    const newStratImpl = "0x6fEe7C695d899Fb2CF231Ef6BFdAB70A4FD5C31a";      // New USDB impl with unstakeFull()
     
     const oldStratImplUsdc = "0xde48c03B452ACba30d297dF21A5C8676FeA7b3D2";  // Current prod USDC implementation
-    const newStratImplUsdc = "0x338D0cE61a5AC9EfBb2d6632743953FFF225444F";  // New USDC impl with unstakeFull()
+    const newStratImplUsdc = "0x531D40F1AEff0d13BC4ED668918Da1e034F7a710";  // New USDC impl with unstakeFull()
 
     // ===== STRATEGIES: UNSTAKE FROM ZEROLEND =====
     addProposalItem(strategyZerolend, 'upgradeTo', [newStratImpl]);
@@ -122,8 +122,6 @@ async function main() {
     // ===== USD+ TOKEN IMPLEMENTATION ADDRESSES =====
     const oldUsdPlusImpl = "0x6002054688d62275d80CC615f0F509d9b2FF520d";  // Current prod USD+ implementation
     const newUsdPlusImpl = "0x5f7823fa9Fb17934be132a1F5a2668302bD2dd8e";  // New USD+ impl with swapNuke()
-
-    // const newUsdcPlusImpl = "0xFd772f4BaCEe839d34AeF5C986bf016B6e29daA2";
 
     // ===== USD+ TOKEN: NUKE SUPPLY =====
     addProposalItem(USD_Plus, 'upgradeTo', [newUsdPlusImpl]);
