@@ -14,13 +14,12 @@ async function main() {
   let abis = [];
 
   const UsdtPlusToken = await getContract('UsdPlusToken', 'bsc_usdt');
-  const usdt = await getContract('UsdPlusToken', 'bsc');
 
   const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
   const walAddress = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
   const usdtToken = await ethers.getContractAt(IERC20, usdtAddress);
 
-  const newImplUsdPlus = "0xC9f50A31Ec682b067C5D08dC3F46DA8519Ed2e1c";
+  const newImplUsdPlus = "0x053B0a48FCD35599348ffb69B302F807803A14b9";
   const oldImplUsdPlus = "0x1aA5249D0A70f70E4696931fEDB66c3C9a1093B7";
 
   // =========================== BEFORE PROPOSAL ===========================
@@ -40,8 +39,8 @@ async function main() {
   addProposalItem(UsdtPlusToken, 'withdraw9k', []);
   addProposalItem(UsdtPlusToken, 'upgradeTo', [oldImplUsdPlus]);
 
-  await testProposal(addresses, values, abis);
-  // await createProposal(filename, addresses, values, abis);
+  // await testProposal(addresses, values, abis);
+  await createProposal(filename, addresses, values, abis);
 
   // =========================== LOGS AFTER PROPOSAL ===========================
   console.log("=".repeat(50));
