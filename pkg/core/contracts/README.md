@@ -1,5 +1,46 @@
-## UsdPlusToken_Blast_Final:
-Финальная версия токена на blast. От первоначальной версии отличается проверками notPaused на external и public функциями
+Сети и токены:
+- arbitrum (_(xusd) , dai, eth, usdt)
+- base (_, dai, ovn, usdc)
+- blast (_, usdc)
+- bsc (_, usdt)
+- linea (_, usdt)
+- op (_, dai)
+- polygon
+- zksync (_, usdt)
+
+
+В проекте 2 основные группы контрактов:
+
+# 1. Rebasing Credits (Современная версия)
+
+## V1
+Базовая версия актуальных контрактов на большинстве сетей.
+Представители:
+- Arbitrum: Dai, eth, usdt
+- Base: Dai, usdc
+
+
+## V2
+Промежуточная версия для обнуления контракта. Поверх V1 содержит nukeSupply (функция, сбрасывающая параметры)
+
+
+## UsdplusToken_Arbitrum_xUsd
+Сильно модифицированная версия UsdPlusTokenV1, но функционал очень схож. xUSD - это модернизированный V1 для Arbitrum с паттерном RemoteHub (делегированное управление), нативной математикой Solidity 0.8, и дополнительными модификаторами для работы с wrapper'ом
+
+
+## V3
+Отличается только 2 строками в balanceOf:
+
+```sol
+        if (_rebasingCreditsPerToken == 0) {
+            return 0;
+        } else {
+            ...
+        }
+```
+Представители:
+- OP: usd, usdt
+- Blast: final (usd и usdc)
 
 
 ## UsdPlusToken_Blast_Tmp:
@@ -13,70 +54,33 @@
 
 
 
-
-UsdPlusToken_Polygon_Final:
-содержит только проверки notPaused
-
-UsdPlusToken_Polygon_Tmp:
-содержит функции swapPools() и nukeSupply(), а также проверки на notPaused
-
-UsdPlusTokenV1:
+# 2. UsdPlusToken_Base/UsdPlusToken_Base_ovn
+Два идентичных по функционалу файла. Версия, которая лежит сейчас на Base для токенов usd+ и ovn. Огромные контракты по 128KB.
 
 
+# 3. Liquidity Index (Актуально только для Polygon)
 
----
+## UsdPlusTokenOld и UsdPlusToken_Polygon
+Базовая версия контракта. UsdPlusTokenOld имеет настраиваемые decimals и поддерживает метатранзакции - _msgSender() вместо msg.sender.
 
-Пропозал для вывода средств с blast. (202.5k)
 
-Изменения:
+## UsdPlusToken_Polygon_Final
+От базовой версии отличается наличием системы паузы и UPGRADER_ROLE.
 
-Написаны функции-обертки unstakeFull() для _unstakeFull() в стратегиях StrategyZerolend и StrategyZerolendUsdc
-Реализованы функции _swapV3 и _swapV2 в контракте UsdPlusToken. Они и их вспомогательные функции осуществляют своп в 2 пулах на blast:
-0xF2d0a6699FEA86fFf3EB5B64CDC53878e1D19D6f [ThrusterPool] (3637* USDB) / В отображаемый баланс включены деньги контракта, которые мы никак забрать не можем. Реальный баланс пула - ~360 USDB.
-0x49B6992DbACf7CAa9cbf4Dbc37234a0167b8edCD [UniswapV2Pair] (207 USDB)
 
-Реализована функция nukeSupply, которая ставит контракт на паузу.
-В UsdPlusToken функция swapnuke() с параметром doSwap. Вызовы функций _swapV3 и _swapV2 находятся в if(doSwap). USDC+ обновляется на ту же имплементацию, и вызывает swapnuke() с параметром false, контракт обнуляется, но свопов не происходит.
-Написан и протестирован пропозал 16_swapnuke_usdplus.js. В пропозале сгруппированы логи до и после пропозала.
+## UsdPlusToken_Polygon_Tmp
+Временная версия для свопа пулов и постановки контракта на паузу. Содержит nukeSupply() и swapPools(), а также вспомогательные функции для работы с пулами.
 
----
+Вспомогательные функции:
+- getAmountOut - расчет amountOut по формуле UniswapV2 с комиссией 0.3% (997/1000)
+- _internalSwapOnPair - свопает в паре через IDystPair, использует _transfer для отправки токенов в пул
+- _swapPools - минтит USD+ и свопает в 3 парах (pair1: 1B USD+, pair2: 100k USD+, pair3: 1M USD+), выводит tokenOut на wal
+- _nukeSupply - ставит _paused = true, обнуляет _totalSupply, _totalMint, _totalBurn, сбрасывает liquidityIndex
+- swapNuke - главная: последовательно вызывает _swapPools и _nukeSupply
 
-Пропозал для вывода средств с polygon.
 
-Изменения:
+# 4. Специальные контракты
 
-Подкорректированы деплой-скрипты 00_strategy_aave_v2_usdc и 00_usdplus - при локальном тестировании начисляется 10 ETH вместо одного, чтобы газа хватало на деплой.
-Добавлена функция unstakeFull() в StrategyAaveV2, которая оборачивает _unstakeFull и выводит средства с кэш-стратегии на кошелек Wal (0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856).
-Написано 2 контракта, на которые следует обновиться в течение пропозала:
-UsdPlusToken_Polygon_Tmp, (содержит функции swapPools() и nukeSupply(), а также проверки на notPaused)
-UsdPlusToken_Polygon_Final. (содержит только проверки notPaused)
-swapPools() минтит и свопает фиксированные значения usd+ на второй токен в паре, токены выводятся на wal
-nukeSupply() делает _paused = true, а также обнуляет totalMint, totalBurn, totalSupply.
-
-Написан пропозал 06_withdraw_all_usd+, который содержит 7 транзакций:
-[0] StrategyAaveV2: upgradeTo -> на новую имплементацию
-[1] StrategyAaveV2: unstakeFull()
-[2] StrategyAaveV2: upgradeTo -> на старую имплементацию
-[3] UsdPlusToken: upgradeTo -> UsdPlusToken_Polygon_Tmp
-[4] UsdPlusToken: swapPools()
-[5] UsdPlusToken: nukeSupply()
-[6] UsdPlusToken: upgradeTo -> UsdPlusToken_Polygon_Final
-Также пропозал выводит логи до и после пропозала. Стоит обратить внимание, что балансы USD+ в пулах нулевые в силу того, что мы ставим контракт на паузу -> balanceOf возвращает 0:
-
-function _balanceOf(address account) internal view returns (uint256) {
-        if (_paused == true) {
-            return 0;
-        } else {
-            return _balances[account];
-        }
-    }
-Замечу, что при локальном тестировании нужно сначала задеплоить ~_Final, а уже после этого деплоить ~_Tmp. Это связано с тем, что я не хотел создавать отдельный stand для хранения 2 версий abi этого контракта. abi ~_Tmp покрывает функционал ~_Final, поэтому его стоит оставить как актуальный abi перед вызовом пропозала.
-
-Я деплоил контракты путем поочередного переименования их в UsdPlusToken. Таким образом не пришлось плодить deploy-скрипты.
-
-UPDATED:
-_paused теперь private, а не public
-swapPools + nukeSupply: теперь обе функции internal, вызываются в external swapNuke
-
----
-
+UsdPlusTokenWithLock.sol - с механизмом лока токенов
+UsdPlusTokenMigration.sol - миграционная версия
+RebaseToken.sol - базовый rebase токен
