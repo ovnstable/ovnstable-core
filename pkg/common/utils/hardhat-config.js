@@ -349,7 +349,7 @@ function getEtherScan() {
                 network: "base",
                 chainId: 8453,
                 urls: {
-                    apiURL: "https://api.basescan.org/api",
+                    apiURL: "https://api.etherscan.io/v2/api",
                     browserURL: "https://basescan.org"
                 }
             },
@@ -357,7 +357,7 @@ function getEtherScan() {
                 network: "base_dai",
                 chainId: 8453,
                 urls: {
-                    apiURL: "https://api.basescan.org/api",
+                    apiURL: "https://api.etherscan.io/v2/api",
                     browserURL: "https://basescan.org"
                 }
             },
@@ -365,7 +365,7 @@ function getEtherScan() {
                 network: "linea",
                 chainId: 59144,
                 urls: {
-                    apiURL: "https://api.lineascan.build/api",
+                    apiURL: "https://api.etherscan.io/v2/api",
                     browserURL: "https://lineascan.build"
                 }
             },
@@ -373,7 +373,7 @@ function getEtherScan() {
                 network: "linea_usdt",
                 chainId: 59144,
                 urls: {
-                    apiURL: "https://api.lineascan.build/api",
+                    apiURL: "https://api.etherscan.io/v2/api",
                     browserURL: "https://lineascan.build"
                 }
             },
@@ -381,7 +381,7 @@ function getEtherScan() {
                 network: "arbitrum_dai",
                 chainId: 42161,
                 urls: {
-                    apiURL: "https://api.arbiscan.io/api",
+                    apiURL: "https://api.etherscan.io/v2/api",
                     browserURL: "https://arbiscan.io"
                 }
             },
@@ -389,7 +389,7 @@ function getEtherScan() {
                 network: "blast",
                 chainId: 81457,
                 urls: {
-                    apiURL: "https://api.blastscan.io/api",
+                    apiURL: "https://api.etherscan.io/v2/api",
                     browserURL: "https://blastscan.io/"
                 }
             },
@@ -397,7 +397,7 @@ function getEtherScan() {
                 network: "blast_usdc",
                 chainId: 81457,
                 urls: {
-                    apiURL: "https://api.blastscan.io/api",
+                    apiURL: "https://api.etherscan.io/v2/api",
                     browserURL: "https://blastscan.io/"
                 }
             }
@@ -405,23 +405,12 @@ function getEtherScan() {
 
     };
 
+    // let etherscanApiUri = "https://api.etherscan.io/v2/api";
+
 
     // Run command to show support native chains: npx hardhat verify --list-networks
     // if plugin not support chain then add chain to customChains section
-    object.apiKey = {
-        base: process.env[`ETHERSCAN_API_BASE`],
-        base_dai: process.env[`ETHERSCAN_API_BASE`],
-        linea: process.env[`ETHERSCAN_API_LINEA`],
-        linea_usdt: process.env[`ETHERSCAN_API_LINEA`],
-        optimisticEthereum: process.env[`ETHERSCAN_API_OPTIMISM`],
-        polygon: process.env[`ETHERSCAN_API_POLYGON`],
-        bsc: process.env[`ETHERSCAN_API_BSC`],
-        arbitrumOne: process.env[`ETHERSCAN_API_ARBITRUM`],
-        arbitrum_dai: process.env[`ETHERSCAN_API_ARBITRUM`],
-        blast: process.env[`ETHERSCAN_API_BLAST`],
-        blast_usdc: process.env[`ETHERSCAN_API_BLAST`],
-    }
-
+    object.apiKey = process.env.ETHERSCAN_API_V2_KEY;
     return object;
 }
 
