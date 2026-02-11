@@ -622,7 +622,7 @@ async function showM2M(stand = process.env.STAND, blocknumber) {
 async function getPrice() {
     let params = { gasPrice: "1000000000", gasLimit: "30000000" };
     if (process.env.ETH_NETWORK === 'POLYGON') {
-        params = { gasPrice: "60000000000", gasLimit: 15000000 };
+        params = { maxFeePerGas: "500000000000", maxPriorityFeePerGas: "100000", gasLimit: 15000000 };
     } else if (process.env.ETH_NETWORK === 'ARBITRUM') {
         params = { gasLimit: 25000000, gasPrice: "100000000" }; // gasPrice always 0.1 GWEI
     } else if (process.env.ETH_NETWORK === 'BSC') {
@@ -645,6 +645,13 @@ async function getPrice() {
         gasPrice = gasPrice.add(percentage);
         return { gasPrice: gasPrice, gasLimit: 20000000 }
     }
+
+    // ================================
+    // if (process.env.GAS_PRICE) {
+    //     const gasPriceWei = ethers.utils.parseUnits(process.env.GAS_PRICE, "gwei");
+    //     params.gasPrice = gasPriceWei.toString();
+    // }
+    // ================================
 
     return params;
 }
