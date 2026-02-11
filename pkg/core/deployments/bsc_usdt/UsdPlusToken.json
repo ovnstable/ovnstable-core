@@ -1225,13 +1225,6 @@
       "outputs": [],
       "stateMutability": "payable",
       "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "withdraw9k",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
     }
   ],
   "numDeployments": 2,

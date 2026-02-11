@@ -3,13 +3,6 @@
   "abi": [
     {
       "inputs": [],
-      "name": "swapNuke",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },

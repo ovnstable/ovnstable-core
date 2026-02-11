@@ -2,15 +2,6 @@
   "address": "0x870a8F46b62B8BDeda4c02530C1750CddF2ED32e",
   "abi": [
     {
-      "type": "function",
-      "name": "swapNuke",
-      "inputs": [
-        { "name": "doSwap", "type": "bool" }
-      ],
-      "outputs": [],
-      "stateMutability": "nonpayable"
-    },
-    {
       "inputs": [],
       "stateMutability": "nonpayable",
       "type": "constructor"
