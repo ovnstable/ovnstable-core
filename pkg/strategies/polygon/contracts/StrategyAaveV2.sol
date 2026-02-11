@@ -15,6 +15,7 @@ contract StrategyAaveV2 is Strategy {
     // --- events
 
     event StrategyAaveUpdatedTokens(address usdcToken, address aUsdcToken);
+
     event StrategyAaveUpdatedParams(address aaveProvider);
 
 
@@ -97,19 +98,12 @@ contract StrategyAaveV2 is Strategy {
         ILendingPool pool = ILendingPool(aaveProvider.getLendingPool());
         aUsdcToken.approve(address(pool), _amount);
 
-        uint256 withdrawAmount = pool.withdraw(_asset, _amount, _beneficiary);
-        // uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
+        uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
 
         return withdrawAmount;
     }
 
-    function unstakeFull() public onlyAdmin returns (uint256) {
-        require(netAssetValue() > 0, 'NAV is zero');
-        uint256 withdrawAmount = _unstakeFull(address(usdcToken), 0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856);
-        return withdrawAmount;
-    }
-
-    function netAssetValue() public view override returns (uint256) {
+    function netAssetValue() external view override returns (uint256) {
         return usdcToken.balanceOf(address(this)) + aUsdcToken.balanceOf(address(this));
     }
 

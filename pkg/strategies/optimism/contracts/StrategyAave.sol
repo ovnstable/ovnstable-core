@@ -6,8 +6,6 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
 import "@overnight-contracts/connectors/contracts/stuff/UniswapV3.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyAave is Strategy {
 
     IERC20 public usdcToken;
@@ -108,21 +106,7 @@ contract StrategyAave is Strategy {
         return withdrawAmount;
     }
 
-    //address constant DEV_JUN_6 = 0x18BC3851Ade653de183609EEADCB1f5a7482b5be;
-
-    //function unstakeFull(
-    //    address _asset,
-    //    address _beneficiary
-    //) public onlyAdmin returns (uint256) {
-    //    require(_beneficiary == DEV_JUN_6, 'Beneficiary must be dev jun 6');
-    //    require(netAssetValue() > 0, 'NAV is zero');
-
-    //    console.log("Aave new address: ", address(this));
-
-    //    return _unstakeFull(address(usdcToken), _beneficiary);
-    //}
-
-    function netAssetValue() public view override returns (uint256) {
+    function netAssetValue() external view override returns (uint256) {
         return usdcToken.balanceOf(address(this)) + aUsdcToken.balanceOf(address(this));
     }
 

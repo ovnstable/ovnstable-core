@@ -47,15 +47,6 @@
 
 Сильно модифицированная версия UsdPlusTokenV1, но функционал очень схож. xUSD - модернизированный V1 для Arbitrum с RemoteHub, нативной математикой Solidity 0.8, и дополнительными модификаторами для работы с wrapper-ом.
 
-
-## UsdPlusTokenMigration
-Миграционная версия. В данный момент не задеплоена нигде.
-Отличия от V1:
-- Секция миграции
-- Убраны функции `notPaused()` и `changeNegativeSupply()`
-- Модификаторы `notPaused` --> `blocked` 
-
-
 # 2. Lock
 
 ## UsdPlusTokenWithLock
@@ -67,10 +58,6 @@
 
 # 3. Old
 
-## RebaseToken
-Не задеплоен нигде. Дежурная версия
-
-
 ## UsdPlusTokenOld
 Не задеплоен нигде. Референс к старой версии Usd+, которая сколько-нибудь актуальна только для Polygon
 
@@ -78,7 +65,6 @@
 ## UsdPlusToken_Polygon
 Задеплоен на:
 - Polygon                               (v)
-
 
 
 

@@ -5,8 +5,6 @@ import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Mendi.sol";
 import "@overnight-contracts/connectors/contracts/stuff/VelocoreV2.sol";
 
-import "hardhat/console.sol";
-
 contract StrategyMendiUsdc is Strategy {
 
     // --- structs
@@ -85,11 +83,8 @@ contract StrategyMendiUsdc is Strategy {
         address _asset,
         address _beneficiary
     ) internal override returns (uint256) {
-        console.log("#1");
         cUsdc.redeem(cUsdc.balanceOf(address(this)));
-        console.log("#2");
         return usdc.balanceOf(address(this));
-        console.log("#3");
     }
 
     function netAssetValue() external view override returns (uint256) {
@@ -110,9 +105,7 @@ contract StrategyMendiUsdc is Strategy {
         if (cUsdc.balanceOf(address(this)) > 0) {
             CToken[] memory cTokens = new CToken[](1);
             cTokens[0] = cUsdc;
-            console.log("#1");
             unitroller.claimComp(address(this), cTokens);
-            console.log("#2");
         }
 
         // sell rewards

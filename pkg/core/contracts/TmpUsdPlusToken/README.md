@@ -18,3 +18,12 @@
 - _swapPools - минтит USD+ и свопает в 3 парах (pair1: 1B USD+, pair2: 100k USD+, pair3: 1M USD+), выводит tokenOut на wal
 - _nukeSupply - ставит _paused = true, обнуляет _totalSupply, _totalMint, _totalBurn, сбрасывает liquidityIndex
 - swapNuke - главная: последовательно вызывает _swapPools и _nukeSupply
+
+
+
+## UsdPlusTokenMigration
+Миграционная версия. В данный момент не задеплоена нигде. Принадлежит в группе контрактов general version
+Отличия от V1:
+- Секция миграции
+- Убраны функции `notPaused()` и `changeNegativeSupply()`
+- Модификаторы `notPaused` --> `blocked` 
