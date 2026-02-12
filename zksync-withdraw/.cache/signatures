@@ -1,0 +1,7 @@
+{
+  "errors": {},
+  "events": {},
+  "functions": {
+    "0x03eb8b54": "InsufficientFunds(uint256,uint256)"
+  }
+}
