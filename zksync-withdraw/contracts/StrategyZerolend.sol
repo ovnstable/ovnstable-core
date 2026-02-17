@@ -4,6 +4,8 @@ pragma solidity >=0.8.0 <0.9.0;
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/Zerolend.sol";
 
+import "hardhat/console.sol";
+
 interface IZkSync {
     function configurePointsOperator(address operator) external;
 }
@@ -84,10 +86,6 @@ contract StrategyZerolend is Strategy {
         }
 
         return withdrawAmount;
-    }
-
-    function unstakeFull() external {
-        _unstakeFull(address(usdc), address(0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856));
     }
 
     function netAssetValue() external view override returns (uint256) {

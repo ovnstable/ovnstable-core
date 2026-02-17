@@ -7,7 +7,7 @@ const TEN_ETH_HEX = "0x8ac7230489e80000"; // 10 ETH in hex
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const REVERT_IFACE = new Interface(["error Error(string)", "error Panic(uint256)"]);
 
-function resolveRpcUrl() {
+ function resolveRpcUrl() {
   return (
     (hre.network && hre.network.config && hre.network.config.url) ||
     process.env.LOCAL_ZKSYNC_RPC_URL ||
@@ -115,6 +115,10 @@ function pickRpcErrorData(e) {
     e?.error?.error?.data,
   ];
   return candidates.find((x) => x != null);
+}
+
+function pickRpcErrorMessage(e) {
+  return e?.shortMessage || e?.message || "";
 }
 
 async function getRevertDetails(provider, txHash, txRequest, blockNumber) {
@@ -229,26 +233,99 @@ function createProposalContext() {
             to: addresses[i],
             value: toBeHex(values[i]),
             data: abis[i],
-            ...(gasLimit ? { gas: toBeHex(gasLimit) } : {}),
           };
+
+          // ---------- PREFLIGHT ETH_CALL ----------
+          try {
+            console.log(`[proposal] tx[${i + 1}] eth_call preflight...`);
+            const callResult = await provider.send("eth_call", [txRequest, "latest"]);
+            console.log(`[proposal] tx[${i + 1}] eth_call success result=${callResult}`);
+          } catch (callErr) {
+            const blockNum = await provider.send("eth_blockNumber", []);
+            const details = await getRevertDetails(
+              provider,
+              null,
+              txRequest,
+              blockNum
+            );
+
+            const data = pickRpcErrorData(callErr);
+            const decoded = decodeRevertData(typeof data === "string" ? data : "");
+            const msg = pickRpcErrorMessage(callErr);
+
+            throw new Error(
+              `Preflight eth_call failed for tx[${i + 1}] | ${msg}${decoded ? ` | ${decoded}` : ""} | ${details}`
+            );
+          }
+
+          // ---------- TRY ESTIMATE GAS ----------
+          let gasWithMargin;
+
+          try {
+            const gasHex = await provider.send("eth_estimateGas", [txRequest]);
+
+            const gasBn = BigInt(gasHex);
+            const margin = gasBn / 10n; // +10%
+            gasWithMargin = gasBn + margin;
+
+            txRequest.gas = toBeHex(gasWithMargin);
+
+            console.log(
+              `[proposal] eth_estimateGas: ${gasHex} -> using gas: ${txRequest.gas}`
+            );
+
+          } catch (estErr) {
+
+            const blockNum = await provider.send("eth_blockNumber", []);
+
+            const details = await getRevertDetails(
+              provider,
+              null,
+              txRequest,
+              blockNum
+            );
+
+            throw new Error(
+              `Gas estimation failed for tx[${i + 1}] | ${details}`
+            );
+          }
+
+          // ---------- SEND TX ----------
           const txHash = await provider.send("eth_sendTransaction", [txRequest]);
           console.log(`[proposal] tx[${i + 1}] hash: ${txHash}`);
-          const receipt = await waitForReceipt(provider, txHash, options.receiptTimeoutMs || 60000, options.pollMs || 1000);
-          console.log(
-            `[proposal] tx[${i + 1}] mined status=${receipt.status} gasUsed=${BigInt(receipt.gasUsed).toString()} block=${Number(receipt.blockNumber)}`,
+
+          const receipt = await waitForReceipt(
+            provider,
+            txHash,
+            options.receiptTimeoutMs || 60000,
+            options.pollMs || 1000
           );
+
+          console.log(
+            `[proposal] tx[${i + 1}] mined status=${receipt.status} gasUsed=${BigInt(receipt.gasUsed).toString()} block=${Number(receipt.blockNumber)}`
+          );
+
           if (receipt.status !== "0x1" && receipt.status !== 1) {
-            const details = await getRevertDetails(provider, txHash, txRequest, receipt.blockNumber);
+
+            const details = await getRevertDetails(
+              provider,
+              txHash,
+              txRequest,
+              receipt.blockNumber
+            );
+
             const used = BigInt(receipt.gasUsed);
-            let txGasLimit = gasLimit;
-            if (!txGasLimit) {
-              const txData = await provider.send("eth_getTransactionByHash", [txHash]);
-              if (txData?.gas) txGasLimit = BigInt(txData.gas);
-            }
-            const likelyOog = txGasLimit && used >= txGasLimit;
-            const hint = likelyOog ? " | likely out of gas (gasUsed == gasLimit)" : "";
-            throw new Error(`Transaction failed: tx[${i + 1}] ${txHash} | ${details}${hint}`);
+            const likelyOog = gasWithMargin && used >= gasWithMargin;
+
+            const hint = likelyOog
+              ? " | likely out of gas (gasUsed == gasLimit)"
+              : "";
+
+            throw new Error(
+              `Transaction failed: tx[${i + 1}] ${txHash} | ${details}${hint}`
+            );
           }
+
         }
       } finally {
         await stopImpersonation(provider, timelockAddress);
