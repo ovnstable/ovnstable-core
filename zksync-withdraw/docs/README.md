@@ -1,56 +1,70 @@
+# zkSync Withdraw Local Runbook
 
-Для запуска ноды:
-```sh
-yarn hardhat node-zksync --fork https://mainnet.era.zksync.io --fork-block-number 68512971 --cache none --reset-cache --protocol-version 29
-```
-TODO: убрать максимум флагов
+README для локального теста апгрейда/пропозала:
+- поднять локальную zkSync-ноду на форке;
+- задеплоить новую имплементацию;
+- прогнать proposal локально через impersonation `AgentTimelock`.
 
-Для апгрейда:
-```sh
-yarn hardhat deploy --network local --impl --tags StrategyZerolend                                        
-```
+## 1) Установка зависимостей
 
-Для скрипта:
 ```sh
-yarn hardhat run scripts/callstatic_upgradeTo_fixed.js --network local
+cd zksync-withdraw
+yarn install --frozen-lockfile
 ```
 
-Для пропозала:
+## 2) `.env` (обязательные переменные)
+
+```conf
+ZKSYNC_RPC_URL=https://mainnet.era.zksync.io
+LOCAL_ZKSYNC_RPC_URL=http://127.0.0.1:8011
+BLOCK_NUMBER=68512971
+PRIVATE_KEY=0x<private_key>
+PROPOSAL_GAS_LIMIT=200000000
+GOAT=true
+```
+
+Примечания:
+- `GOAT=true` включает gov-режим для скриптов, где нужен impersonation (`scripts/utils/gov-signer.js`).
+- `PROPOSAL_GAS_LIMIT` опционален, но полезен для тяжелых proposal-транзакций.
+
+## 3) Запуск локальной zkSync-ноды (fork, protocol version 29)
+
+В отдельном терминале:
+
 ```sh
+cd zksync-withdraw
+yarn hardhat node-zksync --fork https://mainnet.era.zksync.io --fork-block-number 68619742 --protocol-version 29
+```
+
+`node-zk` уже содержит кастомный запуск:
+- `--protocol-version 29`
+- `--cache none --reset-cache`
+- форк от `ZKSYNC_RPC_URL` на `BLOCK_NUMBER`
+
+## 4) Деплой только имплементации (без `upgradeTo`)
+
+Команда использует кастомный флаг `--impl` (через `tasks/deploy.js`):
+
+```sh
+yarn hardhat deploy --network local --impl --tags UsdPlusToken
+```
+
+Опционально можно переопределить прокси:
+
+```sh
+PROXY_ADDRESS=0x... yarn hardhat deploy --network local --impl --tags StrategyZerolend
+```
+
+## 5) Подготовка proposal
+
+Текущий `proposals/001_upgrade_strategy_zerolend.js` использует захардкоженные адреса.  
+После деплоя имплементации обнови в скрипте нужные константы (например `usdPlusNewImpl`/адреса impl).
+
+## 6) Запуск proposal локально
+
+```sh
+cd zksync-withdraw
 yarn hardhat run proposals/001_upgrade_strategy_zerolend.js --network local
 ```
 
-.env:
-```conf
-ZKSYNC_RPC_URL=https://mainnet.era.zksync.io                                        # 
-PRIVATE_KEY=0x2cd46334b0268c7ed25b5a69dde27560a615b833589f62a35e957475e5d7638e      # default transaction signer
-NETWORK_NAME=hardhat                                                                # 
-PROPOSAL_GAS_LIMIT=200000000                                                        # GasLimit for 1 trans in proposal
-BLOCK_NUMBER=68512971                                                               #
-GOAT=true                                                                           # scripts ran with timelock impersonation
-```
-
-
-
-
-
-
-
-
-
-Подпроект создал в папке чтобы не приходилось создавать новую репу
-
-Использую HH2, потому что с HH3 еще не совместимы скрипты для zksync (может никогда и не будут)
-
-
-Пока план такой:
-
-- Найти контракты на zksync по возможности
-
-Strategies:
-StrategyZerolend.json                           (proxy)     0x1969937EFc0F86CAf3a613c23e6340cd8ce77F0e      (impl)      0x2998b840BcBcFdb6866FCb9B8638fD1940206E68      30'279 z0USDC
-StrategyZerolendUsdt.json                       (proxy)     0x1d48b4612EbA39b7C073abE1f71d5dF79574869A      (impl)      0x764D9893044b682a45a623A8214034c08fAC8d7E       2'883 z0USDT
-
-- 
-
-Локальные proposal-скрипты через impersonation AgentTimelock: `docs/PROPOSALS_LOCAL.md`
+Локальные proposal-утилиты и детали impersonation: `docs/PROPOSALS_LOCAL.md`

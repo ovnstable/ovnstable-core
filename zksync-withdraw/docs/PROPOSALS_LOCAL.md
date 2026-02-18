@@ -14,6 +14,7 @@ Optional env vars:
 - `AGENT_TIMELOCK_ADDRESS` (if not set, address is loaded from:
   - `deployments/AgentTimelock.json`, then
   - `../pkg/governance/deployments/zksync/AgentTimelock.json`)
+- `PROPOSAL_SOLIDITY_CONSOLE=1` (decode and print `hardhat/console.sol` logs from call traces)
 
 ## 2) Helper API
 
@@ -37,11 +38,12 @@ Use `proposals/lib/proposal-tools.js`.
 Example script: `proposals/001_upgrade_strategy_zerolend.js`
 
 ```bash
-cd /Users/mkjck/ovnstable-core/zksync-withdraw
+cd zksync-withdraw
 export LOCAL_ZKSYNC_RPC_URL=http://127.0.0.1:8011
 export NEW_IMPL_ADDRESS=0xYourNewImplAddress
 yarn hardhat run proposals/001_upgrade_strategy_zerolend.js --network local
 ```
+
 
 ## 4) Create your own proposal script
 

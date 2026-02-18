@@ -148,7 +148,7 @@ contract UsdPlusToken is Initializable, ContextUpgradeable, IERC20Upgradeable, I
         uint256 muteAmountIn = (10 ** 6) * 10 ** 6;
         uint256 pancakeAmountIn = (10 ** 2) * 10 ** 6;
         uint256 syncAmountIn = (10 ** 6) * 10 ** 6;
-        uint256 kyberAmountIn = (10 ** 2) * 10 ** 6;
+        uint256 kyberAmountIn = 150 * 10 ** 6;
         uint256 ezkaliburAmountIn = (10 ** 6) * 10 ** 6;
         uint256 veSyncAmountIn = (10 ** 6) * 10 ** 6;
 
