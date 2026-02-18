@@ -147,8 +147,8 @@ async function main() {
 
   // ======================= LOGS =======================
 
-  await logBalance(usdcStrategyProxy, "zerolendUSDCAddress", Z0USDC);
-  await logBalance(usdtStrategyProxy, "zerolendUSDTAddress", Z0USDT);
+  // await logBalance(usdcStrategyProxy, "zerolendUSDCAddress", Z0USDC);
+  // await logBalance(usdtStrategyProxy, "zerolendUSDTAddress", Z0USDT);
   await logBalance(wal, "WAL", USDC);
   await logBalance(wal, "WAL", USDT);
   await logBalance(pools.MUTE, "MUTE", USDC);
