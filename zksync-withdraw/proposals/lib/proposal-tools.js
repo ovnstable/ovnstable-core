@@ -1,12 +1,15 @@
 const hre = require("hardhat");
 const fs = require("fs");
 const path = require("path");
+const { randomBytes } = require("crypto");
 const { Contract, JsonRpcProvider, Interface, getAddress, toBeHex } = require("ethers");
 
 const TEN_ETH_HEX = "0x8ac7230489e80000"; // 10 ETH in hex
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000";
 const REVERT_IFACE = new Interface(["error Error(string)", "error Panic(uint256)"]);
 const HARDHAT_CONSOLE_ADDRESS = "0x000000000000000000636f6e736f6c652e6c6f67";
+const TX_BUILDER_VERSION = "1.16.2";
 
 let ConsoleLogger;
 try {
@@ -202,11 +205,217 @@ async function stopImpersonation(provider, address) {
   }
 }
 
-function createProposalContext() {
+function assertProposalArrays(addresses, values, abis) {
+  if (addresses.length !== values.length || values.length !== abis.length) {
+    throw new Error("Proposal arrays length mismatch");
+  }
+  if (addresses.length === 0) {
+    throw new Error("Proposal is empty. Add at least one proposal item");
+  }
+}
+
+function normalizeProposalName(name) {
+  if (typeof name !== "string" || name.trim().length === 0) {
+    throw new Error("createProposal: name is required");
+  }
+
+  const trimmed = name.trim();
+  if (trimmed.endsWith(".json")) return trimmed.slice(0, -5);
+  if (trimmed.endsWith(".js")) return trimmed.slice(0, -3);
+  return trimmed;
+}
+
+function inferCallerFileFromStack() {
+  const stack = new Error().stack || "";
+  const lines = stack.split("\n").slice(1);
+  const selfPath = path.resolve(__filename);
+
+  for (const line of lines) {
+    const match = line.match(/\((.*):\d+:\d+\)$/) || line.match(/at (.*):\d+:\d+$/);
+    if (!match) continue;
+    const candidate = path.resolve(match[1]);
+    if (candidate === selfPath) continue;
+    if (!fs.existsSync(candidate)) continue;
+    return candidate;
+  }
+
+  return null;
+}
+
+function inferDefaultProposalName() {
+  const callerFile = inferCallerFileFromStack();
+  if (callerFile) {
+    return path.basename(callerFile, path.extname(callerFile));
+  }
+  return null;
+}
+
+function resolveProposalName(nameOrOptions, maybeOptions, fallbackName) {
+  if (typeof nameOrOptions === "object" && nameOrOptions !== null) {
+    return {
+      name: normalizeProposalName(nameOrOptions.name || fallbackName),
+      options: nameOrOptions,
+    };
+  }
+
+  if (typeof nameOrOptions === "string") {
+    return {
+      name: normalizeProposalName(nameOrOptions),
+      options: maybeOptions || {},
+    };
+  }
+
+  return {
+    name: normalizeProposalName(fallbackName),
+    options: maybeOptions || {},
+  };
+}
+
+function createSalt() {
+  return `0x${randomBytes(32).toString("hex")}`;
+}
+
+function createScheduleTransaction(timelockAddress, delay, target, value, data, salt) {
+  return {
+    to: timelockAddress,
+    value: "0",
+    data: null,
+    contractMethod: {
+      inputs: [
+        {
+          internalType: "address",
+          name: "target",
+          type: "address",
+        },
+        {
+          internalType: "uint256",
+          name: "value",
+          type: "uint256",
+        },
+        {
+          internalType: "bytes",
+          name: "data",
+          type: "bytes",
+        },
+        {
+          internalType: "bytes32",
+          name: "predecessor",
+          type: "bytes32",
+        },
+        {
+          internalType: "bytes32",
+          name: "salt",
+          type: "bytes32",
+        },
+        {
+          internalType: "uint256",
+          name: "delay",
+          type: "uint256",
+        },
+      ],
+      name: "schedule",
+      payable: false,
+    },
+    contractInputsValues: {
+      target,
+      value: value.toString(),
+      data,
+      predecessor: ZERO_BYTES32,
+      salt,
+      delay: delay.toString(),
+    },
+  };
+}
+
+function resolveBatchOutputPath(name, options = {}) {
+  if (options.outputPath) {
+    return path.resolve(options.outputPath);
+  }
+
+  const networkFolder =
+    options.network ||
+    process.env.STAND?.split("_")[0] ||
+    process.env.PROPOSAL_NETWORK ||
+    "zksync";
+  return path.resolve(__dirname, `../batches/${networkFolder}/${name}.json`);
+}
+
+async function createProposal(name, addresses, values, abis, options = {}) {
+  assertProposalArrays(addresses, values, abis);
+
+  const proposalName = normalizeProposalName(name);
+  const rpcUrl = options.rpcUrl || resolveRpcUrl();
+  const timelockAddress = getAddress(options.timelockAddress || resolveAgentTimelockAddress());
+  const provider = new JsonRpcProvider(rpcUrl);
+
+  try {
+    const timelock = new Contract(
+      timelockAddress,
+      [
+        "function ovnAgent() view returns (address)",
+        "function getMinDelay() view returns (uint256)",
+      ],
+      provider,
+    );
+
+    const [network, ovnAgentRaw, minDelayRaw] = await Promise.all([
+      provider.getNetwork(),
+      timelock.ovnAgent(),
+      timelock.getMinDelay(),
+    ]);
+
+    const ovnAgent = getAddress(ovnAgentRaw);
+    const minDelay = BigInt(minDelayRaw);
+    const chainId = Number(network.chainId);
+
+    const batch = {
+      version: "1.0",
+      chainId,
+      createdAt: Date.now(),
+      meta: {
+        name: "Transactions Batch",
+        description: "",
+        txBuilderVersion: TX_BUILDER_VERSION,
+        createdFromSafeAddress: ovnAgent,
+        createdFromOwnerAddress: "",
+        checksum: "",
+      },
+      transactions: [],
+    };
+
+    for (let i = 0; i < addresses.length; i++) {
+      batch.transactions.push(
+        createScheduleTransaction(
+          timelockAddress,
+          minDelay,
+          addresses[i],
+          toBigIntValue(values[i]),
+          abis[i],
+          createSalt(),
+        ),
+      );
+    }
+
+    const outputPath = resolveBatchOutputPath(proposalName, options);
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+    const batchJson = options.pretty ? JSON.stringify(batch, null, 2) : JSON.stringify(batch);
+    fs.writeFileSync(outputPath, batchJson);
+
+    console.log(`[proposal] batch written: ${outputPath}`);
+    console.log(`[proposal] tx count: ${batch.transactions.length}`);
+
+    return { batch, outputPath };
+  } finally {
+    provider.destroy();
+  }
+}
+
+function createProposalContext(contextOptions = {}) {
   const addresses = [];
   const values = [];
   const abis = [];
   const actions = [];
+  const defaultProposalName = contextOptions.name || inferDefaultProposalName();
 
   function addProposalItem(contractOrAddress, methodOrData, params = [], value = 0n, description = "") {
     if (!contractOrAddress) {
@@ -243,12 +452,7 @@ function createProposalContext() {
   }
 
   async function testProposal(options = {}) {
-    if (addresses.length !== values.length || values.length !== abis.length) {
-      throw new Error("Proposal arrays length mismatch");
-    }
-    if (addresses.length === 0) {
-      throw new Error("Proposal is empty. Add at least one proposal item");
-    }
+    assertProposalArrays(addresses, values, abis);
 
     const rpcUrl = options.rpcUrl || resolveRpcUrl();
     const timelockAddress = getAddress(options.timelockAddress || resolveAgentTimelockAddress());
@@ -398,11 +602,16 @@ function createProposalContext() {
     values,
     abis,
     addProposalItem,
+    createProposal: async (nameOrOptions, maybeOptions) => {
+      const resolved = resolveProposalName(nameOrOptions, maybeOptions, defaultProposalName);
+      return createProposal(resolved.name, addresses, values, abis, resolved.options);
+    },
     testProposal,
   };
 }
 
 module.exports = {
+  createProposal,
   createProposalContext,
   resolveRpcUrl,
   resolveAgentTimelockAddress,

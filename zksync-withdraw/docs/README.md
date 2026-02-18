@@ -2,6 +2,7 @@
 
 README для локального теста апгрейда/пропозала:
 - поднять локальную zkSync-ноду на форке;
+- собрать batch-файл proposal в формате Safe Transaction Builder;
 - задеплоить новую имплементацию;
 - прогнать proposal локально через impersonation `AgentTimelock`.
 
@@ -66,5 +67,17 @@ PROXY_ADDRESS=0x... yarn hardhat deploy --network local --impl --tags StrategyZe
 cd zksync-withdraw
 yarn hardhat run proposals/001_upgrade_strategy_zerolend.js --network local
 ```
+
+После запуска batch будет сохранён в:
+
+```sh
+zksync-withdraw/proposals/batches/zksync/001_upgrade_strategy_zerolend.json
+```
+
+Если оставить в скрипте оба вызова:
+- `await proposal.testProposal(...)`
+- `await proposal.createProposal(...)`
+
+то сначала пройдёт локальный тестовый прогон, затем сформируется batch-файл.
 
 Локальные proposal-утилиты и детали impersonation: `docs/PROPOSALS_LOCAL.md`

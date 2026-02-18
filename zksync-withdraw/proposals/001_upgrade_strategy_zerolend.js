@@ -20,6 +20,8 @@ async function main() {
   const sep = "-".repeat(process.stdout.columns || 80);
 
   const proposal = createProposalContext();
+  const createProposal = proposal.createProposal;
+  const testProposal = proposal.testProposal;
 
   // ======================= USD+ TARGET =========================
   const usdPlusProxy = "0x8E86e46278518EFc1C5CEd245cBA2C7e3ef11557";
@@ -167,7 +169,8 @@ async function main() {
   console.log(`[proposal] usdPlus new impl: ${usdPlusNewImpl}`);
   console.log(sep);
 
-  await proposal.testProposal({ rpcUrl: rpc, timelockAddress: timelock, solidityConsole: true });
+  await testProposal({ rpcUrl: rpc, timelockAddress: timelock, solidityConsole: true });
+  await createProposal();
 
   // ======================= LOGS =======================
   // console.log(sep);

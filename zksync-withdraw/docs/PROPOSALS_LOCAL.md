@@ -23,8 +23,19 @@ Use `proposals/lib/proposal-tools.js`.
 - `createProposalContext()` returns:
   - `addresses`, `values`, `abis`
   - `addProposalItem(contract, methodName, params, value?)`
+  - `createProposal(name?, options?)` -> writes Safe batch JSON with `AgentTimelock.schedule(...)`
   - `testProposal(options?)`
 - `getDeploymentContract(name, runner)` loads contract from `deployments/<name>.json`.
+
+`createProposal()` behavior:
+
+1. Resolves RPC and `AgentTimelock` address.
+2. Reads `ovnAgent()` and `getMinDelay()` from timelock.
+3. Builds Safe Transaction Builder JSON (`version/meta/transactions`).
+4. For each proposal item creates one `schedule(target,value,data,predecessor,salt,delay)` tx.
+5. Writes file to `proposals/batches/<network>/<name>.json` (default network: `zksync`).
+
+If `name` is omitted, proposal name is inferred from current script filename.
 
 `testProposal()` behavior:
 
@@ -59,6 +70,7 @@ async function main() {
   const target = getDeploymentContract("YourContractName", provider);
 
   proposal.addProposalItem(target, "methodName", ["arg1", "arg2"]);
-  await proposal.testProposal();
+  await proposal.testProposal(); // local execution on fork
+  await proposal.createProposal(); // writes proposals/batches/zksync/<script_name>.json
 }
 ```
