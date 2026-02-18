@@ -1,4 +1,4 @@
-PancakeSwap
+PancakeSwap     (OK)
 
 "0x6a8Fc7e8186ddC572e149dFAa49CfAE1E571108b" "USD+-USDC"
 
@@ -7,7 +7,7 @@ USDC:       $4.89
 
 ---
 
-Ezkalibur
+Ezkalibur       (OK)
 
 "0x0DfD96f6DbA1F3AC4ABb4D5CA36ce7Cb48767a13" "USDC/USD+"
 
@@ -16,7 +16,7 @@ USD+:       $94.08
 
 ---
 
-SyncSwap
+SyncSwap        (OK)
 
 "0xA06f1cce2Bb89f59D244178C2134e4Fc17B07306" "USD+/USDC"
 
@@ -25,7 +25,7 @@ USDC:       $150.56
 
 ---
 
-Mute            (v)
+Mute            (OK)
 
 "0x3848dbd3EAc429497abd464A18fBEC78EF76f750" "USDC/USD+"
 
@@ -34,7 +34,7 @@ USD+:       $1,532.58
 
 ---
 
-VeSync
+VeSync          (OK)
 
 "0x16D0fC836FED0f645d832Eacc65106dDB67108Ef" "USDC/USD+"
 
@@ -43,7 +43,7 @@ USD+:       $91.95
 
 ---
 
-Kyberswap
+Kyberswap       (OK)
 
 "0x760B36C9024d27b95e45a1aA033aaDCB87DA77Dc" "USDC/USD+"
 

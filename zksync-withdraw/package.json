@@ -4,7 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "node-zk": "hardhat node-zksync --fork $ZKSYNC_RPC_URL --fork-block-number $BLOCK_NUMBER --cache none --reset-cache --protocol-version 29"
+    "node-zk": "hardhat node-zksync --fork $ZKSYNC_RPC_URL --fork-block-number $BLOCK_NUMBER --cache none --reset-cache --protocol-version 29",
+    "node-zk-debug": "hardhat node-zksync --fork $ZKSYNC_RPC_URL --fork-block-number $BLOCK_NUMBER --cache none --reset-cache --protocol-version 29 --show-vm-details all --show-storage-logs all --log debug"
   },
   "devDependencies": {
     "@matterlabs/hardhat-zksync": "^1.6.2",

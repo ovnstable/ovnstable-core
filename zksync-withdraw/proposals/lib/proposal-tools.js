@@ -6,6 +6,12 @@ const { Contract, JsonRpcProvider, Interface, getAddress, toBeHex } = require("e
 const TEN_ETH_HEX = "0x8ac7230489e80000"; // 10 ETH in hex
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const REVERT_IFACE = new Interface(["error Error(string)", "error Panic(uint256)"]);
+const HARDHAT_CONSOLE_ADDRESS = "0x000000000000000000636f6e736f6c652e6c6f67";
+
+let ConsoleLogger;
+try {
+  ({ ConsoleLogger } = require("hardhat/internal/hardhat-network/stack-traces/consoleLogger"));
+} catch (_) {}
 
  function resolveRpcUrl() {
   return (
@@ -121,6 +127,38 @@ function pickRpcErrorMessage(e) {
   return e?.shortMessage || e?.message || "";
 }
 
+function collectConsoleInputs(traceNode, out = []) {
+  if (!traceNode || typeof traceNode !== "object") return out;
+
+  if (
+    typeof traceNode.to === "string" &&
+    traceNode.to.toLowerCase() === HARDHAT_CONSOLE_ADDRESS &&
+    typeof traceNode.input === "string" &&
+    traceNode.input.startsWith("0x") &&
+    traceNode.input.length > 2
+  ) {
+    out.push(traceNode.input);
+  }
+
+  if (Array.isArray(traceNode.calls)) {
+    for (const child of traceNode.calls) {
+      collectConsoleInputs(child, out);
+    }
+  }
+
+  return out;
+}
+
+function decodeConsoleInputs(inputs) {
+  if (!ConsoleLogger || !Array.isArray(inputs) || inputs.length === 0) return [];
+  try {
+    const messages = ConsoleLogger.getDecodedLogs(inputs.map((input) => Buffer.from(input.slice(2), "hex")));
+    return messages.filter((msg) => typeof msg === "string" && msg.length > 0);
+  } catch (_) {
+    return [];
+  }
+}
+
 async function getRevertDetails(provider, txHash, txRequest, blockNumber) {
   const details = [];
   try {
@@ -215,12 +253,15 @@ function createProposalContext() {
     const rpcUrl = options.rpcUrl || resolveRpcUrl();
     const timelockAddress = getAddress(options.timelockAddress || resolveAgentTimelockAddress());
     const gasLimit = normalizeGasLimit(options.gasLimit ?? process.env.PROPOSAL_GAS_LIMIT);
+    const solidityConsole = options.solidityConsole ?? process.env.PROPOSAL_SOLIDITY_CONSOLE === "1";
     const provider = new JsonRpcProvider(rpcUrl);
+    let traceConsoleUnavailableLogged = false;
 
     console.log(`[proposal] rpc: ${rpcUrl}`);
     console.log(`[proposal] timelock: ${timelockAddress}`);
     console.log(`[proposal] tx count: ${addresses.length}`);
     if (gasLimit) console.log(`[proposal] gas limit: ${gasLimit.toString()}`);
+    if (solidityConsole) console.log("[proposal] solidity console: on");
 
     try {
       await impersonateAndFund(provider, timelockAddress);
@@ -234,6 +275,23 @@ function createProposalContext() {
             value: toBeHex(values[i]),
             data: abis[i],
           };
+
+          if (solidityConsole) {
+            try {
+              const trace = await provider.send("debug_traceCall", [txRequest, "latest", { tracer: "callTracer" }]);
+              const consoleInputs = collectConsoleInputs(trace);
+              const messages = decodeConsoleInputs(consoleInputs);
+              for (const message of messages) {
+                console.log(`[solidity][tx${i + 1}] ${message}`);
+              }
+            } catch (traceErr) {
+              if (!traceConsoleUnavailableLogged) {
+                const traceMsg = pickRpcErrorMessage(traceErr) || "debug_traceCall unavailable";
+                console.warn(`[proposal] solidity console trace unavailable: ${traceMsg}`);
+                traceConsoleUnavailableLogged = true;
+              }
+            }
+          }
 
           // ---------- PREFLIGHT ETH_CALL ----------
           try {
