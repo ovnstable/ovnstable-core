@@ -3,7 +3,7 @@ const { Wallet, Contract } = require("zksync-ethers");
 const path = require("path");
 const fs = require("fs");
 const TEN_ETH_HEX = "0x8ac7230489e80000"; // 10 ETH
-const USDPLUS_FQN = "contracts/UsdPlusToken.sol:UsdPlusToken";
+const USDTPLUS_FQN = "contracts/UsdtPlusToken.sol:UsdPlusToken";
 
 // CLI флаг: --impl  => деплоим только новую имплементацию без upgradeTo
 const ONLY_IMPL = process.env.ONLY_IMPL === "true" || process.argv.includes("--impl");
@@ -12,15 +12,15 @@ function loadProxyAddress() {
   // 1) env приоритетнее
   if (process.env.PROXY_ADDRESS) return process.env.PROXY_ADDRESS;
 
-  // 2) deployments/StrategyZerolend.json из текущего проекта
-  const p = path.join(__dirname, "../deployments/UsdPlusToken.json");
+  // 2) deployments/usdt/UsdPlusToken.json (новое место для usdt+)
+  const p = path.join(__dirname, "../deployments/usdt/UsdPlusToken.json");
   if (fs.existsSync(p)) {
     const json = JSON.parse(fs.readFileSync(p, "utf8"));
     if (json.address) return json.address;
   }
 
   throw new Error(
-    "Proxy address not provided. Set PROXY_ADDRESS or add address to deployments/UsdPlusToken.json",
+    "Proxy address not provided. Set PROXY_ADDRESS or add address to deployments/usdt/UsdPlusToken.json",
   );
 }
 
@@ -44,11 +44,11 @@ module.exports = async function (hre) {
   }
   const deployer = new Deployer(hre, wallet);
 
-  const artifact = await deployer.loadArtifact(USDPLUS_FQN);
+  const artifact = await deployer.loadArtifact(USDTPLUS_FQN);
   const proxyAddress = loadProxyAddress();
   console.log(`[proxy] ${proxyAddress}`);
 
-  console.log(`[deploy] deploying UsdPlusToken impl (onlyImpl=${ONLY_IMPL})...`);
+  console.log(`[deploy] deploying UsdPlusToken impl for UsdtPlusToken (onlyImpl=${ONLY_IMPL})...`);
   const impl = await deployer.deploy(artifact, []);
   const implAddress = impl.address || (await impl.getAddress());
   console.log(`[deploy] impl: ${implAddress}`);
@@ -65,11 +65,11 @@ module.exports = async function (hre) {
   console.log(`[upgrade] done`);
 
   // Обновляем deployments запись: прокси остаётся тем же, импл новый
-  await save("UsdPlusToken", {
+  await save("UsdtPlusToken", {
     address: proxyAddress,
     implementation: implAddress,
     ...artifact,
   });
 };
 
-module.exports.tags = ["UsdPlusToken"];
+module.exports.tags = ["UsdtPlusToken"];

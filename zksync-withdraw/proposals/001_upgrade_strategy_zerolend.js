@@ -25,9 +25,13 @@ async function main() {
 
   // ======================= USD+ TARGET =========================
   const usdPlusProxy = "0x8E86e46278518EFc1C5CEd245cBA2C7e3ef11557";
+  const usdtPlusProxy = "0xBb8D60008A08b1828E02120F1a952D295036eF3d";
 
   const usdPlusOldImpl = "0x5f5De9763a452890e1BD46F54d764099Cc79581E";
   const usdPlusNewImpl = "0x68D047DB3F0bdDdB5d346C533fcb78094d0D1c71";
+
+  const usdtPlusOldImpl = "0xBb8D60008A08b1828E02120F1a952D295036eF3d";
+  const usdtPlusNewImpl = "0xAd637B5f84CA0FbbacD316e0c7811387682E348c";
 
   const usdPlusIface = new Interface([
     "function upgradeTo(address)",
@@ -82,6 +86,8 @@ async function main() {
   const usdcStrategyZ0Balance = await logBalance(usdcStrategyProxy, "zerolendUSDCAddress", Z0USDC);
   const usdtStrategyZ0Balance = await logBalance(usdtStrategyProxy, "zerolendUSDTAddress", Z0USDT);
   
+  // ========================= STRATEGIES =========================
+
   proposal.addProposalItem(
     usdcStrategyProxy,
     usdcStrategyView.interface.encodeFunctionData("setStrategyParams", [timelock, roleManagerUsdc]),
@@ -103,6 +109,7 @@ async function main() {
     0n,
     "USDC setStrategyParams(oldPortfolioManager)",
   );
+
   proposal.addProposalItem(
     usdtStrategyProxy,
     usdtStrategyView.interface.encodeFunctionData("setStrategyParams", [timelock, roleManagerUsdt]),
@@ -124,6 +131,9 @@ async function main() {
     0n,
     "USDT setStrategyParams(oldPortfolioManager)",
   );
+
+  // ========================= USD+ =========================
+
   proposal.addProposalItem(
     usdPlusProxy,
     usdPlusIface.encodeFunctionData("upgradeTo", [usdPlusNewImpl]),
@@ -144,7 +154,32 @@ async function main() {
     usdPlusIface.encodeFunctionData("upgradeTo", [usdPlusOldImpl]),
     [],
     0n,
+    "USD+ upgradeTo(old)",
+  );
+
+  // ========================= USDT+ =========================
+
+   proposal.addProposalItem(
+    usdtPlusProxy,
+    usdPlusIface.encodeFunctionData("upgradeTo", [usdtPlusNewImpl]),
+    [],
+    0n,
     "USD+ upgradeTo(new)",
+  );
+
+  proposal.addProposalItem(
+    usdtPlusProxy,
+    usdPlusIface.encodeFunctionData("nukeSupply", []),
+    [],
+    0n,
+    "USD+ nukeSupply()",
+  );
+  proposal.addProposalItem(
+    usdtPlusProxy,
+    usdPlusIface.encodeFunctionData("upgradeTo", [usdPlusOldImpl]),
+    [],
+    0n,
+    "USD+ upgradeTo(old)",
   );
 
   // ======================= LOGS =======================
