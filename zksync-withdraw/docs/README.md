@@ -56,6 +56,11 @@ yarn hardhat deploy --network local --impl --tags UsdPlusToken
 PROXY_ADDRESS=0x... yarn hardhat deploy --network local --impl --tags StrategyZerolend
 ```
 
+Для деплоя на Mainnet:
+```sh
+yarn hardhat deploy --network zksyncMainnet --impl --tags UsdtPlusToken
+```
+
 ## 5) Подготовка proposal
 
 Текущий `proposals/001_upgrade_strategy_zerolend.js` использует захардкоженные адреса.  
