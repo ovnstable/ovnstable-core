@@ -28,10 +28,10 @@ async function main() {
   const usdtPlusProxy = "0xBb8D60008A08b1828E02120F1a952D295036eF3d";
 
   const usdPlusOldImpl = "0x5f5De9763a452890e1BD46F54d764099Cc79581E";
-  const usdPlusNewImpl = "0x68D047DB3F0bdDdB5d346C533fcb78094d0D1c71";
+  const usdPlusNewImpl = "0x73F639a27Ff3B503eCE25BF50dE1488e6A39AeF7";
 
-  const usdtPlusOldImpl = "0xBb8D60008A08b1828E02120F1a952D295036eF3d";
-  const usdtPlusNewImpl = "0xAd637B5f84CA0FbbacD316e0c7811387682E348c";
+  // const usdtPlusOldImpl = "0xBb8D60008A08b1828E02120F1a952D295036eF3d";
+  const usdtPlusNewImpl = "0x2561af80F675B5ab417c92C2720f4446173FB10c";
 
   const usdPlusIface = new Interface([
     "function upgradeTo(address)",
