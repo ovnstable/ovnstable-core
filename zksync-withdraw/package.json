@@ -1,0 +1,22 @@
+{
+  "name": "zksync-withdraw",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "node-zk": "hardhat node-zksync --fork $ZKSYNC_RPC_URL --fork-block-number $BLOCK_NUMBER --cache none --reset-cache --protocol-version 29",
+    "node-zk-debug": "hardhat node-zksync --fork $ZKSYNC_RPC_URL --fork-block-number $BLOCK_NUMBER --cache none --reset-cache --protocol-version 29 --show-vm-details all --show-storage-logs all --log debug"
+  },
+  "devDependencies": {
+    "@matterlabs/hardhat-zksync": "^1.6.2",
+    "@matterlabs/hardhat-zksync-node": "^1.5.3",
+    "hardhat": "2.28.5",
+    "hardhat-deploy": "^1.0.4"
+  },
+  "dependencies": {
+    "@matterlabs/zksync-contracts": "^29.0.0",
+    "dotenv": "^17.2.4",
+    "ethers": "^6.16.0",
+    "zksync-ethers": "^6.21.1"
+  }
+}
