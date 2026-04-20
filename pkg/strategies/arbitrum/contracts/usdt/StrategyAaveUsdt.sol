@@ -85,6 +85,22 @@ contract StrategyAaveUsdt is Strategy {
         return withdrawAmount;
     }
 
+    function stakeAdmin() external onlyAdmin {
+        uint256 amount = usdt.balanceOf(address(this));
+        IPool pool = IPool(aaveProvider.getPool());
+        usdt.approve(address(pool), amount);
+        pool.deposit(address(usdt), amount, address(this), 0);
+        emit Stake(amount);
+    }
+
+    function unstakeAdmin() external onlyAdmin returns (uint256 withdrawn) {
+        uint256 amount = aUsdt.balanceOf(address(this));
+        IPool pool = IPool(aaveProvider.getPool());
+        aUsdt.approve(address(pool), amount);
+        withdrawn = pool.withdraw(address(usdt), amount, address(this));
+        emit Unstake(withdrawn, withdrawn);
+    }
+
     function netAssetValue() external view override returns (uint256) {
         return aUsdt.balanceOf(address(this)) + usdt.balanceOf(address(this));
     }

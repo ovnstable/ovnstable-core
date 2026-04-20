@@ -126,6 +126,11 @@ async function deployProxyEth(contractName, factoryName, deployments, save, para
         args = params.args;
     }
 
+    const defaultUnsafeAllow = ['missing-initializer-call'];
+    unsafeAllow = unsafeAllow
+        ? Array.from(new Set([...unsafeAllow, ...defaultUnsafeAllow]))
+        : defaultUnsafeAllow;
+
     const contractFactory = await ethers.getContractFactory(factoryName, factoryOptions);
 
     // uncomment for force import

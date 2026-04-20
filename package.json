@@ -55,5 +55,8 @@
     "typescript": "^5.0.2",
     "waffle": "^0.0.4",
     "zksync-web3": "^0.14.3"
+  },
+  "resolutions": {
+    "@nomiclabs/hardhat-etherscan": "npm:noop2@^2.0.0"
   }
 }

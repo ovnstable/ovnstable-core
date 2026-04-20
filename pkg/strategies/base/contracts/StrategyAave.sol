@@ -32,6 +32,7 @@ contract StrategyAave is Strategy {
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
+    /// @custom:oz-upgrades-unsafe-allow missing-initializer-call
     constructor() initializer {}
 
     function initialize() initializer public {
@@ -82,11 +83,26 @@ contract StrategyAave is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(usdcToken), "Some token not compatible");
-
         IPool pool = IPool(aaveProvider.getPool());
         uint256 _amount = aUsdcToken.balanceOf(address(this));
         aUsdcToken.approve(address(pool), _amount);
         return pool.withdraw(_asset, _amount, address(this));
+    }
+
+    function stakeAdmin() external onlyAdmin {
+        uint256 amount = usdcToken.balanceOf(address(this));
+        IPool pool = IPool(aaveProvider.getPool());
+        usdcToken.approve(address(pool), amount);
+        pool.deposit(address(usdcToken), amount, address(this), 0);
+        emit Stake(amount);
+    }
+
+    function unstakeAdmin() external onlyAdmin returns (uint256 withdrawn) {
+        uint256 amount = aUsdcToken.balanceOf(address(this));
+        IPool pool = IPool(aaveProvider.getPool());
+        aUsdcToken.approve(address(pool), amount);
+        withdrawn = pool.withdraw(address(usdcToken), amount, address(this));
+        emit Unstake(withdrawn, withdrawn);
     }
 
     function netAssetValue() external view override returns (uint256) {

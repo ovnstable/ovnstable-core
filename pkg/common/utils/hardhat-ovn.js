@@ -111,20 +111,8 @@ task(TASK_NODE, 'Starts a JSON-RPC server on top of Hardhat EVM')
             let block = await provider.getBlockNumber();
 
             console.log('Set last block: ' + block);
-
-            await hre.network.provider.request({
-                method: 'hardhat_reset',
-                params: [
-                    {
-                        forking: {
-                            jsonRpcUrl: nodeUrl,
-                            url: nodeUrl,
-                            blockNumber: block,
-                            ignoreUnknownTxType: true,
-                        },
-                    },
-                ],
-            });
+            process.env.HARDHAT_BLOCK_NUMBER = String(block);
+            process.env['HARDHAT_BLOCK_NUMBER_' + process.env.ETH_NETWORK.toUpperCase()] = String(block);
         }
 
         if (args.deploy) args.noDeploy = false;
