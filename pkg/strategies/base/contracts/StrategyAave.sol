@@ -32,6 +32,7 @@ contract StrategyAave is Strategy {
     // ---  constructor
 
     /// @custom:oz-upgrades-unsafe-allow constructor
+    /// @custom:oz-upgrades-unsafe-allow missing-initializer-call
     constructor() initializer {}
 
     function initialize() initializer public {

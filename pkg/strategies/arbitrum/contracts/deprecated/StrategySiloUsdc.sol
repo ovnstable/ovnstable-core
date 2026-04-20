@@ -5,7 +5,7 @@ import '@overnight-contracts/core/contracts/Strategy.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Camelot.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Chainlink.sol';
-import '@overnight-contracts/connectors/contracts/stuff/Angle.sol';
+import {IDistributor as IAngleDistributor} from '@overnight-contracts/connectors/contracts/stuff/Angle.sol';
 import '@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol';
 
 contract StrategySiloUsdc is Strategy {
@@ -28,7 +28,7 @@ contract StrategySiloUsdc is Strategy {
     uint256 public assetDm;
     uint256 public underlyingAssetDm;
     IInchSwapper public inchSwapper;
-    IDistributor public distributor;
+    IAngleDistributor public distributor;
 
     // --- events
 
@@ -80,7 +80,7 @@ contract StrategySiloUsdc is Strategy {
         oracleUnderlyingAsset = IPriceFeed(params.oracleUnderlyingAsset);
         assetDm = 10 ** IERC20Metadata(params.usdc).decimals();
         underlyingAssetDm = 10 ** IERC20Metadata(params.underlyingAsset).decimals();
-        distributor = IDistributor(params.distributor);
+        distributor = IAngleDistributor(params.distributor);
     }
 
     // --- logic

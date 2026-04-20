@@ -10,8 +10,6 @@ import '@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol';
  */
 contract StrategySwapToOvn is Strategy {
 
-    bytes32 public constant UNIT_ROLE = keccak256("UNIT_ROLE");
-   
     IERC20 public usdPlus;
     IERC20 public ovn;
     IInchSwapper public inchSwapper;

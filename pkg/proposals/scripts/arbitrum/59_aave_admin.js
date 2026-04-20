@@ -1,4 +1,5 @@
-const { ethers } = require("hardhat");
+const hre = require("hardhat");
+const { ethers } = hre;
 const { getContract, getImplementation } = require("@overnight-contracts/common/utils/script-utils");
 const { createProposal, testProposal } = require("@overnight-contracts/common/utils/governance");
 const path = require("path");
@@ -39,12 +40,14 @@ async function main() {
 
     const newAaveUsdcImpl = requireAddress(
         "newAaveUsdcImpl",
-        "0x78dc38a5678725694C734b14F0b5f191e11127AC"
+        "0x90AD2485d10Afc805996A5365F351dFdbC0B58FE"
     );
     const newAaveUsdtImpl = requireAddress(
         "newAaveUsdtImpl",
-        "0x5BE4071aC4Af98F632b968C58d9CceF704965459"
+        "0x90AD2485d10Afc805996A5365F351dFdbC0B58FE"
     );
+
+    await advanceLocalForkBlock();
 
     const usdcAddress = await strategyAaveUsdc.usdcToken();
     const aUsdcAddress = await strategyAaveUsdc.aUsdcToken();
@@ -82,17 +85,13 @@ async function main() {
     await logStrategyBlock("BEFORE", "ARBITRUM AAVE USDT", strategyAaveUsdt, usdt, aUsdt);
 
     printDivider("EXECUTE TEST PROPOSAL");
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
+
 
     printDivider("AFTER TEST PROPOSAL");
     await logStrategyBlock("AFTER", "ARBITRUM AAVE USDC", strategyAaveUsdc, usdc, aUsdc);
     await logStrategyBlock("AFTER", "ARBITRUM AAVE USDT", strategyAaveUsdt, usdt, aUsdt);
-
-    // =================================================================
-    // CREATE BATCH FILE
-    // Uncomment this after local testing if you want the batch json.
-    // =================================================================
-    // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(target, contractInterface, methodName, params) {
         addresses.push(target);
@@ -145,6 +144,19 @@ async function main() {
     function printDivider(title) {
         const line = "=".repeat(28);
         console.log(`\n${line} ${title} ${line}\n`);
+    }
+
+    async function advanceLocalForkBlock() {
+        if (hre.network.name !== "localhost") {
+            return;
+        }
+
+        const beforeBlock = await ethers.provider.getBlockNumber();
+        await ethers.provider.send("evm_mine", []);
+        const afterBlock = await ethers.provider.getBlockNumber();
+
+        printDivider("LOCAL FORK WARMUP");
+        console.log(`Local block advanced: ${beforeBlock} -> ${afterBlock}`);
     }
 }
 

@@ -247,7 +247,10 @@ function getNetworks() {
                 },
                 8453: {
                     hardforkHistory: {
-                        london: 23352161
+                        // Base local forks in this repo are executed against recent blocks.
+                        // Hardhat resolves calls at the fork block through this history,
+                        // so zeroing multiple forks makes it pick the wrong one.
+                        cancun: 0
                     }
                 },
                 59144: {

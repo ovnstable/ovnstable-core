@@ -1,4 +1,5 @@
-const { ethers } = require("hardhat");
+const hre = require("hardhat");
+const { ethers } = hre;
 const { getContract, getImplementation } = require("@overnight-contracts/common/utils/script-utils");
 const { createProposal, testProposal } = require("@overnight-contracts/common/utils/governance");
 const path = require("path");
@@ -37,8 +38,10 @@ async function main() {
 
     const newAaveImpl = requireAddress(
         "newAaveImpl",
-        "0xC43f327Fb959b0833fe38219B843323c5acD401e"
+        "0x6f22f92Fea1b869067979dc6f75e34f9EeB3d12D"
     );
+
+    await advanceLocalForkBlock();
 
     const underlyingAddress = await strategyAave.usdcToken();
     const aTokenAddress = await strategyAave.aUsdcToken();
@@ -62,16 +65,11 @@ async function main() {
     await logStrategyState("BEFORE", strategyAave, underlying, aToken);
 
     printDivider("EXECUTE TEST PROPOSAL");
-    await testProposal(addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     printDivider("AFTER TEST PROPOSAL");
     await logStrategyState("AFTER", strategyAave, underlying, aToken);
-
-    // =================================================================
-    // CREATE BATCH FILE
-    // Uncomment this after local testing if you want the batch json.
-    // =================================================================
-    // await createProposal(filename, addresses, values, abis);
 
     function addProposalItem(target, contractInterface, methodName, params) {
         addresses.push(target);
@@ -118,6 +116,19 @@ async function main() {
     function printDivider(title) {
         const line = "=".repeat(28);
         console.log(`\n${line} ${title} ${line}\n`);
+    }
+
+    async function advanceLocalForkBlock() {
+        if (hre.network.name !== "localhost") {
+            return;
+        }
+
+        const beforeBlock = await ethers.provider.getBlockNumber();
+        await ethers.provider.send("evm_mine", []);
+        const afterBlock = await ethers.provider.getBlockNumber();
+
+        printDivider("LOCAL FORK WARMUP");
+        console.log(`Local block advanced: ${beforeBlock} -> ${afterBlock}`);
     }
 }
 

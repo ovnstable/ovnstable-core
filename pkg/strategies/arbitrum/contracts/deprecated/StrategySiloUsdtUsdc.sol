@@ -6,7 +6,7 @@ import '@overnight-contracts/connectors/contracts/stuff/Silo.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Camelot.sol';
 import '@overnight-contracts/core/contracts/interfaces/IInchSwapper.sol';
 import '@overnight-contracts/connectors/contracts/stuff/Chainlink.sol';
-import '@overnight-contracts/connectors/contracts/stuff/Angle.sol';
+import {IDistributor as IAngleDistributor} from '@overnight-contracts/connectors/contracts/stuff/Angle.sol';
 
 contract StrategySiloUsdtUsdc is Strategy {
     // --- params
@@ -32,7 +32,7 @@ contract StrategySiloUsdtUsdc is Strategy {
     IERC20 public arbToken;
     address public rewardWallet;
 
-    IDistributor public distributor;
+    IAngleDistributor public distributor;
 
     // --- events
 
@@ -87,7 +87,7 @@ contract StrategySiloUsdtUsdc is Strategy {
 
         rewardWallet = params.rewardWallet;
 
-        distributor = IDistributor(params.distributor);
+        distributor = IAngleDistributor(params.distributor);
     }
 
     // --- logic
