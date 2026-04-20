@@ -35,7 +35,6 @@ async function main() {
     const strategyAave = await getContract("StrategyAave", "base");
     const strategyInterface = new ethers.utils.Interface(STRATEGY_ADMIN_ABI);
 
-    const oldAaveImpl = await getImplementation("StrategyAave", "base");
     const newAaveImpl = requireAddress(
         "newAaveImpl",
         "0xC43f327Fb959b0833fe38219B843323c5acD401e"
@@ -49,7 +48,6 @@ async function main() {
     printDivider("CONFIG");
     console.log("ACTION:", ACTION);
     console.log("StrategyAave proxy:", strategyAave.address);
-    console.log("StrategyAave oldImpl:", oldAaveImpl);
     console.log("StrategyAave newImpl:", newAaveImpl);
     console.log("Underlying token:", underlyingAddress);
     console.log("Aave aToken:", aTokenAddress);
@@ -59,7 +57,6 @@ async function main() {
     // =================================================================
     addProposalItem(strategyAave.address, strategyInterface, "upgradeTo", [newAaveImpl]);
     addProposalItem(strategyAave.address, strategyInterface, ACTION, []);
-    addProposalItem(strategyAave.address, strategyInterface, "upgradeTo", [oldAaveImpl]);
 
     printDivider("BEFORE TEST PROPOSAL");
     await logStrategyState("BEFORE", strategyAave, underlying, aToken);

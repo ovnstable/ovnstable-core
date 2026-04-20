@@ -7,8 +7,8 @@ const IERC20 = require("@overnight-contracts/common/utils/abi/IERC20.json");
 let filename = path.basename(__filename);
 filename = filename.substring(0, filename.indexOf(".js"));
 
-// const ACTION = "unstakeAdmin";
-const ACTION = "stakeAdmin";
+const ACTION = "unstakeAdmin";
+// const ACTION = "stakeAdmin";
 
 const STRATEGY_ADMIN_ABI = [
     "function upgradeTo(address newImplementation)",
@@ -37,9 +37,6 @@ async function main() {
 
     const strategyInterface = new ethers.utils.Interface(STRATEGY_ADMIN_ABI);
 
-    const oldAaveUsdcImpl = await getImplementation("StrategyAaveUsdc", "arbitrum");
-    const oldAaveUsdtImpl = await getImplementation("StrategyAaveUsdt", "arbitrum_usdt");
-
     const newAaveUsdcImpl = requireAddress(
         "newAaveUsdcImpl",
         "0x78dc38a5678725694C734b14F0b5f191e11127AC"
@@ -62,13 +59,11 @@ async function main() {
     printDivider("CONFIG");
     console.log("ACTION:", ACTION);
     console.log("StrategyAaveUsdc proxy:", strategyAaveUsdc.address);
-    console.log("StrategyAaveUsdc oldImpl:", oldAaveUsdcImpl);
     console.log("StrategyAaveUsdc newImpl:", newAaveUsdcImpl);
     console.log("StrategyAaveUsdc underlying:", usdcAddress);
     console.log("StrategyAaveUsdc aToken:", aUsdcAddress);
     console.log("");
     console.log("StrategyAaveUsdt proxy:", strategyAaveUsdt.address);
-    console.log("StrategyAaveUsdt oldImpl:", oldAaveUsdtImpl);
     console.log("StrategyAaveUsdt newImpl:", newAaveUsdtImpl);
     console.log("StrategyAaveUsdt underlying:", usdtAddress);
     console.log("StrategyAaveUsdt aToken:", aUsdtAddress);
@@ -78,11 +73,9 @@ async function main() {
     // =================================================================
     addProposalItem(strategyAaveUsdc.address, strategyInterface, "upgradeTo", [newAaveUsdcImpl]);
     addProposalItem(strategyAaveUsdc.address, strategyInterface, ACTION, []);
-    addProposalItem(strategyAaveUsdc.address, strategyInterface, "upgradeTo", [oldAaveUsdcImpl]);
 
     addProposalItem(strategyAaveUsdt.address, strategyInterface, "upgradeTo", [newAaveUsdtImpl]);
     addProposalItem(strategyAaveUsdt.address, strategyInterface, ACTION, []);
-    addProposalItem(strategyAaveUsdt.address, strategyInterface, "upgradeTo", [oldAaveUsdtImpl]);
 
     printDivider("BEFORE TEST PROPOSAL");
     await logStrategyBlock("BEFORE", "ARBITRUM AAVE USDC", strategyAaveUsdc, usdc, aUsdc);
