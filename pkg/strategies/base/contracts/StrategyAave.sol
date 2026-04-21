@@ -59,9 +59,9 @@ contract StrategyAave is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        IPool pool = IPool(aaveProvider.getPool());
-        usdcToken.approve(address(pool), _amount);
-        pool.deposit(address(usdcToken), _amount, address(this), 0);
+        // IPool pool = IPool(aaveProvider.getPool());
+        // usdcToken.approve(address(pool), _amount);
+        // pool.deposit(address(usdcToken), _amount, address(this), 0);
     }
 
     function _unstake(
@@ -72,9 +72,10 @@ contract StrategyAave is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
 
-        IPool pool = IPool(aaveProvider.getPool());
-        aUsdcToken.approve(address(pool), _amount);
-        return pool.withdraw(_asset, _amount, address(this));
+        // IPool pool = IPool(aaveProvider.getPool());
+        // aUsdcToken.approve(address(pool), _amount);
+        // return pool.withdraw(_asset, _amount, address(this));
+        return 0;
     }
 
     function _unstakeFull(
@@ -83,13 +84,14 @@ contract StrategyAave is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(usdcToken), "Some token not compatible");
-        IPool pool = IPool(aaveProvider.getPool());
-        uint256 _amount = aUsdcToken.balanceOf(address(this));
-        aUsdcToken.approve(address(pool), _amount);
-        return pool.withdraw(_asset, _amount, address(this));
+        // IPool pool = IPool(aaveProvider.getPool());
+        // uint256 _amount = aUsdcToken.balanceOf(address(this));
+        // aUsdcToken.approve(address(pool), _amount);
+        // return pool.withdraw(_asset, _amount, address(this));
+        return 0;
     }
 
-    function stakeAdmin() external onlyAdmin {
+    function stakeAdmin() external onlyPortfolioAgent {
         uint256 amount = usdcToken.balanceOf(address(this));
         IPool pool = IPool(aaveProvider.getPool());
         usdcToken.approve(address(pool), amount);
@@ -97,7 +99,7 @@ contract StrategyAave is Strategy {
         emit Stake(amount);
     }
 
-    function unstakeAdmin() external onlyAdmin returns (uint256 withdrawn) {
+    function unstakeAdmin() external onlyPortfolioAgent returns (uint256 withdrawn) {
         uint256 amount = aUsdcToken.balanceOf(address(this));
         IPool pool = IPool(aaveProvider.getPool());
         aUsdcToken.approve(address(pool), amount);

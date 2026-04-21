@@ -51,11 +51,11 @@ contract StrategyAaveUsdt is Strategy {
         uint256 _amount
     ) internal override {
 
-        uint256 daiBalance = usdt.balanceOf(address(this));
+        // uint256 daiBalance = usdt.balanceOf(address(this));
 
-        IPool pool = IPool(aaveProvider.getPool());
-        usdt.approve(address(pool), daiBalance);
-        pool.deposit(address(usdt), daiBalance, address(this), 0);
+        // IPool pool = IPool(aaveProvider.getPool());
+        // usdt.approve(address(pool), daiBalance);
+        // pool.deposit(address(usdt), daiBalance, address(this), 0);
     }
 
     function _unstake(
@@ -64,11 +64,12 @@ contract StrategyAaveUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        IPool pool = IPool(aaveProvider.getPool());
-        aUsdt.approve(address(pool), _amount);
-        uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
+        // IPool pool = IPool(aaveProvider.getPool());
+        // aUsdt.approve(address(pool), _amount);
+        // uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
 
-        return withdrawAmount;
+        // return withdrawAmount;
+        return 0;
     }
 
     function _unstakeFull(
@@ -76,16 +77,17 @@ contract StrategyAaveUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        uint256 _amount = aUsdt.balanceOf(address(this));
+        // uint256 _amount = aUsdt.balanceOf(address(this));
 
-        IPool pool = IPool(aaveProvider.getPool());
-        aUsdt.approve(address(pool), _amount);
-        uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
+        // IPool pool = IPool(aaveProvider.getPool());
+        // aUsdt.approve(address(pool), _amount);
+        // uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
 
-        return withdrawAmount;
+        // return withdrawAmount;
+        return 0;
     }
 
-    function stakeAdmin() external onlyAdmin {
+    function stakeAdmin() external onlyPortfolioAgent {
         uint256 amount = usdt.balanceOf(address(this));
         IPool pool = IPool(aaveProvider.getPool());
         usdt.approve(address(pool), amount);
@@ -93,7 +95,7 @@ contract StrategyAaveUsdt is Strategy {
         emit Stake(amount);
     }
 
-    function unstakeAdmin() external onlyAdmin returns (uint256 withdrawn) {
+    function unstakeAdmin() external onlyPortfolioAgent returns (uint256 withdrawn) {
         uint256 amount = aUsdt.balanceOf(address(this));
         IPool pool = IPool(aaveProvider.getPool());
         aUsdt.approve(address(pool), amount);
