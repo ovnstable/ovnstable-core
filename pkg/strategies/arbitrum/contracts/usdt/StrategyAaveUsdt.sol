@@ -69,7 +69,7 @@ contract StrategyAaveUsdt is Strategy {
         // uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
 
         // return withdrawAmount;
-        return 0;
+        return _amount;
     }
 
     function _unstakeFull(
@@ -77,14 +77,14 @@ contract StrategyAaveUsdt is Strategy {
         address _beneficiary
     ) internal override returns (uint256) {
 
-        // uint256 _amount = aUsdt.balanceOf(address(this));
+        uint256 _amount = aUsdt.balanceOf(address(this));
 
         // IPool pool = IPool(aaveProvider.getPool());
         // aUsdt.approve(address(pool), _amount);
         // uint256 withdrawAmount = pool.withdraw(_asset, _amount, address(this));
 
         // return withdrawAmount;
-        return 0;
+        return _amount;
     }
 
     function stakeAdmin() external onlyPortfolioAgent {
