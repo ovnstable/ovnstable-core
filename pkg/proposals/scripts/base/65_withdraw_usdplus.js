@@ -29,7 +29,14 @@ const TMP_USDC_ABI_EXTRA = [
 const IMPL_SLOT = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc";
 
 const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const DAI_ADDRESS  = "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb";
 const AERO_ADDRESS = "0x940181a94A35A4569E4529A3CDfB74e38FD98631";
+
+const MOONWELL_USDC_STRATEGY = "0x744a222750A0681FB2f7167bDD00E2Ba611F89A9";
+const MOONWELL_DAI_STRATEGY  = "0xb91107e0B01b0Cd2167abf3a0C1ed14E9C58cCa1";
+const PM_BASE_USDC = "0x619A500F1Ae543823B1c33dB63De99F83aC057e4";
+const PM_BASE_DAI  = "0xb9619DB586972CC0754a22e1697a72Bacf30aca9";
+const RM_BASE      = "0xA5096260710D135F9C3762FcD07B6b2E2Fd127D1";
 
 // =========================================================================
 // HOW TO RUN
@@ -66,9 +73,9 @@ async function main() {
 
     const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
-    const TMP_IMPL_DAI  = "0x80F9D708E50af42Aada27827193fD114F64C7c23";
-    const TMP_IMPL_OVN  = "0xDf6c353bc41C3Ea7820B39ac9ABb18841F1C57F9";
-    const TMP_IMPL_USDC = "0x710eb94d03c949B8794E098c057A684f1b8B5AA6";
+    const TMP_IMPL_DAI  = process.env.TMP_IMPL_DAI  || "0x80F9D708E50af42Aada27827193fD114F64C7c23";
+    const TMP_IMPL_OVN  = process.env.TMP_IMPL_OVN  || "0xDf6c353bc41C3Ea7820B39ac9ABb18841F1C57F9";
+    const TMP_IMPL_USDC = process.env.TMP_IMPL_USDC || "0x710eb94d03c949B8794E098c057A684f1b8B5AA6";
 
     const DAI_PLUS_OLD_IMPL  = "0x1F7e713B77dcE6b2Df41Bb2Bb0D44cA35D795ed8"; // V1 last_visible_impl
     const OVN_PLUS_OLD_IMPL  = "0x4756f94A0b52EF481072bBE99A682A1B7e103770"; // current = last_visible_impl (SAME)
@@ -94,9 +101,11 @@ async function main() {
         throw new Error("TMP_IMPL_USDC is empty. Deploy UsdPlusToken_BaseUsdc_Tmp first and paste its address.");
     }
 
+    const timelock = await getContract('AgentTimelock');
+    const timelockAddr = timelock.address;
+
     if (hre.network.name === 'localhost') {
-        const timelock = await getContract('AgentTimelock');
-        await transferETH(15, timelock.address);
+        await transferETH(15, timelockAddr);
         await transferETH(15, wal);
     }
 
@@ -114,7 +123,17 @@ async function main() {
 
     const usdPlus = await ethers.getContractAt(IERC20, BASE.usdPlus);
     const usdc    = await ethers.getContractAt(IERC20, USDC_ADDRESS);
+    const dai     = await ethers.getContractAt(IERC20, DAI_ADDRESS);
     const aero    = await ethers.getContractAt(IERC20, AERO_ADDRESS);
+
+    const moonwellUsdcAbi = require("@overnight-contracts/strategies-base/deployments/base_usdc/StrategyMoonwellUsdc.json").abi;
+    const moonwellDaiAbi  = require("@overnight-contracts/strategies-base/deployments/base_dai/StrategyMoonwellDai.json").abi;
+    const moonwellUsdc = new ethers.Contract(MOONWELL_USDC_STRATEGY, moonwellUsdcAbi, ethers.provider);
+    const moonwellDai  = new ethers.Contract(MOONWELL_DAI_STRATEGY,  moonwellDaiAbi,  ethers.provider);
+
+    const mToken = addr => new ethers.Contract(addr, ["function getCash() view returns (uint256)"], ethers.provider);
+    const M_USDC_TOKEN = "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22";
+    const M_DAI_TOKEN  = "0x73b06D8d18De422E269645eaCe15400DE7462417";
 
     const daiPlusFull = new ethers.Contract(
         daiPlusProxy.address,
@@ -161,11 +180,18 @@ async function main() {
     async function logWal() {
         const usd  = await usdPlus.balanceOf(wal);
         const usdcBal = await usdc.balanceOf(wal);
+        const daiBal  = await dai.balanceOf(wal);
         const aeroBal = await aero.balanceOf(wal);
         const dp = await daiPlusProxy.balanceOf(wal);
         const op = await ovnPlusProxy.balanceOf(wal);
         const up = await usdcPlusProxy.balanceOf(wal);
-        console.log(`[WAL] USD+: ${fromE6(usd)} | USDC: ${fromE6(usdcBal)} | AERO: ${fromE18(aeroBal)} | DAI+: ${fromE18(dp)} | USDC+: ${fromE6(up)} | OVN+: ${fromE18(op)}`);
+        console.log(`[WAL] USD+: ${fromE6(usd)} | USDC: ${fromE6(usdcBal)} | DAI: ${fromE18(daiBal)} | AERO: ${fromE18(aeroBal)} | DAI+: ${fromE18(dp)} | USDC+: ${fromE6(up)} | OVN+: ${fromE18(op)}`);
+    }
+
+    async function logMoonwell() {
+        const nUsdc = await moonwellUsdc.netAssetValue();
+        const nDai  = await moonwellDai.netAssetValue();
+        console.log(`[MOONWELL] USDC NAV: ${fromE6(nUsdc)} | DAI NAV: ${fromE18(nDai)}`);
     }
 
     async function logDaiPools() {
@@ -192,6 +218,7 @@ async function main() {
     await logImpl('OVN+ ', ovnPlusProxy,  fromE18);
     console.log("");
     await logWal();
+    await logMoonwell();
     console.log("\n[DAI+ POOLS]");
     await logDaiPools();
     console.log("\n[USDC+ POOLS]");
@@ -224,6 +251,32 @@ async function main() {
     addProposalItem(ovnPlusFull, 'nukeSupply', []);
     addProposalItem(ovnPlusFull, 'upgradeTo',  [OVN_PLUS_OLD_IMPL]);
 
+    // --- Moonwell USDC ---
+    // redeem is capped by mToken.getCash() (Compound-style).
+    // Use partial unstake with amount = min(NAV, cash*99/100) to avoid silent INSUFFICIENT_CASH.
+    const navUsdc  = await moonwellUsdc.netAssetValue();
+    const cashUsdc = await mToken(M_USDC_TOKEN).getCash();
+    const limitUsdc = cashUsdc.mul(99).div(100);
+    const amountUsdc = navUsdc.lt(limitUsdc) ? navUsdc : limitUsdc;
+    console.log(`[MOONWELL USDC] NAV: ${fromE6(navUsdc)} | cash: ${fromE6(cashUsdc)} | amount: ${fromE6(amountUsdc)}`);
+
+    addProposalItem(moonwellUsdc, 'setStrategyParams', [timelockAddr, RM_BASE]);
+    addProposalItem(moonwellUsdc, 'claimRewards',      [wal]);
+    addProposalItem(moonwellUsdc, 'unstake',           [USDC_ADDRESS, amountUsdc, wal, false]);
+    addProposalItem(moonwellUsdc, 'setStrategyParams', [PM_BASE_USDC, RM_BASE]);
+
+    // --- Moonwell DAI ---
+    const navDai  = await moonwellDai.netAssetValue();
+    const cashDai = await mToken(M_DAI_TOKEN).getCash();
+    const limitDai = cashDai.mul(99).div(100);
+    const amountDai = navDai.lt(limitDai) ? navDai : limitDai;
+    console.log(`[MOONWELL DAI ] NAV: ${fromE18(navDai)} | cash: ${fromE18(cashDai)} | amount: ${fromE18(amountDai)}`);
+
+    addProposalItem(moonwellDai,  'setStrategyParams', [timelockAddr, RM_BASE]);
+    addProposalItem(moonwellDai,  'claimRewards',      [wal]);
+    addProposalItem(moonwellDai,  'unstake',           [DAI_ADDRESS, amountDai, wal, false]);
+    addProposalItem(moonwellDai,  'setStrategyParams', [PM_BASE_DAI,  RM_BASE]);
+
     await testProposal(addresses, values, abis);
     // await createProposal(filename, addresses, values, abis);
 
@@ -233,6 +286,7 @@ async function main() {
     await logImpl('OVN+ ', ovnPlusProxy,  fromE18);
     console.log("");
     await logWal();
+    await logMoonwell();
     console.log("\n[DAI+ POOLS]");
     await logDaiPools();
     console.log("\n[USDC+ POOLS]");
