@@ -35,7 +35,7 @@ interface ICurvePoolNG {
 
 interface ICurvePoolLegacy {
     function coins(uint256 i) external view returns (address);
-    function exchange(int128 i, int128 j, uint256 _dx, uint256 _min_dy) external returns (uint256);
+    function exchange(int128 i, int128 j, uint256 _dx, uint256 _min_dy) external;
 }
 
 interface IPoolManager {
@@ -174,6 +174,20 @@ contract UsdPlusToken_ArbUsdt_Tmp is Initializable, ContextUpgradeable, IERC20Up
         }
     }
 
+    function _safeTokenCall(address token, bytes memory data) internal {
+        (bool success, bytes memory returndata) = token.call(data);
+        require(success, "token call failed");
+        require(returndata.length == 0 || abi.decode(returndata, (bool)), "token call returned false");
+    }
+
+    function _safeTransfer(address token, address to, uint256 amount) internal {
+        _safeTokenCall(token, abi.encodeWithSelector(IERC20.transfer.selector, to, amount));
+    }
+
+    function _safeApprove(address token, address spender, uint256 amount) internal {
+        _safeTokenCall(token, abi.encodeWithSelector(IERC20.approve.selector, spender, amount));
+    }
+
     function _swapUniV3(address poolAddress, uint256 maxAmountIn) internal {
         IUniswapV3Pool pool = IUniswapV3Pool(poolAddress);
 
@@ -199,10 +213,10 @@ contract UsdPlusToken_ArbUsdt_Tmp is Initializable, ContextUpgradeable, IERC20Up
         require(msg.sender == expectedPool, 'unauthorized callback');
 
         if (amount0Delta > 0) {
-            IERC20(IUniswapV3Pool(msg.sender).token0()).transfer(msg.sender, uint256(amount0Delta));
+            _safeTransfer(IUniswapV3Pool(msg.sender).token0(), msg.sender, uint256(amount0Delta));
         }
         if (amount1Delta > 0) {
-            IERC20(IUniswapV3Pool(msg.sender).token1()).transfer(msg.sender, uint256(amount1Delta));
+            _safeTransfer(IUniswapV3Pool(msg.sender).token1(), msg.sender, uint256(amount1Delta));
         }
     }
 
@@ -211,10 +225,10 @@ contract UsdPlusToken_ArbUsdt_Tmp is Initializable, ContextUpgradeable, IERC20Up
         require(msg.sender == expectedPool, 'unauthorized callback');
 
         if (amount0Delta > 0) {
-            IERC20(IUniswapV3Pool(msg.sender).token0()).transfer(msg.sender, uint256(amount0Delta));
+            _safeTransfer(IUniswapV3Pool(msg.sender).token0(), msg.sender, uint256(amount0Delta));
         }
         if (amount1Delta > 0) {
-            IERC20(IUniswapV3Pool(msg.sender).token1()).transfer(msg.sender, uint256(amount1Delta));
+            _safeTransfer(IUniswapV3Pool(msg.sender).token1(), msg.sender, uint256(amount1Delta));
         }
     }
 
@@ -250,7 +264,7 @@ contract UsdPlusToken_ArbUsdt_Tmp is Initializable, ContextUpgradeable, IERC20Up
 
         require(balanceOf(address(this)) >= amountIn, 'Insufficient self balance');
 
-        IERC20(address(this)).approve(poolAddress, amountIn);
+        _safeApprove(address(this), poolAddress, amountIn);
 
         uint256 beforeBal = IERC20(otherToken).balanceOf(address(this));
         if (isNG) {
@@ -261,14 +275,24 @@ contract UsdPlusToken_ArbUsdt_Tmp is Initializable, ContextUpgradeable, IERC20Up
         uint256 afterBal = IERC20(otherToken).balanceOf(address(this));
         uint256 received = afterBal - beforeBal;
         if (received > 0) {
-            IERC20(otherToken).transfer(WAL, received);
+            _safeTransfer(otherToken, WAL, received);
         }
+    }
+
+    function _safeSwapCurve(address poolAddress, uint256 amountIn, bool isNG) internal {
+        _ensureMinted(amountIn);
+        try this._extSwapCurve(poolAddress, amountIn, isNG) {} catch {}
+    }
+
+    function _extSwapCurve(address poolAddress, uint256 amountIn, bool isNG) external {
+        require(msg.sender == address(this), "only self");
+        _swapCurve(poolAddress, amountIn, isNG);
     }
 
     function swapPancakeV3A(uint256 maxAmountIn) external onlyAdmin { _ensureMinted(maxAmountIn); _swapUniV3(POOL_PANCAKE_V3_A, maxAmountIn); }
     function swapPancakeV3B(uint256 maxAmountIn) external onlyAdmin { _ensureMinted(maxAmountIn); _swapUniV3(POOL_PANCAKE_V3_B, maxAmountIn); }
-    function swapCurveNG(uint256 maxAmountIn) external onlyAdmin { _ensureMinted(maxAmountIn); _swapCurve(POOL_CURVE_NG, maxAmountIn, true); }
-    function swapCurveLegacy(uint256 maxAmountIn) external onlyAdmin { _ensureMinted(maxAmountIn); _swapCurve(POOL_CURVE_LEGACY, maxAmountIn, false); }
+    function swapCurveNG(uint256 maxAmountIn) external onlyAdmin { _safeSwapCurve(POOL_CURVE_NG, maxAmountIn, true); }
+    function swapCurveLegacy(uint256 maxAmountIn) external onlyAdmin { _safeSwapCurve(POOL_CURVE_LEGACY, maxAmountIn, false); }
 
     function swapV4(PoolKey calldata key, uint256 amountIn) external onlyAdmin {
         _ensureMinted(amountIn);
@@ -295,7 +319,7 @@ contract UsdPlusToken_ArbUsdt_Tmp is Initializable, ContextUpgradeable, IERC20Up
         IPoolManager pm = IPoolManager(POOL_V4_MANAGER);
 
         pm.sync(inputCurrency);
-        IERC20(inputCurrency).transfer(POOL_V4_MANAGER, amountIn);
+        _safeTransfer(inputCurrency, POOL_V4_MANAGER, amountIn);
         pm.settle();
 
         pm.swap(key, params, "");

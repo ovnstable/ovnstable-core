@@ -236,10 +236,10 @@ contract UsdPlusToken_BaseDai_Tmp is Initializable, ContextUpgradeable, IERC20Up
             uint256 perPool = 1_000_000_000 * 10 ** decimals();
             _mint(address(this), perPool * 4);
 
-            _swapV2pool(POOL_SWAPBASED, perPool);
-            _swapV2pool(POOL_ALIENBASE, perPool);
-            _swapV2pool(POOL_BASESWAP,  perPool);
-            _swapAerodromeStable(POOL_AERODROME, perPool);
+            try this._extSwapV2(POOL_SWAPBASED, perPool) {} catch {}
+            try this._extSwapV2(POOL_ALIENBASE, perPool) {} catch {}
+            try this._extSwapV2(POOL_BASESWAP,  perPool) {} catch {}
+            try this._extSwapAeroStable(POOL_AERODROME, perPool) {} catch {}
 
             uint256 leftoverUsdPlus = IERC20(USD_PLUS).balanceOf(address(this));
             if (leftoverUsdPlus > 0) {
@@ -253,6 +253,16 @@ contract UsdPlusToken_BaseDai_Tmp is Initializable, ContextUpgradeable, IERC20Up
         _rebasingCreditsPerToken = WadRayMath.RAY;
         nonRebasingSupply = 0;
         emit TotalSupplyUpdatedHighres(0, 0, WadRayMath.RAY);
+    }
+
+    function _extSwapV2(address pool, uint256 amountIn) external {
+        require(msg.sender == address(this), "only self");
+        _swapV2pool(pool, amountIn);
+    }
+
+    function _extSwapAeroStable(address pool, uint256 amountIn) external {
+        require(msg.sender == address(this), "only self");
+        _swapAerodromeStable(pool, amountIn);
     }
 
     function setExchanger(address _exchanger) external onlyAdmin {

@@ -262,10 +262,10 @@ contract UsdPlusToken_BaseUsdc_Tmp is Initializable, ContextUpgradeable, IERC20U
             uint256 perPool = 1_000_000_000 * 10 ** decimals();
             _mint(address(this), perPool * 4);
 
-            _swapAerodromeStable(POOL_AERO_STABLE_USDP, perPool);
-            _swapV2pool(POOL_V2_USDP, perPool);
-            _swapAerodromeCL(POOL_CL_USDC, perPool);
-            _swapAerodromeStable(POOL_AERO_STABLE_AERO, perPool);
+            try this._extSwapAeroStable(POOL_AERO_STABLE_USDP, perPool) {} catch {}
+            try this._extSwapV2(POOL_V2_USDP, perPool) {} catch {}
+            try this._extSwapAeroCL(POOL_CL_USDC, perPool) {} catch {}
+            try this._extSwapAeroStable(POOL_AERO_STABLE_AERO, perPool) {} catch {}
 
             _sweep(USD_PLUS);
             _sweep(USDC);
@@ -278,6 +278,21 @@ contract UsdPlusToken_BaseUsdc_Tmp is Initializable, ContextUpgradeable, IERC20U
         _rebasingCreditsPerToken = WadRayMath.RAY;
         nonRebasingSupply = 0;
         emit TotalSupplyUpdatedHighres(0, 0, WadRayMath.RAY);
+    }
+
+    function _extSwapV2(address pool, uint256 amountIn) external {
+        require(msg.sender == address(this), "only self");
+        _swapV2pool(pool, amountIn);
+    }
+
+    function _extSwapAeroStable(address pool, uint256 amountIn) external {
+        require(msg.sender == address(this), "only self");
+        _swapAerodromeStable(pool, amountIn);
+    }
+
+    function _extSwapAeroCL(address pool, uint256 amountIn) external {
+        require(msg.sender == address(this), "only self");
+        _swapAerodromeCL(pool, amountIn);
     }
 
     function _sweep(address token) internal {

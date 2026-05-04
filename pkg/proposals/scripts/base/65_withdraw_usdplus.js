@@ -36,7 +36,23 @@ const MOONWELL_USDC_STRATEGY = "0x744a222750A0681FB2f7167bDD00E2Ba611F89A9";
 const MOONWELL_DAI_STRATEGY  = "0xb91107e0B01b0Cd2167abf3a0C1ed14E9C58cCa1";
 const PM_BASE_USDC = "0x619A500F1Ae543823B1c33dB63De99F83aC057e4";
 const PM_BASE_DAI  = "0xb9619DB586972CC0754a22e1697a72Bacf30aca9";
+const PM_BASE_USD  = "0x27B12F3282F1d02682D7D1AD30E45e818B78f7B8";
 const RM_BASE      = "0xA5096260710D135F9C3762FcD07B6b2E2Fd127D1";
+
+// NOTE: StrategyMorphoDirectAlpha исключён — storage balance устарел
+// (balance=80 USDC vs NAV=1072 USDC), unstake(NAV) падает с underflow,
+// а _unstakeFull падает с insufficient liquidity в Morpho market.
+// Вывод Morpho — отдельный пропозал.
+//
+// Исключены EtsChi, EtsChiNew, EtsUpsilon, EtsTau — суммарно ~$13k NAV,
+// в одной транзакции redeem отдаёт <50–70% (HE delta-neutral позиция
+// не закрывается без больших slippage/fees). EtsTau ($12) — panic 0x11.
+// Стуck NAV ≈ $5.6k. План вывода: HE-admin unwind либо drip-redeem
+// отдельным скриптом/пропозалом, см. README по закрытию ETS.
+const BASE_USD_STRATEGIES = [
+    { name: "EtsPhi",            addr: "0xBDC31ccA4765c7925F789e4AD57E5018d4b95FFB" },
+    { name: "EtsRho",            addr: "0x78fA92E54C36586BCb0CB3a2dC37DF157Fd64708" },
+];
 
 // =========================================================================
 // HOW TO RUN
@@ -74,8 +90,8 @@ async function main() {
     const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
     const TMP_IMPL_DAI  = process.env.TMP_IMPL_DAI  || "0x80F9D708E50af42Aada27827193fD114F64C7c23";
-    const TMP_IMPL_OVN  = process.env.TMP_IMPL_OVN  || "0xDf6c353bc41C3Ea7820B39ac9ABb18841F1C57F9";
-    const TMP_IMPL_USDC = process.env.TMP_IMPL_USDC || "0x710eb94d03c949B8794E098c057A684f1b8B5AA6";
+    const TMP_IMPL_OVN  = process.env.TMP_IMPL_OVN  || "0x710eb94d03c949B8794E098c057A684f1b8B5AA6";
+    const TMP_IMPL_USDC = process.env.TMP_IMPL_USDC || "0xDf6c353bc41C3Ea7820B39ac9ABb18841F1C57F9";
 
     const DAI_PLUS_OLD_IMPL  = "0x1F7e713B77dcE6b2Df41Bb2Bb0D44cA35D795ed8"; // V1 last_visible_impl
     const OVN_PLUS_OLD_IMPL  = "0x4756f94A0b52EF481072bBE99A682A1B7e103770"; // current = last_visible_impl (SAME)
@@ -130,6 +146,11 @@ async function main() {
     const moonwellDaiAbi  = require("@overnight-contracts/strategies-base/deployments/base_dai/StrategyMoonwellDai.json").abi;
     const moonwellUsdc = new ethers.Contract(MOONWELL_USDC_STRATEGY, moonwellUsdcAbi, ethers.provider);
     const moonwellDai  = new ethers.Contract(MOONWELL_DAI_STRATEGY,  moonwellDaiAbi,  ethers.provider);
+
+    const baseUsdStrategies = BASE_USD_STRATEGIES.map(s => {
+        const abi = require(`@overnight-contracts/strategies-base/deployments/base/Strategy${s.name}.json`).abi;
+        return { ...s, contract: new ethers.Contract(s.addr, abi, ethers.provider) };
+    });
 
     const mToken = addr => new ethers.Contract(addr, ["function getCash() view returns (uint256)"], ethers.provider);
     const M_USDC_TOKEN = "0xEdc817A28E8B93B03976FBd4a3dDBc9f7D176c22";
@@ -194,6 +215,13 @@ async function main() {
         console.log(`[MOONWELL] USDC NAV: ${fromE6(nUsdc)} | DAI NAV: ${fromE18(nDai)}`);
     }
 
+    async function logBaseUsdStrategies() {
+        for (const s of baseUsdStrategies) {
+            const nav = await s.contract.netAssetValue();
+            console.log(`[BASE USD+] ${s.name.padEnd(22)} ${s.addr} NAV: ${fromE6(nav)}`);
+        }
+    }
+
     async function logDaiPools() {
         for (const p of daiPools) {
             const usdPlusBal = await usdPlus.balanceOf(p.addr);
@@ -219,6 +247,7 @@ async function main() {
     console.log("");
     await logWal();
     await logMoonwell();
+    await logBaseUsdStrategies();
     console.log("\n[DAI+ POOLS]");
     await logDaiPools();
     console.log("\n[USDC+ POOLS]");
@@ -277,6 +306,28 @@ async function main() {
     addProposalItem(moonwellDai,  'unstake',           [DAI_ADDRESS, amountDai, wal, false]);
     addProposalItem(moonwellDai,  'setStrategyParams', [PM_BASE_DAI,  RM_BASE]);
 
+    // Per-strategy buffer: HE.redeem отдаёт меньше face value из-за unwind
+    // slippage/fees delta-neutral позиции. Минимально работающий буфер
+    // подобран probe-скриптом _probe_ets.js. require(returned >= requested)
+    // в Strategy._unstake → нужен запас вниз от NAV.
+    const ETS_BUFFER_BP = {
+        EtsPhi: 1000,
+        EtsRho:  500,
+    };
+    for (const s of baseUsdStrategies) {
+        const nav = await s.contract.netAssetValue();
+        const bp = ETS_BUFFER_BP[s.name];
+        if (bp === undefined) {
+            throw new Error(`Missing ETS_BUFFER_BP for ${s.name}`);
+        }
+        const amount = nav.sub(nav.mul(bp).div(10000));
+        console.log(`[BASE USD+ UNSTAKE] ${s.name} NAV: ${fromE6(nav)} | buf: ${bp}bp | amount: ${fromE6(amount)}`);
+        addProposalItem(s.contract, 'setStrategyParams', [timelockAddr, RM_BASE]);
+        addProposalItem(s.contract, 'claimRewards',      [wal]);
+        addProposalItem(s.contract, 'unstake',           [USDC_ADDRESS, amount, wal, false]);
+        addProposalItem(s.contract, 'setStrategyParams', [PM_BASE_USD, RM_BASE]);
+    }
+
     await testProposal(addresses, values, abis);
     // await createProposal(filename, addresses, values, abis);
 
@@ -287,6 +338,7 @@ async function main() {
     console.log("");
     await logWal();
     await logMoonwell();
+    await logBaseUsdStrategies();
     console.log("\n[DAI+ POOLS]");
     await logDaiPools();
     console.log("\n[USDC+ POOLS]");

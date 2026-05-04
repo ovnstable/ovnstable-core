@@ -27,6 +27,27 @@ async function deployProxyMulti(contractName, factoryName, deployments, save, pa
     }
 }
 
+async function ensureLocalDeployerBalance() {
+    if (hre.network.name !== 'localhost' && hre.network.name !== 'hardhat') {
+        return;
+    }
+
+    const wallet = await initWallet();
+    const minBalance = parseEther(process.env.LOCAL_DEPLOYER_MIN_ETH || '100');
+    const balance = await ethers.provider.getBalance(wallet.address);
+
+    if (balance.gte(minBalance)) {
+        return;
+    }
+
+    await hre.network.provider.request({
+        method: 'hardhat_setBalance',
+        params: [wallet.address, minBalance.toHexString()],
+    });
+
+    console.log(`[Local] Set deployer balance: ${wallet.address} -> ${ethers.utils.formatEther(minBalance)} ETH`);
+}
+
 /**
  * Chain ZkSync not support by OpenZeppelin plugin for deploy proxy contracts.
  * That's why it must deploy by self.
@@ -116,6 +137,8 @@ async function deployProxyZkSync(contractName, factoryName, deployments, save, p
 
 async function deployProxyEth(contractName, factoryName, deployments, save, params) {
     if (hre.ovn === undefined) hre.ovn = {};
+
+    await ensureLocalDeployerBalance();
 
     let factoryOptions;
     let unsafeAllow;
