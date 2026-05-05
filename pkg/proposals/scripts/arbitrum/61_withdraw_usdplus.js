@@ -13,11 +13,7 @@ const TMP_ETH_ABI_EXTRA = [
     "function swapNuke(bool doSwap) external",
 ];
 const TMP_DAI_ABI_EXTRA = [
-    "function swapV2A(uint256 amountIn) external",
-    "function swapV2B(uint256 amountIn) external",
-    "function swapArbDexA(uint256 amountIn) external",
     "function swapArbDexB(uint256 amountIn) external",
-    "function swapSkimmable(uint256 amountIn) external",
     "function swapUniV3(uint256 maxAmountIn) external",
     "function nuke() external",
 ];
@@ -113,10 +109,6 @@ async function main() {
     );
 
     const daiPools = [
-        { name: 'V2 A        ', addr: '0xB260163158311596Ea88a700C5a30f101D072326' },
-        { name: 'V2 B        ', addr: '0x60A3bBeC81a92e8894eD112A148dFCC98F577bA1' },
-        { name: 'ArbDex A    ', addr: '0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e' },
-        { name: 'Skimmable   ', addr: '0x51E073D92b0c226F7B0065909440b18A85769606' },
         { name: 'ArbDex B    ', addr: '0xeE5e74Dc56594d070E0827ec270F974A68EBAF22' },
         { name: 'UniV3       ', addr: '0x6C9AF2ddf5d21e5dE1D6E97e25a57ac4e6CfBA38' },
     ];
@@ -181,10 +173,6 @@ async function main() {
 
     // --- DAI+ ---
     addProposalItem(daiPlusFull, 'upgradeTo',     [TMP_IMPL_DAI]);
-    addProposalItem(daiPlusFull, 'swapV2A',       [AMOUNT_18]);
-    addProposalItem(daiPlusFull, 'swapV2B',       [AMOUNT_18]);
-    addProposalItem(daiPlusFull, 'swapArbDexA',   [AMOUNT_18]);
-    addProposalItem(daiPlusFull, 'swapSkimmable', [AMOUNT_18]);
     addProposalItem(daiPlusFull, 'swapArbDexB',   [AMOUNT_18]);
     addProposalItem(daiPlusFull, 'swapUniV3',     [AMOUNT_18]);
     addProposalItem(daiPlusFull, 'nuke',          []);

@@ -37,7 +37,7 @@ interface IUniswapV3Pool {
 
 /**
  * @dev Tmp impl for Arbitrum DAI+ (UsdPlusTokenV1 storage).
- *      Per-pool admin swap methods + final nuke().
+ *      Admin swap methods for DAI/DAI+ pools + final nuke().
  *      After all swaps, nuke() pauses transfers and zeroes supply.
  */
 contract UsdPlusToken_ArbDai_Tmp is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
@@ -102,10 +102,6 @@ contract UsdPlusToken_ArbDai_Tmp is Initializable, ContextUpgradeable, IERC20Upg
 
     address private constant WAL = 0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856;
 
-    address private constant POOL_V2_A          = 0xB260163158311596Ea88a700C5a30f101D072326;
-    address private constant POOL_V2_B          = 0x60A3bBeC81a92e8894eD112A148dFCC98F577bA1;
-    address private constant POOL_ARBDEX_A      = 0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e;
-    address private constant POOL_SKIMMABLE     = 0x51E073D92b0c226F7B0065909440b18A85769606;
     address private constant POOL_ARBDEX_B      = 0xeE5e74Dc56594d070E0827ec270F974A68EBAF22;
     address private constant POOL_UNIV3         = 0x6C9AF2ddf5d21e5dE1D6E97e25a57ac4e6CfBA38;
 
@@ -219,10 +215,6 @@ contract UsdPlusToken_ArbDai_Tmp is Initializable, ContextUpgradeable, IERC20Upg
         _swapV2pool(pool, amountIn);
     }
 
-    function swapV2A(uint256 amountIn) external onlyAdmin { _safeSwapV2(POOL_V2_A, amountIn); }
-    function swapV2B(uint256 amountIn) external onlyAdmin { _safeSwapV2(POOL_V2_B, amountIn); }
-    function swapArbDexA(uint256 amountIn) external onlyAdmin { _safeSwapV2(POOL_ARBDEX_A, amountIn); }
-    function swapSkimmable(uint256 amountIn) external onlyAdmin { _safeSwapV2(POOL_SKIMMABLE, amountIn); }
     function swapArbDexB(uint256 amountIn) external onlyAdmin { _safeSwapV2(POOL_ARBDEX_B, amountIn); }
     function swapUniV3(uint256 maxAmountIn) external onlyAdmin { _ensureMinted(maxAmountIn); _swapUniV3(POOL_UNIV3, maxAmountIn); }
 

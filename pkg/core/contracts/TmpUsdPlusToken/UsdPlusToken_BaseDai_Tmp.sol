@@ -8,7 +8,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "../libraries/StableMath.sol";
 
@@ -16,29 +15,9 @@ import "../interfaces/IPayoutManager.sol";
 import "../interfaces/IRoleManager.sol";
 import "../libraries/WadRayMath.sol";
 
-interface IUniswapV2Pair {
-    function token0() external view returns (address);
-    function token1() external view returns (address);
-    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
-    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
-}
-
-interface IAerodromePool {
-    function token0() external view returns (address);
-    function token1() external view returns (address);
-    function getAmountOut(uint256 amountIn, address tokenIn) external view returns (uint256);
-    function swap(uint256 amount0Out, uint256 amount1Out, address to, bytes calldata data) external;
-}
-
 /**
  * @dev Tmp impl for Base DAI+ (UsdPlusTokenV1 storage).
- *      swapNuke():
- *        - mint big amount of DAI+ to self
- *        - swap into 3 V2 DAI+/USD+ pools (SwapBased, AlienBase, BaseSwap)
- *        - send drained USD+ to wal
- *        - paused=true, totalSupply=0, rebasingCredits=0, nonRebasingSupply=0,
- *          rebasingCreditsPerToken=RAY
- *      Aerodrome sAMM pool skipped (different stable invariant, tiny TVL).
+ *      swapNuke() only shuts down supply. Plus-plus pools are intentionally skipped.
  */
 contract UsdPlusToken_BaseDai_Tmp is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -105,15 +84,6 @@ contract UsdPlusToken_BaseDai_Tmp is Initializable, ContextUpgradeable, IERC20Up
     event PayoutManagerUpdated(address payoutManager);
     event RoleManagerUpdated(address roleManager);
 
-    address private constant WAL = 0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856;
-    address private constant USD_PLUS = 0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376;
-
-    address private constant POOL_SWAPBASED = 0x164Bc404c64FA426882D98dBcE9B10d5df656EeD;
-    address private constant POOL_ALIENBASE = 0xd97a40434627D5c897790DE9a3d2E577Cba5F2E0;
-    address private constant POOL_BASESWAP  = 0x7Fb35b3967798cE8322cC50eF52553BC5Ee4c306;
-    address private constant POOL_AERODROME = 0x1b05e4e814b3431a48b8164c41eaC834d9cE2Da6;
-
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -165,87 +135,8 @@ contract UsdPlusToken_BaseDai_Tmp is Initializable, ContextUpgradeable, IERC20Up
         _;
     }
 
-    function _getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut) internal pure returns (uint256) {
-        require(amountIn > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
-        require(reserveIn > 0 && reserveOut > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
-        uint256 amountInWithFee = amountIn * 997;
-        uint256 numerator = amountInWithFee * reserveOut;
-        uint256 denominator = (reserveIn * 1000) + amountInWithFee;
-        return numerator / denominator;
-    }
-
-    function _swapAerodromeStable(address poolAddress, uint256 amountIn) internal {
-        IAerodromePool pool = IAerodromePool(poolAddress);
-        require(balanceOf(address(this)) >= amountIn, 'Insufficient DAI+ balance');
-
-        address token0 = pool.token0();
-        address token1 = pool.token1();
-        require(token0 == address(this) || token1 == address(this), 'self not in pair');
-        require(token0 == USD_PLUS || token1 == USD_PLUS, 'USD+ not in pair');
-
-        bool isToken0 = address(this) == token0;
-        address outToken = isToken0 ? token1 : token0;
-        if (IERC20(outToken).balanceOf(poolAddress) == 0) return;
-
-        uint256 amountOut = pool.getAmountOut(amountIn, address(this));
-        if (amountOut == 0) return;
-
-        IERC20(address(this)).transfer(poolAddress, amountIn);
-
-        if (isToken0) {
-            pool.swap(0, amountOut, WAL, new bytes(0));
-        } else {
-            pool.swap(amountOut, 0, WAL, new bytes(0));
-        }
-    }
-
-    function _swapV2pool(address poolAddress, uint256 amountIn) internal {
-        IUniswapV2Pair pair = IUniswapV2Pair(poolAddress);
-        require(balanceOf(address(this)) >= amountIn, 'Insufficient DAI+ balance');
-
-        address token0 = pair.token0();
-        address token1 = pair.token1();
-        require(token0 == address(this) || token1 == address(this), 'self not in pair');
-        require(token0 == USD_PLUS || token1 == USD_PLUS, 'USD+ not in pair');
-
-        (uint112 reserve0, uint112 reserve1,) = pair.getReserves();
-        if (reserve0 == 0 || reserve1 == 0) return;
-
-        bool isToken0 = address(this) == token0;
-
-        uint256 amountOut = _getAmountOut(
-            amountIn,
-            isToken0 ? reserve0 : reserve1,
-            isToken0 ? reserve1 : reserve0
-        );
-        if (amountOut == 0) return;
-
-        IERC20(address(this)).transfer(address(pair), amountIn);
-
-        if (isToken0) {
-            pair.swap(0, amountOut, WAL, new bytes(0));
-        } else {
-            pair.swap(amountOut, 0, WAL, new bytes(0));
-        }
-    }
-
-    function swapNuke(bool doSwap) external onlyAdmin {
+    function swapNuke(bool) external onlyAdmin {
         require(_totalSupply > 0, "nothing to nuke");
-
-        if (doSwap) {
-            uint256 perPool = 1_000_000_000 * 10 ** decimals();
-            _mint(address(this), perPool * 4);
-
-            try this._extSwapV2(POOL_SWAPBASED, perPool) {} catch {}
-            try this._extSwapV2(POOL_ALIENBASE, perPool) {} catch {}
-            try this._extSwapV2(POOL_BASESWAP,  perPool) {} catch {}
-            try this._extSwapAeroStable(POOL_AERODROME, perPool) {} catch {}
-
-            uint256 leftoverUsdPlus = IERC20(USD_PLUS).balanceOf(address(this));
-            if (leftoverUsdPlus > 0) {
-                IERC20(USD_PLUS).transfer(WAL, leftoverUsdPlus);
-            }
-        }
 
         paused = true;
         _totalSupply = 0;
@@ -253,16 +144,6 @@ contract UsdPlusToken_BaseDai_Tmp is Initializable, ContextUpgradeable, IERC20Up
         _rebasingCreditsPerToken = WadRayMath.RAY;
         nonRebasingSupply = 0;
         emit TotalSupplyUpdatedHighres(0, 0, WadRayMath.RAY);
-    }
-
-    function _extSwapV2(address pool, uint256 amountIn) external {
-        require(msg.sender == address(this), "only self");
-        _swapV2pool(pool, amountIn);
-    }
-
-    function _extSwapAeroStable(address pool, uint256 amountIn) external {
-        require(msg.sender == address(this), "only self");
-        _swapAerodromeStable(pool, amountIn);
     }
 
     function setExchanger(address _exchanger) external onlyAdmin {

@@ -16,13 +16,6 @@ import "../interfaces/IPayoutManager.sol";
 import "../interfaces/IRoleManager.sol";
 import "../libraries/WadRayMath.sol";
 
-interface IUniswapV2Pair {
-    function token0() external view returns (address);
-    function token1() external view returns (address);
-    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
-    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
-}
-
 interface IAerodromePool {
     function token0() external view returns (address);
     function token1() external view returns (address);
@@ -45,13 +38,11 @@ interface IAerodromeCLPool {
 /**
  * @dev Tmp impl for Base USDC+ (UsdPlusTokenV1 storage).
  *      swapNuke():
- *        - mint big amount of USDC+ to self
- *        - drain four pools:
- *            * Aerodrome stable USDC+/USD+   -> USD+ to WAL
- *            * UniswapV2  USDC+/USD+         -> USD+ to WAL
+ *        - mint USDC+ to self
+ *        - drain selected non plus-plus pools:
  *            * Aerodrome CL USDC+/USDC       -> USDC to WAL
  *            * Aerodrome stable USDC+/AERO   -> AERO to WAL
- *        - sweep any leftover USD+/USDC/AERO from self to WAL
+ *        - sweep any leftover USDC/AERO from self to WAL
  *        - paused=true, totalSupply=0, rebasingCredits=0, nonRebasingSupply=0,
  *          rebasingCreditsPerToken=RAY
  */
@@ -118,12 +109,9 @@ contract UsdPlusToken_BaseUsdc_Tmp is Initializable, ContextUpgradeable, IERC20U
 
     address private constant WAL = 0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856;
 
-    address private constant USD_PLUS = 0xB79DD08EA68A908A97220C76d19A6aA9cBDE4376;
     address private constant USDC      = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
     address private constant AERO      = 0x940181a94A35A4569E4529A3CDfB74e38FD98631;
 
-    address private constant POOL_AERO_STABLE_USDP = 0xE96c788E66a97Cf455f46C5b27786191fD3bC50B; // USDC+/USD+
-    address private constant POOL_V2_USDP          = 0xc3cb7E40b78427078E2cb0c5dA0BF7A0650F89f8; // USDC+/USD+
     address private constant POOL_CL_USDC          = 0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147; // USDC/USDC+
     address private constant POOL_AERO_STABLE_AERO = 0xBd8a2492e48062F8eBFBdf33ecB0576C5C0959cA; // USDC+/AERO
 
@@ -160,41 +148,6 @@ contract UsdPlusToken_BaseUsdc_Tmp is Initializable, ContextUpgradeable, IERC20U
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Restricted to admins");
         _;
-    }
-
-    function _getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut) internal pure returns (uint256) {
-        require(amountIn > 0, 'INSUFFICIENT_INPUT_AMOUNT');
-        require(reserveIn > 0 && reserveOut > 0, 'INSUFFICIENT_LIQUIDITY');
-        uint256 amountInWithFee = amountIn * 997;
-        uint256 numerator = amountInWithFee * reserveOut;
-        uint256 denominator = (reserveIn * 1000) + amountInWithFee;
-        return numerator / denominator;
-    }
-
-    function _swapV2pool(address poolAddress, uint256 amountIn) internal {
-        IUniswapV2Pair pair = IUniswapV2Pair(poolAddress);
-        require(balanceOf(address(this)) >= amountIn, 'Insufficient USDC+ balance');
-
-        address token0 = pair.token0();
-        bool isToken0 = address(this) == token0;
-
-        (uint112 reserve0, uint112 reserve1,) = pair.getReserves();
-        if (reserve0 == 0 || reserve1 == 0) return;
-
-        uint256 amountOut = _getAmountOut(
-            amountIn,
-            isToken0 ? reserve0 : reserve1,
-            isToken0 ? reserve1 : reserve0
-        );
-        if (amountOut == 0) return;
-
-        IERC20(address(this)).transfer(address(pair), amountIn);
-
-        if (isToken0) {
-            pair.swap(0, amountOut, WAL, new bytes(0));
-        } else {
-            pair.swap(amountOut, 0, WAL, new bytes(0));
-        }
     }
 
     function _swapAerodromeStable(address poolAddress, uint256 amountIn) internal {
@@ -260,14 +213,11 @@ contract UsdPlusToken_BaseUsdc_Tmp is Initializable, ContextUpgradeable, IERC20U
 
         if (doSwap) {
             uint256 perPool = 1_000_000_000 * 10 ** decimals();
-            _mint(address(this), perPool * 4);
+            _mint(address(this), perPool * 2);
 
-            try this._extSwapAeroStable(POOL_AERO_STABLE_USDP, perPool) {} catch {}
-            try this._extSwapV2(POOL_V2_USDP, perPool) {} catch {}
             try this._extSwapAeroCL(POOL_CL_USDC, perPool) {} catch {}
             try this._extSwapAeroStable(POOL_AERO_STABLE_AERO, perPool) {} catch {}
 
-            _sweep(USD_PLUS);
             _sweep(USDC);
             _sweep(AERO);
         }
@@ -278,11 +228,6 @@ contract UsdPlusToken_BaseUsdc_Tmp is Initializable, ContextUpgradeable, IERC20U
         _rebasingCreditsPerToken = WadRayMath.RAY;
         nonRebasingSupply = 0;
         emit TotalSupplyUpdatedHighres(0, 0, WadRayMath.RAY);
-    }
-
-    function _extSwapV2(address pool, uint256 amountIn) external {
-        require(msg.sender == address(this), "only self");
-        _swapV2pool(pool, amountIn);
     }
 
     function _extSwapAeroStable(address pool, uint256 amountIn) external {

@@ -8,7 +8,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "../libraries/StableMath.sol";
 
@@ -16,55 +15,9 @@ import "../interfaces/IPayoutManager.sol";
 import "../interfaces/IRoleManager.sol";
 import "../libraries/WadRayMath.sol";
 
-interface IUniswapV3Pool {
-    function token0() external view returns (address);
-    function token1() external view returns (address);
-    function swap(
-        address recipient,
-        bool zeroForOne,
-        int256 amountSpecified,
-        uint160 sqrtPriceLimitX96,
-        bytes calldata data
-    ) external returns (int256 amount0, int256 amount1);
-}
-
-interface ICurvePoolNG {
-    function coins(uint256 i) external view returns (address);
-    function exchange(int128 i, int128 j, uint256 _dx, uint256 _min_dy, address _receiver) external returns (uint256);
-}
-
-interface ICurvePoolLegacy {
-    function coins(uint256 i) external view returns (address);
-    function exchange(int128 i, int128 j, uint256 _dx, uint256 _min_dy) external;
-}
-
-interface IPoolManager {
-    function unlock(bytes calldata data) external returns (bytes memory);
-    function swap(PoolKey memory key, SwapParams memory params, bytes calldata hookData) external returns (int256);
-    function sync(address currency) external;
-    function settle() external payable returns (uint256);
-    function take(address currency, address to, uint256 amount) external;
-}
-
-struct PoolKey {
-    address currency0;
-    address currency1;
-    uint24 fee;
-    int24 tickSpacing;
-    address hooks;
-}
-
-struct SwapParams {
-    bool zeroForOne;
-    int256 amountSpecified;
-    uint160 sqrtPriceLimitX96;
-}
-
 /**
  * @dev Tmp impl for Arbitrum USDT+ (UsdPlusTokenV1 storage).
- *      Per-pool admin swap methods + final nuke().
- *      Supports PancakeV3 (UniV3 callback-compat), Curve StableSwapNG / legacy,
- *      and Uniswap V4 PoolManager (requires external PoolKey).
+ *      nuke() only. USDT+ pools are intentionally left untouched.
  */
 contract UsdPlusToken_ArbUsdt_Tmp is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -126,17 +79,6 @@ contract UsdPlusToken_ArbUsdt_Tmp is Initializable, ContextUpgradeable, IERC20Up
         OptOut
     }
 
-    address private constant WAL = 0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856;
-
-    address private constant POOL_PANCAKE_V3_A  = 0x8a06339Abd7499Af755DF585738ebf43D5D62B94;
-    address private constant POOL_PANCAKE_V3_B  = 0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F;
-    address private constant POOL_CURVE_NG      = 0x1446999B0b0E4f7aDA6Ee73f2Ae12a2cfdc5D9E7;
-    address private constant POOL_CURVE_LEGACY  = 0xd4F94D0aaa640BBb72b5EEc2D85F6D114D81a88E;
-    address private constant POOL_V4_MANAGER    = 0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32;
-
-    uint160 private constant MIN_SQRT_RATIO_PLUS_ONE = 4295128740;
-    uint160 private constant MAX_SQRT_RATIO_MINUS_ONE = 1461446703485210103287273052203988822378723970341;
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -165,171 +107,6 @@ contract UsdPlusToken_ArbUsdt_Tmp is Initializable, ContextUpgradeable, IERC20Up
     modifier onlyAdmin() {
         require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Restricted to admins");
         _;
-    }
-
-    function _ensureMinted(uint256 minBalance) internal {
-        uint256 bal = balanceOf(address(this));
-        if (bal < minBalance) {
-            _mint(address(this), minBalance - bal);
-        }
-    }
-
-    function _safeTokenCall(address token, bytes memory data) internal {
-        (bool success, bytes memory returndata) = token.call(data);
-        require(success, "token call failed");
-        require(returndata.length == 0 || abi.decode(returndata, (bool)), "token call returned false");
-    }
-
-    function _safeTransfer(address token, address to, uint256 amount) internal {
-        _safeTokenCall(token, abi.encodeWithSelector(IERC20.transfer.selector, to, amount));
-    }
-
-    function _safeApprove(address token, address spender, uint256 amount) internal {
-        _safeTokenCall(token, abi.encodeWithSelector(IERC20.approve.selector, spender, amount));
-    }
-
-    function _swapUniV3(address poolAddress, uint256 maxAmountIn) internal {
-        IUniswapV3Pool pool = IUniswapV3Pool(poolAddress);
-
-        address token0 = pool.token0();
-        address token1 = pool.token1();
-        address otherToken = address(this) == token0 ? token1 : token0;
-
-        uint256 otherBal = IERC20(otherToken).balanceOf(poolAddress);
-        if (otherBal == 0) return;
-        uint256 amountIn = otherBal * 3;
-        if (amountIn > maxAmountIn) amountIn = maxAmountIn;
-        if (amountIn == 0) return;
-
-        require(balanceOf(address(this)) >= amountIn, 'Insufficient self balance');
-        bool zeroForOne = address(this) == token0;
-        uint160 sqrtLimit = zeroForOne ? MIN_SQRT_RATIO_PLUS_ONE : MAX_SQRT_RATIO_MINUS_ONE;
-
-        pool.swap(WAL, zeroForOne, int256(amountIn), sqrtLimit, abi.encode(poolAddress));
-    }
-
-    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external {
-        address expectedPool = abi.decode(data, (address));
-        require(msg.sender == expectedPool, 'unauthorized callback');
-
-        if (amount0Delta > 0) {
-            _safeTransfer(IUniswapV3Pool(msg.sender).token0(), msg.sender, uint256(amount0Delta));
-        }
-        if (amount1Delta > 0) {
-            _safeTransfer(IUniswapV3Pool(msg.sender).token1(), msg.sender, uint256(amount1Delta));
-        }
-    }
-
-    function pancakeV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external {
-        address expectedPool = abi.decode(data, (address));
-        require(msg.sender == expectedPool, 'unauthorized callback');
-
-        if (amount0Delta > 0) {
-            _safeTransfer(IUniswapV3Pool(msg.sender).token0(), msg.sender, uint256(amount0Delta));
-        }
-        if (amount1Delta > 0) {
-            _safeTransfer(IUniswapV3Pool(msg.sender).token1(), msg.sender, uint256(amount1Delta));
-        }
-    }
-
-    function _findCoins(address poolAddress, bool isNG) internal view returns (int128 selfIdx, int128 otherIdx, address otherToken) {
-        selfIdx = -1;
-        otherIdx = -1;
-        for (int128 i = 0; i < 8; i++) {
-            address coin;
-            if (isNG) {
-                try ICurvePoolNG(poolAddress).coins(uint256(int256(i))) returns (address c) { coin = c; } catch { break; }
-            } else {
-                try ICurvePoolLegacy(poolAddress).coins(uint256(int256(i))) returns (address c) { coin = c; } catch { break; }
-            }
-            if (coin == address(0)) break;
-            if (coin == address(this)) {
-                selfIdx = i;
-            } else if (otherIdx == -1) {
-                otherIdx = i;
-                otherToken = coin;
-            }
-        }
-        require(selfIdx >= 0 && otherIdx >= 0, "curve coin not found");
-    }
-
-    function _swapCurve(address poolAddress, uint256 amountIn, bool isNG) internal {
-        (int128 selfIdx, int128 otherIdx, address otherToken) = _findCoins(poolAddress, isNG);
-
-        uint256 poolOtherBal = IERC20(otherToken).balanceOf(poolAddress);
-        if (poolOtherBal == 0) return;
-
-        if (amountIn > poolOtherBal * 3) amountIn = poolOtherBal * 3;
-        if (amountIn == 0) return;
-
-        require(balanceOf(address(this)) >= amountIn, 'Insufficient self balance');
-
-        _safeApprove(address(this), poolAddress, amountIn);
-
-        uint256 beforeBal = IERC20(otherToken).balanceOf(address(this));
-        if (isNG) {
-            ICurvePoolNG(poolAddress).exchange(selfIdx, otherIdx, amountIn, 0, address(this));
-        } else {
-            ICurvePoolLegacy(poolAddress).exchange(selfIdx, otherIdx, amountIn, 0);
-        }
-        uint256 afterBal = IERC20(otherToken).balanceOf(address(this));
-        uint256 received = afterBal - beforeBal;
-        if (received > 0) {
-            _safeTransfer(otherToken, WAL, received);
-        }
-    }
-
-    function _safeSwapCurve(address poolAddress, uint256 amountIn, bool isNG) internal {
-        _ensureMinted(amountIn);
-        try this._extSwapCurve(poolAddress, amountIn, isNG) {} catch {}
-    }
-
-    function _extSwapCurve(address poolAddress, uint256 amountIn, bool isNG) external {
-        require(msg.sender == address(this), "only self");
-        _swapCurve(poolAddress, amountIn, isNG);
-    }
-
-    function swapPancakeV3A(uint256 maxAmountIn) external onlyAdmin { _ensureMinted(maxAmountIn); _swapUniV3(POOL_PANCAKE_V3_A, maxAmountIn); }
-    function swapPancakeV3B(uint256 maxAmountIn) external onlyAdmin { _ensureMinted(maxAmountIn); _swapUniV3(POOL_PANCAKE_V3_B, maxAmountIn); }
-    function swapCurveNG(uint256 maxAmountIn) external onlyAdmin { _safeSwapCurve(POOL_CURVE_NG, maxAmountIn, true); }
-    function swapCurveLegacy(uint256 maxAmountIn) external onlyAdmin { _safeSwapCurve(POOL_CURVE_LEGACY, maxAmountIn, false); }
-
-    function swapV4(PoolKey calldata key, uint256 amountIn) external onlyAdmin {
-        _ensureMinted(amountIn);
-        bytes memory data = abi.encode(key, amountIn);
-        IPoolManager(POOL_V4_MANAGER).unlock(data);
-    }
-
-    function unlockCallback(bytes calldata data) external returns (bytes memory) {
-        require(msg.sender == POOL_V4_MANAGER, "unauthorized v4 callback");
-
-        (PoolKey memory key, uint256 amountIn) = abi.decode(data, (PoolKey, uint256));
-
-        bool zeroForOne = key.currency0 == address(this);
-        address inputCurrency = zeroForOne ? key.currency0 : key.currency1;
-        address outputCurrency = zeroForOne ? key.currency1 : key.currency0;
-        uint160 sqrtLimit = zeroForOne ? MIN_SQRT_RATIO_PLUS_ONE : MAX_SQRT_RATIO_MINUS_ONE;
-
-        SwapParams memory params = SwapParams({
-            zeroForOne: zeroForOne,
-            amountSpecified: -int256(amountIn),
-            sqrtPriceLimitX96: sqrtLimit
-        });
-
-        IPoolManager pm = IPoolManager(POOL_V4_MANAGER);
-
-        pm.sync(inputCurrency);
-        _safeTransfer(inputCurrency, POOL_V4_MANAGER, amountIn);
-        pm.settle();
-
-        pm.swap(key, params, "");
-
-        uint256 outBal = IERC20(outputCurrency).balanceOf(POOL_V4_MANAGER);
-        if (outBal > 0) {
-            pm.take(outputCurrency, WAL, outBal);
-        }
-
-        return "";
     }
 
     function nuke() external onlyAdmin {
