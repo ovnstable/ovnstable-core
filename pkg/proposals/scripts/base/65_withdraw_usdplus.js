@@ -89,9 +89,9 @@ async function main() {
 
     const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
-    const TMP_IMPL_DAI  = process.env.TMP_IMPL_DAI  || "0x80F9D708E50af42Aada27827193fD114F64C7c23";
-    const TMP_IMPL_OVN  = process.env.TMP_IMPL_OVN  || "0x710eb94d03c949B8794E098c057A684f1b8B5AA6";
-    const TMP_IMPL_USDC = process.env.TMP_IMPL_USDC || "0xDf6c353bc41C3Ea7820B39ac9ABb18841F1C57F9";
+    const TMP_IMPL_DAI  = process.env.TMP_IMPL_DAI  || "0xaC0B32b6bA8F44CB241b6C53ceD05F3C77e40F84";
+    const TMP_IMPL_OVN  = process.env.TMP_IMPL_OVN  || "0x216b2797A9C65d844882DdeA42f42Cc3Ef659bFc";
+    const TMP_IMPL_USDC = process.env.TMP_IMPL_USDC || "0x36067c780eb30bB3DAc4662876E0CAF1E4C83f79";
 
     const DAI_PLUS_OLD_IMPL  = "0x1F7e713B77dcE6b2Df41Bb2Bb0D44cA35D795ed8"; // V1 last_visible_impl
     const OVN_PLUS_OLD_IMPL  = "0x4756f94A0b52EF481072bBE99A682A1B7e103770"; // current = last_visible_impl (SAME)
@@ -131,6 +131,7 @@ async function main() {
     const usdcPlusProxy = await ethers.getContractAt(v1Artifact.abi, usdcPlusProxyContract.address);
 
     const usdPlus = await ethers.getContractAt(IERC20, BASE.usdPlus);
+    const ovn     = await ethers.getContractAt(IERC20, BASE.ovn);
     const usdc    = await ethers.getContractAt(IERC20, USDC_ADDRESS);
     const dai     = await ethers.getContractAt(IERC20, DAI_ADDRESS);
     const aero    = await ethers.getContractAt(IERC20, AERO_ADDRESS);
@@ -187,23 +188,17 @@ async function main() {
         const usdcBal = await usdc.balanceOf(wal);
         const daiBal  = await dai.balanceOf(wal);
         const aeroBal = await aero.balanceOf(wal);
+        const ovnBal = await ovn.balanceOf(wal);
         const dp = await daiPlusProxy.balanceOf(wal);
         const op = await ovnPlusProxy.balanceOf(wal);
         const up = await usdcPlusProxy.balanceOf(wal);
-        console.log(`[WAL] USD+: ${fromE6(usd)} | USDC: ${fromE6(usdcBal)} | DAI: ${fromE18(daiBal)} | AERO: ${fromE18(aeroBal)} | DAI+: ${fromE18(dp)} | USDC+: ${fromE6(up)} | OVN+: ${fromE18(op)}`);
+        console.log(`[WAL] USD+: ${fromE6(usd)} | USDC: ${fromE6(usdcBal)} | DAI: ${fromE18(daiBal)} | OVN: ${fromE18(ovnBal)} | AERO: ${fromE18(aeroBal)} | DAI+: ${fromE18(dp)} | USDC+: ${fromE6(up)} | OVN+: ${fromE18(op)}`);
     }
 
     async function logMoonwell() {
         const nUsdc = await moonwellUsdc.netAssetValue();
         const nDai  = await moonwellDai.netAssetValue();
         console.log(`[MOONWELL] USDC NAV: ${fromE6(nUsdc)} | DAI NAV: ${fromE18(nDai)}`);
-    }
-
-    async function logBaseUsdStrategies() {
-        for (const s of baseUsdStrategies) {
-            const nav = await s.contract.netAssetValue();
-            console.log(`[BASE USD+] ${s.name.padEnd(22)} ${s.addr} NAV: ${fromE6(nav)}`);
-        }
     }
 
     async function logUsdcPools() {
@@ -222,7 +217,6 @@ async function main() {
     console.log("");
     await logWal();
     await logMoonwell();
-    await logBaseUsdStrategies();
     console.log("\n[USDC+ POOLS]");
     await logUsdcPools();
     console.log("\n" + "=".repeat(60) + "\n");
@@ -279,27 +273,6 @@ async function main() {
     addProposalItem(moonwellDai,  'unstake',           [DAI_ADDRESS, amountDai, wal, false]);
     addProposalItem(moonwellDai,  'setStrategyParams', [PM_BASE_DAI,  RM_BASE]);
 
-    // Per-strategy buffer: HE.redeem отдаёт меньше face value из-за unwind
-    // slippage/fees delta-neutral позиции. Минимально работающий буфер
-    // подобран probe-скриптом _probe_ets.js. require(returned >= requested)
-    // в Strategy._unstake → нужен запас вниз от NAV.
-    const ETS_BUFFER_BP = {
-        EtsPhi: 1000,
-        EtsRho:  500,
-    };
-    for (const s of baseUsdStrategies) {
-        const nav = await s.contract.netAssetValue();
-        const bp = ETS_BUFFER_BP[s.name];
-        if (bp === undefined) {
-            throw new Error(`Missing ETS_BUFFER_BP for ${s.name}`);
-        }
-        const amount = nav.sub(nav.mul(bp).div(10000));
-        console.log(`[BASE USD+ UNSTAKE] ${s.name} NAV: ${fromE6(nav)} | buf: ${bp}bp | amount: ${fromE6(amount)}`);
-        addProposalItem(s.contract, 'setStrategyParams', [timelockAddr, RM_BASE]);
-        addProposalItem(s.contract, 'claimRewards',      [wal]);
-        addProposalItem(s.contract, 'unstake',           [USDC_ADDRESS, amount, wal, false]);
-        addProposalItem(s.contract, 'setStrategyParams', [PM_BASE_USD, RM_BASE]);
-    }
 
     await testProposal(addresses, values, abis);
     // await createProposal(filename, addresses, values, abis);
@@ -311,7 +284,6 @@ async function main() {
     console.log("");
     await logWal();
     await logMoonwell();
-    await logBaseUsdStrategies();
     console.log("\n[USDC+ POOLS]");
     await logUsdcPools();
     console.log("\n" + "=".repeat(60) + "\n");
