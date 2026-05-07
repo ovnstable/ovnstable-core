@@ -132,8 +132,8 @@ async function main() {
         throw new Error("AaveUsdt NAV != USDT cash. Deployed strategy cannot safely withdraw aUSDT in this proposal.");
     }
     addProposalItem(aaveUsdt, 'setStrategyParams', [timelockAddr, RM_ARB]);
-    addProposalItem(aaveUsdt, 'unstake',           [ARBITRUM.usdt, cashAaveUsdt, wal, false]);
     addProposalItem(aaveUsdt, 'claimRewards',      [wal]);
+    addProposalItem(aaveUsdt, 'unstake',           [ARBITRUM.usdt, cashAaveUsdt, wal, false]);
     addProposalItem(aaveUsdt, 'setStrategyParams', [PM_ARB_USDT, RM_ARB]);
 
     addProposalItem(usdtPlusFull, 'upgradeTo', [TMP_IMPL_USDT]);

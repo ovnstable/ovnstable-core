@@ -254,8 +254,8 @@ async function main() {
     console.log(`[MOONWELL USDC] NAV: ${fromE6(navUsdc)} | cash: ${fromE6(cashUsdc)} | amount: ${fromE6(amountUsdc)}`);
 
     addProposalItem(moonwellUsdc, 'setStrategyParams', [timelockAddr, RM_BASE]);
-    addProposalItem(moonwellUsdc, 'unstake',           [USDC_ADDRESS, amountUsdc, wal, false]);
     addProposalItem(moonwellUsdc, 'claimRewards',      [wal]);
+    addProposalItem(moonwellUsdc, 'unstake',           [USDC_ADDRESS, amountUsdc, wal, false]);
     addProposalItem(moonwellUsdc, 'setStrategyParams', [PM_BASE_USDC, RM_BASE]);
 
     // --- Moonwell DAI ---
@@ -266,8 +266,8 @@ async function main() {
     console.log(`[MOONWELL DAI ] NAV: ${fromE18(navDai)} | cash: ${fromE18(cashDai)} | amount: ${fromE18(amountDai)}`);
 
     addProposalItem(moonwellDai,  'setStrategyParams', [timelockAddr, RM_BASE]);
-    addProposalItem(moonwellDai,  'unstake',           [DAI_ADDRESS, amountDai, wal, false]);
     addProposalItem(moonwellDai,  'claimRewards',      [wal]);
+    addProposalItem(moonwellDai,  'unstake',           [DAI_ADDRESS, amountDai, wal, false]);
     addProposalItem(moonwellDai,  'setStrategyParams', [PM_BASE_DAI,  RM_BASE]);
 
     // --- OVN+ cash strategy ---

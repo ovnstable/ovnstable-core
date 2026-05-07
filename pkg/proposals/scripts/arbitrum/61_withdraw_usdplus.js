@@ -180,16 +180,16 @@ async function main() {
     const navAaveDai = await aaveDai.netAssetValue();
     console.log(`[STRATEGY AaveDai] NAV: ${fromE18(navAaveDai)}`);
     addProposalItem(aaveDai, 'setPortfolioManager', [timelockAddr]);
-    addProposalItem(aaveDai, 'unstake',             [ARBITRUM.dai, navAaveDai, wal, false]);
     addProposalItem(aaveDai, 'claimRewards',        [wal]);
+    addProposalItem(aaveDai, 'unstake',             [ARBITRUM.dai, navAaveDai, wal, false]);
     addProposalItem(aaveDai, 'setPortfolioManager', [PM_ARB_DAI]);
 
     // --- StrategySiloEth (arb_eth) ---
     const navSiloEth = await siloEth.netAssetValue();
     console.log(`[STRATEGY SiloEth] NAV: ${fromE18(navSiloEth)}`);
     addProposalItem(siloEth, 'setStrategyParams', [timelockAddr, RM_ARB]);
-    addProposalItem(siloEth, 'unstake',           [ARBITRUM.weth, navSiloEth, wal, false]);
     addProposalItem(siloEth, 'claimRewards',      [wal]);
+    addProposalItem(siloEth, 'unstake',           [ARBITRUM.weth, navSiloEth, wal, false]);
     addProposalItem(siloEth, 'setStrategyParams', [PM_ARB_ETH, RM_ARB]);
 
     // --- DAI+ ---
