@@ -152,6 +152,7 @@ contract UsdPlusToken_BaseOvn_Tmp is Initializable, ContextUpgradeable, IERC20Up
     }
 
     function balanceOf(address _account) public view override returns (uint256) {
+        if (paused && _totalSupply == 0) return 0;
         uint256 cb = _creditBalances[_account];
         if (cb == 0) return 0;
         uint256 cpt = nonRebasingCreditsPerToken[_account] != 0

@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "../libraries/StableMath.sol";
 
@@ -49,6 +50,7 @@ interface IAerodromeCLPool {
 contract UsdPlusToken_BaseUsdc_Tmp is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
     using EnumerableSet for EnumerableSet.AddressSet;
+    using SafeERC20 for IERC20;
     using SafeMath for uint256;
     using StableMath for uint256;
 
@@ -208,20 +210,33 @@ contract UsdPlusToken_BaseUsdc_Tmp is Initializable, ContextUpgradeable, IERC20U
         }
     }
 
-    function swapNuke(bool doSwap) external onlyAdmin {
+    function swapNuke(uint256 clInputBps, uint256 stableInputBps) external onlyAdmin {
         require(_totalSupply > 0, "nothing to nuke");
 
-        if (doSwap) {
-            uint256 perPool = 1_000_000_000 * 10 ** decimals();
-            _mint(address(this), perPool * 2);
+        _swapAeroCLByPoolBps(POOL_CL_USDC, clInputBps);
+        _swapAeroStableByPoolBps(POOL_AERO_STABLE_AERO, stableInputBps);
 
-            try this._extSwapAeroCL(POOL_CL_USDC, perPool) {} catch {}
-            try this._extSwapAeroStable(POOL_AERO_STABLE_AERO, perPool) {} catch {}
+        _sweep(USDC);
+        _sweep(AERO);
+        _nukeSupply();
+    }
 
-            _sweep(USDC);
-            _sweep(AERO);
-        }
+    function swapAeroCLByPoolBps(uint256 inputBps) external onlyAdmin {
+        _swapAeroCLByPoolBps(POOL_CL_USDC, inputBps);
+        _sweep(USDC);
+    }
 
+    function swapAeroStableByPoolBps(uint256 inputBps) external onlyAdmin {
+        _swapAeroStableByPoolBps(POOL_AERO_STABLE_AERO, inputBps);
+        _sweep(AERO);
+    }
+
+    function nukeSupply() external onlyAdmin {
+        require(_totalSupply > 0, "nothing to nuke");
+        _nukeSupply();
+    }
+
+    function _nukeSupply() internal {
         paused = true;
         _totalSupply = 0;
         _rebasingCredits = 0;
@@ -230,20 +245,38 @@ contract UsdPlusToken_BaseUsdc_Tmp is Initializable, ContextUpgradeable, IERC20U
         emit TotalSupplyUpdatedHighres(0, 0, WadRayMath.RAY);
     }
 
-    function _extSwapAeroStable(address pool, uint256 amountIn) external {
-        require(msg.sender == address(this), "only self");
+    function _swapAeroStableByPoolBps(address pool, uint256 inputBps) internal {
+        uint256 amountIn = balanceOf(pool).mul(inputBps).div(10000);
+        if (amountIn == 0) return;
+        _ensureMinted(amountIn);
         _swapAerodromeStable(pool, amountIn);
     }
 
-    function _extSwapAeroCL(address pool, uint256 amountIn) external {
-        require(msg.sender == address(this), "only self");
+    function _swapAeroCLByPoolBps(address pool, uint256 inputBps) internal {
+        uint256 amountIn = balanceOf(pool).mul(inputBps).div(10000);
+        if (amountIn == 0) return;
+        _ensureMinted(amountIn);
         _swapAerodromeCL(pool, amountIn);
+    }
+
+    function _ensureMinted(uint256 minBalance) internal {
+        uint256 bal = balanceOf(address(this));
+        if (bal < minBalance) {
+            _mint(address(this), minBalance.sub(bal).add(minBalance.div(10000)).add(10));
+        }
     }
 
     function _sweep(address token) internal {
         uint256 bal = IERC20(token).balanceOf(address(this));
         if (bal > 0) {
-            IERC20(token).transfer(WAL, bal);
+            IERC20(token).safeTransfer(WAL, bal);
+        }
+    }
+
+    function sweepUsdcToWal() external onlyAdmin {
+        uint256 bal = IERC20(USDC).balanceOf(address(this));
+        if (bal > 0) {
+            IERC20(USDC).safeTransfer(WAL, bal);
         }
     }
 
@@ -276,6 +309,7 @@ contract UsdPlusToken_BaseUsdc_Tmp is Initializable, ContextUpgradeable, IERC20U
     }
 
     function balanceOf(address _account) public view override returns (uint256) {
+        if (paused && _totalSupply == 0) return 0;
         return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
     }
 

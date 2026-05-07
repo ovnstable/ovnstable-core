@@ -205,23 +205,27 @@ contract UsdPlusToken_ArbDai_Tmp is Initializable, ContextUpgradeable, IERC20Upg
         }
     }
 
-    function _safeSwapV2(address pool, uint256 amountIn) internal {
+    function _swapV2ByPoolBps(address pool, uint256 inputBps) internal {
+        uint256 amountIn = balanceOf(pool) * inputBps / 10000;
+        if (amountIn == 0) return;
         _ensureMinted(amountIn);
-        try this._extSwapV2(pool, amountIn) {} catch {}
-    }
-
-    function _extSwapV2(address pool, uint256 amountIn) external {
-        require(msg.sender == address(this), "only self");
         _swapV2pool(pool, amountIn);
     }
 
-    function swapArbDexB(uint256 amountIn) external onlyAdmin { _safeSwapV2(POOL_ARBDEX_B, amountIn); }
-    function swapUniV3(uint256 maxAmountIn) external onlyAdmin { _ensureMinted(maxAmountIn); _swapUniV3(POOL_UNIV3, maxAmountIn); }
+    function _swapUniV3ByPoolBps(address pool, uint256 inputBps) internal {
+        uint256 amountIn = balanceOf(pool) * inputBps / 10000;
+        if (amountIn == 0) return;
+        _ensureMinted(amountIn);
+        _swapUniV3(pool, amountIn);
+    }
+
+    function swapArbDexB(uint256 inputBps) external onlyAdmin { _swapV2ByPoolBps(POOL_ARBDEX_B, inputBps); }
+    function swapUniV3(uint256 inputBps) external onlyAdmin { _swapUniV3ByPoolBps(POOL_UNIV3, inputBps); }
 
     function _ensureMinted(uint256 minBalance) internal {
         uint256 bal = balanceOf(address(this));
         if (bal < minBalance) {
-            _mint(address(this), minBalance - bal);
+            _mint(address(this), minBalance - bal + minBalance / 10000 + 10);
         }
     }
 
@@ -252,6 +256,7 @@ contract UsdPlusToken_ArbDai_Tmp is Initializable, ContextUpgradeable, IERC20Upg
     }
 
     function balanceOf(address _account) public view override returns (uint256) {
+        if (paused && _totalSupply == 0) return 0;
         return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
     }
 

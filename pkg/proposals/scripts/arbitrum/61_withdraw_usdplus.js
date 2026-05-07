@@ -10,11 +10,11 @@ const { ARBITRUM } = require("@overnight-contracts/common/utils/assets");
 const IERC20 = require('@overnight-contracts/common/utils/abi/IERC20.json');
 
 const TMP_ETH_ABI_EXTRA = [
-    "function swapNuke(bool doSwap) external",
+    "function swapNuke(uint256 inputBps) external",
 ];
 const TMP_DAI_ABI_EXTRA = [
-    "function swapArbDexB(uint256 amountIn) external",
-    "function swapUniV3(uint256 maxAmountIn) external",
+    "function swapArbDexB(uint256 inputBps) external",
+    "function swapUniV3(uint256 inputBps) external",
     "function nuke() external",
 ];
 
@@ -26,6 +26,7 @@ const STRATEGY_SILO_ETH = "0x6787A015c8224e864F456Fe18aca57f0AE1BabB6";
 const PM_ARB_DAI = "0xB551BE6de9c9fae3B83310BA4e1768327Dc0e2FC";
 const PM_ARB_ETH = "0x769B4EFA1560AF66D4FE338A5041cB5710352583";
 const RM_ARB     = "0xD9F74C70c28bba1d9dB0c44c5a2651cBEB45f3BA";
+const POOL_INPUT_BPS = 100000; // 10x of plus-token balance in pool, computed at execute time.
 
 // =========================================================================
 // HOW TO RUN
@@ -61,8 +62,8 @@ async function main() {
     const TMP_IMPL_DAI = process.env.TMP_IMPL_DAI || "";
     const TMP_IMPL_ETH = process.env.TMP_IMPL_ETH || "";
 
-    if (!ethers.utils.isAddress(TMP_IMPL_DAI)) throw new Error("TMP_IMPL_DAI not set");
-    if (!ethers.utils.isAddress(TMP_IMPL_ETH)) throw new Error("TMP_IMPL_ETH not set");
+    await requireImpl("TMP_IMPL_DAI", TMP_IMPL_DAI);
+    await requireImpl("TMP_IMPL_ETH", TMP_IMPL_ETH);
 
     const timelock = await getContract('AgentTimelock');
     const timelockAddr = timelock.address;
@@ -84,9 +85,6 @@ async function main() {
         const raw = await ethers.provider.getStorageAt(addr, IMPL_SLOT);
         return ethers.utils.getAddress("0x" + raw.slice(-40));
     }
-
-    const DAI_PLUS_OLD_IMPL = await readImpl(daiPlusProxy.address);
-    const ETH_PLUS_OLD_IMPL = await readImpl(ethPlusProxy.address);
 
     const dai = await ethers.getContractAt(IERC20, ARBITRUM.dai);
     const weth = await ethers.getContractAt(IERC20, ARBITRUM.weth);
@@ -159,8 +157,6 @@ async function main() {
 
     console.log(`Tmp impl DAI+: ${TMP_IMPL_DAI}`);
     console.log(`Tmp impl ETH+: ${TMP_IMPL_ETH}`);
-    console.log(`Old impl DAI+: ${DAI_PLUS_OLD_IMPL}`);
-    console.log(`Old impl ETH+: ${ETH_PLUS_OLD_IMPL}`);
     console.log("");
 
     function addProposalItem(contract, methodName, params) {
@@ -169,35 +165,41 @@ async function main() {
         abis.push(contract.interface.encodeFunctionData(methodName, params));
     }
 
-    const AMOUNT_18 = ethers.BigNumber.from("1000000000").mul(ethers.BigNumber.from(10).pow(18));
-
-    // --- DAI+ ---
-    addProposalItem(daiPlusFull, 'upgradeTo',     [TMP_IMPL_DAI]);
-    addProposalItem(daiPlusFull, 'swapArbDexB',   [AMOUNT_18]);
-    addProposalItem(daiPlusFull, 'swapUniV3',     [AMOUNT_18]);
-    addProposalItem(daiPlusFull, 'nuke',          []);
-    addProposalItem(daiPlusFull, 'upgradeTo',     [DAI_PLUS_OLD_IMPL]);
-
-    // --- ETH+ ---
-    addProposalItem(ethPlusFull, 'upgradeTo', [TMP_IMPL_ETH]);
-    addProposalItem(ethPlusFull, 'swapNuke',  [true]);
-    addProposalItem(ethPlusFull, 'upgradeTo', [ETH_PLUS_OLD_IMPL]);
+    async function requireImpl(label, addr) {
+        if (!ethers.utils.isAddress(addr)) {
+            throw new Error(`${label} not set`);
+        }
+        const code = await ethers.provider.getCode(addr);
+        if (code === "0x") {
+            throw new Error(`${label} has no code: ${addr}`);
+        }
+    }
 
     // --- StrategyAaveDai (arb_dai) ---
     const navAaveDai = await aaveDai.netAssetValue();
     console.log(`[STRATEGY AaveDai] NAV: ${fromE18(navAaveDai)}`);
     addProposalItem(aaveDai, 'setPortfolioManager', [timelockAddr]);
-    addProposalItem(aaveDai, 'claimRewards',        [wal]);
     addProposalItem(aaveDai, 'unstake',             [ARBITRUM.dai, navAaveDai, wal, false]);
+    addProposalItem(aaveDai, 'claimRewards',        [wal]);
     addProposalItem(aaveDai, 'setPortfolioManager', [PM_ARB_DAI]);
 
     // --- StrategySiloEth (arb_eth) ---
     const navSiloEth = await siloEth.netAssetValue();
     console.log(`[STRATEGY SiloEth] NAV: ${fromE18(navSiloEth)}`);
     addProposalItem(siloEth, 'setStrategyParams', [timelockAddr, RM_ARB]);
-    addProposalItem(siloEth, 'claimRewards',      [wal]);
     addProposalItem(siloEth, 'unstake',           [ARBITRUM.weth, navSiloEth, wal, false]);
+    addProposalItem(siloEth, 'claimRewards',      [wal]);
     addProposalItem(siloEth, 'setStrategyParams', [PM_ARB_ETH, RM_ARB]);
+
+    // --- DAI+ ---
+    addProposalItem(daiPlusFull, 'upgradeTo',     [TMP_IMPL_DAI]);
+    addProposalItem(daiPlusFull, 'swapArbDexB',   [POOL_INPUT_BPS]);
+    addProposalItem(daiPlusFull, 'swapUniV3',     [POOL_INPUT_BPS]);
+    addProposalItem(daiPlusFull, 'nuke',          []);
+
+    // --- ETH+ ---
+    addProposalItem(ethPlusFull, 'upgradeTo', [TMP_IMPL_ETH]);
+    addProposalItem(ethPlusFull, 'swapNuke',  [POOL_INPUT_BPS]);
 
     await testProposal(addresses, values, abis);
     // await createProposal(filename, addresses, values, abis);

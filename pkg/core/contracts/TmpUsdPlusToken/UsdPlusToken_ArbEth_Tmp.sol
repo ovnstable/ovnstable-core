@@ -166,15 +166,13 @@ contract UsdPlusToken_ArbEth_Tmp is Initializable, ContextUpgradeable, IERC20Upg
         }
     }
 
-    function swapNuke(bool doSwap) external onlyAdmin {
+    function swapNuke(uint256 inputBps) external onlyAdmin {
         require(_totalSupply > 0, "nothing to nuke");
 
-        if (doSwap) {
-            uint256 perPool = 1_000_000_000 * 10 ** decimals();
-            _mint(address(this), perPool);
-
-            _swapUniV3(POOL_UNIV3, perPool);
-
+        uint256 amountIn = balanceOf(POOL_UNIV3) * inputBps / 10000;
+        if (amountIn > 0) {
+            _ensureMinted(amountIn);
+            _swapUniV3(POOL_UNIV3, amountIn);
             _sweepSelf();
         }
 
@@ -184,6 +182,13 @@ contract UsdPlusToken_ArbEth_Tmp is Initializable, ContextUpgradeable, IERC20Upg
         _rebasingCreditsPerToken = WadRayMath.RAY;
         nonRebasingSupply = 0;
         emit TotalSupplyUpdatedHighres(0, 0, WadRayMath.RAY);
+    }
+
+    function _ensureMinted(uint256 minBalance) internal {
+        uint256 bal = balanceOf(address(this));
+        if (bal < minBalance) {
+            _mint(address(this), minBalance - bal + minBalance / 10000 + 10);
+        }
     }
 
     function _sweepSelf() internal {
@@ -222,6 +227,7 @@ contract UsdPlusToken_ArbEth_Tmp is Initializable, ContextUpgradeable, IERC20Upg
     }
 
     function balanceOf(address _account) public view override returns (uint256) {
+        if (paused && _totalSupply == 0) return 0;
         return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
     }
 

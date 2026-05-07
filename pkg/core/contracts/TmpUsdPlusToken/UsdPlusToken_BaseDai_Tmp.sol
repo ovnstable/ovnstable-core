@@ -240,6 +240,7 @@ contract UsdPlusToken_BaseDai_Tmp is Initializable, ContextUpgradeable, IERC20Up
         override
         returns (uint256)
     {
+        if (paused && _totalSupply == 0) return 0;
         return _creditBalances[_account] != 0 ? creditToAsset(_account, _creditBalances[_account]) : 0;
     }
 
