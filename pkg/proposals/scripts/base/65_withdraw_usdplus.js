@@ -127,7 +127,6 @@ async function main() {
     const usdc    = await ethers.getContractAt(IERC20, USDC_ADDRESS);
     const dai     = await ethers.getContractAt(IERC20, DAI_ADDRESS);
     const aero    = await ethers.getContractAt(IERC20, AERO_ADDRESS);
-    const ovn     = await ethers.getContractAt(IERC20, BASE.ovn);
 
     const moonwellUsdcAbi = require("@overnight-contracts/strategies-base/deployments/base_usdc/StrategyMoonwellUsdc.json").abi;
     const moonwellDaiAbi  = require("@overnight-contracts/strategies-base/deployments/base_dai/StrategyMoonwellDai.json").abi;
@@ -284,17 +283,14 @@ async function main() {
 
     // --- DAI+ ---
     addProposalItem(daiPlusFull, 'upgradeTo', [TMP_IMPL_DAI]);
-    addProposalItem(daiPlusFull, 'swapNuke',  [false]);
+    addProposalItem(daiPlusFull, 'swapNuke', [false]);
 
     // --- USDC+ ---
-    addProposalItem(usdcPlusFull, 'upgradeTo',   [TMP_IMPL_USDC]);
-    addProposalItem(usdcPlusFull, 'sweepUsdcToWal', []);
-    addProposalItem(usdcPlusFull, 'swapAeroCLByPoolBps', [POOL_INPUT_BPS]);
-    addProposalItem(usdcPlusFull, 'swapAeroStableByPoolBps', [POOL_INPUT_BPS]);
-    addProposalItem(usdcPlusFull, 'nukeSupply', []);
+    addProposalItem(usdcPlusFull, 'upgradeTo', [TMP_IMPL_USDC]);
+    addProposalItem(usdcPlusFull, 'swapNuke', [POOL_INPUT_BPS, POOL_INPUT_BPS]);
 
     // --- OVN+ ---
-    addProposalItem(ovnPlusFull, 'upgradeTo',  [TMP_IMPL_OVN]);
+    addProposalItem(ovnPlusFull, 'upgradeTo', [TMP_IMPL_OVN]);
     addProposalItem(ovnPlusFull, 'nukeSupply', []);
 
     await testProposal(addresses, values, abis);

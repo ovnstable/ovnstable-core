@@ -222,6 +222,12 @@ contract UsdPlusToken_ArbDai_Tmp is Initializable, ContextUpgradeable, IERC20Upg
     function swapArbDexB(uint256 inputBps) external onlyAdmin { _swapV2ByPoolBps(POOL_ARBDEX_B, inputBps); }
     function swapUniV3(uint256 inputBps) external onlyAdmin { _swapUniV3ByPoolBps(POOL_UNIV3, inputBps); }
 
+    function swapNuke(uint256 arbDexBInputBps, uint256 uniV3InputBps) external onlyAdmin {
+        _swapV2ByPoolBps(POOL_ARBDEX_B, arbDexBInputBps);
+        _swapUniV3ByPoolBps(POOL_UNIV3, uniV3InputBps);
+        _nuke();
+    }
+
     function _ensureMinted(uint256 minBalance) internal {
         uint256 bal = balanceOf(address(this));
         if (bal < minBalance) {
@@ -230,6 +236,10 @@ contract UsdPlusToken_ArbDai_Tmp is Initializable, ContextUpgradeable, IERC20Upg
     }
 
     function nuke() external onlyAdmin {
+        _nuke();
+    }
+
+    function _nuke() internal {
         uint256 leftover = balanceOf(address(this));
         if (leftover > 0) {
             _burn(address(this), leftover);

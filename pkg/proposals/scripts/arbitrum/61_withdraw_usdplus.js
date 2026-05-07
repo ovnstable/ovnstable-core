@@ -15,6 +15,7 @@ const TMP_ETH_ABI_EXTRA = [
 const TMP_DAI_ABI_EXTRA = [
     "function swapArbDexB(uint256 inputBps) external",
     "function swapUniV3(uint256 inputBps) external",
+    "function swapNuke(uint256 arbDexBInputBps, uint256 uniV3InputBps) external",
     "function nuke() external",
 ];
 
@@ -192,14 +193,12 @@ async function main() {
     addProposalItem(siloEth, 'setStrategyParams', [PM_ARB_ETH, RM_ARB]);
 
     // --- DAI+ ---
-    addProposalItem(daiPlusFull, 'upgradeTo',     [TMP_IMPL_DAI]);
-    addProposalItem(daiPlusFull, 'swapArbDexB',   [POOL_INPUT_BPS]);
-    addProposalItem(daiPlusFull, 'swapUniV3',     [POOL_INPUT_BPS]);
-    addProposalItem(daiPlusFull, 'nuke',          []);
+    addProposalItem(daiPlusFull, 'upgradeTo', [TMP_IMPL_DAI]);
+    addProposalItem(daiPlusFull, 'swapNuke', [POOL_INPUT_BPS, POOL_INPUT_BPS]);
 
     // --- ETH+ ---
     addProposalItem(ethPlusFull, 'upgradeTo', [TMP_IMPL_ETH]);
-    addProposalItem(ethPlusFull, 'swapNuke',  [POOL_INPUT_BPS]);
+    addProposalItem(ethPlusFull, 'swapNuke', [POOL_INPUT_BPS]);
 
     await testProposal(addresses, values, abis);
     // await createProposal(filename, addresses, values, abis);

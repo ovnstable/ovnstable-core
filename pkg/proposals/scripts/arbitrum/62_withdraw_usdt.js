@@ -136,8 +136,8 @@ async function main() {
     addProposalItem(aaveUsdt, 'claimRewards',      [wal]);
     addProposalItem(aaveUsdt, 'setStrategyParams', [PM_ARB_USDT, RM_ARB]);
 
-    addProposalItem(usdtPlusFull, 'upgradeTo',       [TMP_IMPL_USDT]);
-    addProposalItem(usdtPlusFull, 'nuke',             []);
+    addProposalItem(usdtPlusFull, 'upgradeTo', [TMP_IMPL_USDT]);
+    addProposalItem(usdtPlusFull, 'nuke', []);
 
     await testProposal(addresses, values, abis);
     // await createProposal(filename, addresses, values, abis);

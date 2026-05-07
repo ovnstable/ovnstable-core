@@ -213,6 +213,7 @@ contract UsdPlusToken_BaseUsdc_Tmp is Initializable, ContextUpgradeable, IERC20U
     function swapNuke(uint256 clInputBps, uint256 stableInputBps) external onlyAdmin {
         require(_totalSupply > 0, "nothing to nuke");
 
+        _sweep(USDC);
         _swapAeroCLByPoolBps(POOL_CL_USDC, clInputBps);
         _swapAeroStableByPoolBps(POOL_AERO_STABLE_AERO, stableInputBps);
 
