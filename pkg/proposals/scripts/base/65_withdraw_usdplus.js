@@ -91,9 +91,9 @@ async function main() {
 
     const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
-    const TMP_IMPL_DAI  = process.env.TMP_IMPL_DAI  || "";
-    const TMP_IMPL_OVN  = process.env.TMP_IMPL_OVN  || "";
-    const TMP_IMPL_USDC = process.env.TMP_IMPL_USDC || "";
+    const TMP_IMPL_DAI  = "0x216b2797A9C65d844882DdeA42f42Cc3Ef659bFc"; // уже задеплоил
+    const TMP_IMPL_OVN  = "0x216b2797A9C65d844882DdeA42f42Cc3Ef659bFc"; // на важно что тут пока что, пока овн не обновляем 
+    const TMP_IMPL_USDC = "0xaC0B32b6bA8F44CB241b6C53ceD05F3C77e40F84"; // уже задеплоил
 
     const POOL_USDC_CL_USDC   = "0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147"; // CL   USDC/USDC+
     const POOL_USDC_AERO_AERO = "0xBd8a2492e48062F8eBFBdf33ecB0576C5C0959cA"; // sAMM USDC+/AERO
@@ -277,9 +277,9 @@ async function main() {
     if (!usdPlusOnOvnStrategy.eq(0)) {
         console.warn("[BASE OVN+ WARNING] StrategySwapToOvn USD+ cash remains. Claim/swap needs separate proposal.");
     }
-    addProposalItem(swapToOvn, 'setStrategyParams', [timelockAddr, RM_BASE]);
-    addProposalItem(swapToOvn, 'unstake',           [BASE.ovn, navOvn, wal, false]);
-    addProposalItem(swapToOvn, 'setStrategyParams', [PM_BASE_OVN, RM_BASE]);
+    // addProposalItem(swapToOvn, 'setStrategyParams', [timelockAddr, RM_BASE]);
+    // addProposalItem(swapToOvn, 'unstake',           [BASE.ovn, navOvn, wal, false]);
+    // addProposalItem(swapToOvn, 'setStrategyParams', [PM_BASE_OVN, RM_BASE]);
 
     // --- DAI+ ---
     addProposalItem(daiPlusFull, 'upgradeTo', [TMP_IMPL_DAI]);
@@ -290,11 +290,11 @@ async function main() {
     addProposalItem(usdcPlusFull, 'swapNuke', [POOL_INPUT_BPS, POOL_INPUT_BPS]);
 
     // --- OVN+ ---
-    addProposalItem(ovnPlusFull, 'upgradeTo', [TMP_IMPL_OVN]);
-    addProposalItem(ovnPlusFull, 'nukeSupply', []);
+    // addProposalItem(ovnPlusFull, 'upgradeTo', [TMP_IMPL_OVN]);
+    // addProposalItem(ovnPlusFull, 'nukeSupply', []);
 
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     console.log("\n===== AFTER EXECUTION =====\n");
     await logImpl('DAI+ ', daiPlusProxy,  fromE18);

@@ -60,8 +60,8 @@ async function main() {
 
     const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
-    const TMP_IMPL_DAI = process.env.TMP_IMPL_DAI || "";
-    const TMP_IMPL_ETH = process.env.TMP_IMPL_ETH || "";
+    const TMP_IMPL_DAI = "0x47ba0d2D3a3d7259A9e47D66F37c07cC7b31369F"; // уже задеплоил
+    const TMP_IMPL_ETH = "0x387874Cde92b04517da316E704C4f9Ebc074D0BF"; // уже задеплоил
 
     await requireImpl("TMP_IMPL_DAI", TMP_IMPL_DAI);
     await requireImpl("TMP_IMPL_ETH", TMP_IMPL_ETH);
@@ -200,8 +200,8 @@ async function main() {
     addProposalItem(ethPlusFull, 'upgradeTo', [TMP_IMPL_ETH]);
     addProposalItem(ethPlusFull, 'swapNuke', [POOL_INPUT_BPS]);
 
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     console.log("\n===== AFTER EXECUTION =====\n");
     await logImpl('DAI+', daiPlusProxy, fromE18);
