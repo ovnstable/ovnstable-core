@@ -1,0 +1,11 @@
+{
+  "name": "ovnstable-sandbox-mini-project",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Isolated sandbox mini project for team review.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --check server.js && node --check public/app.js && node test/smoke.test.js"
+  }
+}
