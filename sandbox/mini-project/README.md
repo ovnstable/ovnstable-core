@@ -14,7 +14,7 @@ From this folder:
 npm install
 ```
 
-Dependencies are local to `sandbox/mini-project/` through this folder's own `package.json` and `package-lock.json`.
+Dependencies are local to `sandbox/mini-project/` through this folder's own `package.json`. A generated `package-lock.json` is intentionally ignored to keep the review diff focused on the prototype source.
 
 ## Run Locally
 
@@ -44,7 +44,7 @@ npm run build
 
 - `.gitignore` - ignores local sandbox build/install artifacts.
 - `README.md` - setup, run, validation, and scope notes.
-- `package.json` and `package-lock.json` - local sandbox app dependencies and scripts.
+- `package.json` - local sandbox app dependencies and scripts.
 - `index.html` - Vite entry point.
 - `vite.config.ts`, `tsconfig.json`, `tailwind.config.ts`, `postcss.config.js` - local sandbox tooling config.
 - `src/` - Reinforce.fi UI prototype source, mock data, route recommendation logic, and reusable components.
