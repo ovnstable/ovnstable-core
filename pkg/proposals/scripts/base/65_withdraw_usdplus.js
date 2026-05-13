@@ -18,10 +18,6 @@ const TMP_DAI_ABI_EXTRA = [
     "function swapNuke(bool doSwap) external",
 ];
 
-const TMP_OVN_ABI_EXTRA = [
-    "function nukeSupply() external",
-];
-
 const TMP_USDC_ABI_EXTRA = [
     "function swapNuke(uint256 clInputBps, uint256 stableInputBps) external",
     "function swapAeroCLByPoolBps(uint256 inputBps) external",
@@ -74,7 +70,7 @@ const POOL_INPUT_BPS = 100000; // 10x of plus-token balance in pool, computed at
 //        STAND=base_ovn  hh deploy --tags UsdPlusTokenBaseOvnTmp  --impl --network base_ovn
 //        STAND=base_usdc hh deploy --tags UsdPlusTokenBaseUsdcTmp --impl --network base_usdc
 //
-// 2) Paste deployed impl addresses into TMP_IMPL_DAI / TMP_IMPL_OVN / TMP_IMPL_USDC.
+// 2) Paste deployed impl addresses into TMP_IMPL_DAI / TMP_IMPL_USDC.
 //
 // 3) Run proposal:
 //      localhost test (testProposal):
@@ -91,15 +87,20 @@ async function main() {
 
     const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
-    const TMP_IMPL_DAI  = "0x216b2797A9C65d844882DdeA42f42Cc3Ef659bFc"; // уже задеплоил
-    const TMP_IMPL_OVN  = "0x216b2797A9C65d844882DdeA42f42Cc3Ef659bFc"; // на важно что тут пока что, пока овн не обновляем 
-    const TMP_IMPL_USDC = "0xaC0B32b6bA8F44CB241b6C53ceD05F3C77e40F84"; // уже задеплоил
+    const TMP_IMPL_DAI  = process.env.TMP_IMPL_DAI  || "";
+    const TMP_IMPL_USDC = process.env.TMP_IMPL_USDC || "";
 
+    const POOL_DAI_SWAPBASED = "0x164Bc404c64FA426882D98dBcE9B10d5df656EeD";
+    const POOL_DAI_ALIENBASE = "0xd97a40434627D5c897790DE9a3d2E577Cba5F2E0";
+    const POOL_DAI_BASESWAP  = "0x7Fb35b3967798cE8322cC50eF52553BC5Ee4c306";
+    const POOL_DAI_AERODROME = "0x1b05e4e814b3431a48b8164c41eaC834d9cE2Da6";
+
+    const POOL_USDC_AERO_USDP = "0xE96c788E66a97Cf455f46C5b27786191fD3bC50B"; // sAMM USDC+/USD+
+    const POOL_USDC_V2_USDP   = "0xc3cb7E40b78427078E2cb0c5dA0BF7A0650F89f8"; // V2   USDC+/USD+
     const POOL_USDC_CL_USDC   = "0x8dd9751961621Fcfc394d90969E5ae0c5BAbE147"; // CL   USDC/USDC+
     const POOL_USDC_AERO_AERO = "0xBd8a2492e48062F8eBFBdf33ecB0576C5C0959cA"; // sAMM USDC+/AERO
 
     await requireImpl("TMP_IMPL_DAI", TMP_IMPL_DAI);
-    await requireImpl("TMP_IMPL_OVN", TMP_IMPL_OVN);
     await requireImpl("TMP_IMPL_USDC", TMP_IMPL_USDC);
 
     const timelock = await getContract('AgentTimelock');
@@ -144,18 +145,22 @@ async function main() {
         [...v1Artifact.abi, ...TMP_DAI_ABI_EXTRA],
         ethers.provider
     );
-    const ovnPlusFull = new ethers.Contract(
-        ovnPlusProxy.address,
-        [...ovnDeployment.abi, ...TMP_OVN_ABI_EXTRA],
-        ethers.provider
-    );
     const usdcPlusFull = new ethers.Contract(
         usdcPlusProxy.address,
         [...v1Artifact.abi, ...TMP_USDC_ABI_EXTRA],
         ethers.provider
     );
 
+    const daiPools = [
+        { name: 'SwapBased     ', addr: POOL_DAI_SWAPBASED },
+        { name: 'AlienBase     ', addr: POOL_DAI_ALIENBASE },
+        { name: 'BaseSwap      ', addr: POOL_DAI_BASESWAP  },
+        { name: 'Aerodrome sAMM', addr: POOL_DAI_AERODROME },
+    ];
+
     const usdcPools = [
+        { name: 'Aerodrome sAMM USDC+/USD+', addr: POOL_USDC_AERO_USDP, second: usdPlus, secondSym: 'USD+', secondFmt: fromE6 },
+        { name: 'UniswapV2-like USDC+/USD+', addr: POOL_USDC_V2_USDP,   second: usdPlus, secondSym: 'USD+', secondFmt: fromE6 },
         { name: 'Aerodrome CL   USDC/USDC+', addr: POOL_USDC_CL_USDC,   second: usdc,    secondSym: 'USDC', secondFmt: fromE6 },
         { name: 'Aerodrome sAMM USDC+/AERO', addr: POOL_USDC_AERO_AERO, second: aero,    secondSym: 'AERO', secondFmt: fromE18 },
     ];
@@ -201,6 +206,15 @@ async function main() {
         console.log(`[DIRECT] USDC on USDC+ proxy: ${fromE6(usdcOnUsdcPlus)}`);
     }
 
+    async function logDaiPools() {
+        for (const p of daiPools) {
+            const usdPlusBal = await usdPlus.balanceOf(p.addr);
+            const daiPlusBal = await daiPlusProxy.balanceOf(p.addr);
+            console.log(`  ${p.name} ${p.addr}`);
+            console.log(`    USD+ in pool: ${fromE6(usdPlusBal)} | DAI+ in pool: ${fromE18(daiPlusBal)}`);
+        }
+    }
+
     async function logUsdcPools() {
         for (const p of usdcPools) {
             const usdcPlusBal = await usdcPlusProxy.balanceOf(p.addr);
@@ -219,13 +233,14 @@ async function main() {
     await logMoonwell();
     await logOvnStrategy();
     await logDirectBalances();
+    console.log("\n[DAI+ POOLS]");
+    await logDaiPools();
     console.log("\n[USDC+ POOLS]");
     await logUsdcPools();
     console.log("\n" + "=".repeat(60) + "\n");
 
     console.log(`Using Tmp impl DAI+ : ${TMP_IMPL_DAI}`);
     console.log(`Using Tmp impl USDC+: ${TMP_IMPL_USDC}`);
-    console.log(`Using Tmp impl OVN+ : ${TMP_IMPL_OVN}`);
     console.log("");
 
     function addProposalItem(contract, methodName, params) {
@@ -283,15 +298,11 @@ async function main() {
 
     // --- DAI+ ---
     addProposalItem(daiPlusFull, 'upgradeTo', [TMP_IMPL_DAI]);
-    addProposalItem(daiPlusFull, 'swapNuke', [false]);
+    addProposalItem(daiPlusFull, 'swapNuke', [true]);
 
     // --- USDC+ ---
     addProposalItem(usdcPlusFull, 'upgradeTo', [TMP_IMPL_USDC]);
     addProposalItem(usdcPlusFull, 'swapNuke', [POOL_INPUT_BPS, POOL_INPUT_BPS]);
-
-    // --- OVN+ ---
-    // addProposalItem(ovnPlusFull, 'upgradeTo', [TMP_IMPL_OVN]);
-    // addProposalItem(ovnPlusFull, 'nukeSupply', []);
 
     // await testProposal(addresses, values, abis);
     await createProposal(filename, addresses, values, abis);
@@ -305,6 +316,8 @@ async function main() {
     await logMoonwell();
     await logOvnStrategy();
     await logDirectBalances();
+    console.log("\n[DAI+ POOLS]");
+    await logDaiPools();
     console.log("\n[USDC+ POOLS]");
     await logUsdcPools();
     console.log("\n" + "=".repeat(60) + "\n");

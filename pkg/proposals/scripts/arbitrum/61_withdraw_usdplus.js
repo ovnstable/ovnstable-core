@@ -60,8 +60,8 @@ async function main() {
 
     const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
-    const TMP_IMPL_DAI = "0x47ba0d2D3a3d7259A9e47D66F37c07cC7b31369F"; // уже задеплоил
-    const TMP_IMPL_ETH = "0x387874Cde92b04517da316E704C4f9Ebc074D0BF"; // уже задеплоил
+    const TMP_IMPL_DAI = process.env.TMP_IMPL_DAI || "";
+    const TMP_IMPL_ETH = process.env.TMP_IMPL_ETH || "";
 
     await requireImpl("TMP_IMPL_DAI", TMP_IMPL_DAI);
     await requireImpl("TMP_IMPL_ETH", TMP_IMPL_ETH);
@@ -108,6 +108,10 @@ async function main() {
     );
 
     const daiPools = [
+        { name: 'V2 A        ', addr: '0xB260163158311596Ea88a700C5a30f101D072326' },
+        { name: 'V2 B        ', addr: '0x60A3bBeC81a92e8894eD112A148dFCC98F577bA1' },
+        { name: 'ArbDex A    ', addr: '0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e' },
+        { name: 'Skimmable   ', addr: '0x51E073D92b0c226F7B0065909440b18A85769606' },
         { name: 'ArbDex B    ', addr: '0xeE5e74Dc56594d070E0827ec270F974A68EBAF22' },
         { name: 'UniV3       ', addr: '0x6C9AF2ddf5d21e5dE1D6E97e25a57ac4e6CfBA38' },
     ];
