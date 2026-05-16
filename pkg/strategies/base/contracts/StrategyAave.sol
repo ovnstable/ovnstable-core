@@ -3,7 +3,6 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@overnight-contracts/core/contracts/Strategy.sol";
 import "@overnight-contracts/connectors/contracts/stuff/AaveV3.sol";
-import "hardhat/console.sol";
 
 
 contract StrategyAave is Strategy {
@@ -13,6 +12,8 @@ contract StrategyAave is Strategy {
     IERC20 public usdcToken;
     IERC20 public aUsdcToken;
     IPoolAddressesProvider public aaveProvider;
+
+    bool public inLending;
 
 
     // --- events
@@ -58,10 +59,11 @@ contract StrategyAave is Strategy {
     ) internal override {
 
         require(_asset == address(usdcToken), "Some token not compatible");
+        if (!inLending) return;
 
-        // IPool pool = IPool(aaveProvider.getPool());
-        // usdcToken.approve(address(pool), _amount);
-        // pool.deposit(address(usdcToken), _amount, address(this), 0);
+        IPool pool = IPool(aaveProvider.getPool());
+        usdcToken.approve(address(pool), _amount);
+        pool.deposit(address(usdcToken), _amount, address(this), 0);
     }
 
     function _unstake(
@@ -71,11 +73,11 @@ contract StrategyAave is Strategy {
     ) internal override returns (uint256) {
 
         require(_asset == address(usdcToken), "Some token not compatible");
+        if (!inLending) return _amount;
 
-        // IPool pool = IPool(aaveProvider.getPool());
-        // aUsdcToken.approve(address(pool), _amount);
-        // return pool.withdraw(_asset, _amount, address(this));
-        return _amount;
+        IPool pool = IPool(aaveProvider.getPool());
+        aUsdcToken.approve(address(pool), _amount);
+        return pool.withdraw(_asset, _amount, address(this));
     }
 
     function _unstakeFull(
@@ -85,10 +87,11 @@ contract StrategyAave is Strategy {
 
         require(_asset == address(usdcToken), "Some token not compatible");
         uint256 _amount = aUsdcToken.balanceOf(address(this));
-        // IPool pool = IPool(aaveProvider.getPool());
-        // aUsdcToken.approve(address(pool), _amount);
-        // return pool.withdraw(_asset, _amount, address(this));
-        return _amount;
+        if (!inLending) return _amount;
+
+        IPool pool = IPool(aaveProvider.getPool());
+        aUsdcToken.approve(address(pool), _amount);
+        return pool.withdraw(_asset, _amount, address(this));
     }
 
     function stakeAdmin() external onlyPortfolioAgent {
@@ -96,6 +99,7 @@ contract StrategyAave is Strategy {
         IPool pool = IPool(aaveProvider.getPool());
         usdcToken.approve(address(pool), amount);
         pool.deposit(address(usdcToken), amount, address(this), 0);
+        inLending = true;
         emit Stake(amount);
     }
 
@@ -104,6 +108,7 @@ contract StrategyAave is Strategy {
         IPool pool = IPool(aaveProvider.getPool());
         aUsdcToken.approve(address(pool), amount);
         withdrawn = pool.withdraw(address(usdcToken), amount, address(this));
+        inLending = false;
         emit Unstake(withdrawn, withdrawn);
     }
 
