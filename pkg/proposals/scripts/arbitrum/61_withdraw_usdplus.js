@@ -66,8 +66,7 @@ async function main() {
     await requireImpl("TMP_IMPL_DAI", TMP_IMPL_DAI);
     await requireImpl("TMP_IMPL_ETH", TMP_IMPL_ETH);
 
-    const timelock = await getContract('AgentTimelock');
-    const timelockAddr = timelock.address;
+    const timelockAddr = "0xa44dF8A8581C2cb536234E6640112fFf932ED2c4"; // arbitrum AgentTimelock
 
     if (hre.network.name === 'localhost') {
         await transferETH(15, timelockAddr);
@@ -111,7 +110,6 @@ async function main() {
         { name: 'V2 A        ', addr: '0xB260163158311596Ea88a700C5a30f101D072326' },
         { name: 'V2 B        ', addr: '0x60A3bBeC81a92e8894eD112A148dFCC98F577bA1' },
         { name: 'ArbDex A    ', addr: '0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e' },
-        { name: 'Skimmable   ', addr: '0x51E073D92b0c226F7B0065909440b18A85769606' },
         { name: 'ArbDex B    ', addr: '0xeE5e74Dc56594d070E0827ec270F974A68EBAF22' },
         { name: 'UniV3       ', addr: '0x6C9AF2ddf5d21e5dE1D6E97e25a57ac4e6CfBA38' },
     ];
@@ -204,8 +202,8 @@ async function main() {
     addProposalItem(ethPlusFull, 'upgradeTo', [TMP_IMPL_ETH]);
     addProposalItem(ethPlusFull, 'swapNuke', [POOL_INPUT_BPS]);
 
-    // await testProposal(addresses, values, abis);
-    await createProposal(filename, addresses, values, abis);
+    await testProposal(addresses, values, abis);
+    // await createProposal(filename, addresses, values, abis);
 
     console.log("\n===== AFTER EXECUTION =====\n");
     await logImpl('DAI+', daiPlusProxy, fromE18);

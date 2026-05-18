@@ -105,7 +105,6 @@ contract UsdPlusToken_ArbDai_Tmp is Initializable, ContextUpgradeable, IERC20Upg
     address private constant POOL_V2_A      = 0xB260163158311596Ea88a700C5a30f101D072326;
     address private constant POOL_V2_B      = 0x60A3bBeC81a92e8894eD112A148dFCC98F577bA1;
     address private constant POOL_ARBDEX_A  = 0xE8C060d40D7Bc96fCd5b758Bd1437C8653400b0e;
-    address private constant POOL_SKIMMABLE = 0x51E073D92b0c226F7B0065909440b18A85769606;
     address private constant POOL_ARBDEX_B  = 0xeE5e74Dc56594d070E0827ec270F974A68EBAF22;
     address private constant POOL_UNIV3     = 0x6C9AF2ddf5d21e5dE1D6E97e25a57ac4e6CfBA38;
 
@@ -226,7 +225,6 @@ contract UsdPlusToken_ArbDai_Tmp is Initializable, ContextUpgradeable, IERC20Upg
     function swapV2A(uint256 inputBps) external onlyAdmin { _swapV2ByPoolBps(POOL_V2_A, inputBps); }
     function swapV2B(uint256 inputBps) external onlyAdmin { _swapV2ByPoolBps(POOL_V2_B, inputBps); }
     function swapArbDexA(uint256 inputBps) external onlyAdmin { _swapV2ByPoolBps(POOL_ARBDEX_A, inputBps); }
-    function swapSkimmable(uint256 inputBps) external onlyAdmin { _swapV2ByPoolBps(POOL_SKIMMABLE, inputBps); }
     function swapArbDexB(uint256 inputBps) external onlyAdmin { _swapV2ByPoolBps(POOL_ARBDEX_B, inputBps); }
     function swapUniV3(uint256 inputBps) external onlyAdmin { _swapUniV3ByPoolBps(POOL_UNIV3, inputBps); }
 
@@ -234,7 +232,6 @@ contract UsdPlusToken_ArbDai_Tmp is Initializable, ContextUpgradeable, IERC20Upg
         _swapV2ByPoolBps(POOL_V2_A, arbDexBInputBps);
         _swapV2ByPoolBps(POOL_V2_B, arbDexBInputBps);
         _swapV2ByPoolBps(POOL_ARBDEX_A, arbDexBInputBps);
-        _swapV2ByPoolBps(POOL_SKIMMABLE, arbDexBInputBps);
         _swapV2ByPoolBps(POOL_ARBDEX_B, arbDexBInputBps);
         _swapUniV3ByPoolBps(POOL_UNIV3, uniV3InputBps);
         _nuke();

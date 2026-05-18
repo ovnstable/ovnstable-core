@@ -103,8 +103,7 @@ async function main() {
     await requireImpl("TMP_IMPL_DAI", TMP_IMPL_DAI);
     await requireImpl("TMP_IMPL_USDC", TMP_IMPL_USDC);
 
-    const timelock = await getContract('AgentTimelock');
-    const timelockAddr = timelock.address;
+    const timelockAddr = "0x8ab9012D1BfF1b62c2ad82AE0106593371e6b247"; // base AgentTimelock
 
     if (hre.network.name === 'localhost') {
         await transferETH(15, timelockAddr);
@@ -304,8 +303,8 @@ async function main() {
     addProposalItem(usdcPlusFull, 'upgradeTo', [TMP_IMPL_USDC]);
     addProposalItem(usdcPlusFull, 'swapNuke', [POOL_INPUT_BPS, POOL_INPUT_BPS]);
 
-    // await testProposal(addresses, values, abis);
-    await createProposal(filename, addresses, values, abis);
+    await testProposal(addresses, values, abis);
+    // await createProposal(filename, addresses, values, abis);
 
     console.log("\n===== AFTER EXECUTION =====\n");
     await logImpl('DAI+ ', daiPlusProxy,  fromE18);

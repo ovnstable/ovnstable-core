@@ -48,8 +48,7 @@ async function main() {
     const TMP_IMPL_USDT = process.env.TMP_IMPL_USDT || "";
     await requireImpl("TMP_IMPL_USDT", TMP_IMPL_USDT);
 
-    const timelock = await getContract('AgentTimelock');
-    const timelockAddr = timelock.address;
+    const timelockAddr = "0xa44dF8A8581C2cb536234E6640112fFf932ED2c4"; // arbitrum AgentTimelock
 
     if (hre.network.name === 'localhost') {
         await transferETH(15, timelockAddr);
