@@ -87,8 +87,8 @@ async function main() {
 
     const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
-    const TMP_IMPL_DAI  = process.env.TMP_IMPL_DAI  || "";
-    const TMP_IMPL_USDC = process.env.TMP_IMPL_USDC || "";
+    const TMP_IMPL_DAI  = "0x73c924343F2a9643aD1DF2e879973cBef9d51d30";
+    const TMP_IMPL_USDC = "0xdcCf42DcBd5fA1FEcbd82ab269438C97C1E6C31B";
 
     const POOL_DAI_SWAPBASED = "0x164Bc404c64FA426882D98dBcE9B10d5df656EeD";
     const POOL_DAI_ALIENBASE = "0xd97a40434627D5c897790DE9a3d2E577Cba5F2E0";
@@ -275,7 +275,7 @@ async function main() {
     // --- Moonwell DAI ---
     const navDai  = await moonwellDai.netAssetValue();
     const cashDai = await mToken(M_DAI_TOKEN).getCash();
-    const limitDai = cashDai.mul(99).div(100);
+    const limitDai = cashDai.mul(100).div(100);
     const amountDai = navDai.lt(limitDai) ? navDai : limitDai;
     console.log(`[MOONWELL DAI ] NAV: ${fromE18(navDai)} | cash: ${fromE18(cashDai)} | amount: ${fromE18(amountDai)}`);
 
@@ -303,8 +303,8 @@ async function main() {
     addProposalItem(usdcPlusFull, 'upgradeTo', [TMP_IMPL_USDC]);
     addProposalItem(usdcPlusFull, 'swapNuke', [POOL_INPUT_BPS, POOL_INPUT_BPS]);
 
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     console.log("\n===== AFTER EXECUTION =====\n");
     await logImpl('DAI+ ', daiPlusProxy,  fromE18);

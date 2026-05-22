@@ -45,7 +45,7 @@ async function main() {
 
     const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
-    const TMP_IMPL_USDT = process.env.TMP_IMPL_USDT || "";
+    const TMP_IMPL_USDT = "0x4639797aA7Ad82C28B25226A23f1517016a494bC";
     await requireImpl("TMP_IMPL_USDT", TMP_IMPL_USDT);
 
     const timelockAddr = "0xa44dF8A8581C2cb536234E6640112fFf932ED2c4"; // arbitrum AgentTimelock
@@ -138,8 +138,8 @@ async function main() {
     addProposalItem(usdtPlusFull, 'upgradeTo', [TMP_IMPL_USDT]);
     addProposalItem(usdtPlusFull, 'nuke', []);
 
-    await testProposal(addresses, values, abis);
-    // await createProposal(filename, addresses, values, abis);
+    // await testProposal(addresses, values, abis);
+    await createProposal(filename, addresses, values, abis);
 
     console.log("\n===== AFTER EXECUTION =====\n");
     await logImpl('USDT+', usdtPlusProxy, fromE6);
