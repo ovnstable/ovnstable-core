@@ -8,6 +8,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { StableMath } from "../libraries/StableMath.sol";
 
@@ -15,9 +16,36 @@ import "../interfaces/IPayoutManager.sol";
 import "../interfaces/IRoleManager.sol";
 import "../libraries/WadRayMath.sol";
 
+interface IUniswapV2Pair {
+    function token0() external view returns (address);
+    function token1() external view returns (address);
+    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
+}
+
+interface IUniswapV3Pool {
+    function token0() external view returns (address);
+    function token1() external view returns (address);
+    function swap(
+        address recipient,
+        bool zeroForOne,
+        int256 amountSpecified,
+        uint160 sqrtPriceLimitX96,
+        bytes calldata data
+    ) external returns (int256 amount0, int256 amount1);
+}
+
+interface ICurveStableSwapNG {
+    function coins(uint256 i) external view returns (address);
+    function exchange(int128 i, int128 j, uint256 dx, uint256 min_dy, address receiver) external returns (uint256);
+}
+
 /**
  * @dev Tmp impl for Arbitrum USDT+ (UsdPlusTokenV1 storage).
- *      nuke() only. USDT+ pools are intentionally left untouched.
+ *      Admin swap methods for USDT+ pools (Ape V2, Curve NG, 2x PancakeV3)
+ *      + final nuke(). Mints big USDT+, dumps per-pool, other token -> WAL,
+ *      then nuke() pauses transfers and zeroes supply.
+ *      Uniswap V4 pool (USDT+/USDT) is intentionally left untouched.
  */
 contract UsdPlusToken_ArbUsdt_Tmp is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
 
@@ -79,6 +107,16 @@ contract UsdPlusToken_ArbUsdt_Tmp is Initializable, ContextUpgradeable, IERC20Up
         OptOut
     }
 
+    address private constant WAL = 0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856;
+
+    address private constant POOL_APE       = 0x488A565E7D2335239692671C1D58738473EBd1ed; // UniV2,     USDT+/USD+
+    address private constant POOL_CURVE     = 0x1446999B0b0E4f7aDA6Ee73f2Ae12a2cfdc5D9E7; // CurveNG,   USDT+/USD+
+    address private constant POOL_PANCAKE_A = 0x8a06339Abd7499Af755DF585738ebf43D5D62B94; // PancakeV3, USDT+/USD+
+    address private constant POOL_PANCAKE_B = 0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F; // PancakeV3, USDT+/USD+
+
+    uint160 private constant MIN_SQRT_RATIO_PLUS_ONE = 4295128740;
+    uint160 private constant MAX_SQRT_RATIO_MINUS_ONE = 1461446703485210103287273052203988822378723970341;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -109,7 +147,141 @@ contract UsdPlusToken_ArbUsdt_Tmp is Initializable, ContextUpgradeable, IERC20Up
         _;
     }
 
+    function _getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut) internal pure returns (uint256) {
+        require(amountIn > 0, 'INSUFFICIENT_INPUT_AMOUNT');
+        require(reserveIn > 0 && reserveOut > 0, 'INSUFFICIENT_LIQUIDITY');
+        uint256 amountInWithFee = amountIn * 997;
+        uint256 numerator = amountInWithFee * reserveOut;
+        uint256 denominator = (reserveIn * 1000) + amountInWithFee;
+        return numerator / denominator;
+    }
+
+    function _swapV2pool(address poolAddress, uint256 amountIn) internal {
+        IUniswapV2Pair pair = IUniswapV2Pair(poolAddress);
+        require(balanceOf(address(this)) >= amountIn, 'Insufficient self balance');
+
+        address token0 = pair.token0();
+        bool isToken0 = address(this) == token0;
+
+        (uint112 reserve0, uint112 reserve1,) = pair.getReserves();
+        if (reserve0 == 0 || reserve1 == 0) return;
+
+        uint256 amountOut = _getAmountOut(
+            amountIn,
+            isToken0 ? reserve0 : reserve1,
+            isToken0 ? reserve1 : reserve0
+        );
+        if (amountOut == 0) return;
+
+        IERC20(address(this)).transfer(address(pair), amountIn);
+
+        if (isToken0) {
+            pair.swap(0, amountOut, WAL, new bytes(0));
+        } else {
+            pair.swap(amountOut, 0, WAL, new bytes(0));
+        }
+    }
+
+    function _swapUniV3(address poolAddress, uint256 maxAmountIn) internal {
+        IUniswapV3Pool pool = IUniswapV3Pool(poolAddress);
+
+        address token0 = pool.token0();
+        address token1 = pool.token1();
+        address otherToken = address(this) == token0 ? token1 : token0;
+
+        uint256 otherBal = IERC20(otherToken).balanceOf(poolAddress);
+        if (otherBal == 0) return;
+        uint256 amountIn = otherBal * 3;
+        if (amountIn > maxAmountIn) amountIn = maxAmountIn;
+        if (amountIn == 0) return;
+
+        require(balanceOf(address(this)) >= amountIn, 'Insufficient self balance');
+        bool zeroForOne = address(this) == token0;
+        uint160 sqrtLimit = zeroForOne ? MIN_SQRT_RATIO_PLUS_ONE : MAX_SQRT_RATIO_MINUS_ONE;
+
+        pool.swap(WAL, zeroForOne, int256(amountIn), sqrtLimit, abi.encode(poolAddress));
+    }
+
+    function _v3Callback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) internal {
+        address expectedPool = abi.decode(data, (address));
+        require(msg.sender == expectedPool, 'unauthorized callback');
+
+        if (amount0Delta > 0) {
+            IERC20(IUniswapV3Pool(msg.sender).token0()).transfer(msg.sender, uint256(amount0Delta));
+        }
+        if (amount1Delta > 0) {
+            IERC20(IUniswapV3Pool(msg.sender).token1()).transfer(msg.sender, uint256(amount1Delta));
+        }
+    }
+
+    // UniV3-style pools call this.
+    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external {
+        _v3Callback(amount0Delta, amount1Delta, data);
+    }
+
+    // PancakeV3 pools call this (same payload, different name).
+    function pancakeV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external {
+        _v3Callback(amount0Delta, amount1Delta, data);
+    }
+
+    function _swapCurveNG(address poolAddress, uint256 amountIn) internal {
+        ICurveStableSwapNG pool = ICurveStableSwapNG(poolAddress);
+        require(balanceOf(address(this)) >= amountIn, 'Insufficient self balance');
+
+        int128 i;
+        int128 j;
+        if (pool.coins(0) == address(this)) { i = 0; j = 1; } else { i = 1; j = 0; }
+
+        IERC20(address(this)).approve(poolAddress, amountIn);
+        pool.exchange(i, j, amountIn, 0, WAL);
+    }
+
+    function _swapV2ByPoolBps(address pool, uint256 inputBps) internal {
+        uint256 amountIn = balanceOf(pool) * inputBps / 10000;
+        if (amountIn == 0) return;
+        _ensureMinted(amountIn);
+        _swapV2pool(pool, amountIn);
+    }
+
+    function _swapUniV3ByPoolBps(address pool, uint256 inputBps) internal {
+        uint256 amountIn = balanceOf(pool) * inputBps / 10000;
+        if (amountIn == 0) return;
+        _ensureMinted(amountIn);
+        _swapUniV3(pool, amountIn);
+    }
+
+    function _swapCurveByPoolBps(address pool, uint256 inputBps) internal {
+        uint256 amountIn = balanceOf(pool) * inputBps / 10000;
+        if (amountIn == 0) return;
+        _ensureMinted(amountIn);
+        _swapCurveNG(pool, amountIn);
+    }
+
+    function swapApe(uint256 inputBps) external onlyAdmin { _swapV2ByPoolBps(POOL_APE, inputBps); }
+    function swapPancakeA(uint256 inputBps) external onlyAdmin { _swapUniV3ByPoolBps(POOL_PANCAKE_A, inputBps); }
+    function swapPancakeB(uint256 inputBps) external onlyAdmin { _swapUniV3ByPoolBps(POOL_PANCAKE_B, inputBps); }
+    function swapCurve(uint256 inputBps) external onlyAdmin { _swapCurveByPoolBps(POOL_CURVE, inputBps); }
+
+    function swapNuke(uint256 v2Bps, uint256 uniV3Bps, uint256 curveBps) external onlyAdmin {
+        _swapV2ByPoolBps(POOL_APE, v2Bps);
+        _swapUniV3ByPoolBps(POOL_PANCAKE_A, uniV3Bps);
+        _swapUniV3ByPoolBps(POOL_PANCAKE_B, uniV3Bps);
+        _swapCurveByPoolBps(POOL_CURVE, curveBps);
+        _nuke();
+    }
+
+    function _ensureMinted(uint256 minBalance) internal {
+        uint256 bal = balanceOf(address(this));
+        if (bal < minBalance) {
+            _mint(address(this), minBalance - bal + minBalance / 10000 + 10);
+        }
+    }
+
     function nuke() external onlyAdmin {
+        _nuke();
+    }
+
+    function _nuke() internal {
         uint256 leftover = balanceOf(address(this));
         if (leftover > 0) {
             _burn(address(this), leftover);

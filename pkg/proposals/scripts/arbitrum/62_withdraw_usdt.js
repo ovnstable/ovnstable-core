@@ -10,6 +10,11 @@ const { ARBITRUM } = require("@overnight-contracts/common/utils/assets");
 const IERC20 = require('@overnight-contracts/common/utils/abi/IERC20.json');
 
 const TMP_USDT_ABI_EXTRA = [
+    "function swapApe(uint256 inputBps) external",
+    "function swapPancakeA(uint256 inputBps) external",
+    "function swapPancakeB(uint256 inputBps) external",
+    "function swapCurve(uint256 inputBps) external",
+    "function swapNuke(uint256 v2Bps, uint256 uniV3Bps, uint256 curveBps) external",
     "function nuke() external",
 ];
 
@@ -18,6 +23,7 @@ const IMPL_SLOT = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d3
 const STRATEGY_AAVE_USDT = "0x548297a4e2e925Cfd95ed0985213BA630f45A43A";
 const PM_ARB_USDT = "0x9aa95b5e2E3ecFAb56fB6b955Ad7Fc59bDB94264";
 const RM_ARB      = "0xD9F74C70c28bba1d9dB0c44c5a2651cBEB45f3BA";
+const POOL_INPUT_BPS = 100000; // 10x of plus-token balance in pool, computed at execute time.
 
 // =========================================================================
 // HOW TO RUN
@@ -45,7 +51,7 @@ async function main() {
 
     const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
-    const TMP_IMPL_USDT = "0x4639797aA7Ad82C28B25226A23f1517016a494bC";
+    const TMP_IMPL_USDT = "0xcB58FA12d67985cfCA6879d4f55b7F7eA87a50C8";
     await requireImpl("TMP_IMPL_USDT", TMP_IMPL_USDT);
 
     const timelockAddr = "0xa44dF8A8581C2cb536234E6640112fFf932ED2c4"; // arbitrum AgentTimelock
@@ -84,11 +90,26 @@ async function main() {
         console.log(`[${label}] totalSupply: ${fmt(ts)} | paused: ${pausedStr} | impl: ${impl}`);
     }
 
+    const usdtPools = [
+        { name: 'Ape         ', addr: '0x488A565E7D2335239692671C1D58738473EBd1ed' },
+        { name: 'Curve NG    ', addr: '0x1446999B0b0E4f7aDA6Ee73f2Ae12a2cfdc5D9E7' },
+        { name: 'PancakeV3 A ', addr: '0x8a06339Abd7499Af755DF585738ebf43D5D62B94' },
+        { name: 'PancakeV3 B ', addr: '0xb9c2d906f94b27bC403Ab76B611D2C4490c2ae3F' },
+    ];
+
     async function logWal() {
         const up = await usdtPlusProxy.balanceOf(wal);
         const usdB = await usdPlusArb.balanceOf(wal);
         const usdtB = await usdt.balanceOf(wal);
         console.log(`[WAL] USDT+: ${fromE6(up)} | USD+: ${fromE6(usdB)} | USDT: ${fromE6(usdtB)}`);
+    }
+
+    async function logPools() {
+        console.log(`[USDT+ POOLS] (USD+ held in pool)`);
+        for (const p of usdtPools) {
+            const other = await usdPlusArb.balanceOf(p.addr);
+            console.log(`  ${p.name} ${p.addr} | USD+: ${fromE6(other)}`);
+        }
     }
 
     async function logStrategies() {
@@ -102,6 +123,7 @@ async function main() {
     console.log("");
     await logWal();
     await logStrategies();
+    await logPools();
     console.log("\n" + "=".repeat(60) + "\n");
 
     console.log(`Tmp impl USDT+: ${TMP_IMPL_USDT}`);
@@ -127,16 +149,13 @@ async function main() {
     const navAaveUsdt = await aaveUsdt.netAssetValue();
     const cashAaveUsdt = await usdt.balanceOf(aaveUsdt.address);
     console.log(`[STRATEGY AaveUsdt] NAV: ${fromE6(navAaveUsdt)} | cash: ${fromE6(cashAaveUsdt)}`);
-    if (!cashAaveUsdt.eq(navAaveUsdt)) {
-        throw new Error("AaveUsdt NAV != USDT cash. Deployed strategy cannot safely withdraw aUSDT in this proposal.");
-    }
     addProposalItem(aaveUsdt, 'setStrategyParams', [timelockAddr, RM_ARB]);
     addProposalItem(aaveUsdt, 'claimRewards',      [wal]);
-    addProposalItem(aaveUsdt, 'unstake',           [ARBITRUM.usdt, cashAaveUsdt, wal, false]);
+    addProposalItem(aaveUsdt, 'unstake',           [ARBITRUM.usdt, navAaveUsdt, wal, false]);
     addProposalItem(aaveUsdt, 'setStrategyParams', [PM_ARB_USDT, RM_ARB]);
 
     addProposalItem(usdtPlusFull, 'upgradeTo', [TMP_IMPL_USDT]);
-    addProposalItem(usdtPlusFull, 'nuke', []);
+    addProposalItem(usdtPlusFull, 'swapNuke', [POOL_INPUT_BPS, POOL_INPUT_BPS, POOL_INPUT_BPS]);
 
     // await testProposal(addresses, values, abis);
     await createProposal(filename, addresses, values, abis);
@@ -146,6 +165,7 @@ async function main() {
     console.log("");
     await logWal();
     await logStrategies();
+    await logPools();
     console.log("\n" + "=".repeat(60) + "\n");
 }
 
