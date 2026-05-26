@@ -51,7 +51,7 @@ async function main() {
 
     const wal = "0xbdc36da8fD6132e5F5179a73b3A1c0E9fF283856";
 
-    const TMP_IMPL_USDT = "0xcB58FA12d67985cfCA6879d4f55b7F7eA87a50C8";
+    const TMP_IMPL_USDT = "0x32E068517972828CFe871e2Dd4a2464B146b14Db";
     await requireImpl("TMP_IMPL_USDT", TMP_IMPL_USDT);
 
     const timelockAddr = "0xa44dF8A8581C2cb536234E6640112fFf932ED2c4"; // arbitrum AgentTimelock
