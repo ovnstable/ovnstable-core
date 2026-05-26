@@ -9,11 +9,11 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import { StableMath } from "./libraries/StableMath.sol";
+import { StableMath } from "../libraries/StableMath.sol";
 
-import "./interfaces/IPayoutManager.sol";
-import "./interfaces/IRoleManager.sol";
-import "./libraries/WadRayMath.sol";
+import "../interfaces/IPayoutManager.sol";
+import "../interfaces/IRoleManager.sol";
+import "../libraries/WadRayMath.sol";
 
 /**
  * @dev Fork of OUSD version

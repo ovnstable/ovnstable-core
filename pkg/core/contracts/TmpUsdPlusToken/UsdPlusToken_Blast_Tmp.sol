@@ -10,12 +10,12 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import { StableMath } from "./libraries/StableMath.sol";
+import { StableMath } from "../libraries/StableMath.sol";
 import {ICLPool, TickMath, CallbackValidation, LiquidityAmounts} from "@overnight-contracts/connectors/contracts/stuff/Thruster.sol";
 
-import "./interfaces/IPayoutManager.sol";
-import "./interfaces/IRoleManager.sol";
-import "./libraries/WadRayMath.sol";
+import "../interfaces/IPayoutManager.sol";
+import "../interfaces/IRoleManager.sol";
+import "../libraries/WadRayMath.sol";
 
 interface IUniswapV2Pair {
     function token0() external view returns (address);

@@ -1,9 +1,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../UsdPlusToken.sol";
+import "../UsdPlusTokenV3.sol";
 
-contract TestUsdPlusToken is UsdPlusToken {
+contract TestUsdPlusToken is UsdPlusTokenV3 {
 
     uint8 private decimalsTest;
 
